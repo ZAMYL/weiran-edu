@@ -1,0 +1,3 @@
+# Native optional packages are installed from the lockfile; no fallback build scripts.
+allowBuilds:
+  unrs-resolver: false

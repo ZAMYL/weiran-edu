@@ -1,61 +1,74 @@
 # 未然 EDU
 
-面向高校教师的学生测评数据分析与 AI 教学解释项目。基于经授权的真实学生测评 Excel，规划提供可核查的数据分析与教学辅助。
-
-本项目独立于 [未然决策推演平台](https://github.com/ZAMYL/weiran)，使用独立仓库与提交历史。
+面向高校教师的学生测评数据分析与 AI 教学解释项目，独立于 [未然决策推演平台](https://github.com/ZAMYL/weiran)。
 
 ## 当前阶段
 
-仅完成仓库初始化和目录占位，尚未实现业务功能，未安装框架或依赖。目前没有可启动的前后端服务，也没有测试套件。
+已搭建独立的 Next.js + FastAPI 基础工程：最小首页、加载与错误页面、健康检查、统一错误结构、请求编号、服务端环境配置、离线测试及 CI。
 
-以下方向来自项目负责人本次初始化说明，具体范围、分析口径和验收标准等待团队确认 PRD：
+尚未实现 Excel 导入、清洗、六类学情分析、学生画像、群体筛选、证据追溯、评语分类或 AI 教学解释。多批次测评与成长追踪属于后续方向；六类分析的定义和验收标准仍待团队确认。没有业务接口、数据库 Schema、教师认证或模型调用实现。
 
-- 数据清洗、规范化和质量校验。
-- 六类学情分析（具体分类与计算口径待 PRD 确认）。
-- 学生能力画像及群体筛选。
-- 原始评分和评语证据追溯。
-- 规则化评语主题分类。
-- AI 教学解释。
-- 后续支持多批次测评及成长追踪。
+[PRD](docs/PRD.md) 仍待确认；[架构](docs/ARCHITECTURE.md)、[搭建与验证](docs/BOOTSTRAP.md)、[迁移评估](docs/MIGRATION_MAP.md) 分别记录工程边界、运行方法和参考来源。
 
-## 计划技术栈
+## 技术栈
 
-| 模块 | 计划技术 | 状态 |
-| --- | --- | --- |
-| 前端 | Next.js、React、TypeScript | 待初始化；版本待确认 |
-| 后端与分析 | FastAPI、Python | 待初始化；版本待确认 |
-| 数据库 | SQLite | 待设计；没有数据库文件或表结构 |
+- 前端：Node.js 24、pnpm 11.25.0、Next.js 16.4.1、React 19.3.1、TypeScript 5.9.3。
+- 前端质量工具：ESLint 9、Prettier 3，使用 `pnpm-lock.yaml` 锁定依赖。
+- 后端：Python 3.12、uv 0.11.14、FastAPI、Pydantic、Uvicorn，使用 `uv.lock` 锁定依赖。
+- 后端质量工具：Ruff、pytest、httpx；测试禁止外网连接。
+- SQLite 是未来计划，当前没有数据库文件、表或迁移。
 
-## 团队
+## 本地运行
 
-| 成员 | 分工 |
-| --- | --- |
-| ZAMYL | 项目负责人，AI 和数据分析规则 |
-| AooMing（林明） | 前端 |
-| Peng-Kai789（彭仲楷） | 后端与数据库 |
+先安装 Node.js 24、pnpm 11.25.0、Python 3.12 和 uv。以下命令分别在两个终端运行，默认仅绑定本机回环地址，无需任何密钥。
 
-## 目录
+前端：
 
-```text
-apps/
-  web/       Next.js 前端（后续）
-  api/       FastAPI 后端（后续）
-docs/
-  ARCHITECTURE.md  架构规划
-  PRD.md           已确认 PRD 的待补充说明
-evals/       数据分析与 AI 评测（后续）
+```powershell
+cd D:\AI\weiran-edu\apps\web
+pnpm install --frozen-lockfile
+pnpm dev
 ```
 
-空目录通过 `.gitkeep` 纳入 Git。架构说明见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)，需求状态见 [docs/PRD.md](docs/PRD.md)。
+访问 [http://127.0.0.1:3000](http://127.0.0.1:3000)。
+
+后端：
+
+```powershell
+cd D:\AI\weiran-edu\apps\api
+uv sync --locked --group dev
+uv run --locked uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000 --reload --no-access-log
+```
+
+访问 [健康检查](http://127.0.0.1:8000/api/v1/health)，返回 `{"status":"ok"}` 及 `X-Request-ID`。接口文档位于 [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)。这是进程存活检查，不探测数据库或模型服务。
+
+无需创建 `.env` 即可运行。可选环境配置及完整测试命令见 [BOOTSTRAP](docs/BOOTSTRAP.md)。
+
+## 团队与目录
+
+| 成员 | 分工 / 入口 |
+| --- | --- |
+| ZAMYL | 负责人，分析规则、后续 AI 模块与 `evals/` |
+| AooMing（林明） | `apps/web/` 前端，后续布局与视觉自主设计 |
+| Peng-Kai789（彭仲楷） | `apps/api/` 后端、API、数据库 |
+
+```text
+apps/web/             Next.js App Router 与前端工具链
+apps/api/app/core/    配置、错误处理、请求编号
+apps/api/app/routers/ 健康检查；后续 API 由后端负责人设计
+apps/api/app/schemas/ 仅健康检查与通用错误响应
+apps/api/tests/       离线测试
+docs/                产品状态、架构、运行与迁移说明
+evals/               后续分析与 AI 评测占位
+.github/workflows/   PR / main 的独立 CI
+```
+
+协作约定见 [AGENTS.md](AGENTS.md)。
 
 ## 数据与隐私
 
-- 不提交老师提供的《评价.xlsx》、任何原始学生数据、真实密钥、密码或数据库，即使仓库为私有也不例外。
-- 数据文件仅在获得明确授权后于仓库外的受控位置处理；不得将学生个人信息放入文档、日志、截图或提交历史。
-- 未来开发与评测使用经隐私审查的合成样例，不将合成数据冒充真实结果。
-- `.gitignore` 提供基础防误提交保护，提交前仍须检查暂存内容；它不能自动识别文件中的个人信息。
-- AI 教学解释如何使用数据、是否调用外部模型，须在开发前确认授权与脱敏边界。
+不上传《评价.xlsx》、原始 Excel/CSV、真实学生资料、密钥、密码或 SQLite 数据库，私有仓库也不例外。开发测试使用经审查的合成内容。不要在文档、日志、截图、PR 或测试夹具中包含个人信息。
 
-## 开发前待确认
+`.gitignore` 允许安全的 `.env.example` 和 SQL 迁移源文件；真实环境文件、数据和数据库仍被忽略。忽略规则不能识别任意文件里的隐私内容，提交前仍需审查。
 
-三人共同确认 PRD v0.2、六类分析与评分口径、Excel 字段与异常处理、评语主题规则、证据追溯方式、数据授权与保留策略，以及 API 契约、数据库设计、技术版本与验收标准，再开始功能开发。
+开发前需共同确认 PRD v0.2、分析与评分口径、输入字段、证据追溯、数据授权与保留策略、API 契约、数据库设计和验收标准。

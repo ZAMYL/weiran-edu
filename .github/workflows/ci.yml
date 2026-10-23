@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  WEIRAN_EDU_ENV: test
+  PYTHONUTF8: "1"
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  backend:
+    name: Backend (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version-file: apps/api/.python-version
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.11.14"
+          enable-cache: false
+      - name: Install locked dependencies
+        run: uv sync --locked --group dev
+      - name: Ruff
+        run: uv run --locked --no-sync ruff check .
+      - name: Python format
+        run: uv run --locked --no-sync ruff format --check .
+      - name: Offline pytest
+        run: uv run --locked --no-sync pytest -q -ra
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: apps/web/package.json
+          package-manager-cache: false
+      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+        with:
+          package_json_file: apps/web/package.json
+          run_install: false
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
+      - name: Format
+        run: pnpm format:check
+      - name: TypeScript
+        run: pnpm typecheck
+      - name: Build
+        run: pnpm build
+      - name: Production smoke test
+        run: pnpm test
