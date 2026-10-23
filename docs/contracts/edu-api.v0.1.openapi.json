@@ -1,0 +1,4266 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "未然 EDU 后端 API 草案",
+    "version": "0.1.0-draft",
+    "description": "仅接口设计，尚未实现或部署。依据用户确认的四条后端规则；新增读取接口及 DTO 待联调评审。所有 examples 为合成数据，哈希为占位值，不代表真实导入或测试记录。完整业务代码、数据库迁移与六类分析成功 DTO 不在本次范围。 沿用 chore/bootstrap 现有错误信封和通用错误码；已有健康检查不在本 EDU 业务契约内。"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "相对地址占位；没有实际服务地址。"
+    }
+  ],
+  "tags": [
+    {
+      "name": "imports",
+      "description": "固定模板预览与确认"
+    },
+    {
+      "name": "batches",
+      "description": "测评批次"
+    },
+    {
+      "name": "students",
+      "description": "匿名画像与筛选"
+    },
+    {
+      "name": "evidence",
+      "description": "评分、评语及标准证据"
+    },
+    {
+      "name": "statistics",
+      "description": "待分析口径冻结的入口"
+    }
+  ],
+  "security": [
+    {
+      "teacherBearer": []
+    }
+  ],
+  "paths": {
+    "/api/v1/edu/imports/preview": {
+      "post": {
+        "operationId": "preview_import",
+        "summary": "上传固定模板并创建预览",
+        "tags": [
+          "imports"
+        ],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "预览已创建；status=invalid 时禁止确认。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ImportPreview"
+                    },
+                    {
+                      "properties": {
+                        "import": {
+                          "properties": {
+                            "status": {
+                              "enum": [
+                                "preview_ready",
+                                "invalid"
+                              ]
+                            }
+                          }
+                        },
+                        "preview_available": {
+                          "const": true
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "ImportPreview_1": {
+                    "$ref": "#/components/examples/ImportPreview_1"
+                  },
+                  "ImportPreview_2": {
+                    "$ref": "#/components/examples/ImportPreview_2"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "403": {
+            "$ref": "#/components/responses/ErrorResponse2"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "413": {
+            "$ref": "#/components/responses/ErrorResponse4"
+          },
+          "415": {
+            "$ref": "#/components/responses/ErrorResponse5"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "description": "仅创建暂存记录；不创建正式学生或测评，不调用模型。上传限额的建议值见文档，需实现前确认。损坏且无法检查的工作簿返回 422 WORKBOOK_UNREADABLE；处理超时返回 503 IMPORT_PROCESSING_UNAVAILABLE。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewUpload"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/edu/imports/{import_id}": {
+      "get": {
+        "operationId": "get_import_preview",
+        "summary": "分页回读暂存预览",
+        "tags": [
+          "imports"
+        ],
+        "parameters": [
+          {
+            "name": "import_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "student_offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "预览学生偏移。"
+          },
+          {
+            "name": "student_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 20,
+              "maximum": 100
+            },
+            "description": "预览学生页大小。"
+          },
+          {
+            "name": "issue_offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "质量问题偏移。"
+          },
+          {
+            "name": "issue_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 100,
+              "maximum": 100
+            },
+            "description": "质量问题页大小。"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "可读取的预览或已提交导入摘要。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPreview"
+                },
+                "examples": {
+                  "ImportPreview_1": {
+                    "$ref": "#/components/examples/ImportPreview_1"
+                  },
+                  "ImportPreview_2": {
+                    "$ref": "#/components/examples/ImportPreview_2"
+                  },
+                  "ImportPreview_3": {
+                    "$ref": "#/components/examples/ImportPreview_3"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "410": {
+            "$ref": "#/components/responses/ErrorResponse9"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "description": "补充读取接口草案。仅上传教师可读；已提交时 preview_available=false，暂存列表为空值，转读正式批次。"
+      }
+    },
+    "/api/v1/edu/imports/{import_id}/commit": {
+      "post": {
+        "operationId": "commit_import",
+        "summary": "确认入库并幂等返回批次",
+        "tags": [
+          "imports"
+        ],
+        "parameters": [
+          {
+            "name": "import_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "result=duplicate 或 replayed。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/CommitResult"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "enum": [
+                            "duplicate",
+                            "replayed"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "CommitResult_2": {
+                    "$ref": "#/components/examples/CommitResult_2"
+                  },
+                  "CommitResult_3": {
+                    "$ref": "#/components/examples/CommitResult_3"
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "新批次创建成功，result=created。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/CommitResult"
+                    },
+                    {
+                      "properties": {
+                        "result": {
+                          "enum": [
+                            "created"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "CommitResult_1": {
+                    "$ref": "#/components/examples/CommitResult_1"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "403": {
+            "$ref": "#/components/responses/ErrorResponse2"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "409": {
+            "$ref": "#/components/responses/ErrorResponse10"
+          },
+          "410": {
+            "$ref": "#/components/responses/ErrorResponse11"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommitRequest"
+              },
+              "examples": {
+                "CommitRequest_1": {
+                  "$ref": "#/components/examples/CommitRequest_1"
+                }
+              }
+            }
+          }
+        },
+        "description": "状态、版本与权限必须复核，所有正式写入同一事务。重试已提交导入不重新解析或创建批次。无权访问的重复批次不得返回其 ID。"
+      }
+    },
+    "/api/v1/edu/batches": {
+      "get": {
+        "operationId": "list_batches",
+        "summary": "分页查询可访问测评批次",
+        "tags": [
+          "batches"
+        ],
+        "parameters": [
+          {
+            "name": "data_scope_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            },
+            "description": "按来源范围筛选，不构成授权。"
+          },
+          {
+            "name": "include_revisions",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "是否包含历史修订版本。"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "从零开始的偏移。"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 20,
+              "maximum": 100
+            },
+            "description": "每页数量。"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "批次列表；无数据时为空。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchList"
+                },
+                "examples": {
+                  "BatchList_1": {
+                    "$ref": "#/components/examples/BatchList_1"
+                  },
+                  "BatchList_2": {
+                    "$ref": "#/components/examples/BatchList_2"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        }
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}": {
+      "get": {
+        "operationId": "get_batch",
+        "summary": "读取批次元数据与数量",
+        "tags": [
+          "batches"
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "指定正式批次。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Batch"
+                },
+                "examples": {
+                  "Batch_1": {
+                    "$ref": "#/components/examples/Batch_1"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "description": "补充读取接口草案。历史批次保留原标准与证据。"
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/students": {
+      "get": {
+        "operationId": "list_students",
+        "summary": "分页读取匿名学生五维评分",
+        "tags": [
+          "students"
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "从零开始的偏移。"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 20,
+              "maximum": 100
+            },
+            "description": "每页数量。"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "学生列表；每名学生五项不同维度。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentList"
+                },
+                "examples": {
+                  "StudentList_1": {
+                    "$ref": "#/components/examples/StudentList_1"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "description": "补充读取接口草案。列表不返回整段评语，显示顺序不代表排名。"
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/groups/query": {
+      "post": {
+        "operationId": "query_student_group",
+        "summary": "执行确定性的两维 AND 筛选",
+        "tags": [
+          "students"
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "匹配人数、比例和本页匿名画像。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupResult"
+                },
+                "examples": {
+                  "GroupResult_1": {
+                    "$ref": "#/components/examples/GroupResult_1"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupQuery"
+              },
+              "examples": {
+                "GroupQuery_1": {
+                  "$ref": "#/components/examples/GroupQuery_1"
+                }
+              }
+            }
+          }
+        },
+        "description": "条件限制不同维度、1～2 条；同一逻辑生成完整人数与名单。ratio 的分母是本批全部有效学生，不是分页数量。"
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/students/{student_id}/evidence": {
+      "get": {
+        "operationId": "get_student_evidence",
+        "summary": "读取学生五维证据与脱敏评语",
+        "tags": [
+          "evidence"
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "恰好五条本批评分证据。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentEvidence"
+                },
+                "examples": {
+                  "StudentEvidence_1": {
+                    "$ref": "#/components/examples/StudentEvidence_1"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "description": "student_id 为匿名 ID，必须参与路径批次。原始身份和未经检查的原始评语不会返回。"
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/evidence/{evidence_id}": {
+      "get": {
+        "operationId": "get_evidence",
+        "summary": "按稳定证据 ID 核对引用",
+        "tags": [
+          "evidence"
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "evidence_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "属于指定批次且获授权的单条评分证据。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evidence"
+                },
+                "examples": {
+                  "Evidence_1": {
+                    "$ref": "#/components/examples/Evidence_1"
+                  },
+                  "Evidence_2": {
+                    "$ref": "#/components/examples/Evidence_2"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
+          }
+        },
+        "description": "补充读取接口草案。证据不属于本批次、资源缺失和无权限均返回 404，禁止跨批次补查。"
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/rubric": {
+      "get": {
+        "operationId": "get_rubric",
+        "summary": "读取本批五维评价依据",
+        "tags": [
+          "evidence"
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "五项依据原名称、正文及来源区域。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rubric"
+                },
+                "examples": {
+                  "Rubric_1": {
+                    "$ref": "#/components/examples/Rubric_1"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse12"
+          }
+        }
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/statistics": {
+      "get": {
+        "operationId": "get_statistics",
+        "summary": "保留统计入口，算法另行冻结",
+        "tags": [
+          "statistics"
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse13"
+          }
+        },
+        "description": "本次不定义成功统计 DTO。算法未配置时鉴权后返回 503，不能以零均值或空数组冒充有效统计。其他已定义的错误仍适用。"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "teacherBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "拟接入的教师令牌，不设计签发接口；教师与资源权限由服务端验证。"
+      }
+    },
+    "schemas": {
+      "OpaqueId": {
+        "type": "string",
+        "description": "服务端生成的不透明标识；demo 标识仅供合成示例。",
+        "minLength": 1,
+        "maxLength": 100,
+        "pattern": "^[A-Za-z0-9_-]+$"
+      },
+      "Sha256": {
+        "type": "string",
+        "description": "小写 SHA-256 十六进制摘要。",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "Version": {
+        "type": "string",
+        "description": "不可变版本标识。",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "DimensionCode": {
+        "type": "string",
+        "enum": [
+          "algorithm_data_structure",
+          "code_implementation",
+          "problem_modeling",
+          "efficiency_awareness",
+          "solution_strategy"
+        ]
+      },
+      "Score": {
+        "type": "number",
+        "minimum": 1,
+        "maximum": 5,
+        "multipleOf": 0.01,
+        "description": "最多两位小数，严格拒绝布尔值和字符串；十进制解析，库内整数百分之一分。"
+      },
+      "Page": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "returned": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "offset",
+          "limit",
+          "returned",
+          "has_more"
+        ],
+        "additionalProperties": false
+      },
+      "QualityIssue": {
+        "type": "object",
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "质量问题码。",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "description": "不得包含真实身份或原始评语。",
+            "minLength": 1
+          },
+          "sheet_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "工作表名。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "row_number": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cell": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "无法定位时为 null。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "severity",
+          "code",
+          "message",
+          "sheet_name",
+          "row_number",
+          "cell"
+        ],
+        "additionalProperties": false
+      },
+      "ImportSummary": {
+        "type": "object",
+        "properties": {
+          "detected_student_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "complete_student_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "parsed_evaluation_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "error_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "warning_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "detected_student_count",
+          "complete_student_count",
+          "parsed_evaluation_count",
+          "error_count",
+          "warning_count"
+        ],
+        "additionalProperties": false
+      },
+      "ScoreSource": {
+        "type": "object",
+        "properties": {
+          "file_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "sheet_name": {
+            "type": "string",
+            "description": "来源工作表。",
+            "minLength": 1
+          },
+          "row_number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "dimension_cell": {
+            "type": "string",
+            "description": "原维度单元格。",
+            "pattern": "^[A-Z]+[1-9][0-9]*$"
+          },
+          "score_cell": {
+            "type": "string",
+            "description": "原评分单元格。",
+            "pattern": "^[A-Z]+[1-9][0-9]*$"
+          },
+          "comment_cell": {
+            "type": "string",
+            "description": "原评语单元格。",
+            "pattern": "^[A-Z]+[1-9][0-9]*$"
+          }
+        },
+        "required": [
+          "file_sha256",
+          "sheet_name",
+          "row_number",
+          "dimension_cell",
+          "score_cell",
+          "comment_cell"
+        ],
+        "additionalProperties": false
+      },
+      "RubricSource": {
+        "type": "object",
+        "properties": {
+          "file_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "sheet_name": {
+            "type": "string",
+            "description": "来源工作表。",
+            "minLength": 1
+          },
+          "range": {
+            "type": "string",
+            "description": "实际来源区域。",
+            "pattern": "^[A-Z]+[1-9][0-9]*(:[A-Z]+[1-9][0-9]*)?$"
+          }
+        },
+        "required": [
+          "file_sha256",
+          "sheet_name",
+          "range"
+        ],
+        "additionalProperties": false
+      },
+      "CommentStatus": {
+        "type": "string",
+        "enum": [
+          "screened",
+          "masked",
+          "empty",
+          "withheld"
+        ]
+      },
+      "PreviewScore": {
+        "type": "object",
+        "properties": {
+          "dimension_code": {
+            "$ref": "#/components/schemas/DimensionCode"
+          },
+          "score": {
+            "$ref": "#/components/schemas/Score"
+          },
+          "score_raw": {
+            "type": "string",
+            "description": "原始单个评分文本，不含身份或整行。",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "经身份检查后的展示评语。",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "comment_status": {
+            "$ref": "#/components/schemas/CommentStatus"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ScoreSource"
+          }
+        },
+        "required": [
+          "dimension_code",
+          "score",
+          "score_raw",
+          "comment",
+          "comment_status",
+          "source"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "comment_status": {
+                  "enum": [
+                    "empty",
+                    "withheld"
+                  ]
+                }
+              },
+              "required": [
+                "comment_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "comment": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "comment": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PreviewStudent": {
+        "type": "object",
+        "properties": {
+          "preview_student_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "display_label": {
+            "type": "string",
+            "description": "本次预览匿名标识，不是正式学生 ID。",
+            "minLength": 1
+          },
+          "scores": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PreviewScore"
+            },
+            "minItems": 5,
+            "maxItems": 5,
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "algorithm_data_structure"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "code_implementation"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "problem_modeling"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "efficiency_awareness"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "solution_strategy"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            ]
+          }
+        },
+        "required": [
+          "preview_student_id",
+          "display_label",
+          "scores"
+        ],
+        "additionalProperties": false
+      },
+      "ImportRecord": {
+        "type": "object",
+        "properties": {
+          "import_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "preview_ready",
+              "invalid",
+              "committed",
+              "expired"
+            ]
+          },
+          "data_scope_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "title": {
+            "type": "string",
+            "description": "测评标题。",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "course": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "未知时为 null。",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assessment_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision_of_batch_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpaqueId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "file_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "content_sha256": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sha256"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "content_hash_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "parser_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "rubric_version": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Version"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preview_version": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "committed_batch_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpaqueId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "duplicate_batch_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpaqueId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "import_id",
+          "status",
+          "data_scope_id",
+          "title",
+          "course",
+          "assessment_date",
+          "revision_of_batch_id",
+          "file_sha256",
+          "content_sha256",
+          "content_hash_version",
+          "parser_version",
+          "rubric_version",
+          "preview_version",
+          "created_at",
+          "expires_at",
+          "committed_batch_id",
+          "duplicate_batch_id"
+        ],
+        "additionalProperties": false
+      },
+      "ImportPreview": {
+        "type": "object",
+        "properties": {
+          "import": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ImportRecord"
+              },
+              {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "preview_ready",
+                      "invalid",
+                      "committed"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "preview_available": {
+            "type": "boolean"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ImportSummary"
+          },
+          "student_samples": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PreviewStudent"
+                },
+                "maxItems": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "student_page": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "issues": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/QualityIssue"
+                },
+                "maxItems": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "issue_page": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "import",
+          "preview_available",
+          "summary",
+          "student_samples",
+          "student_page",
+          "issues",
+          "issue_page"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "import": {
+                  "properties": {
+                    "status": {
+                      "const": "committed"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              },
+              "required": [
+                "import"
+              ]
+            },
+            "then": {
+              "properties": {
+                "preview_available": {
+                  "const": false
+                },
+                "student_samples": {
+                  "type": "null"
+                },
+                "student_page": {
+                  "type": "null"
+                },
+                "issues": {
+                  "type": "null"
+                },
+                "issue_page": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "preview_available": {
+                  "const": true
+                },
+                "student_samples": {
+                  "type": "array"
+                },
+                "student_page": {
+                  "type": "object"
+                },
+                "issues": {
+                  "type": "array"
+                },
+                "issue_page": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PreviewUpload": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "固定模板 .xlsx；内容和解压资源另行验证。"
+          },
+          "data_scope_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "title": {
+            "type": "string",
+            "description": "去除首尾空白后 1～100 字符。",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "course": {
+            "type": "string",
+            "description": "未提供为 null；若提供不得为空。",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "assessment_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "revision_of_batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": [
+          "file",
+          "data_scope_id",
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "CommitRequest": {
+        "type": "object",
+        "properties": {
+          "preview_version": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "acknowledge_warnings": {
+            "type": "boolean",
+            "description": "有警告时必须为 true。"
+          }
+        },
+        "required": [
+          "preview_version",
+          "acknowledge_warnings"
+        ],
+        "additionalProperties": false
+      },
+      "CommitResult": {
+        "type": "object",
+        "properties": {
+          "import_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "created",
+              "duplicate",
+              "replayed"
+            ]
+          }
+        },
+        "required": [
+          "import_id",
+          "batch_id",
+          "result"
+        ],
+        "additionalProperties": false
+      },
+      "Batch": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "data_scope_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "title": {
+            "type": "string",
+            "description": "确认后的标题。",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "course": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "课程。",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "assessment_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "student_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "evaluation_count": {
+            "type": "integer",
+            "minimum": 5,
+            "multipleOf": 5
+          },
+          "rubric_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "parser_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "file_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "content_sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "content_hash_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "revision_of_batch_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpaqueId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_current": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "batch_id",
+          "data_scope_id",
+          "title",
+          "course",
+          "assessment_date",
+          "student_count",
+          "evaluation_count",
+          "rubric_version",
+          "parser_version",
+          "file_sha256",
+          "content_sha256",
+          "content_hash_version",
+          "revision_of_batch_id",
+          "is_current",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "BatchList": {
+        "type": "object",
+        "properties": {
+          "total_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Batch"
+            },
+            "maxItems": 100
+          },
+          "page": {
+            "$ref": "#/components/schemas/Page"
+          }
+        },
+        "required": [
+          "total_count",
+          "items",
+          "page"
+        ],
+        "additionalProperties": false
+      },
+      "ScoreSummary": {
+        "type": "object",
+        "properties": {
+          "dimension_code": {
+            "$ref": "#/components/schemas/DimensionCode"
+          },
+          "score": {
+            "$ref": "#/components/schemas/Score"
+          },
+          "evidence_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": [
+          "dimension_code",
+          "score",
+          "evidence_id"
+        ],
+        "additionalProperties": false
+      },
+      "StudentProfile": {
+        "type": "object",
+        "properties": {
+          "student_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "display_label": {
+            "type": "string",
+            "description": "匿名显示编号，不代表排名。",
+            "minLength": 1
+          },
+          "scores": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoreSummary"
+            },
+            "minItems": 5,
+            "maxItems": 5,
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "algorithm_data_structure"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "code_implementation"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "problem_modeling"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "efficiency_awareness"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "solution_strategy"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            ]
+          }
+        },
+        "required": [
+          "student_id",
+          "display_label",
+          "scores"
+        ],
+        "additionalProperties": false
+      },
+      "StudentList": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "total_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentProfile"
+            },
+            "maxItems": 100
+          },
+          "page": {
+            "$ref": "#/components/schemas/Page"
+          }
+        },
+        "required": [
+          "batch_id",
+          "total_count",
+          "items",
+          "page"
+        ],
+        "additionalProperties": false
+      },
+      "FilterCondition": {
+        "type": "object",
+        "properties": {
+          "dimension_code": {
+            "$ref": "#/components/schemas/DimensionCode"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "lt",
+              "lte",
+              "eq",
+              "gte",
+              "gt"
+            ]
+          },
+          "value": {
+            "$ref": "#/components/schemas/Score"
+          }
+        },
+        "required": [
+          "dimension_code",
+          "operator",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "GroupQuery": {
+        "type": "object",
+        "properties": {
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilterCondition"
+            },
+            "minItems": 1,
+            "maxItems": 2,
+            "description": "各条件维度不同，固定 AND；不同维度约束由服务端额外检查。",
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "algorithm_data_structure"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "code_implementation"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "problem_modeling"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "efficiency_awareness"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "solution_strategy"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              }
+            ]
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        "required": [
+          "conditions"
+        ],
+        "additionalProperties": false
+      },
+      "GroupResult": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilterCondition"
+            },
+            "minItems": 1,
+            "maxItems": 2,
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "algorithm_data_structure"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "code_implementation"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "problem_modeling"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "efficiency_awareness"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "solution_strategy"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 0,
+                "maxContains": 1
+              }
+            ]
+          },
+          "rule_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "matched_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "total_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "ratio": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentProfile"
+            },
+            "maxItems": 100
+          },
+          "page": {
+            "$ref": "#/components/schemas/Page"
+          }
+        },
+        "required": [
+          "batch_id",
+          "conditions",
+          "rule_version",
+          "matched_count",
+          "total_count",
+          "ratio",
+          "items",
+          "page"
+        ],
+        "additionalProperties": false
+      },
+      "Evidence": {
+        "type": "object",
+        "properties": {
+          "evidence_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "student_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "dimension_code": {
+            "$ref": "#/components/schemas/DimensionCode"
+          },
+          "score": {
+            "$ref": "#/components/schemas/Score"
+          },
+          "score_raw": {
+            "type": "string",
+            "description": "原始单个评分文本。",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "经检查或遮蔽后的评语，不是受控原文。",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "comment_status": {
+            "$ref": "#/components/schemas/CommentStatus"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ScoreSource"
+          },
+          "rubric_criterion_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "batch_id",
+          "student_id",
+          "dimension_code",
+          "score",
+          "score_raw",
+          "comment",
+          "comment_status",
+          "source",
+          "rubric_criterion_id"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "comment_status": {
+                  "enum": [
+                    "empty",
+                    "withheld"
+                  ]
+                }
+              },
+              "required": [
+                "comment_status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "comment": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "comment": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ]
+      },
+      "StudentEvidence": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "student_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "display_label": {
+            "type": "string",
+            "description": "匿名显示编号。",
+            "minLength": 1
+          },
+          "rubric_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "minItems": 5,
+            "maxItems": 5,
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "algorithm_data_structure"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "code_implementation"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "problem_modeling"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "efficiency_awareness"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "solution_strategy"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            ]
+          }
+        },
+        "required": [
+          "batch_id",
+          "student_id",
+          "display_label",
+          "rubric_version",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "RubricCriterion": {
+        "type": "object",
+        "properties": {
+          "rubric_criterion_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "dimension_code": {
+            "$ref": "#/components/schemas/DimensionCode"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "展示维度名称。",
+            "minLength": 1
+          },
+          "original_name": {
+            "type": "string",
+            "description": "原表维度名称。",
+            "minLength": 1
+          },
+          "criteria_text": {
+            "type": "string",
+            "description": "经必要检查的本批评价依据，不由模型补写。",
+            "minLength": 1
+          },
+          "source": {
+            "$ref": "#/components/schemas/RubricSource"
+          }
+        },
+        "required": [
+          "rubric_criterion_id",
+          "dimension_code",
+          "display_name",
+          "original_name",
+          "criteria_text",
+          "source"
+        ],
+        "additionalProperties": false
+      },
+      "Rubric": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "rubric_version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "criteria": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RubricCriterion"
+            },
+            "minItems": 5,
+            "maxItems": 5,
+            "allOf": [
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "algorithm_data_structure"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "code_implementation"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "problem_modeling"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "efficiency_awareness"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              },
+              {
+                "contains": {
+                  "type": "object",
+                  "properties": {
+                    "dimension_code": {
+                      "const": "solution_strategy"
+                    }
+                  },
+                  "required": [
+                    "dimension_code"
+                  ]
+                },
+                "minContains": 1,
+                "maxContains": 1
+              }
+            ]
+          }
+        },
+        "required": [
+          "batch_id",
+          "rubric_version",
+          "criteria"
+        ],
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "稳定错误码。",
+                "minLength": 1
+              },
+              "message": {
+                "type": "string",
+                "description": "安全提示，不含异常栈。",
+                "minLength": 1
+              },
+              "request_id": {
+                "type": "string",
+                "description": "关联请求 ID。",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "code",
+              "message",
+              "request_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "examples": {
+      "ImportPreview_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "import": {
+            "import_id": "import_demo_001",
+            "status": "preview_ready",
+            "data_scope_id": "scope_demo_001",
+            "title": "合成测评示例",
+            "course": null,
+            "assessment_date": null,
+            "revision_of_batch_id": null,
+            "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "content_hash_version": "content.v1",
+            "parser_version": "current_template.v1",
+            "rubric_version": "rubric.demo.v1",
+            "preview_version": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "created_at": "2026-10-23T10:00:00Z",
+            "expires_at": "2026-10-24T10:00:00Z",
+            "committed_batch_id": null,
+            "duplicate_batch_id": null
+          },
+          "preview_available": true,
+          "summary": {
+            "detected_student_count": 3,
+            "complete_student_count": 3,
+            "parsed_evaluation_count": 15,
+            "error_count": 0,
+            "warning_count": 0
+          },
+          "student_samples": [
+            {
+              "preview_student_id": "preview_demo_001",
+              "display_label": "预览学生 001",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2.5,
+                  "score_raw": "2.5",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 3,
+                    "dimension_cell": "B3",
+                    "score_cell": "C3",
+                    "comment_cell": "D3"
+                  }
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 3.5,
+                  "score_raw": "3.5",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 4,
+                    "dimension_cell": "B4",
+                    "score_cell": "C4",
+                    "comment_cell": "D4"
+                  }
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 3,
+                  "score_raw": "3",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 5,
+                    "dimension_cell": "B5",
+                    "score_cell": "C5",
+                    "comment_cell": "D5"
+                  }
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 2.75,
+                  "score_raw": "2.75",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 6,
+                    "dimension_cell": "B6",
+                    "score_cell": "C6",
+                    "comment_cell": "D6"
+                  }
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4.5,
+                  "score_raw": "4.5",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 7,
+                    "dimension_cell": "B7",
+                    "score_cell": "C7",
+                    "comment_cell": "D7"
+                  }
+                }
+              ]
+            },
+            {
+              "preview_student_id": "preview_demo_002",
+              "display_label": "预览学生 002",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2,
+                  "score_raw": "2",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 9,
+                    "dimension_cell": "B9",
+                    "score_cell": "C9",
+                    "comment_cell": "D9"
+                  }
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 3,
+                  "score_raw": "3",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 10,
+                    "dimension_cell": "B10",
+                    "score_cell": "C10",
+                    "comment_cell": "D10"
+                  }
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 3.5,
+                  "score_raw": "3.5",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 11,
+                    "dimension_cell": "B11",
+                    "score_cell": "C11",
+                    "comment_cell": "D11"
+                  }
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 3,
+                  "score_raw": "3",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 12,
+                    "dimension_cell": "B12",
+                    "score_cell": "C12",
+                    "comment_cell": "D12"
+                  }
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 13,
+                    "dimension_cell": "B13",
+                    "score_cell": "C13",
+                    "comment_cell": "D13"
+                  }
+                }
+              ]
+            },
+            {
+              "preview_student_id": "preview_demo_003",
+              "display_label": "预览学生 003",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 15,
+                    "dimension_cell": "B15",
+                    "score_cell": "C15",
+                    "comment_cell": "D15"
+                  }
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 16,
+                    "dimension_cell": "B16",
+                    "score_cell": "C16",
+                    "comment_cell": "D16"
+                  }
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 17,
+                    "dimension_cell": "B17",
+                    "score_cell": "C17",
+                    "comment_cell": "D17"
+                  }
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 18,
+                    "dimension_cell": "B18",
+                    "score_cell": "C18",
+                    "comment_cell": "D18"
+                  }
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 3,
+                  "score_raw": "3",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 19,
+                    "dimension_cell": "B19",
+                    "score_cell": "C19",
+                    "comment_cell": "D19"
+                  }
+                }
+              ]
+            }
+          ],
+          "student_page": {
+            "offset": 0,
+            "limit": 20,
+            "returned": 3,
+            "has_more": false
+          },
+          "issues": [],
+          "issue_page": {
+            "offset": 0,
+            "limit": 100,
+            "returned": 0,
+            "has_more": false
+          }
+        },
+        "x-schema": "#/components/schemas/ImportPreview"
+      },
+      "ImportPreview_2": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "import": {
+            "import_id": "import_demo_001",
+            "status": "invalid",
+            "data_scope_id": "scope_demo_001",
+            "title": "合成测评示例",
+            "course": null,
+            "assessment_date": null,
+            "revision_of_batch_id": null,
+            "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": null,
+            "content_hash_version": "content.v1",
+            "parser_version": "current_template.v1",
+            "rubric_version": "rubric.demo.v1",
+            "preview_version": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "created_at": "2026-10-23T10:00:00Z",
+            "expires_at": "2026-10-24T10:00:00Z",
+            "committed_batch_id": null,
+            "duplicate_batch_id": null
+          },
+          "preview_available": true,
+          "summary": {
+            "detected_student_count": 3,
+            "complete_student_count": 2,
+            "parsed_evaluation_count": 14,
+            "error_count": 1,
+            "warning_count": 0
+          },
+          "student_samples": [
+            {
+              "preview_student_id": "preview_demo_001",
+              "display_label": "预览学生 001",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2.5,
+                  "score_raw": "2.5",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 3,
+                    "dimension_cell": "B3",
+                    "score_cell": "C3",
+                    "comment_cell": "D3"
+                  }
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 3.5,
+                  "score_raw": "3.5",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 4,
+                    "dimension_cell": "B4",
+                    "score_cell": "C4",
+                    "comment_cell": "D4"
+                  }
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 3,
+                  "score_raw": "3",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 5,
+                    "dimension_cell": "B5",
+                    "score_cell": "C5",
+                    "comment_cell": "D5"
+                  }
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 2.75,
+                  "score_raw": "2.75",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 6,
+                    "dimension_cell": "B6",
+                    "score_cell": "C6",
+                    "comment_cell": "D6"
+                  }
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4.5,
+                  "score_raw": "4.5",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 7,
+                    "dimension_cell": "B7",
+                    "score_cell": "C7",
+                    "comment_cell": "D7"
+                  }
+                }
+              ]
+            },
+            {
+              "preview_student_id": "preview_demo_003",
+              "display_label": "预览学生 003",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 15,
+                    "dimension_cell": "B15",
+                    "score_cell": "C15",
+                    "comment_cell": "D15"
+                  }
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 16,
+                    "dimension_cell": "B16",
+                    "score_cell": "C16",
+                    "comment_cell": "D16"
+                  }
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 17,
+                    "dimension_cell": "B17",
+                    "score_cell": "C17",
+                    "comment_cell": "D17"
+                  }
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 4,
+                  "score_raw": "4",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 18,
+                    "dimension_cell": "B18",
+                    "score_cell": "C18",
+                    "comment_cell": "D18"
+                  }
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 3,
+                  "score_raw": "3",
+                  "comment": "合成评语，仅用于接口联调示例。",
+                  "comment_status": "screened",
+                  "source": {
+                    "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "sheet_name": "Sheet2",
+                    "row_number": 19,
+                    "dimension_cell": "B19",
+                    "score_cell": "C19",
+                    "comment_cell": "D19"
+                  }
+                }
+              ]
+            }
+          ],
+          "student_page": {
+            "offset": 0,
+            "limit": 20,
+            "returned": 2,
+            "has_more": false
+          },
+          "issues": [
+            {
+              "severity": "error",
+              "code": "SCORE_MISSING",
+              "message": "该维度评分缺失，请修正后重新上传。",
+              "sheet_name": "Sheet2",
+              "row_number": 10,
+              "cell": "C10"
+            }
+          ],
+          "issue_page": {
+            "offset": 0,
+            "limit": 100,
+            "returned": 1,
+            "has_more": false
+          }
+        },
+        "x-schema": "#/components/schemas/ImportPreview"
+      },
+      "ImportPreview_3": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "import": {
+            "import_id": "import_demo_001",
+            "status": "committed",
+            "data_scope_id": "scope_demo_001",
+            "title": "合成测评示例",
+            "course": null,
+            "assessment_date": null,
+            "revision_of_batch_id": null,
+            "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "content_hash_version": "content.v1",
+            "parser_version": "current_template.v1",
+            "rubric_version": "rubric.demo.v1",
+            "preview_version": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+            "created_at": "2026-10-23T10:00:00Z",
+            "expires_at": "2026-10-24T10:00:00Z",
+            "committed_batch_id": "batch_demo_001",
+            "duplicate_batch_id": null
+          },
+          "preview_available": false,
+          "summary": {
+            "detected_student_count": 3,
+            "complete_student_count": 3,
+            "parsed_evaluation_count": 15,
+            "error_count": 0,
+            "warning_count": 0
+          },
+          "student_samples": null,
+          "student_page": null,
+          "issues": null,
+          "issue_page": null
+        },
+        "x-schema": "#/components/schemas/ImportPreview"
+      },
+      "CommitRequest_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "preview_version": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "acknowledge_warnings": false
+        },
+        "x-schema": "#/components/schemas/CommitRequest"
+      },
+      "CommitResult_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "import_id": "import_demo_001",
+          "batch_id": "batch_demo_001",
+          "result": "created"
+        },
+        "x-schema": "#/components/schemas/CommitResult"
+      },
+      "CommitResult_2": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "import_id": "import_demo_001",
+          "batch_id": "batch_demo_001",
+          "result": "duplicate"
+        },
+        "x-schema": "#/components/schemas/CommitResult"
+      },
+      "CommitResult_3": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "import_id": "import_demo_001",
+          "batch_id": "batch_demo_001",
+          "result": "replayed"
+        },
+        "x-schema": "#/components/schemas/CommitResult"
+      },
+      "Batch_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "batch_id": "batch_demo_001",
+          "data_scope_id": "scope_demo_001",
+          "title": "合成测评示例",
+          "course": null,
+          "assessment_date": null,
+          "student_count": 3,
+          "evaluation_count": 15,
+          "rubric_version": "rubric.demo.v1",
+          "parser_version": "current_template.v1",
+          "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "content_hash_version": "content.v1",
+          "revision_of_batch_id": null,
+          "is_current": true,
+          "created_at": "2026-10-23T10:10:00Z"
+        },
+        "x-schema": "#/components/schemas/Batch"
+      },
+      "BatchList_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "total_count": 1,
+          "items": [
+            {
+              "batch_id": "batch_demo_001",
+              "data_scope_id": "scope_demo_001",
+              "title": "合成测评示例",
+              "course": null,
+              "assessment_date": null,
+              "student_count": 3,
+              "evaluation_count": 15,
+              "rubric_version": "rubric.demo.v1",
+              "parser_version": "current_template.v1",
+              "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "content_hash_version": "content.v1",
+              "revision_of_batch_id": null,
+              "is_current": true,
+              "created_at": "2026-10-23T10:10:00Z"
+            }
+          ],
+          "page": {
+            "offset": 0,
+            "limit": 20,
+            "returned": 1,
+            "has_more": false
+          }
+        },
+        "x-schema": "#/components/schemas/BatchList"
+      },
+      "BatchList_2": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "total_count": 0,
+          "items": [],
+          "page": {
+            "offset": 0,
+            "limit": 20,
+            "returned": 0,
+            "has_more": false
+          }
+        },
+        "x-schema": "#/components/schemas/BatchList"
+      },
+      "StudentList_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "batch_id": "batch_demo_001",
+          "total_count": 3,
+          "items": [
+            {
+              "student_id": "stu_demo_001",
+              "display_label": "学生 001",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2.5,
+                  "evidence_id": "ev_demo_001_1"
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 3.5,
+                  "evidence_id": "ev_demo_001_2"
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 3,
+                  "evidence_id": "ev_demo_001_3"
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 2.75,
+                  "evidence_id": "ev_demo_001_4"
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4.5,
+                  "evidence_id": "ev_demo_001_5"
+                }
+              ]
+            },
+            {
+              "student_id": "stu_demo_002",
+              "display_label": "学生 002",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2,
+                  "evidence_id": "ev_demo_002_1"
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 3,
+                  "evidence_id": "ev_demo_002_2"
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 3.5,
+                  "evidence_id": "ev_demo_002_3"
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 3,
+                  "evidence_id": "ev_demo_002_4"
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4,
+                  "evidence_id": "ev_demo_002_5"
+                }
+              ]
+            },
+            {
+              "student_id": "stu_demo_003",
+              "display_label": "学生 003",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 4,
+                  "evidence_id": "ev_demo_003_1"
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 4,
+                  "evidence_id": "ev_demo_003_2"
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 4,
+                  "evidence_id": "ev_demo_003_3"
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 4,
+                  "evidence_id": "ev_demo_003_4"
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 3,
+                  "evidence_id": "ev_demo_003_5"
+                }
+              ]
+            }
+          ],
+          "page": {
+            "offset": 0,
+            "limit": 20,
+            "returned": 3,
+            "has_more": false
+          }
+        },
+        "x-schema": "#/components/schemas/StudentList"
+      },
+      "GroupQuery_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "conditions": [
+            {
+              "dimension_code": "solution_strategy",
+              "operator": "gte",
+              "value": 4
+            },
+            {
+              "dimension_code": "algorithm_data_structure",
+              "operator": "lt",
+              "value": 3
+            }
+          ],
+          "offset": 0,
+          "limit": 20
+        },
+        "x-schema": "#/components/schemas/GroupQuery"
+      },
+      "GroupResult_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "batch_id": "batch_demo_001",
+          "conditions": [
+            {
+              "dimension_code": "solution_strategy",
+              "operator": "gte",
+              "value": 4
+            },
+            {
+              "dimension_code": "algorithm_data_structure",
+              "operator": "lt",
+              "value": 3
+            }
+          ],
+          "rule_version": "group_filter.v1",
+          "matched_count": 2,
+          "total_count": 3,
+          "ratio": 0.6666666666666666,
+          "items": [
+            {
+              "student_id": "stu_demo_001",
+              "display_label": "学生 001",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2.5,
+                  "evidence_id": "ev_demo_001_1"
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 3.5,
+                  "evidence_id": "ev_demo_001_2"
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 3,
+                  "evidence_id": "ev_demo_001_3"
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 2.75,
+                  "evidence_id": "ev_demo_001_4"
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4.5,
+                  "evidence_id": "ev_demo_001_5"
+                }
+              ]
+            },
+            {
+              "student_id": "stu_demo_002",
+              "display_label": "学生 002",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2,
+                  "evidence_id": "ev_demo_002_1"
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "score": 3,
+                  "evidence_id": "ev_demo_002_2"
+                },
+                {
+                  "dimension_code": "problem_modeling",
+                  "score": 3.5,
+                  "evidence_id": "ev_demo_002_3"
+                },
+                {
+                  "dimension_code": "efficiency_awareness",
+                  "score": 3,
+                  "evidence_id": "ev_demo_002_4"
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4,
+                  "evidence_id": "ev_demo_002_5"
+                }
+              ]
+            }
+          ],
+          "page": {
+            "offset": 0,
+            "limit": 20,
+            "returned": 2,
+            "has_more": false
+          }
+        },
+        "x-schema": "#/components/schemas/GroupResult"
+      },
+      "Evidence_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "evidence_id": "ev_demo_001_1",
+          "batch_id": "batch_demo_001",
+          "student_id": "stu_demo_001",
+          "dimension_code": "algorithm_data_structure",
+          "score": 2.5,
+          "score_raw": "2.5",
+          "comment": "合成评语，仅用于接口联调示例。",
+          "comment_status": "screened",
+          "source": {
+            "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "sheet_name": "Sheet2",
+            "row_number": 3,
+            "dimension_cell": "B3",
+            "score_cell": "C3",
+            "comment_cell": "D3"
+          },
+          "rubric_criterion_id": "criterion_demo_1"
+        },
+        "x-schema": "#/components/schemas/Evidence"
+      },
+      "Evidence_2": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "evidence_id": "ev_demo_001_1",
+          "batch_id": "batch_demo_001",
+          "student_id": "stu_demo_001",
+          "dimension_code": "algorithm_data_structure",
+          "score": 2.5,
+          "score_raw": "2.5",
+          "comment": null,
+          "comment_status": "withheld",
+          "source": {
+            "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "sheet_name": "Sheet2",
+            "row_number": 3,
+            "dimension_cell": "B3",
+            "score_cell": "C3",
+            "comment_cell": "D3"
+          },
+          "rubric_criterion_id": "criterion_demo_1"
+        },
+        "x-schema": "#/components/schemas/Evidence"
+      },
+      "StudentEvidence_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "batch_id": "batch_demo_001",
+          "student_id": "stu_demo_001",
+          "display_label": "学生 001",
+          "rubric_version": "rubric.demo.v1",
+          "items": [
+            {
+              "evidence_id": "ev_demo_001_1",
+              "batch_id": "batch_demo_001",
+              "student_id": "stu_demo_001",
+              "dimension_code": "algorithm_data_structure",
+              "score": 2.5,
+              "score_raw": "2.5",
+              "comment": "合成评语，仅用于接口联调示例。",
+              "comment_status": "screened",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet2",
+                "row_number": 3,
+                "dimension_cell": "B3",
+                "score_cell": "C3",
+                "comment_cell": "D3"
+              },
+              "rubric_criterion_id": "criterion_demo_1"
+            },
+            {
+              "evidence_id": "ev_demo_001_2",
+              "batch_id": "batch_demo_001",
+              "student_id": "stu_demo_001",
+              "dimension_code": "code_implementation",
+              "score": 3.5,
+              "score_raw": "3.5",
+              "comment": "合成评语，仅用于接口联调示例。",
+              "comment_status": "screened",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet2",
+                "row_number": 4,
+                "dimension_cell": "B4",
+                "score_cell": "C4",
+                "comment_cell": "D4"
+              },
+              "rubric_criterion_id": "criterion_demo_2"
+            },
+            {
+              "evidence_id": "ev_demo_001_3",
+              "batch_id": "batch_demo_001",
+              "student_id": "stu_demo_001",
+              "dimension_code": "problem_modeling",
+              "score": 3,
+              "score_raw": "3",
+              "comment": "合成评语，仅用于接口联调示例。",
+              "comment_status": "screened",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet2",
+                "row_number": 5,
+                "dimension_cell": "B5",
+                "score_cell": "C5",
+                "comment_cell": "D5"
+              },
+              "rubric_criterion_id": "criterion_demo_3"
+            },
+            {
+              "evidence_id": "ev_demo_001_4",
+              "batch_id": "batch_demo_001",
+              "student_id": "stu_demo_001",
+              "dimension_code": "efficiency_awareness",
+              "score": 2.75,
+              "score_raw": "2.75",
+              "comment": "合成评语，仅用于接口联调示例。",
+              "comment_status": "screened",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet2",
+                "row_number": 6,
+                "dimension_cell": "B6",
+                "score_cell": "C6",
+                "comment_cell": "D6"
+              },
+              "rubric_criterion_id": "criterion_demo_4"
+            },
+            {
+              "evidence_id": "ev_demo_001_5",
+              "batch_id": "batch_demo_001",
+              "student_id": "stu_demo_001",
+              "dimension_code": "solution_strategy",
+              "score": 4.5,
+              "score_raw": "4.5",
+              "comment": "合成评语，仅用于接口联调示例。",
+              "comment_status": "screened",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet2",
+                "row_number": 7,
+                "dimension_cell": "B7",
+                "score_cell": "C7",
+                "comment_cell": "D7"
+              },
+              "rubric_criterion_id": "criterion_demo_5"
+            }
+          ]
+        },
+        "x-schema": "#/components/schemas/StudentEvidence"
+      },
+      "Rubric_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "batch_id": "batch_demo_001",
+          "rubric_version": "rubric.demo.v1",
+          "criteria": [
+            {
+              "rubric_criterion_id": "criterion_demo_1",
+              "dimension_code": "algorithm_data_structure",
+              "display_name": "算法与数据结构",
+              "original_name": "算法与数据结构掌握程度",
+              "criteria_text": "合成评价依据，仅用于接口结构示例，不代表老师的真实标准。",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet1",
+                "range": "L3:P6"
+              }
+            },
+            {
+              "rubric_criterion_id": "criterion_demo_2",
+              "dimension_code": "code_implementation",
+              "display_name": "代码实现能力",
+              "original_name": "代码实现能力与工程素养",
+              "criteria_text": "合成评价依据，仅用于接口结构示例，不代表老师的真实标准。",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet1",
+                "range": "L8:P10"
+              }
+            },
+            {
+              "rubric_criterion_id": "criterion_demo_3",
+              "dimension_code": "problem_modeling",
+              "display_name": "问题建模能力",
+              "original_name": "问题分析与建模能力",
+              "criteria_text": "合成评价依据，仅用于接口结构示例，不代表老师的真实标准。",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet1",
+                "range": "L12:P14"
+              }
+            },
+            {
+              "rubric_criterion_id": "criterion_demo_4",
+              "dimension_code": "efficiency_awareness",
+              "display_name": "效率意识",
+              "original_name": "时间与空间效率意识",
+              "criteria_text": "合成评价依据，仅用于接口结构示例，不代表老师的真实标准。",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet1",
+                "range": "L16:P18"
+              }
+            },
+            {
+              "rubric_criterion_id": "criterion_demo_5",
+              "dimension_code": "solution_strategy",
+              "display_name": "解题策略",
+              "original_name": "解题策略与应变能力",
+              "criteria_text": "合成评价依据，仅用于接口结构示例，不代表老师的真实标准。",
+              "source": {
+                "file_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "sheet_name": "Sheet1",
+                "range": "L20:P22"
+              }
+            }
+          ]
+        },
+        "x-schema": "#/components/schemas/Rubric"
+      },
+      "ErrorResponse_1": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "error": {
+            "code": "RESOURCE_NOT_FOUND",
+            "message": "资源不存在或无权访问。",
+            "request_id": "req_demo_001"
+          }
+        },
+        "x-schema": "#/components/schemas/ErrorResponse"
+      },
+      "ErrorResponse_2": {
+        "summary": "合成示例；不是实际接口调用结果",
+        "value": {
+          "error": {
+            "code": "ANALYSIS_RULES_NOT_CONFIGURED",
+            "message": "分析规则尚未配置。",
+            "request_id": "req_demo_001"
+          }
+        },
+        "x-schema": "#/components/schemas/ErrorResponse"
+      }
+    },
+    "responses": {
+      "ErrorResponse1": {
+        "description": "教师身份不存在或失效。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "UNAUTHORIZED",
+                "message": "教师身份不存在或失效。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse2": {
+        "description": "无来源范围导入权限。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "FORBIDDEN",
+                "message": "无来源范围导入权限。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse3": {
+        "description": "资源不存在或无权访问。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "RESOURCE_NOT_FOUND",
+                "message": "资源不存在或无权访问。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse4": {
+        "description": "上传或解压资源超过配置上限。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "UPLOAD_LIMIT_EXCEEDED",
+                "message": "上传或解压资源超过配置上限。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse5": {
+        "description": "不支持的文件类型。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "UNSUPPORTED_FILE_TYPE",
+                "message": "不支持的文件类型。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse6": {
+        "description": "请求字段不合法。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "请求字段不合法。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse7": {
+        "description": "服务异常，请提供请求 ID。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "服务异常，请提供请求 ID。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse8": {
+        "description": "数据服务暂不可用，请稍后重试。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "DATABASE_UNAVAILABLE",
+                "message": "数据服务暂不可用，请稍后重试。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse9": {
+        "description": "未提交预览已超过 24 小时有效期。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "IMPORT_EXPIRED",
+                "message": "未提交预览已超过 24 小时有效期。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse10": {
+        "description": "状态、预览版本、警告确认、导入或修订冲突。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "IMPORT_CONFLICT",
+                "message": "状态、预览版本、警告确认、导入或修订冲突。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse11": {
+        "description": "未提交预览已过期。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "IMPORT_EXPIRED",
+                "message": "未提交预览已过期。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse12": {
+        "description": "数据库暂不可用或评价依据尚不能安全展示（DATA_REDACTION_UNAVAILABLE）。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "DATABASE_UNAVAILABLE",
+                "message": "数据服务暂不可用，请稍后重试。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse13": {
+        "description": "分析规则尚未配置。",
+        "headers": {
+          "X-Request-ID": {
+            "description": "服务端请求关联 ID。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "含学生数据的响应禁止缓存。",
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "code": "ANALYSIS_RULES_NOT_CONFIGURED",
+                "message": "分析规则尚未配置。",
+                "request_id": "req_demo_001"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-design-status": "draft-no-runtime",
+  "x-synthetic-examples": true,
+  "x-checked-repository-commit": "a306a3b1b8f5e309a123ca667b8d4723456e30c6"
+}
