@@ -1,6 +1,7 @@
 # Environment files and local configuration
 .env
 .env.*
+!.env.example
 .envrc
 .direnv/
 *.local
@@ -23,18 +24,18 @@ id_rsa*
 id_ed25519*
 
 # Raw assessment files and tabular data (including renamed exports)
-*.xls
-*.xlsx
-*.xlsm
-*.xlsb
-*.ods
-*.csv
-*.tsv
-*.parquet
-*.feather
-*.arrow
-*.pkl
-*.pickle
+*.[xX][lL][sS]
+*.[xX][lL][sS][xX]
+*.[xX][lL][sS][mM]
+*.[xX][lL][sS][bB]
+*.[oO][dD][sS]
+*.[cC][sS][vV]
+*.[tT][sS][vV]
+*.[pP][aA][rR][qQ][uU][eE][tT]
+*.[fF][eE][aA][tT][hH][eE][rR]
+*.[aA][rR][rR][oO][wW]
+*.[pP][kK][lL]
+*.[pP][iI][cC][kK][lL][eE]
 ~$*
 
 # Private data, uploads and personal information
@@ -62,13 +63,12 @@ exports/
 *personal_data*
 
 # SQLite databases, journals and backups
-*.db
-*.db-*
-*.sqlite
-*.sqlite-*
-*.sqlite3
-*.sqlite3-*
-*.sql
+*.[dD][bB]
+*.[dD][bB]-*
+*.[sS][qQ][lL][iI][tT][eE]
+*.[sS][qQ][lL][iI][tT][eE]-*
+*.[sS][qQ][lL][iI][tT][eE]3
+*.[sS][qQ][lL][iI][tT][eE]3-*
 *.bak
 backups/
 
@@ -88,6 +88,7 @@ build/
 .turbo/
 .vercel/
 *.tsbuildinfo
+next-env.d.ts
 coverage/
 .nyc_output/
 
