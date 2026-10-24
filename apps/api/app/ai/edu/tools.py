@@ -53,6 +53,7 @@ class FilterCondition(StrictModel):
 
 
 class FilterArguments(ScopeArguments):
+    include_statistics: bool = False
     conditions: Annotated[tuple[FilterCondition, ...], Field(min_length=1, max_length=5)]
 
 
@@ -71,7 +72,7 @@ TOOL_SCHEMAS = {
     "get_evidence_records": EvidenceArguments,
     "get_rubric_criteria": RubricArguments,
 }
-RULE_VERSION = "edu-analysis-v0.1-draft/ai-projection-v0.1.1"
+RULE_VERSION = "edu-analysis-v0.1-draft/ai-projection-v0.2.0"
 
 
 def encoded(value: object) -> bytes:
@@ -102,6 +103,7 @@ class ToolExecutor:
         self.rubric_ids: set[str] = set()
         self.documents: dict[str, EvidenceDocument | RubricDocument] = {}
         self.trace: list[TraceStep] = []
+        self.results: list[ToolResult] = []
         self._calls = 0
         self._bytes = 0
         self._validate_access()
@@ -184,6 +186,7 @@ class ToolExecutor:
                 result = ToolResult("error", "tool_provider_failure")
         # Bound even denial traces. No question, arguments, source IDs, text or exceptions.
         if len(self.trace) <= self.limits.max_tool_calls:
+            self.results.append(result)
             self.trace.append(
                 TraceStep(
                     min(self._calls, self.limits.max_tool_calls + 1),
@@ -280,70 +283,74 @@ class ToolExecutor:
                     unevaluable=len(selected.unevaluable_records),
                     query=conditions,
                 )
-        else:
-            summary = summarize(self.dataset, batch_id=args.batch_id, student_ids=students)
-            _, records = cohort(self.dataset, args.batch_id, students)
-            for stats in summary.dimensions:
-                # Project contributing records; numeric formulas remain in the analysis engine.
-                sources = {
-                    "missing_count": tuple(
-                        row.reference
-                        for row in records
-                        if row.score(stats.dimension).state is ScoreState.MISSING
-                    ),
-                    "invalid_count": tuple(
-                        row.reference
-                        for row in records
-                        if row.score(stats.dimension).state is ScoreState.INVALID
-                    ),
-                    "minimum": tuple(
+            if not args.include_statistics:
+                return ToolResult("ok", facts=tuple(facts))
+            students = selected.student_ids
+        summary = summarize(self.dataset, batch_id=args.batch_id, student_ids=students)
+        _, records = cohort(self.dataset, args.batch_id, students)
+        for stats in summary.dimensions:
+            # Project contributing records; numeric formulas remain in the analysis engine.
+            sources = {
+                "missing_count": tuple(
+                    row.reference
+                    for row in records
+                    if row.score(stats.dimension).state is ScoreState.MISSING
+                ),
+                "invalid_count": tuple(
+                    row.reference
+                    for row in records
+                    if row.score(stats.dimension).state is ScoreState.INVALID
+                ),
+                "minimum": tuple(
+                    row.reference
+                    for row in records
+                    if row.score(stats.dimension).state is ScoreState.VALID
+                    and row.score(stats.dimension).value == stats.minimum
+                ),
+                "maximum": tuple(
+                    row.reference
+                    for row in records
+                    if row.score(stats.dimension).state is ScoreState.VALID
+                    and row.score(stats.dimension).value == stats.maximum
+                ),
+            }
+            for metric, value, denominator in (
+                ("valid_count", stats.valid_count, summary.scope.student_count),
+                ("missing_count", stats.missing_count, summary.scope.student_count),
+                ("invalid_count", stats.invalid_count, summary.scope.student_count),
+                ("mean", stats.mean, stats.valid_count),
+                ("median", stats.median, stats.valid_count),
+                ("minimum", stats.minimum, stats.valid_count),
+                ("maximum", stats.maximum, stats.valid_count),
+            ):
+                add(
+                    metric,
+                    stats.dimension,
+                    value,
+                    denominator,
+                    summary.scope,
+                    sources.get(metric, stats.valid_records),
+                    stats.missing_count,
+                    stats.invalid_count,
+                    query=conditions if isinstance(args, FilterArguments) else (),
+                )
+            for entry in stats.distribution:
+                add(
+                    f"frequency_at_{entry.score}",
+                    stats.dimension,
+                    entry.share.count,
+                    entry.share.denominator,
+                    summary.scope,
+                    tuple(
                         row.reference
                         for row in records
                         if row.score(stats.dimension).state is ScoreState.VALID
-                        and row.score(stats.dimension).value == stats.minimum
+                        and row.score(stats.dimension).value == entry.score
                     ),
-                    "maximum": tuple(
-                        row.reference
-                        for row in records
-                        if row.score(stats.dimension).state is ScoreState.VALID
-                        and row.score(stats.dimension).value == stats.maximum
-                    ),
-                }
-                for metric, value, denominator in (
-                    ("valid_count", stats.valid_count, summary.scope.student_count),
-                    ("missing_count", stats.missing_count, summary.scope.student_count),
-                    ("invalid_count", stats.invalid_count, summary.scope.student_count),
-                    ("mean", stats.mean, stats.valid_count),
-                    ("median", stats.median, stats.valid_count),
-                    ("minimum", stats.minimum, stats.valid_count),
-                    ("maximum", stats.maximum, stats.valid_count),
-                ):
-                    add(
-                        metric,
-                        stats.dimension,
-                        value,
-                        denominator,
-                        summary.scope,
-                        sources.get(metric, stats.valid_records),
-                        stats.missing_count,
-                        stats.invalid_count,
-                    )
-                for entry in stats.distribution:
-                    add(
-                        f"frequency_at_{entry.score}",
-                        stats.dimension,
-                        entry.share.count,
-                        entry.share.denominator,
-                        summary.scope,
-                        tuple(
-                            row.reference
-                            for row in records
-                            if row.score(stats.dimension).state is ScoreState.VALID
-                            and row.score(stats.dimension).value == entry.score
-                        ),
-                        stats.missing_count,
-                        stats.invalid_count,
-                    )
+                    stats.missing_count,
+                    stats.invalid_count,
+                    query=conditions if isinstance(args, FilterArguments) else (),
+                )
         return ToolResult("ok", facts=tuple(facts))
 
     def _check_document(self, text: str) -> None:

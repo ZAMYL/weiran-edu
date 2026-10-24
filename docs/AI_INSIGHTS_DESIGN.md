@@ -1,7 +1,8 @@
 # AI 教学解释引擎 v0.1（离线草案）
 
-本模块位于 `apps/api/app/ai/edu/`，只实现合成数据、Fake LLM 的内部工作流。
-没有业务 HTTP 路由、数据库、真实教师认证、模型网络适配器或付费调用。
+本模块位于 `apps/api/app/ai/edu/`。本文记录默认离线核心与事实校验规则；
+新增受控 Qwen Synthetic Live 见 [QWEN_INTEGRATION.md](QWEN_INTEGRATION.md)。
+没有业务 HTTP 路由、数据库或真实教师认证；默认离线路径不产生付费调用。
 统计与筛选复用 `app.analysis.edu.summarize/select_students`，不另写计算公式。
 详细分析与主题规则仍分别以 [ANALYSIS_RULES.md](ANALYSIS_RULES.md)、
 [COMMENT_ANALYSIS_RULES.md](COMMENT_ANALYSIS_RULES.md) 的草案状态为准。
@@ -20,7 +21,7 @@
 
 只允许一次规划、一次组合，不进行无限工具循环或失败重试。每次
 `run_insights` 都创建新的 ToolExecutor；不同请求之间不共享台账。
-`LLMClient` 是可替换的异步 Protocol，当前只用测试中的 FakeLLM。
+`LLMClient` 是可替换的异步 Protocol；默认测试使用 FakeLLM，远程客户端须显式合成在线授权。
 `offline_only=True` 和 SyntheticAccess 是受信调用方的声明，不是网络沙箱、
 真实鉴权或自动数据脱敏检测。不能把真实材料改个标志就用于本流程。
 
@@ -72,7 +73,7 @@ Provider 当前是同步、合成内存实现；未来数据库/远程适配须�
 Fact 保留 fact_id、batch_id、rule_id/rule_version、metric、维度、精确 Fraction、
 denominator、Scope（含 ScorePolicy 和群体 RecordRef）、参与记录来源、
 筛选条件、缺失/无效/不可判定状态与限制。
-投影规则版本为 `edu-analysis-v0.1-draft/ai-projection-v0.1.1`，是本适配器的草案版本，
+投影规则版本为 `edu-analysis-v0.1-draft/ai-projection-v0.2.0`，是本适配器的草案版本，
 不宣称原引擎具有已冻结的业务版本。行为变化需随代码审查更新版本与样例。
 
 - 统计 n 为该维有效记录数；均值/中位数/极值的 denominator=n。
@@ -191,7 +192,7 @@ test_evidence_sources.py 覆盖实际来源/分母、缺失/无效、分值频�
    **不能替代真实认证**，不能仅修改 synthetic_only/offline_only 就开放生产。
 4. 先确认教师主动触发、最小化数据、外部模型授权和隐私审查、小群体披露限制，
    再单独实现真实 LLM Client。默认继续不发送个人评分、评语、定位和身份。
-   本轮没实现密钥读取或外部传输，不能声称已经完成这类集成安全验收。
+   默认离线核心不读取密钥；合成在线适配另有边界，不能视为真实数据集成安全验收。
 5. 协调正式响应 DTO、展示精度、前端解释标识、Provider 超时和重检策略；
    经过教师审核扩充解释/行动/验证模板，再评估是否允许更自由的文本。
    统计意义、跨批次可比性与教学效果另需研究设计，不能从本轮测试推出。

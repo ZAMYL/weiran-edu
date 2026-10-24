@@ -1,10 +1,15 @@
 """No provider text or individual records enter a model prompt in this release."""
 
+from app.analysis.edu import Dimension
+
 from .models import Plan, Proposal
 from .tools import TOOL_SCHEMAS, ToolExecutor, encoded
+from .validation import ACTIONS, HYPOTHESES, VERIFICATIONS, evidence_matches_fact
 
 
-def planning_prompt(question: str, executor: ToolExecutor) -> str:
+def planning_prompt(
+    question: str, executor: ToolExecutor, *, synthetic_context: str | None = None
+) -> str:
     return encoded(
         {
             "instruction": (
@@ -15,6 +20,8 @@ def planning_prompt(question: str, executor: ToolExecutor) -> str:
             ),
             "untrusted_synthetic_question": question,
             "batch_id": executor.access.batch_id,
+            "synthetic_context": synthetic_context,
+            "dimension_labels": {item.name: item.value for item in Dimension},
             "permitted_evidence_ids": sorted(
                 grant.evidence_id for grant in executor.access.evidence_grants
             ),
@@ -42,6 +49,11 @@ def composition_prompt(executor: ToolExecutor) -> str:
                 {
                     "evidence_id": identifier,
                     "kind": document.grant.reference.kind.value,
+                    "compatible_fact_ids": [
+                        fact.fact_id
+                        for fact in executor.facts.values()
+                        if evidence_matches_fact(document, fact)
+                    ],
                     "dimension": (
                         document.grant.reference.dimension.name
                         if document.grant.reference.dimension
@@ -50,6 +62,20 @@ def composition_prompt(executor: ToolExecutor) -> str:
                 }
                 for identifier, document in sorted(executor.documents.items())
             ],
+            "tool_results": [
+                {
+                    "tool": step.tool,
+                    "status": result.status,
+                    "fact_ids": tuple(fact.fact_id for fact in result.facts),
+                    "evidence_ids": result.evidence_ids,
+                }
+                for step, result in zip(executor.trace, executor.results, strict=True)
+            ],
+            "template_catalog": {
+                "hypotheses": HYPOTHESES,
+                "teaching_actions": ACTIONS,
+                "verification_steps": VERIFICATIONS,
+            },
             "response_schema": Proposal.model_json_schema(),
         }
     ).decode("utf-8")

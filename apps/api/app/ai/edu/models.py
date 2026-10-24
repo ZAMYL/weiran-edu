@@ -1,6 +1,7 @@
 """Internal offline contracts, not HTTP DTOs or authentication credentials."""
 
 from dataclasses import dataclass, field
+from enum import Enum
 from fractions import Fraction
 from typing import Annotated, Literal, Protocol
 
@@ -62,10 +63,16 @@ class RubricProvider(Protocol):
     def get(self, access: SyntheticAccess, evidence_id: str) -> RubricDocument | None: ...
 
 
-class LLMClient(Protocol):
-    """Implementations must be cooperative async, offline stubs in this release."""
+class ExecutionMode(Enum):
+    OFFLINE = "offline"
+    SYNTHETIC_LIVE = "synthetic_live"
+    PRODUCTION = "production"
 
-    offline_only: Literal[True]
+
+class LLMClient(Protocol):
+    """Cooperative async clients; execution mode is checked before any model call."""
+
+    offline_only: bool
 
     async def plan(self, prompt: str) -> str: ...
 
@@ -263,6 +270,7 @@ class Outcome:
     error_code: str | None
     trace: tuple[TraceStep, ...]
     facts: tuple[Fact, ...] = field(default=(), repr=False)
+    execution_mode: str = "offline"
 
 
 SAFE_ERRORS = frozenset(
@@ -304,6 +312,28 @@ SAFE_ERRORS = frozenset(
         "prompt_size_limit",
         "unsupported_fact_basis",
         "evidence_fact_scope_mismatch",
+        "synthetic_live_opt_in_required",
+        "synthetic_live_client_required",
+        "unsupported_execution_mode",
+        "synthetic_scenario_required",
+        "qwen_missing_api_key",
+        "qwen_missing_base_url",
+        "qwen_invalid_base_url",
+        "qwen_invalid_config",
+        "qwen_request_limit",
+        "qwen_no_tool_calls",
+        "qwen_invalid_response",
+        "qwen_transport_error",
+        "qwen_response_limit",
+        "qwen_output_truncated",
+        "qwen_authentication_failed",
+        "qwen_permission_denied",
+        "qwen_model_or_endpoint_unavailable",
+        "qwen_bad_request",
+        "qwen_rate_limited",
+        "qwen_redirect_denied",
+        "qwen_service_error",
+        "model_timeout",
     }
 )
 
