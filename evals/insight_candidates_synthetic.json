@@ -1,0 +1,390 @@
+{
+  "data_kind": "synthetic_only",
+  "teacher_authorization": "synthetic_local_demo_not_real_auth",
+  "cards": [
+    {
+      "candidate_id": "candidate-6b0b6c7e8d9f7ab483ba2f72",
+      "batch_id": "synthetic-batch",
+      "candidate_type": "dimension_distribution",
+      "scope": {
+        "kind": "selected_assessment_records",
+        "record_count": 4
+      },
+      "dimension": "ALGORITHMS",
+      "frontend_dimension": "algorithm",
+      "title": "算法与数据结构在所设评分区间内较集中",
+      "summary": "有效4/4条；均值47/16，中位数23/8；缺失0条、无效0条。所设区间命中2/4个有效样本。",
+      "metrics": [
+        {
+          "key": "valid_count",
+          "unit": "records",
+          "exact": {
+            "numerator": 4,
+            "denominator": 1
+          },
+          "display": "4",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "missing_count",
+          "unit": "records",
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "display": "0",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "invalid_count",
+          "unit": "records",
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "display": "0",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "mean",
+          "unit": "score",
+          "exact": {
+            "numerator": 47,
+            "denominator": 16
+          },
+          "display": "2.94",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "median",
+          "unit": "score",
+          "exact": {
+            "numerator": 23,
+            "denominator": 8
+          },
+          "display": "2.88",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "frequency:2",
+          "unit": "records",
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "display": "1",
+          "denominator": 4,
+          "at_score_exact": {
+            "numerator": 2,
+            "denominator": 1
+          }
+        },
+        {
+          "key": "frequency:11/4",
+          "unit": "records",
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "display": "1",
+          "denominator": 4,
+          "at_score_exact": {
+            "numerator": 11,
+            "denominator": 4
+          }
+        },
+        {
+          "key": "frequency:3",
+          "unit": "records",
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "display": "1",
+          "denominator": 4,
+          "at_score_exact": {
+            "numerator": 3,
+            "denominator": 1
+          }
+        },
+        {
+          "key": "frequency:4",
+          "unit": "records",
+          "exact": {
+            "numerator": 1,
+            "denominator": 1
+          },
+          "display": "1",
+          "denominator": 4,
+          "at_score_exact": {
+            "numerator": 4,
+            "denominator": 1
+          }
+        },
+        {
+          "key": "interval_count",
+          "unit": "records",
+          "exact": {
+            "numerator": 2,
+            "denominator": 1
+          },
+          "display": "2",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "interval_ratio",
+          "unit": "ratio",
+          "exact": {
+            "numerator": 1,
+            "denominator": 2
+          },
+          "display": "50.00%",
+          "denominator": 4,
+          "at_score_exact": null
+        }
+      ],
+      "conditions": [
+        {
+          "dimension": "ALGORITHMS",
+          "frontend_dimension": "algorithm",
+          "operator": "<",
+          "frontend_operator": "<",
+          "threshold_exact": {
+            "numerator": 3,
+            "denominator": 1
+          }
+        }
+      ],
+      "denominator": 4,
+      "rule_id": "edu.insight.distribution",
+      "rule_version": "edu-insight-candidates-0.1.0-draft",
+      "adapter_version": "edu-insight-candidates-0.1.0-draft",
+      "source_rule_fingerprint": null,
+      "status": "observed",
+      "limitations": [
+        "观察来自当前输入快照，不代表学生能力诊断或因果结论。",
+        "引用只作内部定位，来源真实性及详情权限须由后端复核。",
+        "当前人数是有测评记录的群体，不代表应测花名册人数。",
+        "区间条件只用于探索，不是正式教学标准，低分不等于能力不足。"
+      ],
+      "suggested_next_action": "分别查看有效评分样本及缺失、无效记录，并核对本批评分标准。",
+      "public_display_allowed": false,
+      "public_restrictions": [
+        "small_scope",
+        "small_cell_or_complement"
+      ],
+      "controlled_query": {
+        "candidate_id": "candidate-6b0b6c7e8d9f7ab483ba2f72",
+        "kind": "dimension_records",
+        "snapshot_id": "synthetic-snapshot-v1",
+        "metric_keys": [
+          "valid_count",
+          "missing_count",
+          "invalid_count",
+          "mean",
+          "median",
+          "frequency:2",
+          "frequency:11/4",
+          "frequency:3",
+          "frequency:4",
+          "interval_count",
+          "interval_ratio"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate-05c33ddce098357823764a9f",
+      "batch_id": "synthetic-batch",
+      "candidate_type": "ability_group",
+      "scope": {
+        "kind": "selected_assessment_records",
+        "record_count": 4
+      },
+      "dimension": null,
+      "frontend_dimension": null,
+      "title": "能力组合：算法与数据结构<3 且 解题策略>=4",
+      "summary": "2/4条记录满足条件，占比1/2；可判定样本4，不可判定0条。",
+      "metrics": [
+        {
+          "key": "matched_count",
+          "unit": "records",
+          "exact": {
+            "numerator": 2,
+            "denominator": 1
+          },
+          "display": "2",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "matched_ratio",
+          "unit": "ratio",
+          "exact": {
+            "numerator": 1,
+            "denominator": 2
+          },
+          "display": "50.00%",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "eligible_count",
+          "unit": "records",
+          "exact": {
+            "numerator": 4,
+            "denominator": 1
+          },
+          "display": "4",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "matched_among_eligible",
+          "unit": "ratio",
+          "exact": {
+            "numerator": 1,
+            "denominator": 2
+          },
+          "display": "50.00%",
+          "denominator": 4,
+          "at_score_exact": null
+        },
+        {
+          "key": "unevaluable_count",
+          "unit": "records",
+          "exact": {
+            "numerator": 0,
+            "denominator": 1
+          },
+          "display": "0",
+          "denominator": 4,
+          "at_score_exact": null
+        }
+      ],
+      "conditions": [
+        {
+          "dimension": "ALGORITHMS",
+          "frontend_dimension": "algorithm",
+          "operator": "<",
+          "frontend_operator": "<",
+          "threshold_exact": {
+            "numerator": 3,
+            "denominator": 1
+          }
+        },
+        {
+          "dimension": "STRATEGY",
+          "frontend_dimension": "strategy",
+          "operator": ">=",
+          "frontend_operator": ">=",
+          "threshold_exact": {
+            "numerator": 4,
+            "denominator": 1
+          }
+        }
+      ],
+      "denominator": 4,
+      "rule_id": "explore.strategy_algorithm",
+      "rule_version": "edu-insight-candidates-0.1.0-draft",
+      "adapter_version": "edu-insight-candidates-0.1.0-draft",
+      "source_rule_fingerprint": null,
+      "status": "observed",
+      "limitations": [
+        "观察来自当前输入快照，不代表学生能力诊断或因果结论。",
+        "引用只作内部定位，来源真实性及详情权限须由后端复核。",
+        "当前人数是有测评记录的群体，不代表应测花名册人数。",
+        "阈值只是探索条件；不同群体可以相交，人数不能直接相加。"
+      ],
+      "suggested_next_action": "按同一条件与快照查看获授权的匹配记录，再核对各维评分依据。",
+      "public_display_allowed": false,
+      "public_restrictions": [
+        "small_scope",
+        "small_cell_or_complement"
+      ],
+      "controlled_query": {
+        "candidate_id": "candidate-05c33ddce098357823764a9f",
+        "kind": "matched_group_records",
+        "snapshot_id": "synthetic-snapshot-v1",
+        "metric_keys": [
+          "matched_count",
+          "matched_ratio",
+          "eligible_count",
+          "matched_among_eligible",
+          "unevaluable_count"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate-432f1237f0892def0f97de38",
+      "batch_id": "synthetic-batch",
+      "candidate_type": "evaluation_review",
+      "scope": {
+        "kind": "selected_assessment_records",
+        "record_count": 4
+      },
+      "dimension": null,
+      "frontend_dimension": null,
+      "title": "重复评语待复核",
+      "summary": "2条评语涉及2条测评记录；文本重复仅为检查线索。",
+      "metrics": [
+        {
+          "key": "comment_occurrences",
+          "unit": "comments",
+          "exact": {
+            "numerator": 2,
+            "denominator": 1
+          },
+          "display": "2",
+          "denominator": null,
+          "at_score_exact": null
+        },
+        {
+          "key": "involved_records",
+          "unit": "records",
+          "exact": {
+            "numerator": 2,
+            "denominator": 1
+          },
+          "display": "2",
+          "denominator": 4,
+          "at_score_exact": null
+        }
+      ],
+      "conditions": [],
+      "denominator": 4,
+      "rule_id": "review.duplicate",
+      "rule_version": "edu-comment-0.1.0",
+      "adapter_version": "edu-insight-candidates-0.1.0-draft",
+      "source_rule_fingerprint": "b72dc0eebdab5fc11f2bf9d2ab5121dc4fca6c091dab215e8b22c5b2e64fb933",
+      "status": "duplicate_hint",
+      "limitations": [
+        "观察来自当前输入快照，不代表学生能力诊断或因果结论。",
+        "引用只作内部定位，来源真实性及详情权限须由后端复核。",
+        "当前人数是有测评记录的群体，不代表应测花名册人数。",
+        "复核线索不是评价错误结论，不自动修改成绩或评语。"
+      ],
+      "suggested_next_action": "通过正式授权查询查看关联评分与评语证据，记录人工判断；本模块不回写数据。",
+      "public_display_allowed": false,
+      "public_restrictions": [
+        "small_scope",
+        "small_cell_or_complement",
+        "individual_evaluation_review"
+      ],
+      "controlled_query": {
+        "candidate_id": "candidate-432f1237f0892def0f97de38",
+        "kind": "review_records",
+        "snapshot_id": "synthetic-snapshot-v1",
+        "metric_keys": [
+          "comment_occurrences",
+          "involved_records"
+        ]
+      }
+    }
+  ]
+}
