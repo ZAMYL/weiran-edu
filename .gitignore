@@ -1,4 +1,8 @@
 # Environment files and local configuration
+# Workspace-only design references and local backups
+/design/
+/.local/
+
 .env
 .env.*
 !.env.example
