@@ -118,6 +118,6 @@ uv run --locked pytest -q
 
 测试使用临时数据库、合成教师、随机测试凭证和合成Excel。根测试夹具隔离开发者的 `WEIRAN_EDU_DATABASE`，避免误打开实际配置的数据文件。覆盖迁移校验、事务回滚、并发防重、修订历史、身份冲突、过期/版本/权限在解析期间变化、实时撤销、跨教师/跨来源/跨批证据拒绝、完整HTTP链路与真实子进程解析。未读取或写入真实学生数据库。
 
-本轮未实现学校SSO、公开注册、批次删除、评分编辑、评语审核/解密、分析统计/群体/洞察HTTP适配及前端切换真实API。已有分析引擎保持原样，后续通过同一授权服务和正式批次快照接入。
+学校SSO、公开注册、批次删除、评分编辑、评语审核/解密、AI洞察HTTP适配及前端切换真实API仍未实现。统计、群体筛选及快照一致的证据查询已由后续实现接入，见 [统计、群体与证据API](STATISTICS_GROUP_EVIDENCE_API.md)；已有分析引擎保持原样。
 
 实现依据：[SQLite外键](https://www.sqlite.org/foreignkeys.html)、[事务](https://www.sqlite.org/lang_transaction.html)、[Python sqlite3](https://docs.python.org/3.12/library/sqlite3.html)。
