@@ -70,6 +70,19 @@ def check_intent(case_id: str, plan: list[dict], status: str, error_code: str | 
         for item in plan
         if item["tool"] == "filter_student_group"
     ]
+    if case_id == "strict_bounds":
+        found = {
+            frozenset(
+                (item["dimension"], item["operator"], str(Fraction(item["threshold"])))
+                for item in query
+            )
+            for query in queries
+        }
+        expected_bounds = {
+            frozenset({("ALGORITHMS", "<", "3")}),
+            frozenset({("ALGORITHMS", "<=", "3")}),
+        }
+        return "passed" if expected_bounds <= found else "failed"
     expected = {
         "strict_lt": {("ALGORITHMS", "<", "3")},
         "strict_le": {("ALGORITHMS", "<=", "3")},
@@ -153,8 +166,8 @@ def main() -> None:
         return
     if not args.synthetic_live or not args.confirm_paid:
         parser.error("requires --synthetic-live and --confirm-paid; no API request was sent")
-    if not 2 <= args.max_api_calls <= 22:
-        parser.error("max-api-calls must be between 2 and 22")
+    if not 2 <= args.max_api_calls <= 24:
+        parser.error("max-api-calls must be between 2 and 24")
     selected = (
         [case.case_id for case in CASES] if args.all else (args.case or ["high_strategy_low_alg"])
     )

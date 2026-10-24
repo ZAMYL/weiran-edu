@@ -35,6 +35,10 @@ CASES = (
     SyntheticCase("strict_lt", "请筛选算法与数据结构<3的群体。"),
     SyntheticCase("strict_le", "请筛选算法与数据结构<=3的群体。"),
     SyntheticCase(
+        "strict_bounds",
+        "分别执行算法与数据结构<3和<=3两次筛选，两条结果都展示人数和比例，不读取全体均值。",
+    ),
+    SyntheticCase(
         "high_strategy_low_alg", "找出解题策略较高、算法基础较低的学生群体，并分析其表现差异。"
     ),
     SyntheticCase("no_matches", "请筛选算法与数据结构>5的群体。"),

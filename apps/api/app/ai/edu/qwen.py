@@ -84,7 +84,11 @@ class QwenClient:
             "条件的 threshold 必须为十进制字符串；< 与 <= 严格不同。"
             "未明确的高低阈值只能使用合成场景明确提供的临时约定，不能自创教学标准。"
             "需要群体差异时，调用全群体统计，并筛选 include_statistics=true；"
-            "两者均由程序计算。最多调用提供的 max_calls 个工具。"
+            "两者均由程序计算。提到找出/筛选/特定能力组合的群体时，必须优先选择"
+            "filter_student_group，不能只读取全群体统计。维度英文编码见 dimension_labels；"
+            "算法基础对应ALGORITHMS，解题策略对应STRATEGY。"
+            "未要求查看原始证据或评分依据时，不主动调用证据/标准工具。"
+            "最多调用提供的 max_calls 个工具。"
         )
         user = {
             key: value
@@ -184,6 +188,13 @@ class QwenClient:
                     "每项观察只写 fact_id。禁止自己填人数、分数、比例、日期或事实文本。"
                     "每条解释/行动/验证只用 compatible_fact_ids 允许的个人证据；"
                     "没有合适个人证据则 evidence_ids=[]。引用应为实际使用 ID 的精确并集。"
+                    "cited_fact_ids必须逐项列出observed_facts中的全部fact_id，不能只列解释所用子集；"
+                    "解释只可使用已观察ID。若无证据则所有evidence_ids和cited_evidence_ids均为[]。"
+                    "cited_evidence_ids恰为各段evidence_ids的并集，不得把已读取但未引用的ID加入。"
+                    "每条解释/行动/验证的fact_ids至少包含一个有效mean/median/minimum/maximum/"
+                    "matched_ratio/matched_ratio_eligible；不能只用人数作为解释依据。"
+                    "组合筛选优先展示命中人数、比例及筛选维度的群体/全体均值，"
+                    "都只引用现有事实ID，不计算新差值。"
                     "hypotheses.status 必须为 hypothesis，所有解释均待验证。\n"
                     + encoded(instruction).decode()
                 ),
@@ -194,10 +205,10 @@ class QwenClient:
             response_format["json_schema"] = {
                 "name": "educational_insight_selection",
                 "strict": True,
-                "schema": view["response_schema"],
+                "schema": citation_schema(view),
             }
         else:
-            history[-1]["content"] += "\nJSON Schema:\n" + encoded(view["response_schema"]).decode()
+            history[-1]["content"] += "\nJSON Schema:\n" + encoded(citation_schema(view)).decode()
         message = await self._post(
             "compose",
             {
@@ -328,3 +339,35 @@ def _unique_pairs(pairs: list[tuple[str, object]]) -> dict:
 
 def _tokens(value: object) -> int | None:
     return value if type(value) is int and value >= 0 else None
+
+
+def citation_schema(view: dict) -> dict:
+    """Narrow the wire schema to current-run IDs; never repair invalid model output."""
+    schema = json.loads(json.dumps(view["response_schema"]))
+    fact_ids = [fact["fact_id"] for fact in view["facts"]]
+    evidence_ids = view["evidence_ids"]
+
+    def visit(node):
+        if isinstance(node, dict):
+            properties = node.get("properties", {})
+            for name, definition in properties.items():
+                if name == "observed_facts":
+                    definition["maxItems"] = 6
+                if name == "fact_id":
+                    definition["enum"] = fact_ids
+                elif name in {"fact_ids", "cited_fact_ids", "evidence_ids", "cited_evidence_ids"}:
+                    values = fact_ids if name in {"fact_ids", "cited_fact_ids"} else evidence_ids
+                    if values:
+                        definition["items"]["enum"] = values
+                    else:
+                        definition["maxItems"] = 0
+                visit(definition)
+            for key, value in node.items():
+                if key != "properties":
+                    visit(value)
+        elif isinstance(node, list):
+            for value in node:
+                visit(value)
+
+    visit(schema)
+    return schema

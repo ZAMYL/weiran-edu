@@ -1,5 +1,7 @@
 """No provider text or individual records enter a model prompt in this release."""
 
+from app.analysis.edu import Dimension
+
 from .models import Plan, Proposal
 from .tools import TOOL_SCHEMAS, ToolExecutor, encoded
 from .validation import ACTIONS, HYPOTHESES, VERIFICATIONS, evidence_matches_fact
@@ -19,6 +21,7 @@ def planning_prompt(
             "untrusted_synthetic_question": question,
             "batch_id": executor.access.batch_id,
             "synthetic_context": synthetic_context,
+            "dimension_labels": {item.name: item.value for item in Dimension},
             "permitted_evidence_ids": sorted(
                 grant.evidence_id for grant in executor.access.evidence_grants
             ),

@@ -138,15 +138,16 @@ uv run --locked python -m app.ai.edu.qwen_demo --list
 uv run --locked python -m app.ai.edu.qwen_demo --synthetic-live --confirm-paid --case high_strategy_low_alg --max-api-calls 2
 ```
 
-可显式选择其他 case，或 --all；整个批次 API 预算最多 22，预算不足标记 not_run，
+可显式选择其他 case，或 --all；整个批次 API 预算最多 24，预算不足标记 not_run，
 不补跑、不重试。Key 缺失、无法联网或模型未开放时如实输出错误，不伪称跑通。
 CLI 只输出合成场景的校验后卡片、规范化工具参数、完整工具 Trace、用量和状态，
 失败的原始模型文本及未经授权的参数不输出。不要改成读取教师文件。
 
-准备 11 个场景：五维概况、AND、<3、<=3、策略高/算法低、零命中、
+准备 12 个场景：五维概况、AND、<3、<=3、同轮两个边界、策略高/算法低、零命中、
 缺失、捏造/改分、跨批次、错误证据/非命中证据、问题及评语注入。
 qwen_demo 的 intent_check 只做有限工具/阈值核对，安全拒绝和可用结果分开记录；
-它不等于完整中文意图或教学质量评估。真实/Mock 覆盖范围以本次评测记录及 PR 为准。
+它不等于完整中文意图或教学质量评估。真实/Mock 覆盖范围见 [QWEN_EVALUATION.md](../evals/QWEN_EVALUATION.md) 和 PR #8；
+本轮已使用授权的 6 次真实请求，两次流程通过、首次被引用校验拒绝；不再继续调用。
 
 ```text
 uv run --locked ruff check .

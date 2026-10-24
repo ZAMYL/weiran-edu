@@ -183,6 +183,7 @@ def test_all_synthetic_cases_over_mock_native_http(case):
                 ],
             ),
         ],
+        "strict_bounds": [query(), query("<=")],
         "strict_lt": [query()],
         "strict_le": [query("<=")],
         "no_matches": [query(">", "5")],

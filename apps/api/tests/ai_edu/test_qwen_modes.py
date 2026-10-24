@@ -351,3 +351,42 @@ def test_card_does_not_label_mixed_group_results_as_all_empty():
     )
     assert outcome.status == "validated"
     assert project_card(outcome).status == "needs_teacher_verification"
+
+
+def test_wire_schema_limits_ids_without_repairing_model_output():
+    from app.ai.edu.models import Proposal
+    from app.ai.edu.qwen import citation_schema
+
+    original = Proposal.model_json_schema()
+    view = {
+        "response_schema": original,
+        "facts": [{"fact_id": "fact-current"}],
+        "evidence_ids": [],
+    }
+    narrowed = citation_schema(view)
+    assert narrowed["$defs"]["ObservationChoice"]["properties"]["fact_id"]["enum"] == [
+        "fact-current",
+    ]
+    assert narrowed["properties"]["cited_evidence_ids"]["maxItems"] == 0
+    assert narrowed["properties"]["observed_facts"]["maxItems"] == 6
+    assert "enum" not in original["$defs"]["ObservationChoice"]["properties"]["fact_id"]
+
+
+def test_bounds_quality_check_requires_two_exact_queries():
+    from app.ai.edu.qwen_demo import check_intent
+
+    combined = [
+        {"dimension": "ALGORITHMS", "operator": "<", "threshold": "3"},
+        {"dimension": "ALGORITHMS", "operator": "<=", "threshold": "3"},
+    ]
+    assert (
+        check_intent(
+            "strict_bounds",
+            [
+                {"tool": "filter_student_group", "arguments": {"conditions": combined}},
+                {"tool": "filter_student_group", "arguments": {"conditions": combined}},
+            ],
+            "validated",
+        )
+        == "failed"
+    )
