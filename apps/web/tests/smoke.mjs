@@ -50,7 +50,24 @@ try {
   const html = await home.text();
   assert.match(html, /lang="zh-CN"/);
   assert.match(html, /未然 EDU — 学情分析平台/);
-  assert.match(html, /前端基础已就绪/);
+  assert.match(html, /学情洞察/);
+  assert.match(html, /合成演示数据/);
+
+  for (const [route, title] of [
+    ['explorer', '画像探索'],
+    ['data', '测评数据中心'],
+  ]) {
+    const response = await fetch(`${url}/${route}`, { signal: AbortSignal.timeout(5000) });
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), new RegExp(title));
+  }
+
+  const sample = await fetch(`${url}/templates/${encodeURIComponent('评价长表模板.xlsx')}`, {
+    signal: AbortSignal.timeout(5000),
+  });
+  assert.equal(sample.status, 200);
+  const signature = new Uint8Array(await sample.arrayBuffer());
+  assert.deepEqual([...signature.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
 
   const missing = await fetch(`${url}/missing-bootstrap-route`, {
     signal: AbortSignal.timeout(5000),
@@ -58,7 +75,7 @@ try {
   assert.equal(missing.status, 404);
   assert.match(await missing.text(), /页面不存在/);
   console.log(
-    'PASS: production server starts; homepage loads in Chinese; missing route returns 404.',
+    'PASS: production server starts; all workspace routes render; synthetic template downloads; missing route returns 404.',
   );
 } finally {
   if (server.exitCode === null && server.signalCode === null) {
