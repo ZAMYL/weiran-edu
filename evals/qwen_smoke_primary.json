@@ -1,0 +1,140 @@
+{
+  "mode": "synthetic_live",
+  "requested_model": "qwen3.8-flash",
+  "api_call_limit": 2,
+  "api_attempts": 2,
+  "estimated_cost": null,
+  "cost_note": "未设置计费单价；按实际模型/地域/缓存与用量核对账单，不推测费用。",
+  "results": [
+    {
+      "case_id": "high_strategy_low_alg",
+      "status": "error",
+      "error_code": "citation_union_mismatch",
+      "real_api_attempted": true,
+      "intent_check": "failed",
+      "tool_plan": [
+        {
+          "tool": "get_rubric_criteria",
+          "arguments": {
+            "batch_id": "synthetic-batch"
+          }
+        },
+        {
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "batch_id": "synthetic-batch",
+            "student_ids": null
+          }
+        }
+      ],
+      "tool_trace": [
+        {
+          "sequence": 1,
+          "tool": "get_rubric_criteria",
+          "status": "ok",
+          "error_code": null,
+          "fact_ids": [],
+          "evidence_count": 5,
+          "output_bytes": 1198
+        },
+        {
+          "sequence": 2,
+          "tool": "get_dimension_statistics",
+          "status": "ok",
+          "error_code": null,
+          "fact_ids": [
+            "fact-0001",
+            "fact-0002",
+            "fact-0003",
+            "fact-0004",
+            "fact-0005",
+            "fact-0006",
+            "fact-0007",
+            "fact-0008",
+            "fact-0009",
+            "fact-0010",
+            "fact-0011",
+            "fact-0012",
+            "fact-0013",
+            "fact-0014",
+            "fact-0015",
+            "fact-0016",
+            "fact-0017",
+            "fact-0018",
+            "fact-0019",
+            "fact-0020",
+            "fact-0021",
+            "fact-0022",
+            "fact-0023",
+            "fact-0024",
+            "fact-0025",
+            "fact-0026",
+            "fact-0027",
+            "fact-0028",
+            "fact-0029",
+            "fact-0030",
+            "fact-0031",
+            "fact-0032",
+            "fact-0033",
+            "fact-0034",
+            "fact-0035",
+            "fact-0036",
+            "fact-0037",
+            "fact-0038",
+            "fact-0039",
+            "fact-0040",
+            "fact-0041",
+            "fact-0042",
+            "fact-0043",
+            "fact-0044",
+            "fact-0045",
+            "fact-0046",
+            "fact-0047",
+            "fact-0048"
+          ],
+          "evidence_count": 0,
+          "output_bytes": 17293
+        }
+      ],
+      "model_metrics": [
+        {
+          "phase": "plan",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 2753,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": 1395,
+          "output_tokens": 97,
+          "total_tokens": 1492,
+          "cached_input_tokens": 0,
+          "output_token_limit": 800
+        },
+        {
+          "phase": "compose",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 7737,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": 6547,
+          "output_tokens": 468,
+          "total_tokens": 7015,
+          "cached_input_tokens": 0,
+          "output_token_limit": 1800
+        }
+      ],
+      "validated_model_selection": null,
+      "card": {
+        "title": "学情分析暂未完成",
+        "status": "error",
+        "execution_mode": "synthetic_live",
+        "observations": [],
+        "hypotheses": [],
+        "further_exploration": [],
+        "cited_fact_ids": [],
+        "cited_evidence_ids": [],
+        "limitations": [],
+        "error_code": "citation_union_mismatch"
+      }
+    }
+  ]
+}

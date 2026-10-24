@@ -114,6 +114,28 @@ def required_limitations(facts: tuple[Fact, ...], has_evidence: bool, has_rubric
     return codes
 
 
+def evidence_matches_fact(document: EvidenceDocument | RubricDocument, fact: Fact) -> bool:
+    """The same PR #5 integrity guard serves validation and model citation hints."""
+    grant = document.grant
+    dimensions = (
+        {fact.dimension}
+        if fact.dimension
+        else {condition.dimension for condition in fact.conditions}
+    )
+    if fact.scope.batch_id != fact.batch_id:
+        return False
+    if isinstance(document, EvidenceDocument):
+        if (
+            grant.record.batch_id != fact.batch_id
+            or grant.record not in fact.scope.records
+            or grant.record not in fact.source_refs
+        ):
+            return False
+    elif grant.batch_id != fact.batch_id:
+        return False
+    return grant.reference.dimension is None or grant.reference.dimension in dimensions
+
+
 def validate_proposal(
     proposal: Proposal,
     facts: dict[str, Fact],
@@ -154,29 +176,9 @@ def validate_proposal(
             raise InsightError("unsupported_fact_basis")
         for identifier in evidence:
             document = documents[identifier]
-            grant = document.grant
             for fact_id in references:
                 fact = facts[fact_id]
-                dimensions = (
-                    {fact.dimension}
-                    if fact.dimension
-                    else {condition.dimension for condition in fact.conditions}
-                )
-                if isinstance(document, EvidenceDocument):
-                    # Cohort membership alone does not establish contribution to this fact.
-                    if (
-                        grant.record.batch_id != fact.batch_id
-                        or grant.record not in fact.scope.records
-                        or grant.record not in fact.source_refs
-                    ):
-                        raise InsightError("evidence_fact_scope_mismatch")
-                elif grant.batch_id != fact.batch_id:
-                    # A batch rubric is contextual evidence, not an individual observation.
-                    raise InsightError("evidence_fact_scope_mismatch")
-                if fact.scope.batch_id != fact.batch_id or (
-                    grant.reference.dimension is not None
-                    and grant.reference.dimension not in dimensions
-                ):
+                if not evidence_matches_fact(document, fact):
                     raise InsightError("evidence_fact_scope_mismatch")
         used_facts.update(references)
         used_evidence.update(evidence)
