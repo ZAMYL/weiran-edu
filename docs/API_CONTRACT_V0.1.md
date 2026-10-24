@@ -1,12 +1,14 @@
 # 未然 EDU 后端 API 草案 v0.1
 
-日期：2026-10-23；Demo 对齐更新：2026-10-24。状态：供前端、后端和 AI 负责人联调评审，尚未实现。
+日期：2026-10-23；Demo 对齐更新：2026-10-24。状态：保留的历史设计草案，不能作为现行 API 契约。
+
+2026-10-25 审核更新：导入、数据库、教师试点授权、统计、群体筛选和证据查询已另行实现；候选查询和指标参与记录 HTTP 回查仍未实现。实际请求、响应和错误码以运行时 `/openapi.json`、[实现状态与差异](IMPLEMENTATION_STATUS.md)、[数据库接口](DATABASE_BATCH_AUTH.md) 和 [统计/取证接口](STATISTICS_GROUP_EVIDENCE_API.md) 为准。下文及同名静态 OpenAPI 记录原设计，不能直接用于生成当前客户端。
 
 依据：[已确认的后端冻结规则](BACKEND_CONTRACT_V0.1.md)。本草案细化 DTO 和错误语义，不修改冻结规则；新增的读取接口与字段属于本次设计建议，不表示团队已共同冻结。数据表见 [数据结构草案](DATA_MODEL_V0.1.md)，机器可读契约和合成示例见 [OpenAPI](contracts/edu-api.v0.1.openapi.json)。
 
-维度编码、评分/Fraction 与匿名证据引用对接见 [后端与分析引擎对接](BACKEND_ANALYSIS_HANDOFF_V0.1.md)。当前 main 已有离线分析模块，但 HTTP 适配尚未实现。
+维度编码、评分/Fraction 与匿名证据引用对接见 [后端与分析引擎对接](BACKEND_ANALYSIS_HANDOFF_V0.1.md)。已实现适配位于 `apps/api/app/edu/analysis.py`。
 
-三页 Demo 的字段转换、分页、快照、图表和功能状态以 [Demo/API 对齐草案](FRONTEND_API_ALIGNMENT_V0.1.md) 及同版 OpenAPI 为准。本次定义 14 项操作（13 个路径），新增操作均待联调确认，不改页面布局或实现业务代码。
+三页 Demo 的原字段转换、分页、快照与图表方案见 [Demo/API 对齐草案](FRONTEND_API_ALIGNMENT_V0.1.md)。本草案提出 14 项操作（13 个路径）；该数量不代表当前已实现路由数。
 
 ## 1. 通用约定
 

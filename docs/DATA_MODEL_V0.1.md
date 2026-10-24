@@ -1,8 +1,10 @@
 # 未然 EDU 数据结构草案 v0.1
 
-日期：2026-10-23。状态：数据库与 DTO 设计草案，无迁移、ORM、真实数据库或业务代码。
+日期：2026-10-23。状态：历史数据库与 DTO 设计草案。
 
-依据：[后端冻结规则](BACKEND_CONTRACT_V0.1.md)；对外 DTO 以 [API 草案](API_CONTRACT_V0.1.md) 和 [OpenAPI](contracts/edu-api.v0.1.openapi.json) 为准。下列为建议物理模型，实施前与相关负责人对齐，不擅自宣称全部字段已经冻结。
+2026-10-25 审核更新：实际 SQLite 结构以 `apps/api/app/storage/migrations/001_edu.sql`、`002_immutable_facts.sql` 为准，运行与权限见 [DATABASE_BATCH_AUTH.md](DATABASE_BATCH_AUTH.md)。下文记录原物理模型建议，不是当前迁移脚本。当前 DTO 与草案差异见 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)，不通过本文声称已创建真实学生数据库。
+
+依据：[后端冻结规则](BACKEND_CONTRACT_V0.1.md)；原 DTO 设计见 [API 草案](API_CONTRACT_V0.1.md) 和 [历史 OpenAPI](contracts/edu-api.v0.1.openapi.json)，实际 DTO 以运行时 `/openapi.json` 为准。下列为建议物理模型，实施前与相关负责人对齐，不擅自宣称全部字段已经冻结。
 
 ## 1. 关系与存储约定
 

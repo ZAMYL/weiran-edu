@@ -1,6 +1,8 @@
 # Demo 与后端接口对齐 v0.1
 
-日期：2026-10-24。状态：已按代码核对的联调草案，待林明和分析负责人评审；未实现 HTTP、数据库、前端 service 或真实鉴权。
+日期：2026-10-24。状态：保留的 Demo 联调设计草案，未完成前端真实 API 接入。
+
+2026-10-25 审核更新：后端已实现导入、数据库、教师试点授权、统计/筛选和证据来源查询。实际接口以运行时 `/openapi.json` 和 [实现差异清单](IMPLEMENTATION_STATUS.md) 为准；下表中的洞察查询与指标参与记录 HTTP 回查仍未实现。本文原字段方案与静态 OpenAPI 不覆盖实际契约，尤其注意快照错误码、筛选 items 和依据原文暂不展示的差异。
 
 核验 main `20e923241fd576b8023608525a6d09639865eca4`（含已合并 PR #7、#9）。依据：`apps/web/src/domain/model.ts`、`statistics.ts`、三页 features、GroupDrawers 和分析候选投影。机器契约及 Mock 示例见 [OpenAPI](contracts/edu-api.v0.1.openapi.json)，业务约束见 [API 草案](API_CONTRACT_V0.1.md)。本文件落实 [分析/前端交接](ANALYSIS_FRONTEND_HANDOFF.md)，不改页面布局和组件所有权。
 

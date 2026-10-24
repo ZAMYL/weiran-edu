@@ -1,9 +1,11 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "未然 EDU 后端 API 草案",
+    "title": "未然 EDU 历史 API 设计草案（非运行时契约）",
     "version": "0.1.0-draft-demo-alignment",
-    "description": "仅接口设计，尚未实现或部署。依据用户确认的四条后端规则；新增读取接口及 DTO 待联调评审。所有 examples 为合成数据，哈希为占位值，不代表真实导入或测试记录。完整业务代码、数据库迁移与六类分析成功 DTO 不在本次范围。 沿用 main 现有错误信封和通用错误码；已有健康检查不在本 EDU 业务契约内。 2026-10-24 对齐 Demo 与 PR #9，补充统计成功响应、预览元数据修改和候选回查；不代表已实现或三方确认。"
+    "description": "历史设计快照，保留 2026-10-24 的 DTO、约束与合成示例；不作为当前客户端生成或部署依据。2026-10-25 审核更新：导入、数据库、教师试点授权、统计、群体与证据查询已另行实现，实际 Schema 以配置数据库后的运行时 /openapi.json 为准，差异见 docs/IMPLEMENTATION_STATUS.md。候选查询和逐指标参与记录 HTTP 回查仍未实现。本文所有 examples 为合成数据，哈希为占位值，不代表真实导入或测试记录。",
+    "x-implementation-status": "historical-design-only",
+    "x-runtime-contract": "/openapi.json"
   },
   "servers": [
     {
@@ -304,21 +306,6 @@
           }
         ],
         "responses": {
-          "401": {
-            "$ref": "#/components/responses/ErrorResponse1"
-          },
-          "404": {
-            "$ref": "#/components/responses/ErrorResponse3"
-          },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "200": {
             "description": "返回新版本，原有效期不变。",
             "headers": {
@@ -348,6 +335,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
           },
           "409": {
             "description": "预览已更新或已提交。",
@@ -412,6 +405,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "description": "",
@@ -749,15 +751,6 @@
           "404": {
             "$ref": "#/components/responses/ErrorResponse3"
           },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "409": {
             "description": "快照不匹配，请刷新同一操作的全部数据。",
             "headers": {
@@ -789,6 +782,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "description": "补充读取接口草案。历史批次保留原标准与证据。"
@@ -880,15 +882,6 @@
           "404": {
             "$ref": "#/components/responses/ErrorResponse3"
           },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "409": {
             "description": "快照不匹配，请刷新同一操作的全部数据。",
             "headers": {
@@ -920,6 +913,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "description": "补充读取接口草案。列表不返回整段评语，显示顺序不代表排名。"
@@ -982,15 +984,6 @@
           "404": {
             "$ref": "#/components/responses/ErrorResponse3"
           },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "409": {
             "description": "快照不匹配。",
             "headers": {
@@ -1022,6 +1015,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "requestBody": {
@@ -1113,15 +1115,6 @@
           "404": {
             "$ref": "#/components/responses/ErrorResponse3"
           },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "409": {
             "description": "快照不匹配，请刷新同一操作的全部数据。",
             "headers": {
@@ -1153,6 +1146,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "description": "student_id 为匿名 ID，必须参与路径批次。原始身份和未经检查的原始评语不会返回。"
@@ -1232,15 +1234,6 @@
           "404": {
             "$ref": "#/components/responses/ErrorResponse3"
           },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "409": {
             "description": "快照不匹配，请刷新同一操作的全部数据。",
             "headers": {
@@ -1272,6 +1265,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "description": "补充读取接口草案。证据不属于本批次、资源缺失和无权限均返回 404，禁止跨批次补查。"
@@ -1340,15 +1342,6 @@
           "404": {
             "$ref": "#/components/responses/ErrorResponse3"
           },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse12"
-          },
           "409": {
             "description": "快照不匹配，请刷新同一操作的全部数据。",
             "headers": {
@@ -1380,6 +1373,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse12"
           }
         }
       }
@@ -1429,20 +1431,41 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "已有五维统计及可选全批矩阵，不是完整六类分析报告。",
+            "headers": {
+              "X-Request-ID": {
+                "description": "服务端请求关联 ID。",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "description": "含学生数据的响应禁止缓存。",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Statistics"
+                },
+                "examples": {
+                  "Statistics_batch": {
+                    "$ref": "#/components/examples/Statistics_batch"
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "$ref": "#/components/responses/ErrorResponse1"
           },
           "404": {
             "$ref": "#/components/responses/ErrorResponse3"
-          },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse13"
           },
           "409": {
             "description": "快照不匹配，请刷新同一操作的全部数据。",
@@ -1476,35 +1499,14 @@
               }
             }
           },
-          "200": {
-            "description": "已有五维统计及可选全批矩阵，不是完整六类分析报告。",
-            "headers": {
-              "X-Request-ID": {
-                "description": "服务端请求关联 ID。",
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Cache-Control": {
-                "description": "含学生数据的响应禁止缓存。",
-                "schema": {
-                  "type": "string",
-                  "const": "no-store"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Statistics"
-                },
-                "examples": {
-                  "Statistics_batch": {
-                    "$ref": "#/components/examples/Statistics_batch"
-                  }
-                }
-              }
-            }
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse13"
           }
         },
         "description": "设计成功 DTO；复用已有 summarize，矩阵为全批精确交叉计数，HTTP 尚未实现。"
@@ -1528,21 +1530,6 @@
           }
         ],
         "responses": {
-          "401": {
-            "$ref": "#/components/responses/ErrorResponse1"
-          },
-          "404": {
-            "$ref": "#/components/responses/ErrorResponse3"
-          },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "200": {
             "description": "教师内部候选，禁止直接公开。",
             "headers": {
@@ -1576,6 +1563,12 @@
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
+          },
           "409": {
             "description": "数据或候选快照已更新。",
             "headers": {
@@ -1607,6 +1600,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "description": "复用 discover_candidates/teacher_cards；先校验教师权限，不返回学生名单或内部定位符。",
@@ -1656,21 +1658,6 @@
           }
         ],
         "responses": {
-          "401": {
-            "$ref": "#/components/responses/ErrorResponse1"
-          },
-          "404": {
-            "$ref": "#/components/responses/ErrorResponse3"
-          },
-          "422": {
-            "$ref": "#/components/responses/ErrorResponse6"
-          },
-          "500": {
-            "$ref": "#/components/responses/ErrorResponse7"
-          },
-          "503": {
-            "$ref": "#/components/responses/ErrorResponse8"
-          },
           "200": {
             "description": "匿名参与记录与核验后的证据 ID。",
             "headers": {
@@ -1700,6 +1687,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/ErrorResponse1"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse3"
           },
           "409": {
             "description": "候选过期或快照变化，请重新获取候选。",
@@ -1732,6 +1725,15 @@
                 }
               }
             }
+          },
+          "422": {
+            "$ref": "#/components/responses/ErrorResponse6"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse7"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse8"
           }
         },
         "description": "metric_key 非空调用 metric_sources，空值使用主来源；不得用分母 scope 代替，权限/快照/维度/来源逐项核验。",
@@ -7395,7 +7397,7 @@
                 "display": "2.50"
               },
               "minimum": {
-                "value": 2.0,
+                "value": 2,
                 "exact": {
                   "numerator": 2,
                   "denominator": 1
@@ -7403,7 +7405,7 @@
                 "display": "2.00"
               },
               "maximum": {
-                "value": 4.0,
+                "value": 4,
                 "exact": {
                   "numerator": 4,
                   "denominator": 1
@@ -7412,7 +7414,7 @@
               },
               "distribution": [
                 {
-                  "score": 2.0,
+                  "score": 2,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7438,7 +7440,7 @@
                   }
                 },
                 {
-                  "score": 4.0,
+                  "score": 4,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7474,7 +7476,7 @@
                 "display": "3.50"
               },
               "minimum": {
-                "value": 3.0,
+                "value": 3,
                 "exact": {
                   "numerator": 3,
                   "denominator": 1
@@ -7482,7 +7484,7 @@
                 "display": "3.00"
               },
               "maximum": {
-                "value": 4.0,
+                "value": 4,
                 "exact": {
                   "numerator": 4,
                   "denominator": 1
@@ -7491,7 +7493,7 @@
               },
               "distribution": [
                 {
-                  "score": 3.0,
+                  "score": 3,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7517,7 +7519,7 @@
                   }
                 },
                 {
-                  "score": 4.0,
+                  "score": 4,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7553,7 +7555,7 @@
                 "display": "3.50"
               },
               "minimum": {
-                "value": 3.0,
+                "value": 3,
                 "exact": {
                   "numerator": 3,
                   "denominator": 1
@@ -7561,7 +7563,7 @@
                 "display": "3.00"
               },
               "maximum": {
-                "value": 4.0,
+                "value": 4,
                 "exact": {
                   "numerator": 4,
                   "denominator": 1
@@ -7570,7 +7572,7 @@
               },
               "distribution": [
                 {
-                  "score": 3.0,
+                  "score": 3,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7596,7 +7598,7 @@
                   }
                 },
                 {
-                  "score": 4.0,
+                  "score": 4,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7624,7 +7626,7 @@
                 "display": "3.25"
               },
               "median": {
-                "value": 3.0,
+                "value": 3,
                 "exact": {
                   "numerator": 3,
                   "denominator": 1
@@ -7640,7 +7642,7 @@
                 "display": "2.75"
               },
               "maximum": {
-                "value": 4.0,
+                "value": 4,
                 "exact": {
                   "numerator": 4,
                   "denominator": 1
@@ -7662,7 +7664,7 @@
                   }
                 },
                 {
-                  "score": 3.0,
+                  "score": 3,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7675,7 +7677,7 @@
                   }
                 },
                 {
-                  "score": 4.0,
+                  "score": 4,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7703,7 +7705,7 @@
                 "display": "3.83"
               },
               "median": {
-                "value": 4.0,
+                "value": 4,
                 "exact": {
                   "numerator": 4,
                   "denominator": 1
@@ -7711,7 +7713,7 @@
                 "display": "4.00"
               },
               "minimum": {
-                "value": 3.0,
+                "value": 3,
                 "exact": {
                   "numerator": 3,
                   "denominator": 1
@@ -7728,7 +7730,7 @@
               },
               "distribution": [
                 {
-                  "score": 3.0,
+                  "score": 3,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -7741,7 +7743,7 @@
                   }
                 },
                 {
-                  "score": 4.0,
+                  "score": 4,
                   "count": 1,
                   "denominator": 3,
                   "ratio": {
@@ -8102,7 +8104,7 @@
                   "display": "2.25"
                 },
                 "minimum": {
-                  "value": 2.0,
+                  "value": 2,
                   "exact": {
                     "numerator": 2,
                     "denominator": 1
@@ -8119,7 +8121,7 @@
                 },
                 "distribution": [
                   {
-                    "score": 2.0,
+                    "score": 2,
                     "count": 1,
                     "denominator": 2,
                     "ratio": {
@@ -8168,7 +8170,7 @@
                   "display": "3.25"
                 },
                 "minimum": {
-                  "value": 3.0,
+                  "value": 3,
                   "exact": {
                     "numerator": 3,
                     "denominator": 1
@@ -8185,7 +8187,7 @@
                 },
                 "distribution": [
                   {
-                    "score": 3.0,
+                    "score": 3,
                     "count": 1,
                     "denominator": 2,
                     "ratio": {
@@ -8234,7 +8236,7 @@
                   "display": "3.25"
                 },
                 "minimum": {
-                  "value": 3.0,
+                  "value": 3,
                   "exact": {
                     "numerator": 3,
                     "denominator": 1
@@ -8251,7 +8253,7 @@
                 },
                 "distribution": [
                   {
-                    "score": 3.0,
+                    "score": 3,
                     "count": 1,
                     "denominator": 2,
                     "ratio": {
@@ -8308,7 +8310,7 @@
                   "display": "2.75"
                 },
                 "maximum": {
-                  "value": 3.0,
+                  "value": 3,
                   "exact": {
                     "numerator": 3,
                     "denominator": 1
@@ -8330,7 +8332,7 @@
                     }
                   },
                   {
-                    "score": 3.0,
+                    "score": 3,
                     "count": 1,
                     "denominator": 2,
                     "ratio": {
@@ -8366,7 +8368,7 @@
                   "display": "4.25"
                 },
                 "minimum": {
-                  "value": 4.0,
+                  "value": 4,
                   "exact": {
                     "numerator": 4,
                     "denominator": 1
@@ -8383,7 +8385,7 @@
                 },
                 "distribution": [
                   {
-                    "score": 4.0,
+                    "score": 4,
                     "count": 1,
                     "denominator": 2,
                     "ratio": {
@@ -8721,12 +8723,12 @@
                 {
                   "dimension_code": "algorithm_data_structure",
                   "operator": "lt",
-                  "value": 3.0
+                  "value": 3
                 },
                 {
                   "dimension_code": "solution_strategy",
                   "operator": "gte",
-                  "value": 4.0
+                  "value": 4
                 }
               ],
               "rule_id": "explore.strategy_algorithm",

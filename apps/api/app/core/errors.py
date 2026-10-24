@@ -43,7 +43,10 @@ def error_response(request: Request, status_code: int, code: str, message: str) 
 
 
 async def handle_api_error(request: Request, exc: APIError) -> JSONResponse:
-    return error_response(request, exc.status_code, exc.code, exc.message)
+    response = error_response(request, exc.status_code, exc.code, exc.message)
+    if exc.status_code == 401:
+        response.headers["WWW-Authenticate"] = "Bearer"
+    return response
 
 
 async def handle_http_error(request: Request, exc: HTTPException) -> JSONResponse:

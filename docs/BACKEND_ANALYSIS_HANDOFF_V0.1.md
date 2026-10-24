@@ -1,6 +1,6 @@
 # 后端与分析引擎对接草案 v0.1
 
-状态：根据负责人要求补齐三个对接点，供后端与分析负责人评审。只更新设计文档，不修改引擎、数据库或 HTTP 业务代码。
+状态：保留的历史对接设计。2026-10-25 审核更新：五维映射、定点评分到 Fraction、证据 ID 关联已由 `apps/api/app/edu/analysis.py` 与 `reads.py` 实现，未修改分析引擎。当前行为见 [统计与证据接口](STATISTICS_GROUP_EVIDENCE_API.md) 和 [实现差异清单](IMPLEMENTATION_STATUS.md)；下文原核验基线与未实现表述仅记录设计时状态。
 
 核验基线：main 提交 `05c20e824e1f1166682756f7e01fbcd086521244`。实际对象见 `apps/api/app/analysis/edu/models.py`、`validation.py`、`engine.py`，计算规则见 [ANALYSIS_RULES.md](ANALYSIS_RULES.md)。该提交已有离线统计、AND 筛选、个体画像和 Spearman；不等于六类分析、HTTP 接口或后端适配已经完成。
 

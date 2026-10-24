@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from collections.abc import Awaitable, Callable
+
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 
@@ -23,4 +25,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.add_exception_handler(RequestValidationError, handle_validation_error)
     application.add_exception_handler(Exception, handle_internal_error)
     application.include_router(health_router)
+    if application.state.settings.database_path is not None:
+        from app.edu.service import EduService
+        from app.importing.edu.worker import parse_isolated
+        from app.routers.edu import router as edu_router
+        from app.storage.database import Database
+
+        application.state.edu_service = EduService(
+            Database(application.state.settings.database_path),
+            parser=parse_isolated,
+        )
+        application.include_router(edu_router)
+        application.middleware("http")(protect_edu_responses)
     return application
+
+
+async def protect_edu_responses(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    response = await call_next(request)
+    if request.url.path.startswith("/api/v1/edu"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
