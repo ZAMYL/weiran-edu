@@ -1,0 +1,10 @@
+# Local browser verification only; no student records or screenshots in Git.
+/artifacts/
+/.pnpm-store/
+
+# Synthetic Excel files are generated from reviewed source for dev/build/tests.
+/public/templates/
+
+# Next.js route source only; the repository-wide data/ exclusion remains intact.
+!/src/app/(workspace)/data/
+!/src/app/(workspace)/data/page.tsx

@@ -237,3 +237,13 @@ main 的 `.gitignore` 已允许安全的 SQL 迁移源文件，同时忽略数�
 规范参考：[SQLite 外键](https://www.sqlite.org/foreignkeys.html)、[SQLite 数据类型](https://www.sqlite.org/datatype3.html)。整数定点、复合外键和服务层完整性核验为本项目设计建议。
 
 后端评分到 Fraction、英文维度与内部枚举、匿名证据到 RecordRef/EvidenceRef 的映射，见 [分析引擎对接草案](BACKEND_ANALYSIS_HANDOFF_V0.1.md)。内部 record/source/location 不作为新增公开数据库字段或 API 字段直接暴露。
+
+## 9. Demo 对齐的读取投影与快照（草案）
+
+导入 rows/row_key/issue_id 是受控暂存投影，元数据 PATCH 更新 imports 的标题、课程、日期和 preview_version，不延长 expires_at，也不允许修改原分。暂存结构需要保留稳定行顺序及问题与行的关联，非法原值仅在受控对象内保存。
+
+正式批次读取新增 snapshot_id，覆盖数据事实、标准、评语、来源及脱敏投影版本。建议记录服务端 data_revision 与 projection_revision，再关联到不可猜测的快照标识；不是把 file_sha256 当快照，也不是把 ID 当权限。事实修订创建新批次；脱敏策略或展示状态更新可使投影快照失效，不覆盖旧评分事实。
+
+候选和逐指标来源可由服务端获授权缓存或从同一快照重建，本轮不要求新建持久化洞察表。缓存键至少含教师/授权范围、batch、snapshot、条件、规则和适配版本；授权每次重检，撤销后不能因命中缓存继续返回。旧快照或候选不能重建时返回 409，不能用新数据冒充旧结果。公开发布与审批仍未开放。
+
+候选参与记录按 metric_sources 回查，只序列化匿名学生及经过验证的证据 ID。均值/频数的样本分母独立于 Fraction 分母，分页后仍保留全量统计。详见[Demo/API 对齐](FRONTEND_API_ALIGNMENT_V0.1.md)。具体版本存储方式及新增 DTO 仍需三方评审，不表示物理 Schema 已冻结。

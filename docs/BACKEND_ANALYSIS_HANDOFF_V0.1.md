@@ -101,3 +101,9 @@ prepare_dataset(
 - 核对 score/comment/basis 引用维度、空/扣留评语处理、修订和重复上传的来源稳定性，以及伪造跨批次/跨学生引用的拒绝行为。
 
 本次用独立合成探针验证实际引擎的映射、精确数值与引用保留。真正的适配器、数据库授权和 HTTP 联调尚未实现；评审后再由后端与分析负责人共同实现，不在此 PR 修改分析模块。
+
+## 5. Demo 联调补充（2026-10-24）
+
+PR #9 已合并。新增[Demo/API 对齐草案](FRONTEND_API_ALIGNMENT_V0.1.md)和同版 OpenAPI 采用 HALF_UP 两位展示建议，与现有 teacher_cards 保持一致；保留 exact numerator/denominator，不改变筛选或人数，尚待相关负责人确认。
+
+候选回查使用 metric_sources 获取每项指标实际参与者；candidate.source_refs 只表示主来源，不能代替每项指标来源，更不能用整个 scope 充当证据。数据与脱敏快照需绑定并逐次重检权限。当前没有实现 HTTP/数据库适配。

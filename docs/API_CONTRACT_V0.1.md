@@ -1,10 +1,12 @@
 # 未然 EDU 后端 API 草案 v0.1
 
-日期：2026-10-23。状态：供前端、后端和 AI 负责人联调评审，尚未实现。
+日期：2026-10-23；Demo 对齐更新：2026-10-24。状态：供前端、后端和 AI 负责人联调评审，尚未实现。
 
 依据：[已确认的后端冻结规则](BACKEND_CONTRACT_V0.1.md)。本草案细化 DTO 和错误语义，不修改冻结规则；新增的读取接口与字段属于本次设计建议，不表示团队已共同冻结。数据表见 [数据结构草案](DATA_MODEL_V0.1.md)，机器可读契约和合成示例见 [OpenAPI](contracts/edu-api.v0.1.openapi.json)。
 
 维度编码、评分/Fraction 与匿名证据引用对接见 [后端与分析引擎对接](BACKEND_ANALYSIS_HANDOFF_V0.1.md)。当前 main 已有离线分析模块，但 HTTP 适配尚未实现。
+
+三页 Demo 的字段转换、分页、快照、图表和功能状态以 [Demo/API 对齐草案](FRONTEND_API_ALIGNMENT_V0.1.md) 及同版 OpenAPI 为准。本次定义 14 项操作（13 个路径），新增操作均待联调确认，不改页面布局或实现业务代码。
 
 ## 1. 通用约定
 
@@ -34,6 +36,7 @@
 | --- | --- | --- | --- |
 | POST | `/imports/preview` | 上传、解析、预览及质量报告 | 已确认 |
 | GET | `/imports/{import_id}` | 回读预览及分页质量问题，支持页面刷新 | 本次补充 |
+| PATCH | `/imports/{import_id}` | 修改预览标题、课程、日期并生成新版本 | Demo 对齐补充 |
 | POST | `/imports/{import_id}/commit` | 确认预览、事务入库、幂等返回批次 | 已确认 |
 | GET | `/batches` | 当前教师可访问批次列表 | 已确认 |
 | GET | `/batches/{batch_id}` | 单批元数据与数量 | 本次补充 |
@@ -42,7 +45,9 @@
 | GET | `/batches/{batch_id}/students/{student_id}/evidence` | 学生五维评分、脱敏评语和来源 | 已确认 |
 | GET | `/batches/{batch_id}/evidence/{evidence_id}` | 按证据 ID 核对引用 | 本次补充 |
 | GET | `/batches/{batch_id}/rubric` | 本批次评价依据及来源 | 已确认 |
-| GET | `/batches/{batch_id}/statistics` | 六类分析入口占位 | 已确认路径，算法另行冻结 |
+| GET | `/batches/{batch_id}/statistics` | 五维成功统计及可选全批分值矩阵 | 已确认路径，成功 DTO 为本次草案 |
+| POST | `/batches/{batch_id}/insights/query` | 教师内部候选卡查询 | Demo 对齐补充 |
+| POST | `/batches/{batch_id}/insights/{candidate_id}/records/query` | 某卡或指标的实际参与记录 | Demo 对齐补充 |
 
 本次没有评分编辑、批次删除、跨批次趋势、AI 生成或任意 SQL 接口。独立的数据访问服务可供未来 AI 工具复用；不让 AI 绕过服务端权限直接读库。
 
@@ -76,16 +81,19 @@
 | `student_samples` | 只展示完整有效记录的匿名预览及五维数据；预览 ID 不是真实学生 ID |
 | `student_page` | 匿名预览分页，完整总数为 `summary.complete_student_count` |
 | `issues` / `issue_page` | 安全的质量问题列表及分页，总数为错误数与警告数之和 |
+| `rows` / `row_page` | 包含有效、缺失、非法评分的安全行级预览，支持表格及问题定位 |
 
 评分预览包含 `dimension_code`、`score`、`score_raw`、`comment`、`comment_status` 和来源。`score_raw` 是单个原始评分的文本表示，不是原始整行；它经校验后才能返回。`preview_student_id` 仅在本次导入内稳定，确认前不创建正式学生或身份映射。预览不生成正式 `evidence_id`。
 
-质量问题包含 `severity`（`error` / `warning`）、`code`、安全的 `message`、`sheet_name`、`row_number`、`cell`。无法定位的字段为 `null`，不能为了符合格式编造行号。问题按工作表顺序、行号、列和错误码稳定排序，不回显姓名、学号或原始评语。
+质量问题包含 `issue_id`、`severity`（`error` / `warning`）、`code`、安全的 `message`、`sheet_name`、`row_number`、`cell` 及可空的 `row_key`、`row_offset`。无法定位时为 `null`，不编造行号或跳转。row_offset 为行级预览中的零基位置，服务端和前端按同一稳定顺序分页。非法评分文本若不能安全显示则 score_raw=null，不回显身份或原始评语。
 
 `summary.detected_student_count` 是识别到的学生块数，不是去重人数；`complete_student_count` 是身份唯一且五维合法完整的记录数；`parsed_evaluation_count` 为成功解析的合法维度评分数，异常文件不能据此宣称全部通过。正式批次必须满足评分数 = 学生数 × 5。
 
 ### GET `/imports/{import_id}`
 
 查询参数 `student_offset`、`student_limit`、`issue_offset`、`issue_limit`，分别分页读取预览和质量问题；上限均为 100，默认分别 20 和 100。
+
+新增 `row_offset`、`row_limit` 读取行级表格，默认 0、10，最大页大小 100。问题定位先请求包含 row_offset 的页，再以 row_key 高亮。已提交导入的 rows/row_page 同样为 null。
 
 - 所有权仍属于上传教师，不因为有同范围访问权就能读取别人的暂存文件。
 - 未提交且过期时返回 **410 IMPORT_EXPIRED**，不能再次确认。
@@ -105,7 +113,7 @@
 }
 ```
 
-`preview_version` 是服务端对暂存数据、元数据、来源范围、解析器版本和评价依据版本的绑定摘要。它由预览返回，不能自行计算为授权凭证。`acknowledge_warnings` 必须是严格布尔值；有警告而未确认时返回 409。确认请求不允许替换文件、修改元数据或传入纠正后的分数，修改内容需重新预览。
+`preview_version` 是服务端对暂存数据、元数据、来源范围、解析器版本和评价依据版本的绑定摘要。它由预览返回，不能自行计算为授权凭证。`acknowledge_warnings` 必须是严格布尔值；有警告而未确认时返回 409。确认请求不能替换文件、修改元数据或传入修正分数；元数据经下述 PATCH 生成新预览版本，文件和评分改变需重新上传预览。
 
 | 情况 | HTTP | `result` | 行为 |
 | --- | --- | --- | --- |
@@ -121,6 +129,10 @@
 
 修正版的 `revision_of_batch_id` 必须属于同一来源范围，上传教师必须拥有该批次；确认时还需验证它仍是修订链末端。并发修订返回 409 `REVISION_CONFLICT`，不能形成隐式分叉。普通无关测评不需要设置此字段。内容完全相同仍优先按重复处理，不用修订绕过防重。
 
+### PATCH `/imports/{import_id}`（新增草案）
+
+请求必须有当前 preview_version，且至少有 title/course/assessment_date 中一项；标题非空，课程和日期可显式设为 null。返回 200 ImportPreview，保留原 rows、质量事实及 expires_at，生成新的 preview_version。旧版本返回 409 PREVIEW_VERSION_MISMATCH，已提交返回 409 IMPORT_NOT_CONFIRMABLE，过期返回 410。不能更换来源范围、文件、修订目标或评分。本操作只更新暂存元数据，不直接修改已入库批次。
+
 ### GET `/batches`、GET `/batches/{batch_id}`
 
 列表参数：`data_scope_id`（可选）、`include_revisions`（默认 false）、`offset`、`limit`。默认只列修订链末端，设为 true 可列历史；按 `created_at DESC, batch_id DESC` 排序。无数据为 200、空列表和 `total_count=0`。
@@ -130,6 +142,7 @@
 | 字段 | 类型 / 含义 |
 | --- | --- |
 | `batch_id`、`data_scope_id` | 不透明 ID |
+| `snapshot_id` | 当前数据/来源/脱敏投影的快照，不是文件哈希或授权令牌 |
 | `title` | 教师确认的测评标题 |
 | `course`、`assessment_date` | 可空课程和测评日期 |
 | `student_count`、`evaluation_count` | 从正式数据核对得到的正整数 |
@@ -145,7 +158,7 @@
 
 ### GET `/batches/{batch_id}/students`
 
-参数 `offset`、`limit`，返回 `batch_id`、`total_count`、`items`、`page`。按批次内 `display_order`、匿名 ID 稳定排序；显示顺序不代表排名。
+参数 `offset`、`limit` 及可选 snapshot_id，返回 `batch_id`、snapshot_id、`total_count`、`items`、`page`。按批次内 `display_order`、匿名 ID 稳定排序；显示顺序不代表排名。
 
 `StudentProfile` 为 `student_id`、`display_label`、`scores`。每名学生返回恰好五个不同维度，评分摘要为 `dimension_code`、`score`、`evidence_id`；列表不附整段评语，点击后读取证据。同一来源范围内匿名学生 ID 跨批次稳定；不同来源范围不自动合并。
 
@@ -165,6 +178,8 @@
 ```
 
 限定 1～2 条不同维度条件，固定 AND。阈值同样接受 1～5、最多两位小数；字符串、布尔值、NaN、无限值、未知维度及未知字段均拒绝。首版同维度区间筛选暂不在契约内。
+
+请求可含 snapshot_id 与 include_statistics（默认 false）。响应另有 eligible_count、unevaluable_count、matched_among_eligible_ratio 和可空 statistics。
 
 响应包含 `batch_id`、规范化后的 `conditions`、`rule_version`、`matched_count`、`total_count`、`ratio`、`items`、`page`。`ratio` 为完整匹配人数除以本批全部学生数，不按页数计算。`rule_version=group_filter.v1` 只表示确定性筛选实现版本，不代表六类洞察算法已冻结。
 
@@ -193,11 +208,29 @@
 
 ### GET `/batches/{batch_id}/rubric`
 
-返回 `batch_id`、`rubric_version`、恰好五个 `criteria`。每项包含 `rubric_criterion_id`、`dimension_code`、`display_name`、`original_name`、`criteria_text`、`source`；来源为文件哈希、工作表和实际区域，例如 `L3:P6`。正文是本批真实评价依据的结构化读取结果，不由模型补写。
+返回 `batch_id`、snapshot_id、rubric_id、rubric_name、score_policy、`rubric_version`、恰好五个 `criteria`。score_policy 为当前固定模板的 minimum=1、maximum=5、step=0.01，前端据此替换演示标准。每项包含 `rubric_criterion_id`、`dimension_code`、`display_name`、`original_name`、`criteria_text`、`source`；来源为文件哈希、工作表和实际区域，例如 `L3:P6`。正文是本批真实评价依据的结构化读取结果，不由模型补写。
 
 ### GET `/batches/{batch_id}/statistics`
 
-本次保留路径，不定义或伪造六类分析结果。未来服务在算法未配置时，应在鉴权后返回 503 `ANALYSIS_RULES_NOT_CONFIGURED`。完整统计成功 DTO、算法版本、黄金样例在分析负责人确认后另补，不用空数组或零均值冒充有效统计。
+本次补充 200 Statistics：batch_id、snapshot_id、rule_version、scope、display_policy、五项 dimensions 和可空 matrix。每维包含有效/缺失/无效人数、均值/中位数/最小最大值及实际观测分值频数，复用已存在的 summarize，不定义新的教学标准。
+
+统计量为 `{value,exact,display}`，exact 包含整数 numerator/denominator，display 采用 HALF_UP 两位小数。value 为绘图近似数值，不作为筛选依据；无数据时 value/exact 为 null。频数的 denominator 是本维有效样本数，与 exact 中的有理数分母不同。
+
+可选 x_dimension/y_dimension 须同时指定且不同，返回全批真实原分数的稀疏矩阵；轴坐标包含实际小数，不能用整数格漏算。群体查询 include_statistics=true 时另外返回同快照匹配群体的五维统计；矩阵仍是全批范围。零匹配的群体均值为 null、分布为空，不是零分。
+
+本成功形状覆盖已有五维统计和必要交叉计数，不代表完整六类分析、四分位数或 Spearman 公共 DTO 已冻结；未配置仍在鉴权后返回 503 ANALYSIS_RULES_NOT_CONFIGURED，不伪造成功结果。
+
+### POST `/batches/{batch_id}/insights/query`（新增草案）
+
+请求 snapshot_id 可省略，conditions 默认空数组且最多两条不同维度条件，include_dimensions 默认 true，另有 offset/limit。空条件仍可发现分布/复核，不调用空条件筛选；显式关闭维度卡且没有群体或复核候选时可返回空列表。复用已合并 PR #9：返回 batch_id/snapshot_id、comment_analysis_status、total_count、items、page；卡内保留英文维度、程序标题摘要、metrics 的 exact/display/denominator、条件、scope、规则/适配版本、状态和局限。
+
+候选只供教师内部访问，public_display_allowed 恒为 false，不能因内部投影布尔值通过就当作真实鉴权或允许公开。未配置/被扣留的评语分析独立标记，不用“0 个问题”代替。候选不返回名单、正文或内部 RecordRef/location。
+
+### POST `/batches/{batch_id}/insights/{candidate_id}/records/query`（新增草案）
+
+请求必须有 snapshot_id，metric_key 可空，另有 offset/limit；非空时通过 metric_sources 获取该指标实际来源，空值取候选主来源，不取分母 scope。返回匿名参与记录及核验后的 evidence_ids、criterion_ids、evidence_status，不回传正文或全部无关评分作为指标依据。source、批次、学生、维度和访问权须重新核验。
+
+新查询可省略快照以取得当前数据，后续页、群体/候选与证据查询携带同一 snapshot_id。失配返回 409 SNAPSHOT_STALE；候选失效返回 409 CANDIDATE_STALE，需要刷新候选和关联抽屉，不能把旧名单配新统计。候选 ID 不是证据 ID 或授权凭证。
 
 ## 6. 错误码草案
 
@@ -211,6 +244,8 @@
 | 409 | `WARNINGS_NOT_ACKNOWLEDGED` | 存在警告但未确认 |
 | 409 | `IMPORT_CONFLICT` | 导入冲突，不能安全返回已有资源 |
 | 409 | `REVISION_CONFLICT` | 修订目标不是链末端或并发修订冲突 |
+| 409 | `SNAPSHOT_STALE` | 数据、来源或脱敏投影快照不匹配 |
+| 409 | `CANDIDATE_STALE` | 候选缓存失效，需按当前快照重新查询 |
 | 410 | `IMPORT_EXPIRED` | 尚未入库预览超过有效期 |
 | 413 | `UPLOAD_LIMIT_EXCEEDED` | 压缩包、解压量、条目数或有效行超过限额 |
 | 415 | `UNSUPPORTED_FILE_TYPE` | 不支持的文件类型 |
@@ -230,6 +265,6 @@
 
 实现时验证：重复上传及并发确认只产生一个批次；异常事务不产生半批；筛选全量人数与证据合计一致；半分和两位小数无损；空评语与暂不可展示评语有不同状态；无权限和跨批次证据请求不泄露数据；预览到期与已提交重放行为不同；修订保留旧证据。
 
-仍需共同确认：教师认证集成、上传资源上限、文件与身份保留期限、六类分析 DTO 和算法、前端对本次补充读取接口及字段的接受情况。个人数据向外部模型发送须另外授权，不由本草案替代。
+仍需共同确认：本次三项操作、统计 HALF_UP 两位展示及精确值形状、前端分页视图模型和预览名称修改交互；另外确认教师认证集成、上传资源上限、文件/身份保留期限及未覆盖的分析 DTO。个人数据外发另行授权，不由本草案替代。
 
 规范参考：[OpenAPI 3.1.1](https://spec.openapis.org/oas/v3.1.1.html)。本次采用该明确版本描述接口，不表示它是最新版本。

@@ -4,15 +4,18 @@
 
 ## 当前阶段
 
-已搭建独立的 Next.js + FastAPI 基础工程：最小首页、加载与错误页面、健康检查、统一错误结构、请求编号、服务端环境配置、离线测试及 CI。
+已搭建独立的 Next.js + FastAPI 工程。前端增加了按设计稿实现的本地演示工作台：学情洞察、画像探索、测评数据、证据与学生详情抽屉、浏览器内 Excel 预览校验、批次切换及全屏。
 
-main 已有离线确定性分析内核（统计、筛选、画像与 Spearman），规则见 [ANALYSIS_RULES](docs/ANALYSIS_RULES.md)。尚未实现 Excel 导入、数据库持久化、对应 HTTP 业务接口、完整六类分析、评语分类或 AI 教学解释。多批次测评与成长追踪属于后续方向；六类分析的定义和验收标准仍待团队确认。没有业务接口、数据库 Schema、教师认证或模型调用实现。
+前端使用合成记录，新增批次仅保留在当前浏览器内存；教学分析明确标注为规则模板，未调用 AI。现有 FastAPI 后端及分析规则草案保持独立，前端尚未对接业务 API、持久化、认证或真实模型服务。评分标准、Excel 格式和客户端统计仅是演示约定，不构成团队确认的业务契约。六类分析的定义和验收标准仍待团队确认。
+
+前端运行、导入格式与验证见 [apps/web/README.md](apps/web/README.md)；组件及视觉规范见 [frontend-architecture.md](docs/frontend-architecture.md)；选用设计稿见 [design/edu-suite](design/edu-suite/README.md)。
 
 [PRD](docs/PRD.md) 仍待确认；[架构](docs/ARCHITECTURE.md)、[搭建与验证](docs/BOOTSTRAP.md)、[迁移评估](docs/MIGRATION_MAP.md) 分别记录工程边界、运行方法和参考来源。
 
 ## 技术栈
 
 - 前端：Node.js 24、pnpm 11.25.0、Next.js 16.4.1、React 19.3.1、TypeScript 5.9.3。
+- 界面与交互：Ant Design 6、ECharts 6、Zustand 5；xlsx 在浏览器内由 read-excel-file 解析，未对接后端导入。
 - 前端质量工具：ESLint 9、Prettier 3，使用 `pnpm-lock.yaml` 锁定依赖。
 - 后端：Python 3.12、uv 0.11.14、FastAPI、Pydantic、Uvicorn，使用 `uv.lock` 锁定依赖。
 - 后端质量工具：Ruff、pytest、httpx；测试禁止外网连接。
@@ -46,19 +49,20 @@ uv run --locked uvicorn app.main:create_app --factory --host 127.0.0.1 --port 80
 
 ## 团队与目录
 
-| 成员 | 分工 / 入口 |
-| --- | --- |
-| ZAMYL | 负责人，分析规则、后续 AI 模块与 `evals/` |
-| AooMing（林明） | `apps/web/` 前端，后续布局与视觉自主设计 |
-| Peng-Kai789（彭仲楷） | `apps/api/` 后端、API、数据库 |
+| 成员                  | 分工 / 入口                               |
+| --------------------- | ----------------------------------------- |
+| ZAMYL                 | 负责人，分析规则、后续 AI 模块与 `evals/` |
+| AooMing（林明）       | `apps/web/` 前端，后续布局与视觉自主设计  |
+| Peng-Kai789（彭仲楷） | `apps/api/` 后端、API、数据库             |
 
 ```text
-apps/web/             Next.js App Router 与前端工具链
+apps/web/             Next.js App Router、本地演示工作台与前端工具链
 apps/api/app/core/    配置、错误处理、请求编号
 apps/api/app/routers/ 健康检查；后续 API 由后端负责人设计
 apps/api/app/schemas/ 仅健康检查与通用错误响应
 apps/api/tests/       离线测试
 docs/                产品状态、架构、运行与迁移说明
+design/              合成 UI 设计稿、选用说明与设计追溯资料
 evals/               后续分析与 AI 评测占位
 .github/workflows/   PR / main 的独立 CI
 ```
@@ -73,14 +77,12 @@ evals/               后续分析与 AI 评测占位
 
 开发前需共同确认 PRD v0.2、分析与评分口径、输入字段、证据追溯、数据授权与保留策略、API 契约、数据库设计和验收标准。
 
-## 后端设计基线与草案
+## 后端契约与 Demo 联调草案
 
-2026-10-23，用户已确认[后端冻结规则 v0.1](docs/BACKEND_CONTRACT_V0.1.md)。完整 PRD 与六类分析算法仍待团队确认。
+2026-10-23 用户确认[四条后端基线](docs/BACKEND_CONTRACT_V0.1.md)。2026-10-24 对齐已完成的前端 Demo 和 main 的确定性候选：
 
-- [API 与 DTO 草案](docs/API_CONTRACT_V0.1.md)：11 个 EDU 接口设计，复用基础工程的统一错误信封、通用错误码与请求编号。
-- [数据结构草案](docs/DATA_MODEL_V0.1.md)：独立数据库、学生与身份映射、批次、评分评语、证据和事务边界。
-- [OpenAPI 3.1.1 草案](docs/contracts/edu-api.v0.1.openapi.json)：可供接口工具读取的契约与合成示例，不表示 EDU 业务服务已经实现。
+- [API 与 DTO](docs/API_CONTRACT_V0.1.md)、[数据结构](docs/DATA_MODEL_V0.1.md)、[OpenAPI 与合成 Mock](docs/contracts/edu-api.v0.1.openapi.json)。
+- [Demo/API 对齐清单](docs/FRONTEND_API_ALIGNMENT_V0.1.md)：三页调用、三方编码、预览名称修改、警告和定位、全批/群体统计、分值矩阵及候选证据回查。
+- [后端/引擎对接](docs/BACKEND_ANALYSIS_HANDOFF_V0.1.md)：定点评分与 Fraction、内部记录与匿名证据引用。
 
-本次仅补充设计文档，不改变现有健康检查、运行方式、依赖、CI 或基础工程代码。新增读取接口、DTO、物理模型及认证接入建议仍需联调评审；个人数据外发须另行授权。
-
-- [后端与分析引擎对接](docs/BACKEND_ANALYSIS_HANDOFF_V0.1.md)：英文维度双向映射、百分之一分与 Fraction 转换、匿名证据与内部引用映射。
+新增操作、统计展示与视图模型仍为待三方评审草案。本轮只修改设计文档，不改前端页面、HTTP 业务、数据库或现有分析/AI 实现；不把合成模型模式接到真实上传流程。
