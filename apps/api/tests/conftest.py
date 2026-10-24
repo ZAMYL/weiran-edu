@@ -4,6 +4,12 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
+def isolate_database_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A developer's configured database must never be opened by the test suite.
+    monkeypatch.delenv("WEIRAN_EDU_DATABASE", raising=False)
+
+
+@pytest.fixture(autouse=True)
 def block_external_connections(monkeypatch: pytest.MonkeyPatch) -> None:
     original_connect = socket.socket.connect
     original_connect_ex = socket.socket.connect_ex

@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from .types import DIMENSIONS, PARSER_VERSION, Evaluation, ParsedWorkbook
 
 MESSAGES = {
+    "STUDENT_IDENTITY_CONFLICT": "学号对应姓名与已有身份映射不一致，需人工核对",
     "STUDENT_IDENTITY_INVALID": "学生标识须为12位学号、分隔符和姓名",
     "STUDENT_DUPLICATE": "同一学号存在多个学生数据块",
     "BLOCK_HEADER_INVALID": "学生数据块表头与当前模板不一致",
