@@ -13,6 +13,7 @@ from app.analysis.edu import (
     Dimension,
     EvidenceKind,
     Operator,
+    ScoreState,
     select_students,
     summarize,
 )
@@ -70,7 +71,7 @@ TOOL_SCHEMAS = {
     "get_evidence_records": EvidenceArguments,
     "get_rubric_criteria": RubricArguments,
 }
-RULE_VERSION = "edu-analysis-v0.1-draft/ai-projection-v0.1"
+RULE_VERSION = "edu-analysis-v0.1-draft/ai-projection-v0.1.1"
 
 
 def encoded(value: object) -> bytes:
@@ -253,6 +254,13 @@ class ToolExecutor:
             )
             share = selected.matched_share
             eligible = selected.matched_among_eligible
+            unknown = set(selected.unevaluable_records)
+            sources = {
+                "eligible_count": tuple(
+                    record for record in selected.scope.records if record not in unknown
+                ),
+                "unevaluable_count": selected.unevaluable_records,
+            }
             for metric, value, denominator in (
                 ("matched_count", share.count, share.denominator),
                 ("matched_ratio", share.proportion, share.denominator),
@@ -266,7 +274,7 @@ class ToolExecutor:
                     value,
                     denominator,
                     selected.scope,
-                    selected.matches,
+                    sources.get(metric, selected.matches),
                     missing=None,
                     invalid=None,
                     unevaluable=len(selected.unevaluable_records),
@@ -274,7 +282,33 @@ class ToolExecutor:
                 )
         else:
             summary = summarize(self.dataset, batch_id=args.batch_id, student_ids=students)
+            _, records = cohort(self.dataset, args.batch_id, students)
             for stats in summary.dimensions:
+                # Project contributing records; numeric formulas remain in the analysis engine.
+                sources = {
+                    "missing_count": tuple(
+                        row.reference
+                        for row in records
+                        if row.score(stats.dimension).state is ScoreState.MISSING
+                    ),
+                    "invalid_count": tuple(
+                        row.reference
+                        for row in records
+                        if row.score(stats.dimension).state is ScoreState.INVALID
+                    ),
+                    "minimum": tuple(
+                        row.reference
+                        for row in records
+                        if row.score(stats.dimension).state is ScoreState.VALID
+                        and row.score(stats.dimension).value == stats.minimum
+                    ),
+                    "maximum": tuple(
+                        row.reference
+                        for row in records
+                        if row.score(stats.dimension).state is ScoreState.VALID
+                        and row.score(stats.dimension).value == stats.maximum
+                    ),
+                }
                 for metric, value, denominator in (
                     ("valid_count", stats.valid_count, summary.scope.student_count),
                     ("missing_count", stats.missing_count, summary.scope.student_count),
@@ -290,9 +324,7 @@ class ToolExecutor:
                         value,
                         denominator,
                         summary.scope,
-                        stats.valid_records
-                        if metric in {"mean", "median", "minimum", "maximum"}
-                        else summary.scope.records,
+                        sources.get(metric, stats.valid_records),
                         stats.missing_count,
                         stats.invalid_count,
                     )
@@ -303,7 +335,12 @@ class ToolExecutor:
                         entry.share.count,
                         entry.share.denominator,
                         summary.scope,
-                        stats.valid_records,
+                        tuple(
+                            row.reference
+                            for row in records
+                            if row.score(stats.dimension).state is ScoreState.VALID
+                            and row.score(stats.dimension).value == entry.score
+                        ),
                         stats.missing_count,
                         stats.invalid_count,
                     )

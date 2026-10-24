@@ -162,10 +162,18 @@ def validate_proposal(
                     if fact.dimension
                     else {condition.dimension for condition in fact.conditions}
                 )
-                if (
-                    isinstance(document, EvidenceDocument)
-                    and document.grant.record not in fact.scope.records
-                ) or (
+                if isinstance(document, EvidenceDocument):
+                    # Cohort membership alone does not establish contribution to this fact.
+                    if (
+                        grant.record.batch_id != fact.batch_id
+                        or grant.record not in fact.scope.records
+                        or grant.record not in fact.source_refs
+                    ):
+                        raise InsightError("evidence_fact_scope_mismatch")
+                elif grant.batch_id != fact.batch_id:
+                    # A batch rubric is contextual evidence, not an individual observation.
+                    raise InsightError("evidence_fact_scope_mismatch")
+                if fact.scope.batch_id != fact.batch_id or (
                     grant.reference.dimension is not None
                     and grant.reference.dimension not in dimensions
                 ):
