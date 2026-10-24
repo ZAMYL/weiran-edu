@@ -10,6 +10,8 @@ from starlette.datastructures import UploadFile
 from starlette.responses import PlainTextResponse
 
 from app.core.errors import APIError
+from app.edu.analysis import AnalysisReader
+from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
 from app.edu.auth import Principal, authenticate, deny, require_teacher
 from app.edu.models import (
     Batch,
@@ -21,9 +23,11 @@ from app.edu.models import (
     ImportPatch,
     ImportView,
     Model,
+    Rubric,
     StudentEvidence,
     StudentList,
 )
+from app.edu.query import group_query, group_schema
 from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
 from app.importing.edu.report import render_quality_report
@@ -286,13 +290,72 @@ def students(
 
 @router.get("/batches/{batch_id}/students/{student_id}/evidence", response_model=StudentEvidence)
 def student_evidence(
-    batch_id: str, student_id: str, actor: Actor, backend: Backend
+    batch_id: str,
+    student_id: str,
+    actor: Actor,
+    backend: Backend,
+    snapshot_id: str | None = None,
 ) -> StudentEvidence:
     return BatchReader(backend.database, clock=backend.clock).student_evidence(
-        actor, batch_id, student_id
+        actor, batch_id, student_id, snapshot_id=snapshot_id
     )
 
 
 @router.get("/batches/{batch_id}/evidence/{evidence_id}", response_model=Evidence)
-def evidence(batch_id: str, evidence_id: str, actor: Actor, backend: Backend) -> Evidence:
-    return BatchReader(backend.database, clock=backend.clock).evidence(actor, batch_id, evidence_id)
+def evidence(
+    batch_id: str,
+    evidence_id: str,
+    actor: Actor,
+    backend: Backend,
+    snapshot_id: str | None = None,
+) -> Evidence:
+    return BatchReader(backend.database, clock=backend.clock).evidence(
+        actor, batch_id, evidence_id, snapshot_id=snapshot_id
+    )
+
+
+@router.get("/batches/{batch_id}/statistics", response_model=Statistics)
+def statistics(
+    batch_id: str,
+    actor: Actor,
+    backend: Backend,
+    snapshot_id: str | None = None,
+    x_dimension: DimensionCode | None = None,
+    y_dimension: DimensionCode | None = None,
+) -> Statistics:
+    return AnalysisReader(backend.database, clock=backend.clock).statistics(
+        actor,
+        batch_id,
+        snapshot_id=snapshot_id,
+        x_dimension=x_dimension,
+        y_dimension=y_dimension,
+    )
+
+
+@router.post(
+    "/batches/{batch_id}/groups/query",
+    response_model=GroupResult,
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"application/json": {"schema": group_schema()}},
+        }
+    },
+)
+async def group(
+    batch_id: str,
+    request: Request,
+    actor: Actor,
+    backend: Backend,
+) -> GroupResult:
+    # Authentication above precedes reading the bounded request body.
+    query = await group_query(request)
+    reader = AnalysisReader(backend.database, clock=backend.clock)
+    return await run_in_threadpool(reader.group, actor, batch_id, query)
+
+
+@router.get("/batches/{batch_id}/rubric", response_model=Rubric)
+def rubric(batch_id: str, actor: Actor, backend: Backend, snapshot_id: str | None = None) -> Rubric:
+    return BatchReader(backend.database, clock=backend.clock).rubric(
+        actor, batch_id, snapshot_id=snapshot_id
+    )

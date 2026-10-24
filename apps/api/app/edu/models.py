@@ -160,6 +160,7 @@ class StudentList(Model):
 class Evidence(Model):
     evidence_id: str
     batch_id: str
+    snapshot_id: str
     student_id: str
     dimension_code: str
     score: float
@@ -172,7 +173,40 @@ class Evidence(Model):
 
 class StudentEvidence(Model):
     batch_id: str
+    snapshot_id: str
     student_id: str
     display_label: str
     rubric_version: str
     items: tuple[Evidence, ...]
+
+
+class RubricSource(Model):
+    file_sha256: str
+    sheet_name: str
+    range: str
+
+
+class RubricCriterion(Model):
+    rubric_criterion_id: str
+    dimension_code: str
+    display_name: str
+    original_name: str
+    criteria_text: None = None
+    criteria_status: Literal["withheld"] = "withheld"
+    source: RubricSource
+
+
+class ScoreScale(Model):
+    minimum: int = 1
+    maximum: int = 5
+    step: float = 0.01
+
+
+class Rubric(Model):
+    batch_id: str
+    snapshot_id: str
+    rubric_id: str
+    rubric_version: str
+    rubric_name: str = "Excel 五维评分表"
+    score_policy: ScoreScale = ScoreScale()
+    criteria: tuple[RubricCriterion, ...]

@@ -9,7 +9,16 @@ from app.importing.edu.types import DIMENSIONS
 from app.storage.database import Database
 
 from .auth import Principal, accessible_batch, deny, require_teacher
-from .models import Evidence, Student, StudentEvidence, StudentList, StudentScore
+from .models import (
+    Evidence,
+    Rubric,
+    RubricCriterion,
+    RubricSource,
+    Student,
+    StudentEvidence,
+    StudentList,
+    StudentScore,
+)
 from .service import _page, fail, stamp
 
 ORDER = {spec.code: index for index, spec in enumerate(DIMENSIONS)}
@@ -89,14 +98,16 @@ class BatchReader:
             )
 
     @staticmethod
-    def _evidence_rows(connection: sqlite3.Connection, batch_id: str) -> str:
+    def _evidence_rows() -> str:
         # Static SQL: caller appends only fixed predicates, never request strings.
         return (
             "SELECT e.evidence_id,e.batch_id,s.public_id,e.dimension_code,"
-            "e.score_units,e.score_raw,"
+            "e.score_units,e.score_raw,b.snapshot_id,b.file_sha256 AS batch_file_sha256,"
+            "r.file_sha256 AS rubric_file_sha256,"
             "e.comment_status,e.file_sha256,e.sheet_name,e.source_row,e.dimension_cell,e.score_cell,"
             "e.comment_cell,r.rubric_criterion_id FROM evaluations e "
             "JOIN students s ON s.student_pk=e.student_pk "
+            "JOIN batches b ON b.batch_id=e.batch_id AND b.rubric_id=e.rubric_id "
             "JOIN rubric_criteria r ON r.rubric_id=e.rubric_id "
             "AND r.dimension_code=e.dimension_code "
             "WHERE e.batch_id=?"
@@ -104,9 +115,17 @@ class BatchReader:
 
     @staticmethod
     def _evidence(row: sqlite3.Row) -> Evidence:
+        if (
+            row["dimension_code"] not in ORDER
+            or not 100 <= row["score_units"] <= 500
+            or row["file_sha256"] != row["batch_file_sha256"]
+            or row["rubric_file_sha256"] != row["batch_file_sha256"]
+        ):
+            fail("DATA_INTEGRITY_ERROR", 503)
         return Evidence(
             evidence_id=row["evidence_id"],
             batch_id=row["batch_id"],
+            snapshot_id=row["snapshot_id"],
             student_id=row["public_id"],
             dimension_code=row["dimension_code"],
             score=row["score_units"] / 100,
@@ -123,11 +142,18 @@ class BatchReader:
             rubric_criterion_id=row["rubric_criterion_id"],
         )
 
-    def evidence(self, principal: Principal, batch_id: str, evidence_id: str) -> Evidence:
+    def evidence(
+        self,
+        principal: Principal,
+        batch_id: str,
+        evidence_id: str,
+        *,
+        snapshot_id: str | None = None,
+    ) -> Evidence:
         with self.database.transaction() as connection:
-            self._batch(connection, principal, batch_id, None)
+            self._batch(connection, principal, batch_id, snapshot_id)
             row = connection.execute(
-                self._evidence_rows(connection, batch_id) + " AND e.evidence_id=?",
+                self._evidence_rows() + " AND e.evidence_id=?",
                 (batch_id, evidence_id),
             ).fetchone()
             if row is None:
@@ -135,10 +161,15 @@ class BatchReader:
             return self._evidence(row)
 
     def student_evidence(
-        self, principal: Principal, batch_id: str, student_id: str
+        self,
+        principal: Principal,
+        batch_id: str,
+        student_id: str,
+        *,
+        snapshot_id: str | None = None,
     ) -> StudentEvidence:
         with self.database.transaction() as connection:
-            batch = self._batch(connection, principal, batch_id, None)
+            batch = self._batch(connection, principal, batch_id, snapshot_id)
             student = connection.execute(
                 "SELECT bs.display_label FROM batch_students bs "
                 "JOIN students s ON s.student_pk=bs.student_pk "
@@ -148,18 +179,57 @@ class BatchReader:
             if student is None:
                 deny(404)
             rows = connection.execute(
-                self._evidence_rows(connection, batch_id) + " AND s.public_id=?",
+                self._evidence_rows() + " AND s.public_id=?",
                 (batch_id, student_id),
             ).fetchall()
-            if len(rows) != 5:
+            if len(rows) != 5 or {r["dimension_code"] for r in rows} != set(ORDER):
                 fail("DATA_INTEGRITY_ERROR", 503)
             return StudentEvidence(
                 batch_id=batch_id,
+                snapshot_id=batch["snapshot_id"],
                 student_id=student_id,
                 display_label=student["display_label"],
                 rubric_version=batch["rubric_version"],
                 items=tuple(
                     self._evidence(r)
                     for r in sorted(rows, key=lambda r: ORDER[r["dimension_code"]])
+                ),
+            )
+
+    def rubric(
+        self, principal: Principal, batch_id: str, *, snapshot_id: str | None = None
+    ) -> Rubric:
+        with self.database.transaction() as connection:
+            batch = self._batch(connection, principal, batch_id, snapshot_id)
+            rows = connection.execute(
+                "SELECT rubric_criterion_id,dimension_code,file_sha256,sheet_name,source_range "
+                "FROM rubric_criteria WHERE rubric_id=?",
+                (batch["rubric_id"],),
+            ).fetchall()
+            if (
+                len(rows) != 5
+                or {r["dimension_code"] for r in rows} != set(ORDER)
+                or any(r["file_sha256"] != batch["file_sha256"] for r in rows)
+            ):
+                fail("DATA_INTEGRITY_ERROR", 503)
+            by_code = {row["dimension_code"]: row for row in rows}
+            return Rubric(
+                batch_id=batch_id,
+                snapshot_id=batch["snapshot_id"],
+                rubric_id=batch["rubric_id"],
+                rubric_version=batch["rubric_version"],
+                criteria=tuple(
+                    RubricCriterion(
+                        rubric_criterion_id=by_code[spec.code]["rubric_criterion_id"],
+                        dimension_code=spec.code,
+                        display_name=spec.label,
+                        original_name=spec.rubric_title,
+                        source=RubricSource(
+                            file_sha256=by_code[spec.code]["file_sha256"],
+                            sheet_name=by_code[spec.code]["sheet_name"],
+                            range=by_code[spec.code]["source_range"],
+                        ),
+                    )
+                    for spec in DIMENSIONS
                 ),
             )
