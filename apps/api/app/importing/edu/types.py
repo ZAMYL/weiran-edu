@@ -1,6 +1,7 @@
 """Private parse objects must never be serialized directly to an API or log."""
 
 from dataclasses import dataclass, field
+from uuid import uuid4
 
 PARSER_VERSION = "current_template.v1"
 
@@ -62,6 +63,7 @@ class Issue:
     sheet_name: str
     cell: str
     row_number: int
+    dimension_code: str | None = None
 
 
 @dataclass(frozen=True, repr=False)
@@ -102,6 +104,7 @@ class ParsedWorkbook:
     students: tuple[StudentBlock, ...] = field(repr=False)
     rubrics: tuple[Rubric, ...] = field(repr=False)
     issues: tuple[Issue, ...]
+    preview_id: str = field(default_factory=lambda: str(uuid4()), repr=False)
 
     @property
     def can_commit(self) -> bool:

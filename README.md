@@ -8,7 +8,7 @@
 
 前端使用合成记录，新增批次仅保留在当前浏览器内存；教学分析明确标注为规则模板，未调用 AI。现有 FastAPI 后端及分析规则草案保持独立，前端尚未对接业务 API、持久化、认证或真实模型服务。评分标准、Excel 格式和客户端统计仅是演示约定，不构成团队确认的业务契约。六类分析的定义和验收标准仍待团队确认。
 
-前端运行、导入格式与验证见 [apps/web/README.md](apps/web/README.md)；组件及视觉规范见 [frontend-architecture.md](docs/frontend-architecture.md)；选用设计稿见 [design/edu-suite](design/edu-suite/README.md)。
+前端运行、导入格式与验证见 [apps/web/README.md](apps/web/README.md)；组件及视觉规范见 [前端规范](apps/web/docs/frontend-architecture.md)。设计参考资料保留在仓库之外，不随代码提交。
 
 [PRD](docs/PRD.md) 仍待确认；[架构](docs/ARCHITECTURE.md)、[搭建与验证](docs/BOOTSTRAP.md)、[迁移评估](docs/MIGRATION_MAP.md) 分别记录工程边界、运行方法和参考来源。
 
@@ -62,7 +62,6 @@ apps/api/app/routers/ 健康检查；后续 API 由后端负责人设计
 apps/api/app/schemas/ 仅健康检查与通用错误响应
 apps/api/tests/       离线测试
 docs/                产品状态、架构、运行与迁移说明
-design/              合成 UI 设计稿、选用说明与设计追溯资料
 evals/               后续分析与 AI 评测占位
 .github/workflows/   PR / main 的独立 CI
 ```

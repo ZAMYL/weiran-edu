@@ -1,3 +1,5 @@
 # Native optional packages are installed from the lockfile; no fallback build scripts.
+# Keep the dependency store inside the local project directory and out of Git.
+storeDir: ../../.local/pnpm-store
 allowBuilds:
   unrs-resolver: false

@@ -1,11 +1,12 @@
 """Whitelist projection of a private parse result; comments require later review."""
 
+from bisect import bisect_right
 from typing import Literal
-from uuid import uuid4
+from uuid import UUID, uuid5
 
 from pydantic import BaseModel, ConfigDict
 
-from .types import PARSER_VERSION, ParsedWorkbook
+from .types import DIMENSIONS, PARSER_VERSION, Evaluation, ParsedWorkbook
 
 MESSAGES = {
     "STUDENT_IDENTITY_INVALID": "学生标识须为12位学号、分隔符和姓名",
@@ -44,10 +45,7 @@ class PreviewSource(PreviewModel):
     comment_cell: str
 
 
-class PreviewRow(PreviewModel):
-    row_key: str
-    preview_student_id: str
-    display_label: str
+class PreviewScore(PreviewModel):
     dimension_code: str | None
     score: float | None
     score_raw: str | None
@@ -55,6 +53,12 @@ class PreviewRow(PreviewModel):
     comment: None = None
     comment_status: Literal["withheld", "empty"]
     source: PreviewSource
+
+
+class PreviewRow(PreviewScore):
+    row_key: str
+    preview_student_id: str
+    display_label: str
     issue_codes: tuple[str, ...]
 
 
@@ -66,6 +70,18 @@ class PreviewIssue(PreviewModel):
     sheet_name: Literal["Sheet1", "Sheet2"]
     row_number: int
     cell: str
+    row_key: str | None = None
+    row_offset: int | None = None
+    preview_student_id: str | None = None
+    display_label: str | None = None
+    dimension_code: str | None = None
+    scope: Literal["workbook", "student"]
+
+
+class PreviewStudent(PreviewModel):
+    preview_student_id: str
+    display_label: str
+    scores: tuple[PreviewScore, ...]
 
 
 class Page(PreviewModel):
@@ -93,10 +109,82 @@ class ParsePreview(PreviewModel):
     status: Literal["preview_ready", "invalid"]
     preview_available: bool = True
     summary: PreviewSummary
+    student_samples: tuple[PreviewStudent, ...]
+    student_page: Page
     rows: tuple[PreviewRow, ...]
     row_page: Page
     issues: tuple[PreviewIssue, ...]
     issue_page: Page
+
+
+def validate_page(offset: int, limit: int) -> None:
+    if type(offset) is not int or type(limit) is not int or offset < 0 or not 1 <= limit <= 100:
+        raise ValueError("INVALID_PAGE")
+
+
+def summarize(result: ParsedWorkbook) -> PreviewSummary:
+    return PreviewSummary(
+        detected_student_count=len(result.students),
+        complete_student_count=sum(s.complete for s in result.students),
+        parsed_evaluation_count=sum(len(s.evaluations) for s in result.students),
+        error_count=sum(i.severity == "error" for i in result.issues),
+        warning_count=sum(i.severity == "warning" for i in result.issues),
+    )
+
+
+def project_issues(result: ParsedWorkbook) -> tuple[PreviewIssue, ...]:
+    """Stable within a parse result; header problems do not invent evaluation offsets."""
+    students = sorted(result.students, key=lambda student: student.header_row)
+    headers = [student.header_row for student in students]
+    rows = [e for student in result.students for e in student.evaluations]
+    offsets = {e.source.row_number: offset for offset, e in enumerate(rows)}
+    dimensions = {e.source.row_number: e.dimension_code for e in rows}
+    projected = []
+    for index, issue in enumerate(result.issues):
+        student_index = bisect_right(headers, issue.row_number) - 1
+        student = (
+            students[student_index] if issue.sheet_name == "Sheet2" and student_index >= 0 else None
+        )
+        offset = offsets.get(issue.row_number) if issue.sheet_name == "Sheet2" else None
+        projected.append(
+            PreviewIssue(
+                issue_id=str(uuid5(UUID(result.preview_id), str(index))),
+                severity=issue.severity,
+                code=issue.code,
+                message=MESSAGES[issue.code],
+                sheet_name=issue.sheet_name,
+                row_number=issue.row_number,
+                cell=issue.cell,
+                row_key=f"row:{issue.row_number}" if offset is not None else None,
+                row_offset=offset,
+                preview_student_id=student.preview_student_id if student else None,
+                display_label=student.display_label if student else None,
+                dimension_code=issue.dimension_code
+                or (dimensions.get(issue.row_number) if issue.sheet_name == "Sheet2" else None),
+                scope="student" if student else "workbook",
+            )
+        )
+    return tuple(projected)
+
+
+def _score_preview(e: Evaluation) -> PreviewScore:
+    source = e.source
+    return PreviewScore(
+        dimension_code=e.dimension_code,
+        score=e.score_units / 100 if e.score_units is not None else None,
+        score_raw=str(e.score_raw) if e.score_units is not None else None,
+        score_state="valid"
+        if e.score_units is not None
+        else ("missing" if e.score_raw is None else "invalid"),
+        comment_status="withheld" if e.comment_raw and e.comment_raw.strip() else "empty",
+        source=PreviewSource(
+            file_sha256=source.file_sha256,
+            row_number=source.row_number,
+            dimension_cell=source.dimension_cell,
+            score_cell=source.score_cell,
+            comment_cell=source.comment_cell,
+        ),
+    )
 
 
 def build_preview(
@@ -106,14 +194,12 @@ def build_preview(
     row_limit: int = 25,
     issue_offset: int = 0,
     issue_limit: int = 50,
+    student_offset: int = 0,
+    student_limit: int = 20,
 ) -> ParsePreview:
-    if (
-        row_offset < 0
-        or issue_offset < 0
-        or not 1 <= row_limit <= 100
-        or not 1 <= issue_limit <= 100
-    ):
-        raise ValueError("INVALID_PAGE")
+    validate_page(row_offset, row_limit)
+    validate_page(issue_offset, issue_limit)
+    validate_page(student_offset, student_limit)
     evaluations = [(s, e) for s in result.students for e in s.evaluations]
     rows = []
     codes_by_row: dict[int, list[str]] = {}
@@ -127,46 +213,42 @@ def build_preview(
                 row_key=f"row:{source.row_number}",
                 preview_student_id=student.preview_student_id,
                 display_label=student.display_label,
-                dimension_code=e.dimension_code,
-                score=e.score_units / 100 if e.score_units is not None else None,
-                # An invalid numeric cell could itself be an identifier. Never echo it.
-                score_raw=str(e.score_raw) if e.score_units is not None else None,
-                score_state="valid"
-                if e.score_units is not None
-                else ("missing" if e.score_raw is None else "invalid"),
-                comment_status="withheld" if e.comment_raw and e.comment_raw.strip() else "empty",
-                source=PreviewSource(
-                    file_sha256=source.file_sha256,
-                    row_number=source.row_number,
-                    dimension_cell=source.dimension_cell,
-                    score_cell=source.score_cell,
-                    comment_cell=source.comment_cell,
+                **_score_preview(e).model_dump(),
+                issue_codes=tuple(
+                    dict.fromkeys(
+                        codes_by_row.get(student.header_row, [])
+                        + codes_by_row.get(source.row_number, [])
+                    )
                 ),
-                issue_codes=tuple(codes_by_row.get(source.row_number, [])),
             )
         )
-    issues = tuple(
-        PreviewIssue(
-            issue_id=str(uuid4()),
-            severity=i.severity,
-            code=i.code,
-            message=MESSAGES[i.code],
-            sheet_name=i.sheet_name,
-            row_number=i.row_number,
-            cell=i.cell,
+    issues = project_issues(result)[issue_offset : issue_offset + issue_limit]
+    complete = [student for student in result.students if student.complete]
+    dimension_order = {spec.code: index for index, spec in enumerate(DIMENSIONS)}
+    samples = tuple(
+        PreviewStudent(
+            preview_student_id=student.preview_student_id,
+            display_label=student.display_label,
+            scores=tuple(
+                _score_preview(e)
+                for e in sorted(
+                    student.evaluations, key=lambda e: dimension_order[e.dimension_code]
+                )
+            ),
         )
-        for i in result.issues[issue_offset : issue_offset + issue_limit]
+        for student in complete[student_offset : student_offset + student_limit]
     )
     return ParsePreview(
         file_sha256=result.file_sha256,
         content_sha256=result.content_sha256,
         status="preview_ready" if result.can_commit else "invalid",
-        summary=PreviewSummary(
-            detected_student_count=len(result.students),
-            complete_student_count=sum(s.complete for s in result.students),
-            parsed_evaluation_count=len(evaluations),
-            error_count=sum(i.severity == "error" for i in result.issues),
-            warning_count=sum(i.severity == "warning" for i in result.issues),
+        summary=summarize(result),
+        student_samples=samples,
+        student_page=Page(
+            offset=student_offset,
+            limit=student_limit,
+            returned=len(samples),
+            has_more=student_offset + len(samples) < len(complete),
         ),
         rows=tuple(rows),
         issues=issues,

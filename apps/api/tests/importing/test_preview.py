@@ -37,3 +37,38 @@ def test_page_counts_and_transient_identifiers(workbook, pack):
     )
     assert first.rows[1].score == 2.75
     assert first.rows[1].score_raw == "2.75"
+
+
+def test_student_pages_only_include_complete_students(workbook, pack):
+    result = parse_excel(pack(workbook))
+    first = build_preview(result, student_limit=1)
+    second = build_preview(result, student_offset=1, student_limit=1)
+    assert first.student_page.has_more and not second.student_page.has_more
+    assert len(first.student_samples[0].scores) == 5
+    assert first.student_samples[0].preview_student_id == first.rows[0].preview_student_id
+    assert (
+        first.student_samples[0].preview_student_id != second.student_samples[0].preview_student_id
+    )
+    workbook["Sheet2"]["C3"] = None
+    invalid = build_preview(parse_excel(pack(workbook)))
+    assert invalid.status == "invalid"
+    assert invalid.summary.complete_student_count == len(invalid.student_samples) == 1
+    assert invalid.student_samples[0].display_label == "学生 002"
+    assert len(invalid.rows) == 10  # Invalid rows remain available for diagnosis.
+
+
+def test_header_errors_are_visible_on_the_student_rows(workbook, pack):
+    workbook["Sheet2"]["A8"] = "000000000001-合成重名"
+    preview = build_preview(parse_excel(pack(workbook)))
+    assert not preview.student_samples
+    assert all("STUDENT_DUPLICATE" in row.issue_codes for row in preview.rows)
+
+
+def test_issue_location_points_to_correct_row_after_pagination(workbook, pack):
+    workbook["Sheet2"]["C10"] = None
+    result = parse_excel(pack(workbook))
+    issue = build_preview(result).issues[0]
+    page = build_preview(result, row_offset=issue.row_offset, row_limit=1)
+    assert issue.cell == "C10"
+    assert page.rows[0].row_key == issue.row_key
+    assert page.rows[0].source.score_cell == issue.cell

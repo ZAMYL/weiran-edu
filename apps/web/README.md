@@ -1,8 +1,8 @@
 # 未然 EDU
 
-面向教师的测评分析前端：学情洞察、画像探索与测评数据管理。按仓库根目录 `design/edu-suite` 的十张选用稿实现浅蓝顶部导航布局。
+面向教师的测评分析前端：学情洞察、画像探索与测评数据管理。依据本地选定的设计稿实现浅蓝顶部导航布局，设计参考资料不纳入代码仓库。
 
-技术栈：Next.js 16 App Router、React 19、TypeScript 5.9、Ant Design 6、ECharts 6、Zustand 5、read-excel-file 9。沿用正式仓库的框架、严格类型检查及 CI；没有引入 Vite 或 React Router。完整技术决策、组件规范、数据规则见 [前端架构说明](../../docs/frontend-architecture.md)。实际依赖版本由本目录 `pnpm-lock.yaml` 锁定。
+技术栈：Next.js 16 App Router、React 19、TypeScript 5.9、Ant Design 6、ECharts 6、Zustand 5、read-excel-file 9。沿用正式仓库的框架、严格类型检查及 CI；没有引入 Vite 或 React Router。完整技术决策、组件规范、数据规则见 [前端架构说明](docs/frontend-architecture.md)。实际依赖版本由本目录 `pnpm-lock.yaml` 锁定。
 
 ## 本地运行
 

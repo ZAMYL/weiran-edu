@@ -47,8 +47,17 @@ def _text(value: object) -> str:
     return value.strip() if isinstance(value, str) else ""
 
 
-def _issue(code: str, row: int, column: str = "B", *, warning: bool = False) -> Issue:
-    return Issue(code, "warning" if warning else "error", "Sheet2", f"{column}{row}", row)
+def _issue(
+    code: str,
+    row: int,
+    column: str = "B",
+    *,
+    warning: bool = False,
+    dimension_code: str | None = None,
+) -> Issue:
+    return Issue(
+        code, "warning" if warning else "error", "Sheet2", f"{column}{row}", row, dimension_code
+    )
 
 
 def _score(cell: InputCell, numeric: dict[str, str]) -> tuple[int | None, object, str | None]:
@@ -124,7 +133,7 @@ def _block(
             issues.append(_issue("DIMENSION_UNKNOWN", row_number))
         units, raw_score, error = _score(cells[2], numeric)
         if error:
-            issues.append(_issue(error, row_number, "C"))
+            issues.append(_issue(error, row_number, "C", dimension_code=dimension))
         comment = cells[3].value
         if comment is not None and not isinstance(comment, str):
             issues.append(_issue("COMMENT_TYPE_INVALID", row_number, "D"))
@@ -149,9 +158,9 @@ def _block(
     counts = Counter(e.dimension_code for e in evaluations if e.dimension_code)
     for spec in DIMENSIONS:
         if not counts[spec.code]:
-            issues.append(_issue("DIMENSION_MISSING", row))
+            issues.append(_issue("DIMENSION_MISSING", row, dimension_code=spec.code))
         elif counts[spec.code] > 1:
-            issues.append(_issue("DIMENSION_DUPLICATE", row))
+            issues.append(_issue("DIMENSION_DUPLICATE", row, dimension_code=spec.code))
     return StudentBlock(
         str(uuid4()),
         f"学生 {index:03d}",
