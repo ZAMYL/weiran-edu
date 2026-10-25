@@ -35,7 +35,7 @@ GET 返回 `preview_text`、`preview_truncated`、当前 `version/status/display
 }
 ```
 
-发布文本 1—4000 字符，空原评语不能被补写为来源评语。撤回提交 `status=withheld` 并省略 `display_text`；不接受同时夹带正文。每次请求必须带最新 `expected_version`，冲突为 `409 TEXT_REVIEW_VERSION_MISMATCH`。
+发布文本 1—4000 字符，可见全角标点先规范化后校验，隐藏字符和敏感信息拒绝。空原评语不能被补写为来源评语。撤回提交 `status=withheld` 并省略 `display_text`；不接受同时夹带正文。每次请求必须带最新 `expected_version`，冲突为 `409 TEXT_REVIEW_VERSION_MISMATCH`。
 发布文本是教师审核后的展示投影，不应标成逐字原文；原始文件来源保持可追溯。
 
 原有证据/学生证据接口随后返回 `comment_status=published`、审核文本及 `comment_review_version`；依据接口同理返回 `criteria_status=published`、`criteria_text` 和 `criteria_review_version`。

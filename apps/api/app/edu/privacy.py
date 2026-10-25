@@ -44,7 +44,11 @@ def redact_text(connection: sqlite3.Connection, scope_id: str, text: str) -> str
 
 def checked_text(connection: sqlite3.Connection, scope_id: str, text: str) -> str:
     normalized = normalize_text(text).strip()
-    if normalized != text.strip() or redact_text(connection, scope_id, normalized) != normalized:
+    visible_normalized = unicodedata.normalize("NFKC", text).strip()
+    if (
+        normalized != visible_normalized
+        or redact_text(connection, scope_id, normalized) != normalized
+    ):
         raise APIError(
             422, "TEXT_CONTAINS_SENSITIVE_DATA", "文本含身份、联系方式或隐藏字符，请脱敏后重试"
         )

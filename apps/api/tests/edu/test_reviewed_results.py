@@ -652,3 +652,13 @@ def test_three_migration_database_upgrade_keeps_existing_facts(runtime, stage):
         ][:3] == previous
         assert not connection.execute("PRAGMA foreign_key_check").fetchall()
     assert runtime.reader.students(runtime.p, batch.batch_id) == before
+
+
+def test_visible_fullwidth_punctuation_is_normalized_before_sensitive_text_checks(client, flow):
+    base, batch, proof, _ = flow
+    response = publish(client, base, batch, proof, text="教师复核：本次评分，需结合课堂表现。")
+    assert response.status_code == 200
+    assert response.json()["display_text"] == "教师复核:本次评分,需结合课堂表现。"
+    saved = save_result(client, base, batch, note="教师判断：继续观察。")
+    assert saved.status_code == 201
+    assert saved.json()["note"] == "教师判断:继续观察。"
