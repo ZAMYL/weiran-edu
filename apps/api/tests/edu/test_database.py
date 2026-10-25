@@ -11,7 +11,7 @@ def test_migrations_are_idempotent_checksummed_and_foreign_keys_are_enabled(runt
     with runtime.db.transaction() as connection:
         assert connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
         assert not connection.execute("PRAGMA foreign_key_check").fetchall()
-        assert connection.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == 2
+        assert connection.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == 3
     with runtime.db.transaction(write=True) as connection:
         connection.execute("UPDATE schema_migrations SET checksum='tampered'")
     with pytest.raises(ValueError, match="MIGRATION_CHECKSUM_MISMATCH"):
@@ -37,6 +37,7 @@ def test_storage_path_must_be_absolute_and_outside_repository(tmp_path):
         "batch_students",
         "batch_sources",
         "student_identities",
+        "students",
     ],
 )
 def test_confirmed_facts_cannot_be_updated_or_deleted(runtime, stage, table):
