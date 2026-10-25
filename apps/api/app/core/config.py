@@ -10,6 +10,7 @@ class Settings(BaseModel):
 
     environment: Literal["development", "test", "production"] = "development"
     database_path: Path | None = Field(default=None, exclude=True, repr=False)
+    request_trace_database_path: Path | None = Field(default=None, exclude=True, repr=False)
 
     @classmethod
     def from_env(cls) -> Self:
@@ -18,6 +19,8 @@ class Settings(BaseModel):
             return cls(
                 environment=os.environ.get("WEIRAN_EDU_ENV", "development"),
                 database_path=os.environ.get("WEIRAN_EDU_DATABASE") or None,
+                request_trace_database_path=os.environ.get("WEIRAN_EDU_REQUEST_TRACE_DATABASE")
+                or None,
             )
         except ValidationError:
             raise RuntimeError(
