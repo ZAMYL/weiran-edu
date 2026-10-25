@@ -12,14 +12,16 @@ import { Panel } from '../../components/ui';
 
 export function ImportPreview({
   preview,
+  initialName,
   onCancel,
   onConfirm,
 }: {
   preview: Preview;
+  initialName: string;
   onCancel: () => void;
   onConfirm: (name: string) => void;
 }) {
-  const [name, setName] = useState(preview.filename.replace(/\.xlsx$/i, '').trim() || '未命名测评');
+  const [name, setName] = useState(initialName);
   const [page, setPage] = useState(1);
   const [located, setLocated] = useState<string>();
   const errors = new Set(preview.issues.flatMap((issue) => (issue.rowKey ? [issue.rowKey] : [])));

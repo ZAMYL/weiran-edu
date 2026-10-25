@@ -111,6 +111,13 @@ async function main() {
     await page
       .locator('input[type=file]')
       .setInputFiles(path.resolve('public/templates/评价_待校验示例.xlsx'));
+    await page.getByLabel('测评名称', { exact: true }).waitFor();
+    assert.equal(
+      await page.getByLabel('测评名称', { exact: true }).inputValue(),
+      '评价_待校验示例',
+    );
+    assert.equal(await page.getByRole('heading', { name: '导入预览', exact: true }).count(), 0);
+    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     await page.getByRole('heading', { name: '导入预览', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: /确认导入$/ }).isDisabled(), true);
     assert.match(await page.locator('.quality-report').innerText(), /2 项需处理/);
@@ -122,9 +129,16 @@ async function main() {
     await page
       .locator('input[type=file]')
       .setInputFiles(path.resolve('public/templates/评价长表模板.xlsx'));
+    await page.getByLabel('测评名称', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), '评价长表模板');
+    await page.getByLabel('测评名称', { exact: true }).fill('浏览器验证批次');
+    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     await page.getByText('所有记录通过当前标准校验').waitFor();
     assert.equal(await page.getByRole('button', { name: /确认导入$/ }).isEnabled(), true);
-    await page.getByLabel('新测评名称', { exact: true }).fill('浏览器验证批次');
+    assert.equal(
+      await page.getByLabel('新测评名称', { exact: true }).inputValue(),
+      '浏览器验证批次',
+    );
     await page.getByRole('button', { name: /确认导入$/ }).click();
     await page.getByText('浏览器验证批次', { exact: true }).first().waitFor();
     assert.equal(await page.locator('.batches-panel tbody tr.ant-table-row').count(), 2);
@@ -134,6 +148,9 @@ async function main() {
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       buffer: sameFile,
     });
+    await page.getByLabel('测评名称', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), '重命名');
+    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     await page.getByText('这份文件已在当前会话中导入，重命名文件也不会创建重复批次。').waitFor();
     checks.push('有效文件确认追加批次，重命名重复文件仍被识别');
     await page.getByRole('link', { name: '学情洞察', exact: true }).click();

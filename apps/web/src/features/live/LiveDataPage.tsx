@@ -12,6 +12,7 @@ import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import LiveImportPreview from './LiveImportPreview';
 import { assessmentNameFromFilename } from '../../services/assessment-name';
+import { UploadSelection } from '../assessments/UploadSelection';
 
 export default function LiveDataPage() {
   const { client, scopes, batch, selectBatch, revision } = useDataMode();
@@ -21,6 +22,8 @@ export default function LiveDataPage() {
   const [scope, setScope] = useState(scopes.find((s) => s.can_import)?.data_scope_id ?? '');
   const [offset, setOffset] = useState(0);
   const [preview, setPreview] = useState<ApiImport | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -33,7 +36,11 @@ export default function LiveDataPage() {
   );
   const batches = useRemote(`data-batches:${revision}:${offset}`, loadBatches);
   const allowed = scopes.some((s) => s.data_scope_id === scope && s.can_import);
-  async function upload(file: File) {
+  function selectFile(file: File) {
+    if (busy) return Upload.LIST_IGNORE;
+    setError(null);
+    setLocalError(null);
+    setSelectedFile(null);
     if (!allowed) {
       setLocalError('请选择当前有导入权的数据来源。');
       return Upload.LIST_IGNORE;
@@ -42,6 +49,12 @@ export default function LiveDataPage() {
       setLocalError('请选择不超过 10 MiB 的原始双 Sheet .xlsx 文件。');
       return Upload.LIST_IGNORE;
     }
+    setSelectedFile(file);
+    setTitle(assessmentNameFromFilename(file.name));
+    return Upload.LIST_IGNORE;
+  }
+  async function next() {
+    if (busy || !selectedFile || !title.trim() || !allowed) return;
     uploadController.current?.abort();
     const controller = new AbortController();
     uploadController.current = controller;
@@ -49,9 +62,9 @@ export default function LiveDataPage() {
     setError(null);
     setLocalError(null);
     const form = new FormData();
-    form.append('file', file);
+    form.append('file', selectedFile);
     form.append('data_scope_id', scope);
-    form.append('title', assessmentNameFromFilename(file.name));
+    form.append('title', title.trim());
     if (course.trim()) form.append('course', course.trim());
     if (date) form.append('assessment_date', date);
     try {
@@ -62,7 +75,6 @@ export default function LiveDataPage() {
     } finally {
       if (!controller.signal.aborted) setBusy(false);
     }
-    return Upload.LIST_IGNORE;
   }
   const enter = (target: ApiBatch) => {
     selectBatch(target);
@@ -115,7 +127,7 @@ export default function LiveDataPage() {
             accept=".xlsx"
             multiple={false}
             showUploadList={false}
-            beforeUpload={upload}
+            beforeUpload={selectFile}
             disabled={busy || !allowed}
             className="excel-dropzone"
           >
@@ -127,8 +139,24 @@ export default function LiveDataPage() {
               选择正式文件
             </Button>
             <p>固定五维双工作表模板 · .xlsx · 最大 10 MiB</p>
-            <p>测评名称默认使用文件名，可在预览中修改。</p>
+            <p>选择文件后可修改测评名称，点击下一步再预览。</p>
           </Upload.Dragger>
+          {selectedFile && (
+            <UploadSelection
+              filename={selectedFile.name}
+              name={title}
+              onNameChange={setTitle}
+              onNext={next}
+              onClear={() => {
+                setSelectedFile(null);
+                setTitle('');
+                setError(null);
+                setLocalError(null);
+              }}
+              busy={busy}
+              disabled={!allowed}
+            />
+          )}
           {localError && (
             <Alert className="session-notice" type="error" showIcon title={localError} />
           )}

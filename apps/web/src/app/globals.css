@@ -2295,6 +2295,19 @@ h1 {
     overflow-wrap: anywhere;
   }
 }
+.upload-selection {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #dce5f4;
+  border-radius: 9px;
+  background: #f7faff;
+}
+.upload-selection p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
 .analysis-actions {
   display: flex;
   flex-wrap: wrap;
