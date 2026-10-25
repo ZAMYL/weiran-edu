@@ -29,6 +29,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         from app.edu.service import EduService
         from app.importing.edu.worker import parse_isolated
         from app.routers.edu import router as edu_router
+        from app.routers.edu_reviews import router as edu_reviews_router
         from app.storage.database import Database
 
         application.state.edu_service = EduService(
@@ -36,6 +37,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             parser=parse_isolated,
         )
         application.include_router(edu_router)
+        application.include_router(edu_reviews_router)
         application.middleware("http")(protect_edu_responses)
     return application
 

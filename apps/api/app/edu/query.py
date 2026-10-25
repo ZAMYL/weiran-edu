@@ -29,7 +29,7 @@ async def read_query[T: BaseModel](request: Request, model: type[T]) -> T:
         request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
         != "application/json"
     ):
-        raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用JSON筛选条件")
+        raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用JSON请求体")
     raw = bytearray()
     async for chunk in request.stream():
         if len(raw) + len(chunk) > 64 * 1024:
@@ -44,7 +44,7 @@ async def read_query[T: BaseModel](request: Request, model: type[T]) -> T:
         )
         return model.model_validate(value)
     except (ValueError, ValidationError, DecimalException, RecursionError):
-        raise APIError(422, "VALIDATION_ERROR", "筛选条件不符合要求") from None
+        raise APIError(422, "VALIDATION_ERROR", "请求内容不符合要求") from None
 
 
 async def group_query(request: Request) -> GroupQuery:

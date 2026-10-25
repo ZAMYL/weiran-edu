@@ -164,8 +164,13 @@ def test_existing_two_migration_database_upgrades_without_changing_facts(runtime
     with runtime.db.transaction(write=True) as connection:
         connection.execute("DROP TRIGGER immutable_students_update")
         connection.execute("DROP TRIGGER immutable_students_delete")
+        connection.execute("DROP TABLE analysis_result_versions")
+        connection.execute("DROP TABLE analysis_results")
+        connection.execute("DROP TABLE text_reviews")
+        connection.execute("DROP INDEX batches_snapshot_reference")
         connection.execute(
-            "DELETE FROM schema_migrations WHERE version='003_immutable_students.sql'"
+            "DELETE FROM schema_migrations WHERE version NOT IN "
+            "('001_edu.sql','002_immutable_facts.sql')"
         )
         prior = [
             tuple(row)
@@ -184,7 +189,7 @@ def test_existing_two_migration_database_upgrades_without_changing_facts(runtime
             )
         ]
     assert current[:2] == prior
-    assert len(current) == 3
+    assert len(current) == 4
     assert runtime.reader.students(runtime.p, created.batch_id) == before
     with pytest.raises(APIError):
         with runtime.db.transaction(write=True) as connection:
