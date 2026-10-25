@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api/v1/edu", tags=["EDU support"])
 @router.post(
     "/batches/{batch_id}/analysis-results/{result_id}/export-check",
     response_model=ExportCheck,
+    response_model_exclude_none=True,
     responses=ERRORS,
     openapi_extra=body_schema(ExportCheckRequest),
 )

@@ -100,7 +100,7 @@ GET 默认当前教师核验版本；旧版本以不可变审计记录保留，�
 
 `GET /analysis-results/{result_id}/export?snapshot_id=...&expected_version=...&format=zip`
 
-仅导出已保存结果，格式为 `zip`（默认）或 `json`，不接受自定义路径、文件名或待执行模板。文件名由服务端结果 ID 和版本生成，返回 attachment、nosniff 和 no-store。
+仅导出已保存结果，格式为 `zip`（默认）、`json`、`xlsx` 或 `md`，不接受自定义路径、文件名或待执行模板。文件名由服务端结果 ID 和版本生成，返回 attachment、nosniff 和 no-store。
 必须提交所选结果的快照及当前核验版本，避免把旧页面的判断当成最新结果下载。
 
 ZIP 包含：
@@ -116,7 +116,11 @@ ZIP 包含：
 导出不读取身份、原评语、原标准正文或 Excel BLOB；只读取审核后的展示字段。CSV 为 UTF-8 BOM，公式起始字符加单引号，作为文本导出。
 
 导出始终为 `authorized_teacher_only`、`public_display_allowed=false`。教师确认不等于公开发布许可或因果证明；已下载到本机的文件不具备远程撤回机制。
-本轮不生成 PDF/XLSX，不接入模型。保存载荷上限 4 MiB，导出 JSON 上限 8 MiB，沿用洞察计算预算；超过返回 413，不截断学生或正文伪装成功。
+已扩展 XLSX/Markdown 汇总报告下载；PDF 与模型仍不接入。保存载荷上限 4 MiB，导出 JSON 上限 8 MiB，沿用洞察计算预算；超过返回 413，不截断学生或正文伪装成功。
+
+XLSX/MD 仅汇总与教师 confirmed 白名单事实，不含个人逐人明细或任何自由评语/备注。
+旧 JSON/ZIP 内容保持兼容；导出预检增加同样格式并共用报告生成、限制和生成后权限/版本复查。
+完整契约与第五步 P1 浏览器交接见 [正式报告下载](FORMAL_REPORT_DOWNLOAD_API.md)。
 
 ## 迁移、联调与验证
 

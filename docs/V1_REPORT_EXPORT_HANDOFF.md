@@ -2,7 +2,9 @@
 
 对应 Issue #20。工作分支 feat/edu-report-export-core，基于 main
 409d531（含已合并的 PR #19 / #22），独立 worktree。
-**当前交付是离线报告生成核心，不是已完成的网页一键导出。**
+**核心与后端正式下载已接线；网页下载入口本轮未开发。**
+本文件保留 #28/#33 核心阶段的契约记录；最新正式四格式/预检/鉴权接线以
+[FORMAL_REPORT_DOWNLOAD_API.md](FORMAL_REPORT_DOWNLOAD_API.md) 为准，不阻塞 Issue #26 P0。
 
 ## 入口与输出
 
@@ -10,7 +12,7 @@
 Rubric DTO 与现有 openpyxl 3.1.5；没有新增依赖、HTTP、迁移或前端代码。
 没有修改 app/edu、routers、storage、analysis/edu/insights 或任务 #8 原型/文档。
 基础核心在 PR #28 合并。本次已核验洞察适配基于 main d96d428（含 #23/#25/#28/#30）；
-#32 未合并，不使用其实现。新增只读依赖 AnalysisResult / InsightCard，不调用 Qwen。
+该核心阶段开始时 #32 未合并；正式下载阶段现已基于合并后的 main。新增只读依赖 AnalysisResult / InsightCard，不调用 Qwen。
 
 ```python
 from app.reporting.edu import from_statistics, generate_report
@@ -195,7 +197,7 @@ edu-insight-candidates-0.1.0-draft 的评分分布/组合群体规则，未知�
 3. 本模块的来源检查是 DTO/指标/匿名评分引用的一致性核对，不能替代数据库级证据归属核验。
    保存结果中的个人引用不自动进入文件；匿名明细仍需单独 DetailAuthorization，不能因 confirmed 绕过。
 4. 请 Peng-Kai789 重点审核当前版本与快照的装配方式、完整群体来源、下载前撤销检查以及未来接线位置。
-   原有正式 ZIP/JSON 下载与本 XLSX/Markdown 核心尚未连接；前端按钮、公开传播授权均未交付。
+   原有正式下载现已增加 XLSX/MD 接线，见最新契约；前端按钮、公开传播授权均未交付。
 
 专项入口：uv run --locked pytest tests/reporting -q -ra。测试仅合成 DTO/确定性计算，
 含 confirmed/pending/dismissed、零条确认、批次/快照/版本/条件/候选漂移、数值和参与记录数冲突、
