@@ -7,17 +7,21 @@ from .models import (
     DetailAuthorization,
     DimensionReport,
     ExportLimits,
+    FindingMetric,
     Frequency,
     GroupGrant,
     GroupReport,
     ReportError,
     ReportFiles,
     ReportInput,
+    ReviewedFinding,
+    ReviewedFindings,
     Scale,
     Score,
     Source,
 )
 from .render import generate_report
+from .reviewed import with_reviewed_findings
 
 __all__ = [
     "AnonymousStudent",
@@ -25,15 +29,19 @@ __all__ = [
     "DetailAuthorization",
     "DimensionReport",
     "ExportLimits",
+    "FindingMetric",
     "Frequency",
     "GroupGrant",
     "GroupReport",
     "ReportError",
     "ReportFiles",
     "ReportInput",
+    "ReviewedFinding",
+    "ReviewedFindings",
     "Scale",
     "Score",
     "Source",
     "from_statistics",
     "generate_report",
+    "with_reviewed_findings",
 ]

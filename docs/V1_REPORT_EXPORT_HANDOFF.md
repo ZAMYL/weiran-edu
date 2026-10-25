@@ -9,7 +9,8 @@
 代码：apps/api/app/reporting/edu/。复用已合并的 Statistics、GroupResult、
 Rubric DTO 与现有 openpyxl 3.1.5；没有新增依赖、HTTP、迁移或前端代码。
 没有修改 app/edu、routers、storage、analysis/edu/insights 或任务 #8 原型/文档。
-PR #19 已在本轮期间合并，本轮不直接接入其新增公共 DTO，也不调用 Qwen。
+基础核心在 PR #28 合并。本次已核验洞察适配基于 main d96d428（含 #23/#25/#28/#30）；
+#32 未合并，不使用其实现。新增只读依赖 AnalysisResult / InsightCard，不调用 Qwen。
 
 ```python
 from app.reporting.edu import from_statistics, generate_report
@@ -116,9 +117,9 @@ XLSX 由上述命令生成，不将二进制样例或原始教师文件加入仓
 
 ## 后续接入职责
 
-- **ZAMYL，后续洞察卡适配（#19 已合并）**：新增明确适配器，仅从已审查卡/指标构造可信数值事实，
-  检查同批同快照、规则和每指标实际来源；继续丢弃自由模型解释、内部 RecordRef 和扣留原文。
-  当前洞察页明确“洞察卡未提供”，不伪造候选、重复评语或评分冲突。
+- **ZAMYL**：with_reviewed_findings 已接入保存结果的 confirmed 事实，见下节；
+  未传入时仍显示“洞察卡未提供”，传入但零 confirmed 显示“暂无教师已确认发现”。
+  未接入评语复核或自由模型解释，不输出内部 RecordRef 和扣留原文。
 - **彭仲楷**：正式授权下载接口、同快照完整统计与完整群体读取、证据 ID 归属检查、
   服务端 DetailAuthorization、撤销/限流/并发及存储策略；响应使用 no-store、
   正确 MIME、安全 Content-Disposition 文件名，不使用原始文件名或路径。
@@ -127,3 +128,82 @@ XLSX 由上述命令生成，不将二进制样例或原始教师文件加入仓
   提示内部用途，处理加载、零命中、权限撤销和快照冲突；前端本轮未改。
 - 浏览器一键导出、完整真实授权联调、原文审核/发布、加密/签名/生产性能仍未交付。
   不通过报告导出绕过 withheld，不开放 Qwen Production，不改变产品与五步流程。
+
+
+## 已保存、教师已确认洞察的受控适配
+
+这是报告内容的 P1 增量，不是网页一键下载，也不是林明 P0 浏览器联调的前置条件。
+不新增 HTTP、认证、数据库、迁移、正式 DTO 或下载接线。
+
+```python
+from app.reporting.edu import with_reviewed_findings, generate_report
+
+# 服务端先通过 ResultService.get 校验当前教师凭证/撤销、批次访问权、
+# payload 校验和及所选快照，读取完整 AnalysisResult；此处不接受请求体 JSON。
+# report 由同一授权范围、同快照的完整 Statistics/GroupResult 创建。
+report = with_reviewed_findings(
+    report,
+    saved_result,                       # 真正由服务端加载的 AnalysisResult
+    expected_result_id=selected_result_id,
+    expected_version=selected_version,  # 必须与当前教师核验版本一致，bool 不可代替
+)
+files = generate_report(report)         # 默认仍不输出匿名个人明细
+```
+
+内部新增契约（不属于公共 DTO）：
+
+| 对象 | 白名单内容 |
+| --- | --- |
+| ReportInput.reviewed | 可选 ReviewedFindings；旧调用无需传入 |
+| ReviewedFindings | source、result_id、result_version、规范排序的 conditions、findings、projection_version |
+| ReviewedFinding | candidate_id、candidate_type、dimension_code、denominator、rule_id/version、数据状态、metrics |
+| FindingMetric | key、Fraction value、unit、指标 denominator、source_record_count、可选 at_score |
+
+projection_version 固定 edu.report.reviewed.v1；当前仅接受现有
+edu-insight-candidates-0.1.0-draft 的评分分布/组合群体规则，未知版本拒绝，不降级猜测。
+保存结果 version 是教师判断版本，不是评分 snapshot、候选规则或报告适配版本。
+
+检查和口径：
+
+- 结果 ID/预期版本、audience、batch/snapshot 与报告一致；全批统计、可选群体统计及规则一致。
+- 当前一次报告适配一个保存结果；报告无群体时查询也无条件；有群体时只能一个且条件相同。
+  多群体报告仍可用旧入口生成，本适配不混用多个结果。AND 次序规范化，< 与 <= 严格区分。
+- AnalysisSnapshot.members 必须完整、无重复，并与群体评分/证据或全批频数对应；
+  有条件时须提供群体统计。当前正式保存 DTO 为完整有效评分；不猜补缺少成员评分或证据。
+- 每条 finding 都须与 snapshot.candidates 中的完整候选相等，决策 candidate_id 逐一对应，
+  不允许未知、重复或缺少的关联；pending/dismissed 不导出为 confirmed。
+- 即使未确认卡片也校验其保存元数据/指标，保存载荷损坏不悄悄忽略。
+- 分布卡始终使用完整批次统计，即使该保存查询同时选了群体；组合卡使用匹配群体。
+  均值/中位数、频数、人数、比例、精确值、指标分母和来源记录数均与已有统计核对。
+- source_record_count 是该指标的实际参与记录数：例如群体命中9/17时，
+  matched_ratio 来源9条，eligible_count 来源可为17条；不能把17误写为命中人数。
+  维度均值来源有效记录，单分值频数仅来源该分值记录；有理数分母仍不代表人数。
+- XLSX/Markdown 保存结果与候选 ID、核验版本、规则与适配版本；各指标保留精确值及口径。
+  标题和解释标签由程序生成，不读取结果 title/note、教师标识/逐卡备注、候选 title/summary/
+  limitations/suggested_next_action、公示限制自由文本、display_label、原评语或依据正文。
+  数值 display 继续丢弃重算；未开放任何自由文本通道，即使原字段已经过教师审核也不直接接入。
+- 系统候选、教师 confirmed 与客观统计分别标记。教师确认不证明因果、能力等级或教学效果；
+  未运行评语分析，withheld 不当作空评语或零异常。零 confirmed 明确提示，不制造发现。
+
+信任边界与待彭仲楷审核项：
+
+1. **Python 类型、expected_version 和内部白名单不是真实认证或持久化证明。** 任意进程都能
+   构造 DTO，本核心无法单独验证签名、数据库来源或当前最新版本；不能把客户端 JSON、布尔值、
+   自建 AnalysisResult 或前端 confirmed 声明直接接到本函数。
+2. 正式后端应使用已鉴权 ResultService 返回值，并在同一一致读取范围内取得统计/群体，检查
+   当前核验版本、payload 完整性、证据归属、教师凭证撤销和下载前权限；本轮没有改动这些服务。
+3. 本模块的来源检查是 DTO/指标/匿名评分引用的一致性核对，不能替代数据库级证据归属核验。
+   保存结果中的个人引用不自动进入文件；匿名明细仍需单独 DetailAuthorization，不能因 confirmed 绕过。
+4. 请 Peng-Kai789 重点审核当前版本与快照的装配方式、完整群体来源、下载前撤销检查以及未来接线位置。
+   原有正式 ZIP/JSON 下载与本 XLSX/Markdown 核心尚未连接；前端按钮、公开传播授权均未交付。
+
+专项入口：uv run --locked pytest tests/reporting -q -ra。测试仅合成 DTO/确定性计算，
+含 confirmed/pending/dismissed、零条确认、批次/快照/版本/条件/候选漂移、数值和参与记录数冲突、
+自由文本过滤、公式与外链禁止、稳定输出；原有统计/完整分页/精确值测试继续运行。
+
+
+[已确认事实的 Markdown 合成样例](examples/reviewed-findings.synthetic.md)：
+17条测评、所选群体命中9/17，教师核验版本2；仅算法分布和组合群体两张卡 confirmed，
+其余 pending 不作为确认导出。算法均值49/17≈2.88、中位数11/4=2.75；
+群体 M=9、E=N=17；eligible_count 来源17条，matched_ratio 来源9条。
+XLSX 默认不含匿名明细，已做重新打开和第四页渲染检查；未做原生 Excel 交互验收。

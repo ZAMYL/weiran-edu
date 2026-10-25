@@ -14,7 +14,18 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-from .layout import NOTES, condition_text, display, label, number_text, plan, rational
+from .layout import (
+    NOTES,
+    REVIEW_NOTICE,
+    condition_text,
+    display,
+    finding_title,
+    label,
+    metric_label,
+    number_text,
+    plan,
+    rational,
+)
 from .models import DetailAuthorization, ExportLimits, ReportError, ReportFiles, ReportInput
 from .validation import require, validate
 
@@ -220,10 +231,49 @@ def _markdown(report: ReportInput, include_details: bool) -> str:
         "",
         "## 统计事实与待核查事项",
         "",
-        "以上数值通过输入一致性检查。洞察卡未提供，未执行评语复核；"
-        "统计与群体表即本报告的事实依据，不另生成教学诊断。",
+        "以上数值通过输入一致性检查。"
+        + ("洞察卡未提供，" if report.reviewed is None else "")
+        + "未执行评语复核；统计与群体表即本报告的事实依据，不另生成教学诊断。",
         "",
     ]
+    if report.reviewed is not None:
+        reviewed = report.reviewed
+        lines += [
+            "## 教师核验发现",
+            "",
+            f"保存结果：{md_text(reviewed.result_id)}；教师核验版本：{reviewed.result_version}；"
+            f"报告适配版本：{reviewed.projection_version}。",
+            "",
+            f"分析条件：{md_text(condition_text(reviewed) or '无群体条件')}。"
+            "维度分布对应完整批次；组合群体对应上述条件。",
+            "",
+            REVIEW_NOTICE,
+            "",
+        ]
+        if not reviewed.findings:
+            lines += ["暂无教师已确认发现。pending/dismissed 不作为已确认结论。", ""]
+        for finding in reviewed.findings:
+            lines += [
+                f"### {finding_title(finding)}（教师已确认）",
+                "",
+                f"候选引用：{md_text(finding.candidate_id)}；来源为确定性系统候选，"
+                f"状态 {finding.status}；范围分母 N={finding.denominator}。",
+                f"规则：{md_text(finding.rule_id)} / {md_text(finding.rule_version)}。",
+                "",
+                "| 指标 | 展示值 | 精确值 | 分母 | 实际参与来源记录数 |",
+                "| --- | ---: | ---: | ---: | ---: |",
+            ]
+            for metric in finding.metrics:
+                value = (
+                    str(int(metric.value))
+                    if metric.unit == "records"
+                    else display(metric.value, percent=metric.unit == "ratio")
+                )
+                lines.append(
+                    f"| {metric_label(metric)} | {value} | {rational(metric.value)} | "
+                    f"{metric.denominator} | {metric.source_record_count} |"
+                )
+            lines += ["", "来源记录数只描述该指标的参与记录，不额外推断群体人数。", ""]
     lines.extend("- " + note for note in NOTES)
     return "\n".join(lines) + "\n"
 

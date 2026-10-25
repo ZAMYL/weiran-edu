@@ -273,6 +273,11 @@ def validate(
     require(len({g.group_id for g in report.groups}) == len(report.groups), "duplicate_group")
     for item in report.groups:
         group(item, report)
+    if report.reviewed is not None:
+        # Lazy import keeps the existing statistics adapter independent of this extension.
+        from .reviewed import validate_reviewed
+
+        validate_reviewed(report)
     require(type(include_details) is bool, "boolean_detail_option_required")
     if not include_details:
         return
