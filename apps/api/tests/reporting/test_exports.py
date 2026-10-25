@@ -34,9 +34,9 @@ def test_scale_reports_come_from_actual_statistics(size):
     report = synthetic_report(size)
     result = generate_report(report)
     workbook = load_workbook(BytesIO(result.xlsx), data_only=False)
-    assert workbook.sheetnames == ["报告说明", "维度统计", "群体结果", "洞察事实"]
+    assert workbook.sheetnames == ["测评概况", "维度统计", "选定群体", "技术附录"]
     info = {
-        row[0]: row[1] for row in workbook["报告说明"].iter_rows(values_only=True) if row and row[0]
+        row[0]: row[1] for row in workbook["测评概况"].iter_rows(values_only=True) if row and row[0]
     }
     assert info["测评记录数"] == size
     assert info["统计项目数"] == len(report.dimensions)
@@ -59,13 +59,9 @@ def test_dynamic_statistics_items_do_not_change_upload_scheme(quantity):
     report = replace(report, dimensions=tuple(source[:quantity]), groups=())
     result = generate_report(report)
     workbook = load_workbook(BytesIO(result.xlsx))
-    means = [
-        row
-        for row in workbook["维度统计"].iter_rows(values_only=True)
-        if len(row) > 2 and row[2] == "均值"
-    ]
+    means = [row for row in workbook["维度统计"].iter_rows(values_only=True) if type(row[1]) is int]
     assert len(means) == quantity
-    assert f"统计项目 {quantity} 项" in result.markdown
+    assert f"| 统计项目数 | {quantity} |" in result.markdown
     workbook.close()
 
 
@@ -76,11 +72,12 @@ def test_fraction_denominator_is_not_headcount_and_missing_is_not_zero():
     row = next(
         row
         for row in workbook["维度统计"].iter_rows(values_only=True)
-        if row[0] == "分析范围" and row[1] == "算法与数据结构" and row[2] == "均值"
+        if row[0] == "算法与数据结构"
     )
-    assert row[3:7] == (2.9375, "2.94", "47/16", 4)
+    assert row[1:4] == (4, 2.9375, 2.875)
+    assert "47/16" in result.markdown.split("## 技术附录")[1]
     empty = generate_report(synthetic_report(0))
-    assert "暂无有效数据" in empty.markdown
+    assert "无有效评分" in empty.markdown
     assert "没有匹配记录" in empty.markdown
     missing = replace(
         report.dimensions[0],
@@ -95,8 +92,11 @@ def test_fraction_denominator_is_not_headcount_and_missing_is_not_zero():
     )
     data = generate_report(replace(report, dimensions=(missing,), groups=()))
     wb = load_workbook(BytesIO(data.xlsx))
-    mean = next(row for row in wb["维度统计"].iter_rows(values_only=True) if row[2] == "均值")
-    assert mean[3] is None and mean[4] == "暂无有效数据" and mean[6] == 0
+    mean = next(
+        row for row in wb["维度统计"].iter_rows(values_only=True) if row[0] == "算法与数据结构"
+    )
+    assert mean[1] == 0 and mean[2:6] == (None, None, None, None)
+    assert "缺失人数" in data.markdown and "无效人数" in data.markdown
     workbook.close()
     wb.close()
 
@@ -108,13 +108,13 @@ def test_anonymous_details_need_exact_upstream_grant_and_stay_complete():
     grant = synthetic_authorization(report)
     result = generate_report(report, include_details=True, authorization=grant)
     workbook = load_workbook(BytesIO(result.xlsx))
-    cells = list(workbook["群体结果"].iter_rows(values_only=True))
+    cells = list(workbook["技术附录"].iter_rows(values_only=True))
     member_rows = [
         row for row in cells if isinstance(row[1], str) and row[1].startswith("synthetic-member-")
     ]
     assert len(member_rows) == report.groups[0].matched_count * len(report.dimensions)
     assert {row[1] for row in member_rows} == grant.grants[0].student_ids
-    assert all(row[3] in (2, 2.75, 3, 4, 5) for row in member_rows)
+    assert all("/" in row[3] and row[4].startswith("synthetic-evidence-") for row in member_rows)
     assert "synthetic-member-" in result.markdown
     assert "非公开" in result.markdown
     denied = replace(grant, grants=(replace(grant.grants[0], student_ids=frozenset()),))
@@ -179,11 +179,11 @@ def test_same_input_has_stable_files_and_editable_workbook():
     later = generate_report(replace(report, generated_at=report.generated_at + timedelta(days=1)))
     assert later != first
     workbook = load_workbook(BytesIO(first.xlsx))
-    workbook["报告说明"]["B5"] = "edited-synthetic-value"
+    workbook["测评概况"]["B5"] = "edited-synthetic-value"
     stream = BytesIO()
     workbook.save(stream)
     edited = load_workbook(BytesIO(stream.getvalue()))
-    assert edited["报告说明"]["B5"].value == "edited-synthetic-value"
+    assert edited["测评概况"]["B5"].value == "edited-synthetic-value"
     workbook.close()
     edited.close()
 
@@ -275,10 +275,6 @@ def test_detail_scores_use_declared_scale_precision():
         report, include_details=True, authorization=synthetic_authorization(report)
     )
     workbook = load_workbook(BytesIO(output.xlsx))
-    cells = [
-        row[3]
-        for row in workbook["群体结果"]
-        if isinstance(row[1].value, str) and row[1].value.startswith("synthetic-member-")
-    ]
+    cells = [row[2] for row in workbook["授权学生明细"] if type(row[0].value) is int]
     assert cells and all(cell.number_format == "0.00" for cell in cells)
     workbook.close()

@@ -196,11 +196,13 @@ def test_confirmed_metrics_and_versions_enter_both_formats(size, filtered):
     workbook, text = workbook_text(files.xlsx)
     assert len(projected.reviewed.findings) == (6 if filtered else 5)
     assert "教师已确认" in text and "教师已确认" in files.markdown
-    assert "教师核验版本 2" in text and "教师核验版本：2" in files.markdown
+    assert "教师核验版本" in text and "| 教师核验版本 | 2 |" in files.markdown
     assert "edu.report.reviewed.v1" in text and "edu.report.reviewed.v1" in files.markdown
     assert "洞察卡未提供" not in text + files.markdown
     assert "不证明因果关系" in text + files.markdown
-    assert [ws.title for ws in workbook] == ["报告说明", "维度统计", "群体结果", "洞察事实"]
+    assert workbook.sheetnames == (
+        ["测评概况", "维度统计"] + (["选定群体"] if filtered else []) + ["教师确认发现", "技术附录"]
+    )
     for finding in projected.reviewed.findings:
         assert finding.candidate_id in text and finding.candidate_id in files.markdown
     if size == 17 and filtered:
@@ -228,7 +230,8 @@ def test_unconfirmed_are_not_exported_as_confirmed(status):
     assert projected.reviewed.findings == ()
     files = generate_report(projected)
     workbook, text = workbook_text(files.xlsx)
-    assert "暂无教师已确认发现" in text and "暂无教师已确认发现" in files.markdown
+    assert "教师确认发现" not in workbook.sheetnames
+    assert "## 教师确认发现" not in files.markdown
     assert all(f.candidate.candidate_id not in text + files.markdown for f in result.findings)
     workbook.close()
 
@@ -238,7 +241,8 @@ def test_mixed_decisions_only_export_confirmed_and_no_insight_input_still_works(
     projected = attach(report, result)
     assert len(projected.reviewed.findings) == 2
     old = generate_report(report)
-    assert "洞察卡未提供" in old.markdown
+    assert "洞察卡未提供" not in old.markdown
+    assert "## 教师确认发现" not in old.markdown
     assert (
         "暂无教师已确认发现" not in old.markdown
     )  # Missing input != saved result with zero confirmed.
@@ -456,7 +460,7 @@ def test_stable_order_and_zero_candidates_do_not_invent_findings():
         attach(report, reversed_result)
     )
     report, result = saved_inputs(0)
-    assert "暂无教师已确认发现" in generate_report(attach(report, result)).markdown
+    assert "## 教师确认发现" not in generate_report(attach(report, result)).markdown
 
 
 @pytest.mark.parametrize(
