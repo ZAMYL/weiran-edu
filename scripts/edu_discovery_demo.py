@@ -1,6 +1,10 @@
 """Offline aggregate demo, using only the existing fictional 53-person fixture."""
 
 import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps" / "api"))
 
 from app.analysis.edu import (
     AssessmentRecord,

@@ -498,3 +498,23 @@ def test_observed_boundary_with_no_matching_peers_is_not_a_discovery():
     assert not compared.strict.matches and not compared.inclusive.matches
     assert compared.strict.eligible_count == 17
     assert not run(dataset, boundaries=(boundary_request(),)).findings
+
+
+def test_cli_runs_in_fresh_interpreter_without_inherited_import_path(tmp_path, monkeypatch):
+    import subprocess
+
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    script = Path(__file__).resolve().parents[4] / "scripts" / "edu_discovery_demo.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=60,
+    )
+    output = json.loads(result.stdout)
+    assert output["synthetic_only"]
+    assert len(output["examples"]) == 4
+    assert output["known_53"]["student_count"] == 53
