@@ -13,6 +13,8 @@ from app.core.errors import APIError
 from app.edu.analysis import AnalysisReader
 from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
 from app.edu.auth import Principal, authenticate, deny, require_teacher
+from app.edu.diagnostic_models import Action, BatchCapabilities, IntegrityReport, IntegrityRequest
+from app.edu.diagnostics import DiagnosticReader
 from app.edu.insight_models import (
     InsightQuery,
     InsightRecordsQuery,
@@ -421,3 +423,54 @@ async def insight_records(
     query = await read_query(request, InsightRecordsQuery)
     reader = InsightReader(backend.database, clock=backend.clock)
     return await run_in_threadpool(reader.records, actor, batch_id, candidate_id, query)
+
+
+@router.get(
+    "/batches/{batch_id}/capabilities", response_model=BatchCapabilities, responses=INSIGHT_ERRORS
+)
+def batch_capabilities(
+    batch_id: str,
+    request: Request,
+    actor: Actor,
+    backend: Backend,
+    snapshot_id: Annotated[str | None, Query(min_length=1, max_length=128)] = None,
+) -> BatchCapabilities:
+    paths = request.app.openapi()["paths"]
+    prefix = "/api/v1/edu/batches/{batch_id}"
+    features: set[Action] = set()
+    for action, suffix, method in (
+        ("review_text", "/text-reviews/{kind}/{target_id}", "put"),
+        ("save_analysis", "/analysis-results", "post"),
+        ("edit_analysis", "/analysis-results/{result_id}", "patch"),
+        ("export_analysis", "/analysis-results/{result_id}/export", "get"),
+    ):
+        if method in paths.get(prefix + suffix, {}):
+            features.add(action)
+    return DiagnosticReader(backend.database, clock=backend.clock).capabilities(
+        actor,
+        batch_id,
+        snapshot_id=snapshot_id,
+        available_features=features,
+    )
+
+
+@router.post(
+    "/batches/{batch_id}/diagnostics/integrity",
+    response_model=IntegrityReport,
+    responses={**INSIGHT_ERRORS, 403: {"model": ErrorResponse}},
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {"application/json": {"schema": request_schema(IntegrityRequest)}},
+        }
+    },
+)
+async def batch_integrity(
+    batch_id: str,
+    request: Request,
+    actor: Actor,
+    backend: Backend,
+) -> IntegrityReport:
+    body = await read_query(request, IntegrityRequest)
+    reader = DiagnosticReader(backend.database, clock=backend.clock)
+    return await run_in_threadpool(reader.integrity, actor, batch_id, body)
