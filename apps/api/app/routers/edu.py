@@ -72,6 +72,15 @@ type Backend = Annotated[EduService, Depends(service)]
 
 
 def _parse_failure(exc: ImportFileError) -> APIError:
+    printing_errors = {
+        "INVALID_PRINTER_SETTINGS_PACKAGE": "打印设置的部件或引用不一致，原文件未被修改",
+        "UNSUPPORTED_PRINTER_SETTINGS_FORMAT": "打印设置格式暂不在支持范围，原文件未被修改",
+        "PRINTER_SETTINGS_SIZE_LIMIT": "打印设置超过安全大小或数量限制，原文件未被修改",
+        "INVALID_WORKBOOK_RELATIONSHIP": "工作簿内部关系异常，无法确定安全来源",
+    }
+    if exc.code in printing_errors:
+        status = 413 if exc.code == "PRINTER_SETTINGS_SIZE_LIMIT" else 422
+        return APIError(status, exc.code, printing_errors[exc.code])
     if exc.code == "FILE_SIZE_LIMIT":
         return APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
     if exc.code in {"PARSE_TIME_LIMIT", "PARSER_BUSY", "PARSER_UNAVAILABLE"}:
