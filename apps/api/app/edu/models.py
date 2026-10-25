@@ -1,4 +1,4 @@
-"""Public API projections only; private identity and raw text have no DTO fields."""
+"""Public projections; source text is withheld until a separate display review."""
 
 from datetime import date
 from typing import Annotated, Literal
@@ -165,8 +165,9 @@ class Evidence(Model):
     dimension_code: str
     score: float
     score_raw: str
-    comment: None = None
-    comment_status: Literal["empty", "withheld"]
+    comment: str | None = None
+    comment_status: Literal["empty", "withheld", "published"]
+    comment_review_version: int = 0
     source: PreviewSource
     rubric_criterion_id: str
 
@@ -191,8 +192,9 @@ class RubricCriterion(Model):
     dimension_code: str
     display_name: str
     original_name: str
-    criteria_text: None = None
-    criteria_status: Literal["withheld"] = "withheld"
+    criteria_text: str | None = None
+    criteria_status: Literal["withheld", "published"] = "withheld"
+    criteria_review_version: int = 0
     source: RubricSource
 
 

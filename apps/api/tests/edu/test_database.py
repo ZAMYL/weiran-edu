@@ -11,7 +11,7 @@ def test_migrations_are_idempotent_checksummed_and_foreign_keys_are_enabled(runt
     with runtime.db.transaction() as connection:
         assert connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
         assert not connection.execute("PRAGMA foreign_key_check").fetchall()
-        assert connection.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == 3
+        assert connection.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == 4
     with runtime.db.transaction(write=True) as connection:
         connection.execute("UPDATE schema_migrations SET checksum='tampered'")
     with pytest.raises(ValueError, match="MIGRATION_CHECKSUM_MISMATCH"):

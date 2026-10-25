@@ -21,6 +21,7 @@ from .models import (
     StudentScore,
 )
 from .service import _page, fail, stamp
+from .text_projection import published_text
 
 ORDER = {spec.code: index for index, spec in enumerate(DIMENSIONS)}
 
@@ -160,7 +161,18 @@ class BatchReader:
             ).fetchone()
             if row is None:
                 deny(404)
-            return self._evidence(row)
+            return self._display_evidence(connection, row)
+
+    def _display_evidence(self, connection: sqlite3.Connection, row: sqlite3.Row) -> Evidence:
+        proof = self._evidence(row)
+        text, status, version = published_text(
+            connection, row["batch_id"], "comment", row["evidence_id"]
+        )
+        if version == 0:
+            status = proof.comment_status
+        return proof.model_copy(
+            update={"comment": text, "comment_status": status, "comment_review_version": version}
+        )
 
     def student_evidence(
         self,
@@ -193,7 +205,7 @@ class BatchReader:
                 display_label=student["display_label"],
                 rubric_version=batch["rubric_version"],
                 items=tuple(
-                    self._evidence(r)
+                    self._display_evidence(connection, r)
                     for r in sorted(rows, key=lambda r: ORDER[r["dimension_code"]])
                 ),
             )
@@ -215,6 +227,10 @@ class BatchReader:
             ):
                 fail("DATA_INTEGRITY_ERROR", 503)
             by_code = {row["dimension_code"]: row for row in rows}
+            projections = {
+                code: published_text(connection, batch_id, "rubric", row["rubric_criterion_id"])
+                for code, row in by_code.items()
+            }
             return Rubric(
                 batch_id=batch_id,
                 snapshot_id=batch["snapshot_id"],
@@ -226,6 +242,9 @@ class BatchReader:
                         dimension_code=spec.code,
                         display_name=spec.label,
                         original_name=spec.rubric_title,
+                        criteria_text=projections[spec.code][0],
+                        criteria_status=projections[spec.code][1],
+                        criteria_review_version=projections[spec.code][2],
                         source=RubricSource(
                             file_sha256=by_code[spec.code]["file_sha256"],
                             sheet_name=by_code[spec.code]["sheet_name"],
