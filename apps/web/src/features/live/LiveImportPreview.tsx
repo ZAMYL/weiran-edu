@@ -293,7 +293,13 @@ export default function LiveImportPreview({
           <span className="muted">
             {edited ? '先保存测评名称，再确认新版本' : '确认以服务端校验与最新预览版本为准'}
           </span>
-          <Button type="primary" disabled={!canCommit} loading={busy} onClick={confirm}>
+          <Button
+            type="primary"
+            aria-label="确认入库"
+            disabled={!canCommit}
+            loading={busy}
+            onClick={confirm}
+          >
             确认入库
           </Button>
         </div>

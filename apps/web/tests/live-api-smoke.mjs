@@ -211,9 +211,25 @@ try {
   assert.equal(await confirm.isDisabled(), true);
   await page.getByRole('checkbox', { name: /我已查看本预览版本/ }).check();
   await page.getByLabel('正式测评名称', { exact: true }).fill('合成警告测评已确认');
+  // Hold the real PATCH so the loading icon is present while checking the action name.
+  let releasePatch;
+  const patchGate = new Promise((resolve) => (releasePatch = resolve));
+  const patchRoute = async (route) => {
+    if (route.request().method() === 'PATCH') await patchGate;
+    await route.continue();
+  };
+  await page.route('**/api/edu/imports/*', patchRoute);
+  const patchStarted = page.waitForRequest((r) => r.method() === 'PATCH');
   const patched = page.waitForResponse((r) => r.request().method() === 'PATCH');
   await page.getByRole('button', { name: '保存名称并更新预览版本' }).click();
+  await patchStarted;
+  try {
+    assert.equal(await confirm.isDisabled(), true);
+  } finally {
+    releasePatch();
+  }
   assert.equal((await patched).status(), 200);
+  await page.unroute('**/api/edu/imports/*', patchRoute);
   await page.getByRole('button', { name: '保存名称并更新预览版本' }).waitFor({ state: 'detached' });
   assert.equal(await page.getByRole('checkbox', { name: /我已查看本预览版本/ }).isChecked(), false);
   assert.equal(await confirm.isDisabled(), true);
