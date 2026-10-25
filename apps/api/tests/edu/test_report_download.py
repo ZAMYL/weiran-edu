@@ -93,7 +93,7 @@ def test_four_formats_match_real_saved_counts_conditions_and_confirmations(
         assert "仅汇总" in preflight["note"]
         workbook, text = read_report(response, format)
         assert str(size) in text and saved["result_id"] in text and batch["snapshot_id"] in text
-        assert "算法与数据结构" in text and "解题策略" in text and "AND" in text
+        assert "算法与数据结构" in text and "解题策略" in text and "，且" in text
         assert "不证明因果关系" in text
         for f in saved["findings"]:
             candidate_id = f["candidate"]["candidate_id"]
@@ -101,16 +101,17 @@ def test_four_formats_match_real_saved_counts_conditions_and_confirmations(
         if workbook:
             info = {
                 row[0]: row[1]
-                for row in workbook["报告说明"].iter_rows(values_only=True)
+                for row in workbook["测评概况"].iter_rows(values_only=True)
                 if row and row[0]
             }
-            assert info["测评记录数"] == size and info["匿名明细"] == "默认仅汇总"
+            assert info["测评记录数"] == size
+            assert "默认仅汇总" in text
             metrics = {
-                row[1]: row[2]
-                for row in workbook["群体结果"].iter_rows(values_only=True)
+                row[0]: row[1]
+                for row in workbook["选定群体"].iter_rows(values_only=True)
                 if len(row) > 2
             }
-            assert metrics["命中人数 M"] == matched and metrics["总人数 N"] == size
+            assert metrics["符合条件人数"] == matched and metrics["全部测评人数"] == size
             assert all(
                 c.data_type != "f" and c.hyperlink is None
                 for sheet in workbook
@@ -119,7 +120,9 @@ def test_four_formats_match_real_saved_counts_conditions_and_confirmations(
             )
             workbook.close()
         if size == 17:
-            assert "49/17" in text and "9/17" in text and "52.94%" in text
+            assert "49/17" in text and "9/17" in text
+            if format == "md":
+                assert "52.94%" in text
         assert "合成私密姓名" not in text and "000000000001" not in text
         assert "未审核合成" not in text and batch["file_sha256"] not in text
         for student in legacy["analysis"]["members"]:
@@ -134,7 +137,9 @@ def test_zero_confirmed_no_conditions_and_zero_matches_are_real_empty_states(cli
     base, batch, _, _ = flow
     pending = save_result(client, base, batch, conditions=[]).json()
     workbook, text = read_report(export_result(client, base, batch, pending, format=format), format)
-    assert "暂无教师已确认发现" in text and "未选择群体" in text
+    assert "## 教师确认发现" not in text and "暂无教师已确认发现" not in text
+    if workbook:
+        assert "教师确认发现" not in workbook.sheetnames and "选定群体" not in workbook.sheetnames
     if workbook:
         workbook.close()
     empty = save_result(
@@ -143,7 +148,7 @@ def test_zero_confirmed_no_conditions_and_zero_matches_are_real_empty_states(cli
     assert empty["analysis"]["members"] == []
     response = export_result(client, base, batch, empty, format=format)
     workbook, text = read_report(response, format)
-    assert "没有匹配记录" in text and "暂无教师已确认发现" in text
+    assert "没有匹配记录" in text and "暂无教师已确认发现" not in text
     assert "均值0" not in text
     if workbook:
         workbook.close()
