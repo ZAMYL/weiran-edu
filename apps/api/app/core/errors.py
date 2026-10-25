@@ -33,6 +33,7 @@ HTTP_ERRORS = {
 
 
 def error_response(request: Request, status_code: int, code: str, message: str) -> JSONResponse:
+    request.state.diagnostic_error_code = code
     request_id = request.state.request_id
     payload = ErrorResponse(error=ErrorDetails(code=code, message=message, request_id=request_id))
     return JSONResponse(

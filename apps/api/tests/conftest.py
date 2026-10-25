@@ -7,6 +7,7 @@ import pytest
 def isolate_database_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     # A developer's configured database must never be opened by the test suite.
     monkeypatch.delenv("WEIRAN_EDU_DATABASE", raising=False)
+    monkeypatch.delenv("WEIRAN_EDU_REQUEST_TRACE_DATABASE", raising=False)
 
 
 @pytest.fixture(autouse=True)

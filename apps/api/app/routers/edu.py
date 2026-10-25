@@ -60,7 +60,9 @@ def principal(
 ) -> Principal:
     if credentials is None or credentials.scheme.lower() != "bearer":
         deny(401, "UNAUTHORIZED")
-    return authenticate(service(request).database, credentials.credentials)
+    actor = authenticate(service(request).database, credentials.credentials)
+    request.state.trace_teacher_id = actor.teacher_id
+    return actor
 
 
 type Actor = Annotated[Principal, Depends(principal)]
