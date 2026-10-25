@@ -71,7 +71,10 @@ class PrinterGuard:
                     reject("INVALID_WORKBOOK")
             else:
                 kind = tag.removeprefix(f"{{{CT_NS}}}")
-                if len(parents) != 1 or kind not in {"Default", "Override"}:
+                if len(parents) != 1 or tag not in {
+                    f"{{{CT_NS}}}Default",
+                    f"{{{CT_NS}}}Override",
+                }:
                     reject("INVALID_WORKBOOK")
                 mime = node.get("ContentType", "")
                 if any(x in mime.lower() for x in ("macroenabled", "vbaproject", "activex")):

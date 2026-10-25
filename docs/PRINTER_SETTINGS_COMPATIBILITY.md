@@ -55,6 +55,7 @@ PR #35 开工时仍 OPEN，已知限制为合法双 Sheet 文件包含 xl/printe
 1. 原 ZIP 规则实际是 XML/RELS 后缀准入，不是完整 OPC schema 验证。本轮只增加上述精确打印路径例外，
    其它 .bin、图片、嵌入对象和不支持的部件继续拒绝；非空目录伪装载荷及打印部件符号链接也拒绝；宏/ActiveX 内容类型与宏关系不放行。
 2. 校验 Content Types / Relationships 的命名空间、直接节点形状、重复扩展/PartName/关系 ID。
+   Default / Override 子元素也必须具有完整 OPC 内容类型命名空间；无命名空间或其它命名空间不作为合法声明。
    printer MIME 必须为 application/vnd.openxmlformats-officedocument.spreadsheetml.printerSettings；
    支持 bin Default 或精确 Override；按有效类型校验，Override 优先于未实际使用的通用 bin Default。
    错误有效类型、误标评分 XML、悬空打印 Override 均拒绝，不因通用 Default 放行其它二进制。
@@ -81,6 +82,10 @@ PR #35 开工时仍 OPEN，已知限制为合法双 Sheet 文件包含 xl/printe
 随后使用 ReadOnlyWorksheet，不加载打印驱动数据。测试拦截 ZipFile.open：打印二进制恰好只由
 预检守卫读取1次，后续 openpyxl 不打开它；同时断言 load_workbook 收到原始相同字节、read_only=True、keep_links=False。
 隔离进程解析仍使用既有 parse_isolated 及硬超时，不变更权限、工作进程或网络策略。
+
+当前服务端没有原件下载、打印预览/转换、调用桌面 Excel 或打印驱动的路径；确认入库重解析也使用相同守卫及只读设置。
+后续若新增这些能力，或升级读取库、改用非只读加载，必须重新审核打印二进制的消费路径；
+现有二进制读取次数测试应继续保留，不能把本轮包络校验作为新增解释或执行路径的准入凭据。
 
 ## 固定错误码
 
