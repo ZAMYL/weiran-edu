@@ -10,6 +10,7 @@ from zipfile import BadZipFile, ZipFile
 from defusedxml import ElementTree as SafeET
 from openpyxl.utils.cell import column_index_from_string, coordinate_from_string
 
+from .printer_settings import PART, PrinterGuard
 from .types import ImportFileError, ParseLimits
 
 CELL = re.compile(r"[A-Z]{1,3}[1-9][0-9]{0,6}\Z")
@@ -32,6 +33,7 @@ def inspect_archive(data: bytes, limits: ParseLimits, deadline: float) -> Archiv
     if not data or len(data) > limits.compressed_bytes:
         raise ImportFileError("FILE_SIZE_LIMIT")
     info = ArchiveInfo({}, {}, {}, {})
+    printers = PrinterGuard()
     relationships: dict[str, str] = {}
     sheet_ids: dict[str, str] = {}
     try:
@@ -53,9 +55,14 @@ def inspect_archive(data: bytes, limits: ParseLimits, deadline: float) -> Archiv
                 ):
                     raise ImportFileError("UNSUPPORTED_ARCHIVE")
                 if path.endswith("/"):
+                    if entry.file_size:
+                        raise ImportFileError("UNSUPPORTED_ARCHIVE")
+                    continue
+                if PART.fullmatch(path):
+                    printers.add_part(entry)
                     continue
                 if not (path.endswith(".xml") or path.endswith(".rels")):
-                    # The frozen template contains no macros, embedded objects or images.
+                    # Only validated printer envelopes are excepted; no generic binary allowance.
                     raise ImportFileError("UNSUPPORTED_WORKBOOK_PART")
                 worksheet = path.startswith("xl/worksheets/") and path.endswith(".xml")
                 tokens: dict[str, str] = {}
@@ -63,6 +70,7 @@ def inspect_archive(data: bytes, limits: ParseLimits, deadline: float) -> Archiv
                 merges: set[str] = set()
                 max_row = max_col = elements = 0
                 current_row = last_row = last_col = 0
+                parents: list[str] = []
                 # Reading is bounded by the already checked uncompressed sizes; CRC is checked too.
                 with archive.open(entry) as stream:
                     for event, node in SafeET.iterparse(
@@ -70,6 +78,8 @@ def inspect_archive(data: bytes, limits: ParseLimits, deadline: float) -> Archiv
                     ):
                         tag = node.tag.rsplit("}", 1)[-1]
                         if event == "start":
+                            printers.observe(path, node, parents)
+                            parents.append(node.tag)
                             elements += 1
                             if elements > limits.xml_elements_per_part:
                                 raise ImportFileError("XML_ELEMENT_LIMIT")
@@ -91,6 +101,7 @@ def inspect_archive(data: bytes, limits: ParseLimits, deadline: float) -> Archiv
                                     raise ImportFileError("INVALID_CELL_COORDINATE")
                                 last_row, last_col = current_row, 0
                             continue
+                        parents.pop()
                         if node.text and len(node.text) > 32767:
                             raise ImportFileError("CELL_TEXT_LIMIT")
                         if path == "xl/_rels/workbook.xml.rels" and tag == "Relationship":
@@ -156,6 +167,9 @@ def inspect_archive(data: bytes, limits: ParseLimits, deadline: float) -> Archiv
                 raise ImportFileError("INVALID_WORKBOOK")
             if len(set(info.sheets.values())) != 2:
                 raise ImportFileError("INVALID_WORKBOOK")
+            check_time(deadline)
+            printers.validate(archive, info.sheets)
+            check_time(deadline)
     except ImportFileError:
         raise
     except (BadZipFile, KeyError, ValueError, OSError, RuntimeError):
