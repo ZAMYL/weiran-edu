@@ -482,3 +482,27 @@ def test_printer_admission_cannot_hide_data_in_directory_or_link_entry(workbook,
         data = output.getvalue()
     with pytest.raises(ImportFileError, match="UNSUPPORTED_ARCHIVE"):
         parse_excel(data)
+
+
+@pytest.mark.parametrize("case", ["score_type", "workbook_type", "root_target"])
+def test_printing_branch_cannot_mask_ambiguous_active_scoring_parts(workbook, pack, case):
+    parts = unpack(printing(pack(workbook)))
+    if case == "root_target":
+        transform_xml(
+            parts,
+            "_rels/.rels",
+            lambda root: next(c for c in root if c.get("Type") == DOC_REL + "/officeDocument").set(
+                "Target", "xl/styles.xml"
+            ),
+        )
+    else:
+        source = SHEET_PART if case == "score_type" else "xl/workbook.xml"
+        transform_xml(
+            parts,
+            "[Content_Types].xml",
+            lambda root: next(c for c in root if c.get("PartName") == "/" + source).set(
+                "ContentType", "application/octet-stream"
+            ),
+        )
+    with pytest.raises(ImportFileError):
+        parse_excel(pack_parts(parts))

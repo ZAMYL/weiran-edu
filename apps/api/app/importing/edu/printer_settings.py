@@ -13,7 +13,8 @@ CT_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
 REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 DOC_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 SHEET_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.printerSettings"
+MEDIA_PREFIX = "application/vnd.openxmlformats-officedocument.spreadsheetml"
+MIME = MEDIA_PREFIX + ".printerSettings"
 REL_TYPE = DOC_REL + "/printerSettings"
 PART = re.compile(r"xl/printerSettings/printerSettings[1-9][0-9]{0,5}\.bin\Z")
 RID = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]{0,127}\Z")
@@ -131,6 +132,22 @@ class PrinterGuard:
     def validate(self, archive: ZipFile, sheets: dict[str, str]) -> None:
         paths = set(archive.namelist())
         workbook_rels = self.relations.get("xl/_rels/workbook.xml.rels", {})
+        if self.parts:
+            root_books = [
+                target
+                for kind, target in self.relations.get("_rels/.rels", {}).values()
+                if kind == DOC_REL + "/officeDocument"
+            ]
+            if len(root_books) != 1 or root_books[0] not in {"xl/workbook.xml", "/xl/workbook.xml"}:
+                reject("INVALID_WORKBOOK_RELATIONSHIP")
+            active_types = {
+                "xl/workbook.xml": MEDIA_PREFIX + ".sheet.main+xml",
+                **{path: MEDIA_PREFIX + ".worksheet+xml" for path in sheets.values()},
+            }
+            for part, expected in active_types.items():
+                effective = self.overrides.get("/" + part, self.defaults.get("xml"))
+                if effective != expected:
+                    reject()
         canonical_sheets = [
             rid
             for tag, rid, _ in self.references.get("xl/workbook.xml", ())

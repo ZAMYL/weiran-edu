@@ -57,7 +57,9 @@ PR #35 开工时仍 OPEN，已知限制为合法双 Sheet 文件包含 xl/printe
 2. 校验 Content Types / Relationships 的命名空间、直接节点形状、重复扩展/PartName/关系 ID。
    printer MIME 必须为 application/vnd.openxmlformats-officedocument.spreadsheetml.printerSettings；
    支持 bin Default 或精确 Override，冲突、误标评分 XML、悬空打印 Override 均拒绝。
-3. 工作簿的两个现有 sheet 必须有标准 worksheet 类型关系；打印关系只能由这两张工作表发出，
+3. 含打印设置时，根 officeDocument 关系必须唯一指向当前 xl/workbook.xml；
+   当前工作簿及两个活动评分表必须具有正确 main/worksheet 内容类型，不能误标成通用二进制。
+   工作簿的两个现有 sheet 必须有标准 worksheet 类型关系；打印关系只能由这两张工作表发出，
    Type 必须为 http://schemas.openxmlformats.org/officeDocument/2006/relationships/printerSettings。
 4. 只接受 ../printerSettings/<文件名> 或 /xl/printerSettings/<文件名> 两种规范目标；
    外部关系、URI/UNC、百分号别名、反斜线、查询/片段以及绕路 .. 别名均拒绝。
