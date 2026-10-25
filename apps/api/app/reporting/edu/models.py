@@ -83,6 +83,40 @@ class GroupReport:
 
 
 @dataclass(frozen=True)
+class FindingMetric:
+    key: str
+    value: Fraction | None
+    unit: Literal["records", "score", "ratio"]
+    denominator: int
+    source_record_count: int
+    at_score: Fraction | None = None
+
+
+@dataclass(frozen=True)
+class ReviewedFinding:
+    candidate_id: str
+    candidate_type: Literal["dimension_distribution", "ability_group"]
+    dimension_code: str | None
+    denominator: int
+    rule_id: str
+    rule_version: str
+    status: Literal["observed", "insufficient_data"]
+    metrics: tuple[FindingMetric, ...]
+
+
+@dataclass(frozen=True)
+class ReviewedFindings:
+    """Server-derived whitelist, never a client confirmation or permission token."""
+
+    source: Source
+    result_id: str
+    result_version: int
+    conditions: tuple[Condition, ...]
+    findings: tuple[ReviewedFinding, ...]
+    projection_version: str = "edu.report.reviewed.v1"
+
+
+@dataclass(frozen=True)
 class ReportInput:
     source: Source
     generated_at: datetime
@@ -92,6 +126,7 @@ class ReportInput:
     groups: tuple[GroupReport, ...] = ()
     scope_kind: Literal["batch", "authorized_subset"] = "batch"
     synthetic: bool = False
+    reviewed: ReviewedFindings | None = None
 
 
 @dataclass(frozen=True)

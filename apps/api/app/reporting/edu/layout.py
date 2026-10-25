@@ -6,7 +6,7 @@ from fractions import Fraction
 
 from app.importing.edu.types import DIMENSIONS
 
-from .models import ExportLimits, ReportInput
+from .models import ExportLimits, FindingMetric, ReportInput, ReviewedFinding
 from .validation import require
 
 LABELS = {item.code: item.label for item in DIMENSIONS}
@@ -18,7 +18,7 @@ NOTES = (
     "精确值中的有理数分母不是学生人数。不同量表不默认可比。",
     "未输出身份、原始评语、未审核依据原文、内部定位或文件路径。",
     "统计观察不代表能力等级、教学诊断、因果关系或已验证教学效果。",
-    "洞察卡未提供，评语分析不可用；未把 withheld 当作空评语或零异常。",
+    "评语分析不可用；未把 withheld 当作空评语或零异常。",
 )
 
 
@@ -72,6 +72,44 @@ def condition_text(group) -> str:
     return " AND ".join(
         f"{label(c.dimension_code)} {OPS[c.operator]} {number_text(c.threshold)}"
         for c in sorted(group.conditions, key=lambda c: (c.dimension_code, c.operator, c.threshold))
+    )
+
+
+REVIEW_NOTICE = "教师确认只记录核验判断，不证明因果关系、能力等级或实际教学效果。"
+METRIC_LABELS = {
+    "valid_count": "有效评分数",
+    "missing_count": "缺失评分数",
+    "invalid_count": "无效评分数",
+    "mean": "均值",
+    "median": "中位数",
+    "matched_count": "命中人数 M",
+    "matched_ratio": "命中比例 M/N",
+    "eligible_count": "可判定人数 E",
+    "matched_among_eligible": "可判定中比例 M/E",
+    "unevaluable_count": "不可判定人数",
+}
+
+
+def finding_title(finding: ReviewedFinding) -> str:
+    return (
+        label(finding.dimension_code) + "评分分布"
+        if finding.candidate_type == "dimension_distribution"
+        else "所选能力组合群体"
+    )
+
+
+def metric_label(metric: FindingMetric) -> str:
+    return (
+        "评分频数：" + number_text(metric.at_score)
+        if metric.at_score is not None
+        else METRIC_LABELS[metric.key]
+    )
+
+
+def metric_scope(metric: FindingMetric) -> str:
+    return (
+        f"指标分母 {metric.denominator}；实际参与来源记录 {metric.source_record_count}；"
+        "来源记录数不另作群体人数"
     )
 
 
@@ -300,13 +338,65 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
                         },
                     )
     add(facts, "事实引用", "来源", "统计观察", "需核查事项", header=True)
-    add(
-        facts,
-        "insights-not-provided",
-        "当前报告输入",
-        "洞察卡未提供；未执行评语复核",
-        "扣留或缺少原文不代表零异常",
-    )
+    if report.reviewed is None:
+        add(
+            facts,
+            "insights-not-provided",
+            "当前报告输入",
+            "洞察卡未提供；未执行评语复核",
+            "扣留或缺少原文不代表零异常",
+        )
+    else:
+        reviewed = report.reviewed
+        add(
+            facts,
+            "已保存结果",
+            reviewed.result_id,
+            f"教师核验版本 {reviewed.result_version}",
+            reviewed.projection_version,
+        )
+        add(
+            facts,
+            "分析范围",
+            report.source.batch_id,
+            report.source.snapshot_id,
+            condition_text(reviewed) or "未设置群体条件；维度分布为完整批次",
+        )
+        add(facts, "核验含义", "教师 confirmed", REVIEW_NOTICE, "教师内部使用，非公开")
+        if not reviewed.findings:
+            add(facts, "教师核验发现", "暂无教师已确认发现", "未把 pending/dismissed 作为确认", "")
+        for finding in reviewed.findings:
+            add(
+                facts,
+                finding.candidate_id,
+                "教师已确认",
+                finding_title(finding),
+                "候选来源：确定性系统发现",
+            )
+            add(
+                facts,
+                "规则",
+                finding.rule_id,
+                finding.rule_version,
+                f"分析范围分母 N={finding.denominator}",
+            )
+            add(facts, "数据状态", finding.status, "不包含候选自由描述或教师备注", REVIEW_NOTICE)
+            add(facts, "指标", "数值", "精确值", "口径", header=True)
+            for metric in finding.metrics:
+                add(
+                    facts,
+                    metric_label(metric),
+                    int(metric.value) if metric.unit == "records" else metric.value,
+                    rational(metric.value),
+                    metric_scope(metric),
+                    formats={
+                        1: "0.00%"
+                        if metric.unit == "ratio"
+                        else "#,##0"
+                        if metric.unit == "records"
+                        else "0.00"
+                    },
+                )
     for item in sorted(report.dimensions, key=lambda d: d.code):
         add(
             facts,
