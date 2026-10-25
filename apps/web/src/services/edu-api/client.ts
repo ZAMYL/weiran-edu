@@ -65,11 +65,13 @@ export function assertSnapshot<T extends { batch_id: string; snapshot_id: string
 // Bearer lives only in this closure, with no persistence, logging or public state field.
 export function createEduClient(onUnauthorized: () => void, transport: typeof fetch = fetch) {
   let bearer: string | null = null;
+  let testSession = false;
   let generation = 0;
   const pending = new Set<AbortController>();
   function clear() {
     generation++;
     bearer = null;
+    testSession = false;
     pending.forEach((c) => c.abort());
     pending.clear();
   }
@@ -83,7 +85,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     init: RequestInit = {},
     signal?: AbortSignal,
   ): Promise<T> {
-    if (!bearer) throw new ApiError(401, 'UNAUTHORIZED');
+    if (!bearer && !testSession) throw new ApiError(401, 'UNAUTHORIZED');
     const epoch = generation;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort('timeout'), 45_000);
@@ -93,7 +95,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     pending.add(controller);
     try {
       const headers = new Headers(init.headers);
-      headers.set('Authorization', `Bearer ${bearer}`);
+      if (bearer) headers.set('Authorization', `Bearer ${bearer}`);
       if (typeof init.body === 'string') headers.set('Content-Type', 'application/json');
       const response = await transport(`/api/edu${path}`, {
         ...init,
@@ -162,6 +164,10 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
   return {
     clear,
     authenticate,
+    useTestSession: () => {
+      clear();
+      testSession = true;
+    },
     me: (signal?: AbortSignal) => get('/me', meDto, signal),
     scopes: (signal?: AbortSignal) => get('/scopes', scopesDto, signal),
     batches: (offset = 0, limit = 20, signal?: AbortSignal) =>

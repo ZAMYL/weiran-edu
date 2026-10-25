@@ -11,6 +11,18 @@ const response = (status: number, data: unknown) =>
 const token = 'synthetic-test-credential-not-a-real-token';
 afterEach(() => vi.useRealTimers());
 describe('formal API privacy and cancellation', () => {
+  it('allows an explicitly selected server test session without sending credentials from the browser', async () => {
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(response(200, { teacher_id: 'test' }));
+    const client = createEduClient(vi.fn(), transport);
+    client.useTestSession();
+    expect(await client.me()).toEqual({ teacher_id: 'test' });
+    expect(new Headers(transport.mock.calls[0]![1]?.headers).has('authorization')).toBe(false);
+    client.clear();
+    await expect(client.me()).rejects.toMatchObject({ status: 401 });
+    expect(transport).toHaveBeenCalledTimes(1);
+  });
   it('uses only a bearer header and no cache/cookies/URL credentials', async () => {
     const transport = vi
       .fn<typeof fetch>()

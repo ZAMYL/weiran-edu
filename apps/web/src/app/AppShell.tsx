@@ -143,7 +143,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <span>未然 EDU · 让每一次评价成为教学的起点</span>
         <span>
           {dataMode.mode === 'live'
-            ? '正式数据仅来自当前授权接口；教师凭证不持久化'
+            ? dataMode.testMode
+              ? '本机联调测试 · 数据来自真实 API'
+              : '正式数据仅来自当前授权接口；教师凭证不持久化'
             : batch.demo
               ? '当前为合成演示数据，来源引用为示例'
               : '当前文件在本地解析，批次仅保留至刷新前'}
@@ -174,8 +176,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
           <Tag color="blue">数据模式边界</Tag>
           <p>
-            正式模式的批次来自后端数据库，刷新后需重新输入教师凭证再读取。Demo
-            仅在浏览器内存演示，刷新清除新增批次。正式模式未接入 AI 或未审核评语展示。
+            {dataMode.testMode
+              ? '本机联调已自动连接测试教师，刷新后会自动恢复连接。'
+              : '正式模式的批次来自后端数据库，刷新后需重新输入教师凭证再读取。'}
+            Demo 仅在浏览器内存演示，刷新清除新增批次。正式模式未接入 AI 或未审核评语展示。
           </p>
         </div>
       </Modal>

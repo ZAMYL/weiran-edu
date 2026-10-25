@@ -175,7 +175,7 @@ export default function LiveDataPage() {
       </div>
       <Panel
         title="已入库的授权批次"
-        subtitle="服务端分页读取，确认入库的批次刷新后仍可在重新连接教师会话后查看。"
+        subtitle="服务端分页读取，确认入库的批次保存在后端数据库，可在批次列表中再次查看。"
         action={
           <Button icon={<ReloadOutlined />} onClick={batches.retry}>
             刷新批次

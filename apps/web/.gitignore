@@ -2,6 +2,9 @@
 /artifacts/
 /.pnpm-store/
 
+# Private local test teacher configuration; never commit credentials.
+test-session*.json
+
 # Synthetic Excel files are generated from reviewed source for dev/build/tests.
 /public/templates/
 
