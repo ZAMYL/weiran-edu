@@ -14,13 +14,17 @@
 {"snapshot_id":"当前批次快照 ID","expected_version":2,"format":"zip"}
 ```
 
-`snapshot_id`、正整数 `expected_version` 必填，format 为 json/zip，默认 zip；禁止额外字段。
+`snapshot_id`、正整数 `expected_version` 必填，format 为 json/zip/xlsx/md，默认 zip；禁止额外字段。
 先鉴权，再读取有大小限制的正文；在只读事务中重新核验当前教师凭证、来源范围和批次读取权。
 批次所有者和被授予读取权的教师都可以预检已有结果。
 
 与真实下载共用检查：批次完整性、快照、结果版本、保存载荷校验和、人数、完整五维评分、
 证据 ID 唯一性、证据对应的学生/维度/分值/快照，以及当前已发布评语和评分依据。
-JSON 载荷上限沿用 8 MiB；预检在内存中组装 JSON 来测量 UTF-8 字节数，不生成文件、CSV 或 ZIP。
+JSON 载荷上限沿用 8 MiB；json/zip 预检在内存组装 JSON 测量 UTF-8 字节数，不生成 CSV/ZIP。
+xlsx/md 另复用正式报告适配与完整内存生成，测量所选文件，新增 report_payload_bytes/
+max_report_payload_bytes（每文件8 MiB），并在生成后重查当前授权/核验版本；不落盘或锁定状态。
+旧格式响应不新增 null 字段。member_count 是实际匹配人数，不是新汇总报告的逐人输出行数。
+细节与限制见 [正式报告下载契约](FORMAL_REPORT_DOWNLOAD_API.md)。
 
 成功 200 返回：batch_id、snapshot_id、result_id、result_version、format、exportable=true、
 member_count、confirmed_finding_count、json_payload_bytes、max_json_payload_bytes、warnings 和说明。

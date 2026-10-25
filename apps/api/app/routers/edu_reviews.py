@@ -1,11 +1,11 @@
 """Authenticated reviewed text, saved judgments and private export routes."""
 
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Query, Request, Response
 from starlette.concurrency import run_in_threadpool
 
-from app.edu.exports import ResultExporter
+from app.edu.exports import REPORT_FORMATS, ResultExporter
 from app.edu.query import read_query, request_schema
 from app.edu.results import ResultService
 from app.edu.review_models import (
@@ -19,6 +19,7 @@ from app.edu.review_models import (
     TextReviewWrite,
 )
 from app.edu.reviews import TextReviewer
+from app.edu.support_models import ExportFormat
 from app.schemas.common import ErrorResponse
 
 from .edu import Actor, Backend, Limit, Offset
@@ -132,7 +133,23 @@ async def patch_result(
     return await run_in_threadpool(service.patch, actor, batch_id, result_id, body)
 
 
-@router.get("/analysis-results/{result_id}/export", responses=ERRORS)
+@router.get(
+    "/analysis-results/{result_id}/export",
+    response_class=Response,
+    responses={
+        **ERRORS,
+        200: {
+            "description": "授权内部下载；格式由查询参数选择",
+            "content": {
+                "application/json": {"schema": {"type": "object"}},
+                **{
+                    mime: {"schema": {"type": "string", "format": "binary"}}
+                    for mime in ("application/zip", *REPORT_FORMATS.values())
+                },
+            },
+        },
+    },
+)
 def export_result(
     batch_id: str,
     result_id: str,
@@ -140,7 +157,7 @@ def export_result(
     backend: Backend,
     snapshot_id: Annotated[str, Query(min_length=1, max_length=128)],
     expected_version: Annotated[int, Query(ge=1)],
-    format: Literal["json", "zip"] = "zip",
+    format: ExportFormat = "zip",
 ) -> Response:
     content, media_type, filename = ResultExporter(backend.database, clock=backend.clock).export(
         actor,
@@ -156,5 +173,6 @@ def export_result(
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
             "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "no-store",
         },
     )

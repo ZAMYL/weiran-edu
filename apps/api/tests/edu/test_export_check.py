@@ -114,7 +114,7 @@ def test_preflight_access_authentication_snapshot_and_version_guards(client, run
         {"expected_version": True},
         {"expected_version": "1"},
         {"expected_version": 0},
-        {"format": "xlsx"},
+        {"format": "pdf"},
         {"extra": "private"},
     ],
 )

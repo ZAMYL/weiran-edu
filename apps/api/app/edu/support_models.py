@@ -6,11 +6,13 @@ from pydantic import Field
 
 from .models import Identifier, Model
 
+type ExportFormat = Literal["json", "zip", "xlsx", "md"]
+
 
 class ExportCheckRequest(Model):
     snapshot_id: Identifier
     expected_version: Annotated[int, Field(ge=1)]
-    format: Literal["json", "zip"] = "zip"
+    format: ExportFormat = "zip"
 
 
 class ExportWarning(Model):
@@ -29,13 +31,15 @@ class ExportCheck(Model):
     snapshot_id: str
     result_id: str
     result_version: int
-    format: Literal["json", "zip"]
+    format: ExportFormat
     exportable: Literal[True] = True
     member_count: int
     confirmed_finding_count: int
     json_payload_bytes: int
     max_json_payload_bytes: int
     warnings: tuple[ExportWarning, ...]
+    report_payload_bytes: int | None = None
+    max_report_payload_bytes: int | None = None
     note: str = "预检不生成文件或锁定状态；实际下载时仍重新校验权限、版本和文本发布状态。"
 
 

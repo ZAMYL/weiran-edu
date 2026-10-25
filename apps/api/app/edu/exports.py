@@ -5,21 +5,27 @@ import io
 import json
 import sqlite3
 from collections import Counter
-from typing import Literal
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from app.core.errors import APIError
+from app.reporting.edu import ExportLimits, ReportError, generate_report
 
 from .analysis import DIMENSION_MAP
 from .auth import Principal
+from .report_exports import report_input
 from .results import ResultService
 from .review_models import AnalysisResult
 from .reviews import version_conflict
 from .service import fail, stamp
-from .support_models import ExportCheck, ExportWarning
+from .support_models import ExportCheck, ExportFormat, ExportWarning
 from .text_projection import published_text
 
 MAX_EXPORT_BYTES = 8 * 1024 * 1024
+MAX_REPORT_BYTES = 8 * 1024 * 1024
+REPORT_FORMATS = {
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "md": "text/markdown",
+}
 
 
 def csv_bytes(rows: list[list[object]]) -> bytes:
@@ -37,6 +43,71 @@ def csv_bytes(rows: list[list[object]]) -> bytes:
 
 
 class ResultExporter(ResultService):
+    def _current(
+        self,
+        connection: sqlite3.Connection,
+        principal: Principal,
+        batch_id: str,
+        result_id: str,
+        snapshot_id: str,
+        expected_version: int,
+    ) -> tuple[sqlite3.Row, AnalysisResult]:
+        batch = self._batch(connection, principal, batch_id, snapshot_id)
+        result = self._dto(*self._rows(connection, batch_id, result_id))
+        if result.version != expected_version:
+            version_conflict("ANALYSIS_RESULT_VERSION_MISMATCH")
+        if result.snapshot_id != snapshot_id:
+            fail("DATA_INTEGRITY_ERROR", 503)
+        return batch, result
+
+    def _download_input(
+        self,
+        principal: Principal,
+        batch_id: str,
+        result_id: str,
+        snapshot_id: str,
+        expected_version: int,
+        format: ExportFormat,
+    ) -> tuple[AnalysisResult, dict, bytes, bytes | None]:
+        try:
+            with self.database.transaction() as connection:
+                result, payload, content = self._prepare(
+                    connection, principal, batch_id, result_id, snapshot_id, expected_version
+                )
+                report = None
+                if format in REPORT_FORMATS:
+                    batch = self._batch(connection, principal, batch_id, snapshot_id)
+                    report = report_input(
+                        connection, batch, result, payload["rubric"], generated_at=self.clock()
+                    )
+            report_content = None
+            if report is not None:
+                # Build once, completely in memory. Both preflight/download use these guards.
+                files = generate_report(
+                    report, limits=ExportLimits(max_file_bytes=MAX_REPORT_BYTES)
+                )
+                report_content = files.xlsx if format == "xlsx" else files.markdown.encode("utf-8")
+                if len(report_content) > MAX_REPORT_BYTES:
+                    raise APIError(413, "EXPORT_TOO_LARGE", "报告超过当前同步导出限制")
+                # Reopen after rendering so revocation/version changes cannot reuse the old read.
+                with self.database.transaction() as connection:
+                    _, current = self._current(
+                        connection, principal, batch_id, result_id, snapshot_id, expected_version
+                    )
+                    if current.analysis != result.analysis:
+                        fail("DATA_INTEGRITY_ERROR", 503)
+            return result, payload, content, report_content
+        except ReportError as error:
+            if str(error) in {
+                "report_file_size_limit",
+                "report_layout_limit",
+                "member_limit",
+                "dimension_limit",
+                "distribution_limit",
+            }:
+                raise APIError(413, "EXPORT_TOO_LARGE", "报告超过当前同步导出限制") from None
+            fail("DATA_INTEGRITY_ERROR", 503)
+
     def _prepare(
         self,
         connection: sqlite3.Connection,
@@ -46,10 +117,9 @@ class ResultExporter(ResultService):
         snapshot_id: str,
         expected_version: int,
     ) -> tuple[AnalysisResult, dict, bytes]:
-        batch = self._batch(connection, principal, batch_id, snapshot_id)
-        result = self._dto(*self._rows(connection, batch_id, result_id))
-        if result.version != expected_version:
-            version_conflict("ANALYSIS_RESULT_VERSION_MISMATCH")
+        batch, result = self._current(
+            connection, principal, batch_id, result_id, snapshot_id, expected_version
+        )
         members = result.analysis.members
         wanted = {
             score.evidence_id: (member.student_id, score.dimension_code, score.score)
@@ -134,12 +204,11 @@ class ResultExporter(ResultService):
         *,
         snapshot_id: str,
         expected_version: int,
-        format: Literal["json", "zip"],
+        format: ExportFormat,
     ) -> ExportCheck:
-        with self.database.transaction() as connection:
-            result, payload, content = self._prepare(
-                connection, principal, batch_id, result_id, snapshot_id, expected_version
-            )
+        result, payload, content, report_content = self._download_input(
+            principal, batch_id, result_id, snapshot_id, expected_version, format
+        )
         warnings = []
         for code, count, message in (
             (
@@ -165,6 +234,16 @@ class ResultExporter(ResultService):
         ):
             if count:
                 warnings.append(ExportWarning(code=code, count=count, message=message))
+        report_fields = (
+            {}
+            if report_content is None
+            else {
+                "report_payload_bytes": len(report_content),
+                "max_report_payload_bytes": MAX_REPORT_BYTES,
+                "note": "预检在内存完整生成报告并测量所选格式，不保存文件或锁定状态；"
+                "实际下载仍复核权限及核验版本。仅汇总，不导出匿名逐人明细。",
+            }
+        )
         return ExportCheck(
             batch_id=batch_id,
             snapshot_id=snapshot_id,
@@ -176,6 +255,7 @@ class ResultExporter(ResultService):
             json_payload_bytes=len(content),
             max_json_payload_bytes=MAX_EXPORT_BYTES,
             warnings=tuple(warnings),
+            **report_fields,
         )
 
     def export(
@@ -186,14 +266,15 @@ class ResultExporter(ResultService):
         *,
         snapshot_id: str,
         expected_version: int,
-        format: str,
+        format: ExportFormat,
     ) -> tuple[bytes, str, str]:
-        with self.database.transaction() as connection:
-            result, payload, content = self._prepare(
-                connection, principal, batch_id, result_id, snapshot_id, expected_version
-            )
+        result, payload, content, report_content = self._download_input(
+            principal, batch_id, result_id, snapshot_id, expected_version, format
+        )
         evidence = payload["evidence"]
         filename = f"weiran-analysis-{result.result_id}-v{result.version}"
+        if report_content is not None:
+            return report_content, REPORT_FORMATS[format], filename + "." + format
         if format == "json":
             return content, "application/json", filename + ".json"
         if format != "zip":
