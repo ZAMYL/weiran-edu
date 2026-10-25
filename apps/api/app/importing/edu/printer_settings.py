@@ -168,8 +168,6 @@ class PrinterGuard:
             reject()
         if any(mime == MIME and extension != "bin" for extension, mime in self.defaults.items()):
             reject()
-        if self.parts and self.defaults.get("bin", MIME) != MIME:
-            reject()
         for path in paths:
             if (
                 path.startswith("xl/printerSettings/")

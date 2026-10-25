@@ -506,3 +506,16 @@ def test_printing_branch_cannot_mask_ambiguous_active_scoring_parts(workbook, pa
         )
     with pytest.raises(ImportFileError):
         parse_excel(pack_parts(parts))
+
+
+def test_exact_override_has_priority_over_unused_generic_bin_default(workbook, pack):
+    parts = unpack(printing(pack(workbook), override=True))
+    transform_xml(
+        parts,
+        "[Content_Types].xml",
+        lambda root: ET.SubElement(
+            root, f"{{{CT}}}Default", Extension="bin", ContentType="application/octet-stream"
+        ),
+    )
+    # The effective type of the only admitted binary is still the exact printer override.
+    assert parse_excel(pack_parts(parts)).can_commit
