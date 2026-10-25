@@ -333,11 +333,6 @@ def discover(
         )
         target = comparison.selection.matches
         rest = comparison.remainder
-        partition = frozenset((frozenset(target), frozenset(rest)))
-        if partition in seen:
-            audit.append(SearchAttempt(conditions, "duplicate_partition"))
-            continue
-        seen.add(partition)
         eligible = [
             d
             for d in comparison.dimensions
@@ -349,39 +344,9 @@ def discover(
         if not eligible:
             audit.append(SearchAttempt(conditions, "insufficient_support_or_effect"))
             continue
-        best = max(eligible, key=lambda d: abs(d.difference))
-        evaluated = passed = 0
         target_set, rest_set = set(target), set(rest)
-        for ids in folds:
-            allowed = set(ids)
-            a = dimension_stats(
-                tuple(
-                    r
-                    for r in records
-                    if r.reference in target_set and r.reference.student_id in allowed
-                ),
-                best.dimension,
-            )
-            b = dimension_stats(
-                tuple(
-                    r
-                    for r in records
-                    if r.reference in rest_set and r.reference.student_id in allowed
-                ),
-                best.dimension,
-            )
-            if min(a.valid_count, b.valid_count) >= policy.minimum_samples:
-                evaluated += 1
-                delta = a.mean - b.mean
-                passed += delta * best.difference > 0 and abs(delta) >= policy.mean_difference
-        rank = _ranking(
-            abs(best.difference) / 4,
-            min(best.target.valid_count, best.remainder.valid_count),
-            scope.student_count,
-            best.target.valid_count + best.remainder.valid_count,
-            Robustness("three_fixed_deletions", 3, evaluated, passed),
-            policy,
-        )
+        partition = frozenset((frozenset(target), frozenset(rest)))
+        filter_dimensions = frozenset(c.dimension for c in conditions)
         source_sets = [
             SourceSet("target_members", tuple(c.dimension for c in conditions), target),
             SourceSet("remainder_members", tuple(c.dimension for c in conditions), rest),
@@ -390,18 +355,62 @@ def discover(
             for group, stats in (("target", d.target), ("remainder", d.remainder)):
                 key = f"{group}.{d.dimension.name}"
                 source_sets.append(SourceSet(key, (d.dimension,), stats.valid_records))
-        emit(
-            "group_difference",
-            str(conditions),
-            "互斥群体的评分差异",
-            f"目标组{len(target)}人，余组{len(rest)}人；"
-            f"{best.dimension.value}有效均值差为{best.difference}分（目标减余组）。",
-            comparison,
-            rank,
-            source_sets,
-            ["余组排除条件不可判定者；筛选维度差异属于条件定义，不作为新发现。"],
-        )
-        audit.append(SearchAttempt(conditions, "qualified"))
+        emitted = False
+        for outcome in eligible:
+            # Complementary orientations represent the same comparison, but a different
+            # filter or outcome dimension changes its meaning even for identical members.
+            identity = (partition, filter_dimensions, outcome.dimension)
+            if identity in seen:
+                continue
+            evaluated = passed = 0
+            for ids in folds:
+                allowed = set(ids)
+                a = dimension_stats(
+                    tuple(
+                        r
+                        for r in records
+                        if r.reference in target_set and r.reference.student_id in allowed
+                    ),
+                    outcome.dimension,
+                )
+                b = dimension_stats(
+                    tuple(
+                        r
+                        for r in records
+                        if r.reference in rest_set and r.reference.student_id in allowed
+                    ),
+                    outcome.dimension,
+                )
+                if min(a.valid_count, b.valid_count) >= policy.minimum_samples:
+                    evaluated += 1
+                    delta = a.mean - b.mean
+                    passed += (
+                        delta * outcome.difference > 0 and abs(delta) >= policy.mean_difference
+                    )
+            rank = _ranking(
+                abs(outcome.difference) / 4,
+                min(outcome.target.valid_count, outcome.remainder.valid_count),
+                scope.student_count,
+                outcome.target.valid_count + outcome.remainder.valid_count,
+                Robustness("three_fixed_deletions", 3, evaluated, passed),
+                policy,
+            )
+            emit(
+                "group_difference",
+                f"{conditions}:{outcome.dimension.name}",
+                f"互斥群体的{outcome.dimension.value}评分差异",
+                f"目标组{len(target)}人，余组{len(rest)}人；"
+                f"{outcome.dimension.value}有效均值差为{outcome.difference}分（目标减余组）。",
+                replace(comparison, outcome_dimension=outcome.dimension),
+                rank,
+                source_sets,
+                ["余组排除条件不可判定者；筛选维度差异属于条件定义，不作为新发现。"],
+            )
+            # Only a published, qualified outcome can reserve a semantic deduplication key.
+            seen.add(identity)
+            emitted = True
+        # One audit entry per attempted rule, including rejected and duplicate attempts.
+        audit.append(SearchAttempt(conditions, "qualified" if emitted else "duplicate_partition"))
 
     for pair in correlations.pairs:
         values = [o.left_score - o.right_score for o in pair.observations]

@@ -17,7 +17,7 @@ from ..models import (
     number,
 )
 
-VERSION = "edu-discovery-0.1-draft"
+VERSION = "edu-discovery-0.1.1-draft"
 DiscoveryType = Literal[
     "dimension_relation", "group_difference", "rare_combination", "boundary_sensitivity"
 ]
@@ -117,6 +117,7 @@ class GroupComparison:
     selection: Selection = field(repr=False)
     remainder: tuple[RecordRef, ...] = field(repr=False)
     dimensions: tuple[DimensionDifference, ...] = field(repr=False)
+    outcome_dimension: Dimension | None = None
 
 
 @dataclass(frozen=True)

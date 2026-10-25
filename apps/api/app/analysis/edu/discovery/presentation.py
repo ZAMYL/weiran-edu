@@ -101,6 +101,11 @@ def present(discovery: Discovery) -> dict[str, object]:
             for (x, y), count in sorted(counts.items())
         ]
     elif isinstance(payload, GroupComparison):
+        if payload.outcome_dimension is not None and not any(
+            d.dimension is payload.outcome_dimension and not d.condition_defined
+            for d in payload.dimensions
+        ):
+            raise AnalysisInputError("invalid_group_outcome_dimension")
         selection = payload.selection
         m, r, u = len(selection.matches), len(payload.remainder), len(selection.unevaluable_records)
         groups = [
@@ -115,6 +120,9 @@ def present(discovery: Discovery) -> dict[str, object]:
         ):
             raise AnalysisInputError("inconsistent_disjoint_groups")
         metrics = {
+            "outcome_dimension": (
+                payload.outcome_dimension.name if payload.outcome_dimension else None
+            ),
             "target_count": m,
             "remainder_count": r,
             "unevaluable_count": u,

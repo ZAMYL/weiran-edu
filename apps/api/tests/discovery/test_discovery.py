@@ -149,10 +149,7 @@ def test_data_driven_groups_and_disjoint_comparison(size):
 def test_condition_only_difference_is_not_new_discovery():
     result = run(data([(1, 3, 3, 3, 3)] * 10 + [(5, 3, 3, 3, 3)] * 10))
     assert result.findings == ()
-    assert all(
-        a.outcome in ("insufficient_support_or_effect", "duplicate_partition")
-        for a in result.search_audit
-    )
+    assert all(a.outcome == "insufficient_support_or_effect" for a in result.search_audit)
 
 
 def test_group_missing_denominators_and_actual_sources():
@@ -518,3 +515,156 @@ def test_cli_runs_in_fresh_interpreter_without_inherited_import_path(tmp_path, m
     assert output["synthetic_only"]
     assert len(output["examples"]) == 4
     assert output["known_53"]["student_count"] == 53
+
+
+def test_twenty_students_ineligible_rule_cannot_reserve_qualified_partition():
+    # Independent oracle: B difference 2.90-3.10=-0.20 is below 0.5;
+    # defining groups by B makes A an outcome with 1-5=-4, n=10 per side.
+    dataset = data([(1, F(29, 10), 3, 3, 3)] * 10 + [(5, F(31, 10), 3, 3, 3)] * 10)
+    result = run(dataset, policy=Policy(maximum_findings=50))
+    groups = [d for d in result.findings if d.type == "group_difference"]
+    assert len(groups) == 1
+    group = groups[0]
+    assert group.payload.selection.conditions == (Condition(D.IMPLEMENTATION, Op.LE, F(29, 10)),)
+    assert group.payload.outcome_dimension is D.ALGORITHMS
+    outcome = group.payload.dimensions[0]
+    assert (outcome.target.mean, outcome.remainder.mean, outcome.difference) == (1, 5, -4)
+    assert (outcome.target.valid_count, outcome.remainder.valid_count) == (10, 10)
+    assert result.search_audit[0].outcome == "insufficient_support_or_effect"
+    assert result.search_audit[1].outcome == "insufficient_support_or_effect"
+    assert result.search_audit[2].outcome == "qualified"
+    assert result.search_audit[3].outcome == "duplicate_partition"
+    assert present(group)["metrics"]["outcome_dimension"] == "ALGORITHMS"
+    assert len(sources(group, "target.ALGORITHMS")) == 10
+
+
+def test_same_partition_distinguishes_filter_and_each_outcome_but_not_reverse_duplicates():
+    # All three varying dimensions split the same 20 students into 10/10.
+    # Three singleton filter sets each have two outcomes: 6 facts.
+    # Three two-dimension filter sets each have one outcome: 3 facts.
+    # Reverse orientation and repeated equivalent AND partitions add no facts.
+    dataset = data([(1, 1, 5, 3, 3)] * 10 + [(5, 5, 1, 3, 3)] * 10)
+    result = run(dataset, policy=Policy(search_budget=50, maximum_findings=50))
+    groups = [d for d in result.findings if d.type == "group_difference"]
+    expected = {
+        (frozenset([D.ALGORITHMS]), D.IMPLEMENTATION),
+        (frozenset([D.ALGORITHMS]), D.MODELING),
+        (frozenset([D.IMPLEMENTATION]), D.ALGORITHMS),
+        (frozenset([D.IMPLEMENTATION]), D.MODELING),
+        (frozenset([D.MODELING]), D.ALGORITHMS),
+        (frozenset([D.MODELING]), D.IMPLEMENTATION),
+        (frozenset([D.ALGORITHMS, D.IMPLEMENTATION]), D.MODELING),
+        (frozenset([D.ALGORITHMS, D.MODELING]), D.IMPLEMENTATION),
+        (frozenset([D.IMPLEMENTATION, D.MODELING]), D.ALGORITHMS),
+    }
+    assert len(groups) == 9
+    actual = [
+        (
+            frozenset(c.dimension for c in d.payload.selection.conditions),
+            d.payload.outcome_dimension,
+        )
+        for d in groups
+    ]
+    assert set(actual) == expected
+    assert len(set(actual)) == len(actual)
+    assert len({d.discovery_id for d in groups}) == 9
+    assert len(result.search_audit) == 18 <= 50
+    assert any(a.outcome == "duplicate_partition" for a in result.search_audit)
+    for group in groups:
+        outcome = next(
+            d for d in group.payload.dimensions if d.dimension is group.payload.outcome_dimension
+        )
+        assert not outcome.condition_defined
+        assert abs(outcome.difference) == 4
+        assert (outcome.target.valid_count, outcome.remainder.valid_count) == (10, 10)
+        assert present(group)["metrics"]["outcome_dimension"] == outcome.dimension.name
+    truncated = run(dataset, policy=Policy(search_budget=50, maximum_findings=1))
+    assert truncated.qualified_count == result.qualified_count
+    assert len(truncated.findings) == 1
+
+
+@pytest.mark.parametrize("size", [17, 53, 105])
+@pytest.mark.parametrize("missing", [False, True])
+def test_semantic_dedup_across_sizes_missing_scores_sources_and_stable_sort(size, missing):
+    half = size // 2
+    rows = [(1, F(29, 10), 3, 3, 3)] * half + [(5, F(31, 10), 3, 3, 3)] * (size - half)
+    if missing:
+        rows[0] = (None, F(29, 10), 3, 3, 3)
+        rows[half] = (None, F(31, 10), 3, 3, 3)
+    dataset = data(rows)
+    result = run(dataset, policy=Policy(maximum_findings=50))
+    groups = [d for d in result.findings if d.type == "group_difference"]
+    assert len(groups) == 1
+    group = groups[0]
+    assert group.payload.outcome_dimension is D.ALGORITHMS
+    a = group.payload.dimensions[0]
+    assert a.difference == -4
+    assert (a.target.valid_count, a.remainder.valid_count) == (
+        half - int(missing),
+        size - half - int(missing),
+    )
+    assert len(group.payload.selection.matches) == half
+    assert len(group.payload.remainder) == size - half
+    expected_ids = {f"private-student-{i:05}" for i in range(int(missing), half)}
+    assert {r.student_id for r, _ in sources(group, "target.ALGORITHMS")} == expected_ids
+    assert group.ranking.completeness == F(size - 2 * int(missing), size)
+    reordered = prepare_dataset(tuple(reversed(make(rows))), policy=ScorePolicy(step=F(1, 100)))
+    assert (
+        result
+        == run(reordered, policy=Policy(maximum_findings=50))
+        == run(dataset, policy=Policy(maximum_findings=50))
+    )
+    assert list(result.findings) == sorted(
+        result.findings, key=lambda d: (-d.ranking.score, d.type, d.discovery_id)
+    )
+    assert len(result.search_audit) <= result.policy.search_budget
+
+
+def test_ineligible_rules_still_consume_search_budget_without_forcing_more_search():
+    dataset = data([(1, F(29, 10), 3, 3, 3)] * 10 + [(5, F(31, 10), 3, 3, 3)] * 10)
+    limited = run(dataset, policy=Policy(search_budget=2, maximum_findings=50))
+    assert len(limited.search_audit) == 2
+    assert not any(d.type == "group_difference" for d in limited.findings)
+    sufficient = run(dataset, policy=Policy(search_budget=3, maximum_findings=50))
+    assert len(sufficient.search_audit) == 3
+    assert len([d for d in sufficient.findings if d.type == "group_difference"]) == 1
+
+
+def test_same_filter_partition_keeps_per_outcome_samples_rank_and_sources():
+    rows = [(1, 1, 5, 3, 3)] * 10 + [(5, 5, 1, 3, 3)] * 10
+    rows[0] = (1, 1, None, 3, 3)
+    result = run(data(rows), policy=Policy(maximum_findings=50))
+    groups = [
+        d
+        for d in result.findings
+        if d.type == "group_difference"
+        and d.payload.selection.conditions == (Condition(D.ALGORITHMS, Op.LE, 1),)
+    ]
+    assert len(groups) == 2
+    by_outcome = {d.payload.outcome_dimension: d for d in groups}
+    implementation = by_outcome[D.IMPLEMENTATION]
+    modeling = by_outcome[D.MODELING]
+    assert implementation.payload.dimensions[1].difference == -4
+    assert modeling.payload.dimensions[2].difference == 4
+    assert implementation.ranking.completeness == 1
+    assert modeling.ranking.completeness == F(19, 20)
+    assert implementation.ranking.support_count == 10
+    assert modeling.ranking.support_count == 9
+    assert len(sources(implementation, "target.IMPLEMENTATION")) == 10
+    modeling_refs = sources(modeling, "target.MODELING")
+    assert len(modeling_refs) == 9
+    assert "private-student-00000" not in {r.student_id for r, _ in modeling_refs}
+    assert all(e.dimension is D.MODELING for _, refs in modeling_refs for e in refs)
+    assert not present(modeling)["public_display_allowed"]
+
+
+def test_outcome_metadata_cannot_promote_a_condition_dimension():
+    dataset = data([(1, 5, 3, 3, 3)] * 10 + [(5, 1, 3, 3, 3)] * 10)
+    standalone = compare_groups(
+        dataset, batch_id=BATCH, conditions=(Condition(D.ALGORITHMS, Op.LE, 1),)
+    )
+    assert standalone.outcome_dimension is None
+    group = next(d for d in run(dataset).findings if d.type == "group_difference")
+    condition = group.payload.selection.conditions[0].dimension
+    with pytest.raises(AnalysisInputError, match="invalid_group_outcome_dimension"):
+        present(replace(group, payload=replace(group.payload, outcome_dimension=condition)))
