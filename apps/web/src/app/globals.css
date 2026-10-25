@@ -1,5 +1,242 @@
 @import 'antd/dist/reset.css';
 
+.mode-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mode-controls .ant-segmented {
+  flex: none;
+  font-size: 12px;
+}
+.session-token-label {
+  display: block;
+  margin: 18px 0 8px;
+}
+.session-notice {
+  margin-top: 16px;
+}
+.session-gate {
+  padding: 42px;
+  display: grid;
+  justify-items: start;
+  gap: 20px;
+}
+.live-loading {
+  min-height: 100px;
+  display: grid;
+  place-content: center;
+  gap: 14px;
+  text-align: center;
+  box-shadow: none;
+}
+.live-error {
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.live-batch-picker {
+  min-width: 0;
+}
+.live-batch-picker .ant-pagination {
+  padding: 12px;
+}
+.live-stat > strong {
+  font-size: 32px;
+  margin-right: 10px;
+}
+.live-stat > span {
+  color: #71809f;
+}
+.live-insight-controls {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.live-insights .insights-grid {
+  align-items: start;
+}
+.live-insights .radar-panel {
+  height: auto;
+}
+.live-insights .insights-right > .panel {
+  max-height: 750px;
+  overflow-y: auto;
+}
+.live-insights .ability-chart {
+  height: 400px;
+  min-height: 320px;
+  flex: none;
+}
+.live-candidate {
+  margin: 16px 0;
+  padding: 20px;
+}
+.live-candidate h2 {
+  font-size: 19px;
+  margin-bottom: 9px;
+}
+.live-candidate > p {
+  font-size: 13px;
+}
+.live-candidate details {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.live-candidate summary {
+  cursor: pointer;
+}
+.live-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+.live-metrics .ant-btn {
+  height: auto;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+  text-align: left;
+  padding: 12px;
+  border-color: #dbe7ff;
+}
+.live-metrics .ant-btn b {
+  font-size: 20px;
+  color: #2463f5;
+}
+.live-metrics .ant-btn small {
+  font-size: 11px;
+  color: #71809f;
+}
+.withheld-note {
+  padding: 12px;
+  background: #eef4ff;
+  border-radius: 8px;
+  margin: 14px 0;
+  color: #526d9f;
+  font-size: 13px;
+}
+.source-details {
+  margin: 16px 0 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.source-details dt {
+  color: #71809f;
+  margin-top: 10px;
+}
+.source-details dd {
+  margin: 3px 0 10px;
+  line-height: 1.7;
+}
+.live-threshold {
+  width: 90px;
+}
+.sparse-matrix {
+  height: 365px;
+  width: 100%;
+}
+.server-mean-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf2fb;
+  font-size: 12px;
+}
+.live-upload-fields {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.live-upload-fields label {
+  color: #71809f;
+  font-size: 12px;
+}
+.warning-ack {
+  display: flex;
+  margin-top: 20px;
+  color: #976c16;
+}
+.issue-card.warning {
+  border-color: #ffe2b1;
+  background: #fffbf0;
+}
+.issue-card.warning h3 {
+  color: #b77d13;
+}
+.score-evidence-link.ant-btn {
+  padding: 0 8px;
+  height: 30px;
+}
+.batch-picker-error {
+  padding: 8px;
+}
+@media (max-width: 1250px) {
+  .topbar {
+    flex-wrap: wrap;
+    height: auto !important;
+    min-height: 72px;
+    padding-block: 12px !important;
+    gap: 18px !important;
+  }
+  .topbar-actions {
+    gap: 10px !important;
+  }
+}
+@media (max-width: 640px) {
+  .mode-controls {
+    gap: 2px;
+  }
+  .mode-controls .ant-segmented {
+    font-size: 11px;
+  }
+  .session-gate {
+    padding: 24px 18px;
+  }
+  .live-upload-fields {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .live-insights .radar-panel .panel-heading {
+    flex-wrap: wrap;
+  }
+  .live-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .live-metrics .ant-btn {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .sparse-matrix {
+    height: 330px;
+  }
+  .live-stat {
+    padding: 14px 10px !important;
+  }
+  .live-stat p {
+    font-size: 11px;
+  }
+  .live-stat strong {
+    font-size: 28px;
+  }
+  .mode-controls .ant-btn {
+    padding-inline: 6px;
+  }
+  .live-batch-picker {
+    flex: 1;
+  }
+  .live-batch-picker > .ant-select {
+    width: 100%;
+  }
+}
+
 :root {
   font-family: Inter, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   color: #142448;

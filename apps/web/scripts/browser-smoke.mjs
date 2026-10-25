@@ -52,6 +52,7 @@ async function main() {
   try {
     const response = await page.goto(process.env.APP_URL || 'http://127.0.0.1:3000/');
     assert.equal(response.status(), 200);
+    await page.getByText('Demo', { exact: true }).click();
     await page.getByRole('heading', { name: '五维能力概况' }).waitFor();
     await page.locator('.ability-chart svg').waitFor();
     await noOverflow();
@@ -140,6 +141,7 @@ async function main() {
     await page.getByRole('navigation', { name: '主导航' }).waitFor();
     checks.push('全屏隐藏主导航，Esc 退出并保留批次');
     await page.reload();
+    await page.getByText('Demo', { exact: true }).click();
     await page.getByRole('heading', { name: '五维能力概况' }).waitFor();
     await page.setViewportSize({ width: 390, height: 844 });
     await noOverflow();
