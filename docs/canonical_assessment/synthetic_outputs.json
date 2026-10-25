@@ -1,0 +1,5022 @@
+{
+  "A_three_items_no_comments": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "算法与数据结构",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "algorithm_data_structure",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "代码实现能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "code_implementation",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "问题建模能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "problem_modeling",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:score",
+      "synthetic-item-1:score",
+      "synthetic-item-2:score"
+    ],
+    "missing_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-0:comment",
+      "synthetic-item-0:response",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:response",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:response"
+    ],
+    "quality_issues": [],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [],
+    "unavailable_analyses": [
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [
+      {
+        "missing": "synthetic-item-0 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-0：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-0：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-1 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-1：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-1：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-2 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-2：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-2：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "推荐 Profile 未确认覆盖：效率意识、解题策略",
+        "why": "仅相对默认推荐方案的覆盖差异；自定义名称不能由 AI 猜测映射。",
+        "enables": "教师确认映射或另行采集后，可扩展相应维度的分析",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "profile"
+      }
+    ],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  },
+  "B_five_items_review_resources": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "算法与数据结构",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "algorithm_data_structure",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "代码实现能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "code_implementation",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "问题建模能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "problem_modeling",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-3",
+        "name": "效率意识",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-3",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "efficiency_awareness",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-4",
+        "name": "解题策略",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-4",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "solution_strategy",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-0:comment",
+      "synthetic-item-0:response",
+      "synthetic-item-0:score",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:response",
+      "synthetic-item-1:score",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:response",
+      "synthetic-item-2:score",
+      "synthetic-item-3:authorized_criteria",
+      "synthetic-item-3:comment",
+      "synthetic-item-3:response",
+      "synthetic-item-3:score",
+      "synthetic-item-4:authorized_criteria",
+      "synthetic-item-4:comment",
+      "synthetic-item-4:response",
+      "synthetic-item-4:score"
+    ],
+    "missing_fields": [],
+    "quality_issues": [],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [],
+    "unavailable_analyses": [
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  },
+  "C_eight_custom_items": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "自定义项目 1",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "自定义项目 2",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "自定义项目 3",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-3",
+        "name": "自定义项目 4",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-3",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-4",
+        "name": "自定义项目 5",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-4",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-5",
+        "name": "自定义项目 6",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-5",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-6",
+        "name": "自定义项目 7",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-6",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-7",
+        "name": "自定义项目 8",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-7",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:score",
+      "synthetic-item-1:score",
+      "synthetic-item-2:score",
+      "synthetic-item-3:score",
+      "synthetic-item-4:score",
+      "synthetic-item-5:score",
+      "synthetic-item-6:score",
+      "synthetic-item-7:score"
+    ],
+    "missing_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-0:comment",
+      "synthetic-item-0:response",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:response",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:response",
+      "synthetic-item-3:authorized_criteria",
+      "synthetic-item-3:comment",
+      "synthetic-item-3:response",
+      "synthetic-item-4:authorized_criteria",
+      "synthetic-item-4:comment",
+      "synthetic-item-4:response",
+      "synthetic-item-5:authorized_criteria",
+      "synthetic-item-5:comment",
+      "synthetic-item-5:response",
+      "synthetic-item-6:authorized_criteria",
+      "synthetic-item-6:comment",
+      "synthetic-item-6:response",
+      "synthetic-item-7:authorized_criteria",
+      "synthetic-item-7:comment",
+      "synthetic-item-7:response"
+    ],
+    "quality_issues": [],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-6",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [],
+    "unavailable_analyses": [
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-5"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-6"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-7"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [
+      {
+        "missing": "synthetic-item-0 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-0：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-0：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-1 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-1：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-1：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-2 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-2：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-2：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-3 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-3：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-3：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-4 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      },
+      {
+        "missing": "synthetic-item-4：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      },
+      {
+        "missing": "synthetic-item-4：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      },
+      {
+        "missing": "synthetic-item-5 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-5"
+      },
+      {
+        "missing": "synthetic-item-5：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-5"
+      },
+      {
+        "missing": "synthetic-item-5：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-5"
+      },
+      {
+        "missing": "synthetic-item-6 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-6"
+      },
+      {
+        "missing": "synthetic-item-6：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-6"
+      },
+      {
+        "missing": "synthetic-item-6：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-6"
+      },
+      {
+        "missing": "synthetic-item-7 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-7"
+      },
+      {
+        "missing": "synthetic-item-7：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-7"
+      },
+      {
+        "missing": "synthetic-item-7：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-7"
+      },
+      {
+        "missing": "推荐 Profile 未确认覆盖：算法与数据结构、代码实现能力、问题建模能力、效率意识、解题策略",
+        "why": "仅相对默认推荐方案的覆盖差异；自定义名称不能由 AI 猜测映射。",
+        "enables": "教师确认映射或另行采集后，可扩展相应维度的分析",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "profile"
+      }
+    ],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  },
+  "D_thirteen_questions": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "自定义项目 1",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "自定义项目 2",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "自定义项目 3",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-3",
+        "name": "自定义项目 4",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-3",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-4",
+        "name": "自定义项目 5",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-4",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-5",
+        "name": "自定义项目 6",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-5",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-6",
+        "name": "自定义项目 7",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-6",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-7",
+        "name": "自定义项目 8",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-7",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-8",
+        "name": "自定义项目 9",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-8",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-9",
+        "name": "自定义项目 10",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-9",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-10",
+        "name": "自定义项目 11",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-10",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-11",
+        "name": "自定义项目 12",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-11",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-12",
+        "name": "自定义项目 13",
+        "kind": "question",
+        "scale": {
+          "scale_id": "synthetic-scale-12",
+          "minimum": "0",
+          "maximum": "100",
+          "step": "0.25",
+          "unit": "points"
+        },
+        "confirmed_profile_code": null,
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "absent": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "absent"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:score",
+      "synthetic-item-10:score",
+      "synthetic-item-11:score",
+      "synthetic-item-12:score",
+      "synthetic-item-1:score",
+      "synthetic-item-2:score",
+      "synthetic-item-3:score",
+      "synthetic-item-4:score",
+      "synthetic-item-5:score",
+      "synthetic-item-6:score",
+      "synthetic-item-7:score",
+      "synthetic-item-8:score",
+      "synthetic-item-9:score"
+    ],
+    "missing_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-0:comment",
+      "synthetic-item-0:response",
+      "synthetic-item-10:authorized_criteria",
+      "synthetic-item-10:comment",
+      "synthetic-item-10:response",
+      "synthetic-item-11:authorized_criteria",
+      "synthetic-item-11:comment",
+      "synthetic-item-11:response",
+      "synthetic-item-12:authorized_criteria",
+      "synthetic-item-12:comment",
+      "synthetic-item-12:response",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:response",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:response",
+      "synthetic-item-3:authorized_criteria",
+      "synthetic-item-3:comment",
+      "synthetic-item-3:response",
+      "synthetic-item-4:authorized_criteria",
+      "synthetic-item-4:comment",
+      "synthetic-item-4:response",
+      "synthetic-item-5:authorized_criteria",
+      "synthetic-item-5:comment",
+      "synthetic-item-5:response",
+      "synthetic-item-6:authorized_criteria",
+      "synthetic-item-6:comment",
+      "synthetic-item-6:response",
+      "synthetic-item-7:authorized_criteria",
+      "synthetic-item-7:comment",
+      "synthetic-item-7:response",
+      "synthetic-item-8:authorized_criteria",
+      "synthetic-item-8:comment",
+      "synthetic-item-8:response",
+      "synthetic-item-9:authorized_criteria",
+      "synthetic-item-9:comment",
+      "synthetic-item-9:response"
+    ],
+    "quality_issues": [],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-5"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-4",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-6"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-5",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-6",
+          "synthetic-item-7"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-6",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-6",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-6",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-6",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-6",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-7",
+          "synthetic-item-8"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-7",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-7",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-7",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-7",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-8",
+          "synthetic-item-9"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-8",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-8",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-8",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-9",
+          "synthetic-item-10"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-9",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-9",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-10",
+          "synthetic-item-11"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-10",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-11",
+          "synthetic-item-12"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [],
+    "unavailable_analyses": [
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-5"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-6"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-7"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-8"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-9"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-10"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-11"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-12"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [
+      {
+        "missing": "synthetic-item-0 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-0：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-0：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-1 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-1：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-1：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-2 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-2：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-2：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-3 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-3：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-3：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-4 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      },
+      {
+        "missing": "synthetic-item-4：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      },
+      {
+        "missing": "synthetic-item-4：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      },
+      {
+        "missing": "synthetic-item-5 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-5"
+      },
+      {
+        "missing": "synthetic-item-5：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-5"
+      },
+      {
+        "missing": "synthetic-item-5：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-5"
+      },
+      {
+        "missing": "synthetic-item-6 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-6"
+      },
+      {
+        "missing": "synthetic-item-6：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-6"
+      },
+      {
+        "missing": "synthetic-item-6：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-6"
+      },
+      {
+        "missing": "synthetic-item-7 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-7"
+      },
+      {
+        "missing": "synthetic-item-7：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-7"
+      },
+      {
+        "missing": "synthetic-item-7：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-7"
+      },
+      {
+        "missing": "synthetic-item-8 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-8"
+      },
+      {
+        "missing": "synthetic-item-8：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-8"
+      },
+      {
+        "missing": "synthetic-item-8：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-8"
+      },
+      {
+        "missing": "synthetic-item-9 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-9"
+      },
+      {
+        "missing": "synthetic-item-9：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-9"
+      },
+      {
+        "missing": "synthetic-item-9：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-9"
+      },
+      {
+        "missing": "synthetic-item-10 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-10"
+      },
+      {
+        "missing": "synthetic-item-10：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-10"
+      },
+      {
+        "missing": "synthetic-item-10：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-10"
+      },
+      {
+        "missing": "synthetic-item-11 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-11"
+      },
+      {
+        "missing": "synthetic-item-11：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-11"
+      },
+      {
+        "missing": "synthetic-item-11：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-11"
+      },
+      {
+        "missing": "synthetic-item-12 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-12"
+      },
+      {
+        "missing": "synthetic-item-12：补充 3 条对应记录的评语",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-12"
+      },
+      {
+        "missing": "synthetic-item-12：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-12"
+      },
+      {
+        "missing": "推荐 Profile 未确认覆盖：算法与数据结构、代码实现能力、问题建模能力、效率意识、解题策略",
+        "why": "仅相对默认推荐方案的覆盖差异；自定义名称不能由 AI 猜测映射。",
+        "enables": "教师确认映射或另行采集后，可扩展相应维度的分析",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "profile"
+      }
+    ],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  },
+  "E_scores_without_responses": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "算法与数据结构",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "algorithm_data_structure",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "代码实现能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "code_implementation",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "问题建模能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "problem_modeling",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-3",
+        "name": "效率意识",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-3",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "efficiency_awareness",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-4",
+        "name": "解题策略",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-4",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "solution_strategy",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "absent": 3
+          }
+        },
+        "criteria_availability": "available"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-0:comment",
+      "synthetic-item-0:score",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:score",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:score",
+      "synthetic-item-3:authorized_criteria",
+      "synthetic-item-3:comment",
+      "synthetic-item-3:score",
+      "synthetic-item-4:authorized_criteria",
+      "synthetic-item-4:comment",
+      "synthetic-item-4:score"
+    ],
+    "missing_fields": [
+      "synthetic-item-0:response",
+      "synthetic-item-1:response",
+      "synthetic-item-2:response",
+      "synthetic-item-3:response",
+      "synthetic-item-4:response"
+    ],
+    "quality_issues": [],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [],
+    "unavailable_analyses": [
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [
+      {
+        "missing": "synthetic-item-0：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-1：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-2：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-3：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-4：补充 3 条对应记录的原始答卷",
+        "why": "仅有分数不能核查答题过程；不编造资料，也不把扣留当作没有。",
+        "enables": "评分、标准及其他必要资料也可用时进行更深入的教师复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      }
+    ],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  },
+  "F_defined_five_missing_score": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "算法与数据结构",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "algorithm_data_structure",
+        "quality_counts": {
+          "missing": 1,
+          "valid": 2
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "代码实现能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "code_implementation",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "问题建模能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "problem_modeling",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-3",
+        "name": "效率意识",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-3",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "efficiency_awareness",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-4",
+        "name": "解题策略",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-4",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "solution_strategy",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-0:comment",
+      "synthetic-item-0:response",
+      "synthetic-item-0:score",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:response",
+      "synthetic-item-1:score",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:response",
+      "synthetic-item-2:score",
+      "synthetic-item-3:authorized_criteria",
+      "synthetic-item-3:comment",
+      "synthetic-item-3:response",
+      "synthetic-item-3:score",
+      "synthetic-item-4:authorized_criteria",
+      "synthetic-item-4:comment",
+      "synthetic-item-4:response",
+      "synthetic-item-4:score"
+    ],
+    "missing_fields": [],
+    "quality_issues": [
+      {
+        "item_id": "synthetic-item-0",
+        "participant_id": "synthetic-p-0",
+        "code": "missing"
+      }
+    ],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 2,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 2,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 2,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 2,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 2,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 2,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "unavailable_analyses": [
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [
+      {
+        "missing": "synthetic-item-0 的 1 条 missing 评分",
+        "why": "不能把缺分或非法评分当作零分或完整数据。",
+        "enables": "恢复受影响记录的统计资格",
+        "can_continue": true,
+        "requirement": "quality_blocker",
+        "scope": "affected_observations"
+      }
+    ],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  },
+  "G_no_criteria": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "算法与数据结构",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "algorithm_data_structure",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "代码实现能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "code_implementation",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "问题建模能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "problem_modeling",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-3",
+        "name": "效率意识",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-3",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "efficiency_awareness",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "absent"
+      },
+      {
+        "item_id": "synthetic-item-4",
+        "name": "解题策略",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-4",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "solution_strategy",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "absent"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:comment",
+      "synthetic-item-0:response",
+      "synthetic-item-0:score",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:response",
+      "synthetic-item-1:score",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:response",
+      "synthetic-item-2:score",
+      "synthetic-item-3:comment",
+      "synthetic-item-3:response",
+      "synthetic-item-3:score",
+      "synthetic-item-4:comment",
+      "synthetic-item-4:response",
+      "synthetic-item-4:score"
+    ],
+    "missing_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-3:authorized_criteria",
+      "synthetic-item-4:authorized_criteria"
+    ],
+    "quality_issues": [],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [],
+    "unavailable_analyses": [
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [
+      {
+        "missing": "synthetic-item-0 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-0"
+      },
+      {
+        "missing": "synthetic-item-1 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-1"
+      },
+      {
+        "missing": "synthetic-item-2 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-2"
+      },
+      {
+        "missing": "synthetic-item-3 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-3"
+      },
+      {
+        "missing": "synthetic-item-4 的可用评价标准",
+        "why": "缺失、未授权或来源未确认，无法解释评分依据。",
+        "enables": "基于标准的人工评价复核",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "synthetic-item-4"
+      }
+    ],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  },
+  "H_history_without_comparability": {
+    "dataset_id": "synthetic-dataset",
+    "dataset_version": "synthetic.v1",
+    "batch_id": "synthetic-batch",
+    "batch_version": "synthetic.v1",
+    "rule_version": "canonical.readiness.synthetic.v1",
+    "purpose": "teacher_analysis",
+    "recognized_items": [
+      {
+        "item_id": "synthetic-item-0",
+        "name": "算法与数据结构",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-0",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "algorithm_data_structure",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-1",
+        "name": "代码实现能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-1",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "code_implementation",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-2",
+        "name": "问题建模能力",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-2",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "problem_modeling",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-3",
+        "name": "效率意识",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-3",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "efficiency_awareness",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      },
+      {
+        "item_id": "synthetic-item-4",
+        "name": "解题策略",
+        "kind": "competency",
+        "scale": {
+          "scale_id": "synthetic-scale-4",
+          "minimum": "1",
+          "maximum": "5",
+          "step": "0.01",
+          "unit": "level"
+        },
+        "confirmed_profile_code": "solution_strategy",
+        "quality_counts": {
+          "valid": 3
+        },
+        "evidence_availability": {
+          "score": {
+            "available": 3
+          },
+          "comment": {
+            "available": 3
+          },
+          "response": {
+            "available": 3
+          }
+        },
+        "criteria_availability": "available"
+      }
+    ],
+    "available_fields": [
+      "synthetic-item-0:authorized_criteria",
+      "synthetic-item-0:comment",
+      "synthetic-item-0:response",
+      "synthetic-item-0:score",
+      "synthetic-item-1:authorized_criteria",
+      "synthetic-item-1:comment",
+      "synthetic-item-1:response",
+      "synthetic-item-1:score",
+      "synthetic-item-2:authorized_criteria",
+      "synthetic-item-2:comment",
+      "synthetic-item-2:response",
+      "synthetic-item-2:score",
+      "synthetic-item-3:authorized_criteria",
+      "synthetic-item-3:comment",
+      "synthetic-item-3:response",
+      "synthetic-item-3:score",
+      "synthetic-item-4:authorized_criteria",
+      "synthetic-item-4:comment",
+      "synthetic-item-4:response",
+      "synthetic-item-4:score"
+    ],
+    "missing_fields": [],
+    "quality_issues": [],
+    "available_analyses": [
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-0"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_statistics",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "按原量表的授权数值分析；未知量表仅描述原始数值，不解释等级。"
+      },
+      {
+        "analysis": "evaluation_review",
+        "item_ids": [
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "需同记录评分、评语、答卷及适用标准；准备就绪仅允许教师复核，不判定对错。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-1"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-0",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-2"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-1",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-3"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-2",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      },
+      {
+        "analysis": "item_combination_exploration",
+        "item_ids": [
+          "synthetic-item-3",
+          "synthetic-item-4"
+        ],
+        "eligible_count": 3,
+        "denominator": 3,
+        "reason": "仅同一参与者的原始分值联合分布；不求跨量表总分、相关显著性或因果结论。"
+      }
+    ],
+    "partially_available_analyses": [],
+    "unavailable_analyses": [
+      {
+        "analysis": "longitudinal_progress",
+        "item_ids": [],
+        "eligible_count": 0,
+        "denominator": 3,
+        "reason": "多次测评本身不证明可比；本原型不实现跨批次比较或能力进步判定。"
+      }
+    ],
+    "suggested_resources": [
+      {
+        "missing": "跨批次量表/任务难度、时间、参与者匹配及可比性确认依据",
+        "why": "同名项目与重复测评不足以证明能力进步。",
+        "enables": "未来可比范围内的变化描述；仍不证明因果",
+        "can_continue": true,
+        "requirement": "optional",
+        "scope": "longitudinal_progress"
+      }
+    ],
+    "limitations": [
+      "完全合成的离线设计验证；能力状态不表示分析已执行。",
+      "缺失、非法、未授权记录均不补造；有效子集的数量与全体分母分别报告。",
+      "本原型的授权是夹具声明，不是真实服务端鉴权；不接数据库或任何模型。",
+      "不会自动跨量表比较、把题目映射为能力或判断能力进步。"
+    ]
+  }
+}
