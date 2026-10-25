@@ -20,13 +20,19 @@ class SyntheticInput(BaseModel):
     quantity: int
 
 
-def test_health_and_openapi_only_expose_health() -> None:
+def test_unconfigured_app_only_exposes_health_routes() -> None:
     with TestClient(create_app(Settings(environment="test"))) as client:
         response = client.get("/api/v1/health")
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
         UUID(response.headers["X-Request-ID"].removeprefix("req_"))
-        assert set(client.get("/openapi.json").json()["paths"]) == {"/api/v1/health"}
+        assert set(client.get("/openapi.json").json()["paths"]) == {
+            "/api/v1/health",
+            "/api/v1/health/ready",
+        }
+        readiness = client.get("/api/v1/health/ready")
+        assert readiness.status_code == 503
+        assert readiness.json()["error"]["code"] == "SERVICE_NOT_READY"
 
 
 def test_unknown_route_is_a_sanitized_404() -> None:
