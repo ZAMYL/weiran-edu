@@ -123,6 +123,7 @@ describe('server totals and decimal presentation', () => {
       score_raw: '2.75',
       comment: null,
       comment_status: 'withheld',
+      comment_review_version: 0,
       source: {
         file_sha256: 'synthetic',
         sheet_name: 'Sheet2',
@@ -136,6 +137,24 @@ describe('server totals and decimal presentation', () => {
     expect(evidenceDto(evidence).comment_status).toBe('withheld');
     expect(evidenceDto({ ...evidence, comment_status: 'empty' }).comment_status).toBe('empty');
     expect(() => evidenceDto({ ...evidence, comment: 'unreviewed synthetic text' })).toThrow();
+    expect(
+      evidenceDto({
+        ...evidence,
+        comment_status: 'published',
+        comment_review_version: 1,
+        comment: 'synthetic reviewed display',
+      }).comment,
+    ).toBe('synthetic reviewed display');
+    expect(() =>
+      evidenceDto({ ...evidence, comment_status: 'published', comment_review_version: 1 }),
+    ).toThrow();
+    expect(() =>
+      evidenceDto({
+        ...evidence,
+        comment_status: 'published',
+        comment: 'synthetic reviewed display',
+      }),
+    ).toThrow();
   });
   it('preserves total_count independently of page size and decimal scores', () => {
     const page = studentListDto({

@@ -98,6 +98,14 @@ function EvidenceContent({ evidence }: { evidence: ApiEvidence }) {
     <Panel title={`${dimensionName(evidence.dimension_code)} · ${evidence.score} 分`}>
       <p>原始数值：{evidence.score_raw}</p>
       <div className="withheld-note">{commentStatusText(evidence.comment_status)}</div>
+      {evidence.comment_status === 'published' && (
+        <>
+          <p className="reviewed-text">{evidence.comment}</p>
+          <p className="muted small">
+            审核展示版本 {evidence.comment_review_version} · 未授予公开发布许可
+          </p>
+        </>
+      )}
       <dl className="source-details">
         <dt>评分来源</dt>
         <dd>
@@ -151,7 +159,17 @@ export function LiveScoreDrawer({
           <EvidenceContent evidence={resource.data.evidence} />
           <Panel title="评分依据">
             <p>{criterion?.display_name ?? '未找到对应依据'}</p>
-            <div className="withheld-note">评分依据正文暂未开放（待审核）</div>
+            {criterion?.criteria_status === 'published' ? (
+              <>
+                <div className="withheld-note">已审核评分依据 · 仅限授权教师</div>
+                <p className="reviewed-text">{criterion.criteria_text}</p>
+                <p className="muted small">
+                  审核展示版本 {criterion.criteria_review_version} · 未授予公开发布许可
+                </p>
+              </>
+            ) : (
+              <div className="withheld-note">评分依据正文暂未开放（待审核）</div>
+            )}
             {criterion && (
               <p className="source-line">
                 {criterion.source.sheet_name} · {criterion.source.range}

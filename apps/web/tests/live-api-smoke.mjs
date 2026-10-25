@@ -114,6 +114,7 @@ try {
   await ready(`${api}/openapi.json`, backend);
   const openapi = await (await fetch(`${api}/openapi.json`)).json();
   assert.ok(openapi.paths['/api/v1/edu/batches/{batch_id}/insights/{candidate_id}/records/query']);
+  assert.ok(openapi.components.schemas.Evidence.properties.comment_review_version);
   await writeFile(path.join(artifacts, 'openapi.runtime.json'), JSON.stringify(openapi, null, 2));
   const frontend = service(
     process.execPath,
@@ -270,6 +271,7 @@ try {
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
   await page.locator('.match-summary').filter({ hasText: '12 / 23' }).waitFor();
   checkpoint = 'student source';
+  const sourceResponse = page.waitForResponse((r) => /\/evidence\//.test(r.url()));
   await page
     .getByRole('button', { name: /查看 .* 正式详情/ })
     .first()
@@ -282,7 +284,54 @@ try {
     .first()
     .click();
   await page.getByText('Sheet1 · L3:P6', { exact: true }).waitFor();
+  const source = await (await sourceResponse).json();
   await page.locator('.ant-drawer-open .ant-drawer-close').click();
+  checkpoint = 'published display compatibility';
+  const reviewBase = `/batches/${normalCommit.batch_id}/text-reviews`;
+  const writeReview = (kind, target, expected, status, displayText) =>
+    request(`${reviewBase}/${kind}/${target}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        snapshot_id: source.snapshot_id,
+        expected_version: expected,
+        status,
+        ...(displayText ? { display_text: displayText } : {}),
+      }),
+    });
+  const publishedComment = await writeReview(
+    'comment',
+    source.evidence_id,
+    0,
+    'published',
+    '合成已审核评语：结构清晰。',
+  );
+  const publishedRubric = await writeReview(
+    'rubric',
+    source.rubric_criterion_id,
+    0,
+    'published',
+    '合成已审核依据：仅用于本批评分解释。',
+  );
+  await page
+    .getByRole('button', { name: /算法与数据结构 2.75 分证据/ })
+    .first()
+    .click();
+  await page.getByText(publishedComment.display_text, { exact: true }).waitFor();
+  await page.getByText(publishedRubric.display_text, { exact: true }).waitFor();
+  await shot('published-evidence-desktop');
+  await page.locator('.ant-drawer-open .ant-drawer-close').click();
+  await writeReview('comment', source.evidence_id, 1, 'withheld');
+  await writeReview('rubric', source.rubric_criterion_id, 1, 'withheld');
+  await page
+    .getByRole('button', { name: /算法与数据结构 2.75 分证据/ })
+    .first()
+    .click();
+  await page.getByText('原始评语暂未开放（非空，待审核）', { exact: true }).waitFor();
+  assert.equal(await page.getByText(publishedComment.display_text, { exact: true }).count(), 0);
+  await page.locator('.ant-drawer-open .ant-drawer-close').click();
+  checks.push(
+    'latest runtime published text/rubric versions render; reopening after withdrawal refetches and hides text',
+  );
   await shot('explorer-desktop');
   checks.push(
     'server full-batch mean 3.11; exact 2.75 group 12/23, second page 2 items; withheld and authorized source/rubric',

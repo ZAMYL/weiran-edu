@@ -119,6 +119,10 @@
   color: #526d9f;
   font-size: 13px;
 }
+.reviewed-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .source-details {
   margin: 16px 0 0;
   font-size: 12px;

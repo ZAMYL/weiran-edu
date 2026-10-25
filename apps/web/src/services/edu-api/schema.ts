@@ -37,6 +37,13 @@ export const nullable =
   <T>(decode: Decoder<T>): Decoder<T | null> =>
   (value) =>
     value === null ? null : decode(value);
+export const checked =
+  <T>(decode: Decoder<T>, valid: (value: T) => boolean): Decoder<T> =>
+  (value) => {
+    const result = decode(value);
+    if (!valid(result)) throw new ContractError();
+    return result;
+  };
 export const list =
   <T>(decode: Decoder<T>): Decoder<T[]> =>
   (value) => {

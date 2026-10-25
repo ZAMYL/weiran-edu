@@ -1,5 +1,6 @@
 import {
   count,
+  checked,
   empty,
   flag,
   list,
@@ -125,19 +126,26 @@ const sourceDto = object({
   score_cell: text,
   comment_cell: text,
 });
-export const evidenceDto = object({
-  evidence_id: text,
-  batch_id: text,
-  snapshot_id: text,
-  student_id: text,
-  dimension_code: dimensionCode,
-  score: numeric,
-  score_raw: text,
-  comment: empty,
-  comment_status: literal('empty', 'withheld'),
-  source: sourceDto,
-  rubric_criterion_id: text,
-});
+export const evidenceDto = checked(
+  object({
+    evidence_id: text,
+    batch_id: text,
+    snapshot_id: text,
+    student_id: text,
+    dimension_code: dimensionCode,
+    score: numeric,
+    score_raw: text,
+    comment: nullable(text),
+    comment_status: literal('empty', 'withheld', 'published'),
+    comment_review_version: count,
+    source: sourceDto,
+    rubric_criterion_id: text,
+  }),
+  (value) =>
+    value.comment_status === 'published'
+      ? value.comment !== null && value.comment.length > 0 && value.comment_review_version > 0
+      : value.comment === null,
+);
 export type ApiEvidence = Decoded<typeof evidenceDto>;
 export const studentEvidenceDto = object({
   batch_id: text,
@@ -155,15 +163,24 @@ export const rubricDto = object({
   rubric_name: text,
   score_policy: object({ minimum: numeric, maximum: numeric, step: numeric }),
   criteria: list(
-    object({
-      rubric_criterion_id: text,
-      dimension_code: dimensionCode,
-      display_name: text,
-      original_name: text,
-      criteria_text: empty,
-      criteria_status: literal('withheld'),
-      source: object({ file_sha256: text, sheet_name: text, range: text }),
-    }),
+    checked(
+      object({
+        rubric_criterion_id: text,
+        dimension_code: dimensionCode,
+        display_name: text,
+        original_name: text,
+        criteria_text: nullable(text),
+        criteria_status: literal('withheld', 'published'),
+        criteria_review_version: count,
+        source: object({ file_sha256: text, sheet_name: text, range: text }),
+      }),
+      (value) =>
+        value.criteria_status === 'published'
+          ? value.criteria_text !== null &&
+            value.criteria_text.length > 0 &&
+            value.criteria_review_version > 0
+          : value.criteria_text === null,
+    ),
   ),
 });
 export type ApiRubric = Decoded<typeof rubricDto>;

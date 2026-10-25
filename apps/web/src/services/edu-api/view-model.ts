@@ -12,7 +12,11 @@ export const metricDisplay = (metric: InsightMetric) =>
     ? `${(metric.value.value * 100).toFixed(2)}%`
     : metric.value.display;
 export const commentStatusText = (status: ApiEvidence['comment_status']) =>
-  status === 'withheld' ? '原始评语暂未开放（非空，待审核）' : '原始评语为空';
+  status === 'published'
+    ? '已审核展示文本 · 仅限授权教师'
+    : status === 'withheld'
+      ? '原始评语暂未开放（非空，待审核）'
+      : '原始评语为空';
 export function parseThreshold(value: string): number | null {
   const parts = /^(\d+)(?:\.(\d+))?$/.exec(value.trim());
   if (!parts || (parts[2] ?? '').replace(/0+$/, '').length > 2) return null;
