@@ -3,16 +3,15 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { App, Avatar, Button, Modal, Select, Tag } from 'antd';
+import { App, Button, Modal, Select, Tag } from 'antd';
 import {
   BookOutlined,
   ExpandOutlined,
   CompressOutlined,
   QuestionCircleOutlined,
-  UserOutlined,
 } from '@ant-design/icons';
 import { useBatch, useWorkspace } from './store';
-import { DataBadge } from '../components/ui';
+import { LiveBatchSelect, ModeBadge, ModeControls, useDataMode } from './data-mode';
 import { WorkspaceLayoutContext } from './WorkspaceLayoutContext';
 
 const pages = [
@@ -22,6 +21,7 @@ const pages = [
 ];
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const dataMode = useDataMode();
   const batch = useBatch();
   const { batches, setBatch } = useWorkspace();
   const [fullscreen, setFullscreen] = useState(false);
@@ -55,16 +55,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       message.error('当前浏览器无法进入全屏，请使用浏览器全屏功能。');
     }
   }
-  const batchSelect = (
-    <Select
-      aria-label="当前测评批次"
-      className="batch-select"
-      value={batch.id}
-      onChange={setBatch}
-      prefix={<BookOutlined />}
-      options={batches.map((b) => ({ value: b.id, label: b.name }))}
-    />
-  );
+  const batchSelect =
+    dataMode.mode === 'live' ? (
+      <LiveBatchSelect />
+    ) : (
+      <Select
+        aria-label="当前测评批次"
+        className="batch-select"
+        value={batch.id}
+        onChange={setBatch}
+        prefix={<BookOutlined />}
+        options={batches.map((b) => ({ value: b.id, label: b.name }))}
+      />
+    );
   const fullButton = (
     <Button
       className="fullscreen-button"
@@ -86,7 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <>
             <div className="fullscreen-title">
               {page.label}
-              <DataBadge demo={batch.demo} />
+              <ModeBadge />
             </div>
             <div className="topbar-actions">
               {batchSelect}
@@ -108,13 +111,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               ))}
             </nav>
             <div className="topbar-actions">
+              <ModeControls />
               <Button type="text" icon={<QuestionCircleOutlined />} onClick={() => setHelp(true)}>
                 帮助
               </Button>
-              <div className="teacher-label">
-                <Avatar icon={<UserOutlined />} />
-                <span>本地工作台</span>
-              </div>
             </div>
           </>
         )}
@@ -125,7 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="page-title-group">
               <h1>{page.label}</h1>
               <div>
-                <DataBadge demo={batch.demo} />
+                <ModeBadge />
                 <p>{page.subtitle}</p>
               </div>
             </div>
@@ -142,10 +142,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       <footer className="app-footer">
         <span>未然 EDU · 让每一次评价成为教学的起点</span>
         <span>
-          {batch.demo
-            ? '当前为合成演示数据，来源引用为示例'
-            : '当前文件在本地解析，批次仅保留至刷新前'}
-          <span className="footer-dot">·</span>本地演示版
+          {dataMode.mode === 'live'
+            ? '正式数据仅来自当前授权接口；教师凭证不持久化'
+            : batch.demo
+              ? '当前为合成演示数据，来源引用为示例'
+              : '当前文件在本地解析，批次仅保留至刷新前'}
+          <span className="footer-dot">·</span>
+          {dataMode.mode === 'live' ? '正式数据模式' : 'Demo · 合成演示'}
         </span>
       </footer>
       <Modal
@@ -166,11 +169,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             <b>画像探索</b> 设置条件并应用，人数、分布和学生列表同步更新。
           </p>
           <p>
-            <b>测评数据</b> 下载长表模板，选择评价标准，上传后预览校验，全部通过才能创建独立批次。
+            <b>测评数据</b> 正式模式上传原始双 Sheet 五维
+            Excel，查看服务端质量报告，再确认入库。Demo 使用独立的合成长表。
           </p>
-          <Tag color="blue">本地演示版</Tag>
+          <Tag color="blue">数据模式边界</Tag>
           <p>
-            数据只保留在当前会话内存，刷新后恢复初始状态。教学分析目前提供规则模板，未连接 AI 服务。
+            正式模式的批次来自后端数据库，刷新后需重新输入教师凭证再读取。Demo
+            仅在浏览器内存演示，刷新清除新增批次。正式模式未接入 AI 或未审核评语展示。
           </p>
         </div>
       </Modal>

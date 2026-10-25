@@ -51,7 +51,7 @@ try {
   assert.match(html, /lang="zh-CN"/);
   assert.match(html, /未然 EDU — 学情分析平台/);
   assert.match(html, /学情洞察/);
-  assert.match(html, /合成演示数据/);
+  assert.match(html, /连接教师会话，查看正式测评数据/);
 
   for (const [route, title] of [
     ['explorer', '画像探索'],
