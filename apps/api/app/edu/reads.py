@@ -9,6 +9,7 @@ from app.importing.edu.types import DIMENSIONS
 from app.storage.database import Database
 
 from .auth import Principal, accessible_batch, deny, require_teacher
+from .integrity import validate_snapshot
 from .models import (
     Evidence,
     Rubric,
@@ -41,6 +42,7 @@ class BatchReader:
         row = accessible_batch(connection, principal, batch_id)
         if snapshot_id is not None and snapshot_id != row["snapshot_id"]:
             fail("SNAPSHOT_MISMATCH")
+        validate_snapshot(connection, row)
         return row
 
     def students(
