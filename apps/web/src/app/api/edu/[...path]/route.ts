@@ -1,9 +1,10 @@
-// Same-origin, fixed-upstream teacher API relay. No cookies, token storage or broad CORS.
+// Same-origin, fixed-upstream teacher API relay.
+import { testSessionAuthorization, testSessionEnabled } from '../../../../server/test-session';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const routes: Record<string, RegExp[]> = {
   GET: [
-    /^(me|scopes|batches)$/,
+    /^(me|scopes|batches|test-session)$/,
     /^batches\/[^/]+$/,
     /^batches\/[^/]+\/(statistics|students|rubric)$/,
     /^batches\/[^/]+\/students\/[^/]+\/evidence$/,
@@ -63,9 +64,6 @@ async function relay(
     (request.headers.has('origin') && request.headers.get('origin') !== expectedOrigin)
   )
     return fail(403, 'ORIGIN_NOT_ALLOWED');
-  const authorization = request.headers.get('authorization');
-  if (!authorization || !/^Bearer [a-zA-Z0-9_-]{20,200}$/.test(authorization))
-    return fail(401, 'UNAUTHORIZED');
   let origin: URL;
   try {
     origin = new URL(process.env.EDU_API_ORIGIN ?? 'http://127.0.0.1:8000');
@@ -81,6 +79,19 @@ async function relay(
   } catch {
     return fail(503, 'BACKEND_NOT_CONFIGURED');
   }
+  const testMode = testSessionEnabled(request, origin);
+  if (route === 'test-session')
+    return Response.json({ enabled: testMode }, { headers: { 'Cache-Control': 'no-store' } });
+  let authorization = request.headers.get('authorization');
+  if (!authorization && testMode) {
+    try {
+      authorization = await testSessionAuthorization();
+    } catch {
+      return fail(503, 'TEST_SESSION_NOT_CONFIGURED');
+    }
+  }
+  if (!authorization || !/^Bearer [a-zA-Z0-9_-]{20,200}$/.test(authorization))
+    return fail(401, 'UNAUTHORIZED');
   const limit = route === 'imports/preview' ? 10 * 1024 * 1024 + 64 * 1024 : 64 * 1024;
   const declaredSize = request.headers.get('content-length');
   if (declaredSize && Number(declaredSize) > limit) return fail(413, 'REQUEST_TOO_LARGE');

@@ -25,7 +25,9 @@ const python =
 assert.ok(existsSync(python), 'Prepare the locked API Python environment or set EDU_TEST_PYTHON.');
 const temporary = await mkdtemp(path.join(tmpdir(), 'weiran-edu-browser-'));
 const database = path.join(temporary, 'synthetic.sqlite3');
-const artifacts = path.join(web, 'artifacts/live-api');
+const testMode = process.env.EDU_BROWSER_TEST_SESSION === '1';
+const testSessionFile = path.join(temporary, 'test-session.private.json');
+const artifacts = path.join(web, testMode ? 'artifacts/test-session' : 'artifacts/live-api');
 await mkdir(artifacts, { recursive: true });
 const env = {
   ...process.env,
@@ -86,6 +88,8 @@ try {
   const scope = admin('scope-create', '--label', '合成浏览器测试来源').data_scope_id;
   admin('member-set', '--teacher-id', teacher, '--scope-id', scope, '--can-import');
   let token = admin('token-issue', '--teacher-id', teacher, '--hours', '1').access_token;
+  if (testMode)
+    await writeFile(testSessionFile, JSON.stringify({ synthetic_only: true, access_token: token }));
   execFileSync(python, [path.join(web, 'tests/make-live-fixtures.py'), temporary], {
     cwd: apiRoot,
     env,
@@ -127,7 +131,12 @@ try {
       String(webPort),
     ],
     web,
-    { ...env, EDU_API_ORIGIN: api },
+    {
+      ...env,
+      EDU_API_ORIGIN: api,
+      EDU_TEST_MODE: testMode ? '1' : '0',
+      EDU_TEST_SESSION_FILE: testSessionFile,
+    },
   );
   await ready(origin, frontend);
   const chrome = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
@@ -138,6 +147,11 @@ try {
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(15_000);
   page.on('pageerror', (error) => pageErrors.push(error.message));
+  const browserAuthorization = [];
+  page.on('request', (request) => {
+    if (testMode && request.url().includes('/api/edu/') && request.headers().authorization)
+      browserAuthorization.push(true);
+  });
   const shot = (name) =>
     page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage: true });
   const noOverflow = async () =>
@@ -147,7 +161,15 @@ try {
       'No document overflow',
     );
   const navigation = (name) => page.getByRole('link', { name, exact: true }).click();
-  async function login() {
+  async function login(retryTestSession = false) {
+    if (testMode) {
+      const retry = page.getByRole('button', { name: '重新连接测试数据', exact: true });
+      if (retryTestSession) await retry.click();
+      await page.locator('.live-workspace').waitFor();
+      assert.equal(await page.locator('#teacher-access-token').count(), 0);
+      assert.equal(await page.getByRole('button', { name: '连接教师', exact: true }).count(), 0);
+      return;
+    }
     await page.getByRole('button', { name: '连接教师会话', exact: true }).click();
     await page.getByLabel('教师临时凭证', { exact: true }).fill(token);
     await page.getByRole('dialog').getByRole('button', { name: '连接', exact: true }).click();
@@ -532,14 +554,18 @@ try {
   await page.getByText('当前教师没有执行此操作的权限。', { exact: true }).waitFor();
   admin('token-revoke', '--teacher-id', teacher);
   await page.getByRole('button', { name: /刷新批次/ }).click();
-  await page.getByRole('heading', { name: '连接教师会话，查看正式测评数据' }).waitFor();
+  await page
+    .getByRole('heading', { name: testMode ? '连接测试数据' : '连接教师会话，查看正式测评数据' })
+    .waitFor();
   assert.equal(await page.locator('.live-workspace').count(), 0);
   checks.push(
     'actual server 403 after import-permission revocation; actual 401 clears teacher access and all formal data',
   );
   checkpoint = 'refresh and persistence';
   token = admin('token-issue', '--teacher-id', teacher, '--hours', '1').access_token;
-  await login();
+  if (testMode)
+    await writeFile(testSessionFile, JSON.stringify({ synthetic_only: true, access_token: token }));
+  await login(true);
   await page.getByRole('row').filter({ hasText: '合成正常测评' }).waitFor();
   const storage = await page.evaluate(() => ({
     local: JSON.stringify(localStorage),
@@ -550,17 +576,28 @@ try {
   }));
   assert.ok(Object.values(storage).every((value) => !value.includes(token)));
   await page.reload();
-  await page.getByRole('heading', { name: '连接教师会话，查看正式测评数据' }).waitFor();
+  if (!testMode)
+    await page.getByRole('heading', { name: '连接教师会话，查看正式测评数据' }).waitFor();
   await login();
   await page.getByRole('row').filter({ hasText: '合成正常测评' }).waitFor();
   await page.getByText('Demo', { exact: true }).click();
   await page.getByRole('heading', { name: '上传新测评' }).waitFor();
   await page.getByText('正式数据', { exact: true }).click();
-  await page.getByRole('heading', { name: '连接教师会话，查看正式测评数据' }).waitFor();
+  if (testMode) {
+    await page.locator('.live-workspace').waitFor();
+    await page.getByRole('row').filter({ hasText: '合成正常测评' }).waitFor();
+  } else await page.getByRole('heading', { name: '连接教师会话，查看正式测评数据' }).waitFor();
   checks.push(
-    'DB batches survive refresh; token absent from storage/URL/DOM; Demo transition clears formal session',
+    testMode
+      ? 'test session auto-connects after refresh and Demo return; database batches persist; no browser token input or persistence'
+      : 'DB batches survive refresh; token absent from storage/URL/DOM; Demo transition clears formal session',
   );
   assert.deepEqual(pageErrors, []);
+  assert.deepEqual(
+    browserAuthorization,
+    [],
+    'Test-session browser requests contain no Authorization credential',
+  );
   await writeFile(
     path.join(artifacts, 'result.json'),
     JSON.stringify({ checks, pageErrors }, null, 2),

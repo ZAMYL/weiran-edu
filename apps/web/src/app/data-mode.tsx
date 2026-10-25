@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Alert, App, Button, Input, Modal, Pagination, Segmented, Select, Tag } from 'antd';
 import { ApiError, createEduClient, type EduClient } from '../services/edu-api/client';
 import type { ApiBatch, ApiCondition, ApiScope } from '../services/edu-api/types';
@@ -10,6 +10,7 @@ import { useRemote } from '../features/live/useRemote';
 type Mode = 'live' | 'demo';
 interface SessionState {
   mode: Mode;
+  testMode: boolean;
   connected: boolean;
   teacherId: string | null;
   scopes: ApiScope[];
@@ -21,6 +22,7 @@ interface SessionState {
 }
 const initial: SessionState = {
   mode: 'live',
+  testMode: false,
   connected: false,
   teacherId: null,
   scopes: [],
@@ -33,7 +35,7 @@ const initial: SessionState = {
 interface DataMode extends SessionState {
   client: EduClient;
   setMode: (mode: Mode) => void;
-  connect: (token: string) => Promise<void>;
+  connect: (token: string | null) => Promise<void>;
   disconnect: () => void;
   openLogin: (open: boolean) => void;
   selectBatch: (batch: ApiBatch | null) => void;
@@ -58,47 +60,95 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       setState((s) => ({
         ...initial,
         mode: s.mode,
+        testMode: s.testMode,
         revision: s.revision + 1,
-        notice: '教师凭证已失效或被撤销，正式数据已清除，请重新连接。',
+        notice: s.testMode
+          ? '测试数据连接已失效，请重新连接测试数据。'
+          : '教师凭证已失效或被撤销，正式数据已清除，请重新连接。',
       }));
     }),
   );
   function disconnect() {
     connecting.next();
     client.clear();
-    setState((s) => ({ ...initial, mode: s.mode, revision: s.revision + 1 }));
+    setState((s) => ({ ...initial, mode: s.mode, testMode: s.testMode, revision: s.revision + 1 }));
   }
   function setMode(mode: Mode) {
     connecting.next();
     client.clear();
-    setState((s) => ({ ...initial, mode, revision: s.revision + 1 }));
+    setState((s) => ({ ...initial, mode, testMode: s.testMode, revision: s.revision + 1 }));
   }
-  async function connect(token: string) {
-    const sequence = connecting.next();
-    client.authenticate(token);
-    try {
-      const [me, scopes, batches] = await Promise.all([
-        client.me(),
-        client.scopes(),
-        client.batches(),
-      ]);
-      if (!connecting.isCurrent(sequence)) return;
-      setState((s) => ({
-        ...s,
-        connected: true,
-        teacherId: me.teacher_id,
-        scopes: scopes.items,
-        batch: batches.items[0] ?? null,
-        conditions: [],
-        revision: s.revision + 1,
-        notice: null,
-        loginOpen: false,
-      }));
-    } catch (error) {
-      if (connecting.isCurrent(sequence)) client.clear();
-      throw error;
-    }
-  }
+  const connect = useCallback(
+    async (token: string | null) => {
+      const sequence = connecting.next();
+      if (token === null) client.useTestSession();
+      else client.authenticate(token);
+      try {
+        const [me, scopes, batches] = await Promise.all([
+          client.me(),
+          client.scopes(),
+          client.batches(),
+        ]);
+        if (!connecting.isCurrent(sequence)) return;
+        setState((s) => ({
+          ...s,
+          connected: true,
+          teacherId: me.teacher_id,
+          scopes: scopes.items,
+          batch: batches.items[0] ?? null,
+          conditions: [],
+          revision: s.revision + 1,
+          notice: null,
+          loginOpen: false,
+        }));
+      } catch (error) {
+        if (connecting.isCurrent(sequence)) {
+          client.clear();
+          if (token === null)
+            setState((s) => ({
+              ...s,
+              notice: '测试数据连接未完成，请重试；如仍失败请检查本机服务。',
+            }));
+        }
+        throw error;
+      }
+    },
+    [client, connecting],
+  );
+  useEffect(() => {
+    if (state.mode !== 'live') return;
+    const controller = new AbortController();
+    let active = true;
+    void (async () => {
+      try {
+        const response = await fetch('/api/edu/test-session', {
+          cache: 'no-store',
+          credentials: 'omit',
+          signal: controller.signal,
+        });
+        const config: unknown = await response.json();
+        if (
+          active &&
+          response.ok &&
+          config &&
+          typeof config === 'object' &&
+          'enabled' in config &&
+          config.enabled === true
+        ) {
+          setState((s) => ({ ...s, testMode: true }));
+          await connect(null);
+        }
+      } catch {
+        // Connection failures remain visible through the test-mode gate; never use Demo as fallback.
+      }
+    })();
+    return () => {
+      active = false;
+      controller.abort();
+      connecting.next();
+      client.clear();
+    };
+  }, [state.mode, connect, client, connecting]);
   function selectBatch(batch: ApiBatch | null) {
     setState((s) => ({ ...s, batch, conditions: [], revision: s.revision + 1 }));
   }
@@ -118,7 +168,7 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      <SessionDialog />
+      {!state.testMode && <SessionDialog />}
     </Context.Provider>
   );
 }
@@ -194,7 +244,8 @@ export function ModeControls() {
         ]}
         onChange={(value) => mode.setMode(value as Mode)}
       />
-      {mode.mode === 'live' && (
+      {mode.mode === 'live' && mode.testMode && <Tag color="cyan">联调测试</Tag>}
+      {mode.mode === 'live' && !mode.testMode && (
         <Button
           type="text"
           size="small"
@@ -207,20 +258,39 @@ export function ModeControls() {
   );
 }
 export function ModeBadge() {
-  const { mode, connected } = useDataMode();
+  const { mode, connected, testMode } = useDataMode();
   return (
     <Tag className="data-badge" color={mode === 'demo' ? 'blue' : 'cyan'}>
       {mode === 'demo'
         ? 'Demo · 合成演示'
-        : connected
-          ? '正式数据 · 教师会话'
-          : '正式数据 · 未连接'}
+        : testMode
+          ? connected
+            ? '联调测试 · 已连接'
+            : '联调测试 · 连接中'
+          : connected
+            ? '正式数据 · 教师会话'
+            : '正式数据 · 未连接'}
     </Tag>
   );
 }
 export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
   const session = useDataMode();
   if (session.mode === 'demo') return demo;
+  if (!session.connected && session.testMode)
+    return (
+      <Panel className="session-gate" title="连接测试数据">
+        <p>正在连接本机测试数据。</p>
+        {session.notice && <Alert showIcon type="warning" title={session.notice} />}
+        <Button
+          type="primary"
+          onClick={() => {
+            void session.connect(null).catch(() => {});
+          }}
+        >
+          重新连接测试数据
+        </Button>
+      </Panel>
+    );
   if (!session.connected)
     return (
       <Panel className="session-gate" title="连接教师会话，查看正式测评数据">
