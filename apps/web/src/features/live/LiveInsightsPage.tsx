@@ -10,6 +10,7 @@ import { useRemote } from './useRemote';
 import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
 import { ServerAbilityChart } from './ServerCharts';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
+import AnalysisActions from './AnalysisActions';
 
 export default function LiveInsightsPage() {
   const { batch } = useDataMode();
@@ -59,6 +60,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
     });
   return (
     <div className="page-stack live-insights">
+      <AnalysisActions batch={batch} spec={spec} />
       <div className="stat-grid">
         {[
           ['参与学生', stats.data?.statistics.scope.record_count ?? null, '人'],

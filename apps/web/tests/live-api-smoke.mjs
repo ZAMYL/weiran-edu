@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { teacherAnalysisFlow, saveEmptyAnalysis } from './teacher-analysis-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..'),
@@ -152,8 +153,11 @@ try {
     if (testMode && request.url().includes('/api/edu/') && request.headers().authorization)
       browserAuthorization.push(true);
   });
-  const shot = (name) =>
-    page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage: true });
+  const shot = async (name) =>
+    page.screenshot({
+      path: path.join(artifacts, `${name}.png`),
+      fullPage: (await page.locator('.ant-drawer-open').count()) === 0,
+    });
   const noOverflow = async () =>
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
@@ -177,10 +181,19 @@ try {
     await page.locator('#teacher-access-token').waitFor({ state: 'detached' });
   }
   async function upload(kind, title) {
-    await page.getByLabel('测评名称', { exact: true }).fill(title);
-    await page.locator('input[type=file]').setInputFiles(path.join(temporary, `${kind}.xlsx`));
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).count(), 0);
+    assert.equal(
+      await page.getByRole('button', { name: '选择正式文件', exact: true }).isEnabled(),
+      true,
+    );
+    await page.locator('input[type=file]').setInputFiles({
+      name: `${title}.xlsx`,
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: await readFile(path.join(temporary, `${kind}.xlsx`)),
+    });
     await page.getByRole('heading', { name: '正式导入预览' }).waitFor();
     await page.locator('.source-details').filter({ hasText: '预览版本' }).waitFor();
+    assert.equal(await page.getByLabel('正式测评名称', { exact: true }).inputValue(), title);
   }
   async function commit() {
     const pending = page.waitForResponse(
@@ -416,12 +429,38 @@ try {
   checks.push(
     'insight metric drilldown replays original conditions/snapshot/include_dimensions; rational denominator is not headcount',
   );
+  checkpoint = 'teacher analysis save/review/export';
+  checks.push(
+    ...(await teacherAnalysisFlow({
+      page,
+      batch,
+      spec,
+      request,
+      admin,
+      scope,
+      ownerToken: token,
+      shot,
+      navigation,
+      switchSession: async (nextToken) => {
+        token = nextToken;
+        if (testMode)
+          await writeFile(
+            testSessionFile,
+            JSON.stringify({ synthetic_only: true, access_token: token }),
+          );
+        await page.reload();
+        await login();
+        await selectBatch('合成正常测评');
+      },
+    })),
+  );
   checkpoint = 'empty group and insight';
   await navigation('画像探索');
   await page.getByRole('textbox', { name: '正式条件1评分' }).fill('5');
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
   await page.locator('.match-summary').filter({ hasText: '0 / 23' }).waitFor();
   await page.getByText('没有匹配记录，请调整筛选条件。', { exact: true }).waitFor();
+  await saveEmptyAnalysis(page, '合成空群体分析', 0, false);
   await navigation('学情洞察');
   const include = page.getByRole('checkbox', { name: '包含各维度洞察' });
   await include.uncheck();
@@ -431,6 +470,10 @@ try {
   await navigation('学情洞察');
   await page.getByRole('checkbox', { name: '包含各维度洞察' }).uncheck();
   await page.getByText('当前查询没有可展示的评分洞察候选。', { exact: true }).waitFor();
+  await saveEmptyAnalysis(page, '合成无候选分析', 23, true);
+  checks.push(
+    'zero-match analysis saves correctly; no-candidate analysis exports a genuine zero-confirmed report',
+  );
   checks.push('zero-match group and genuine no-candidate insight states');
   checkpoint = 'error states';
   await navigation('画像探索');
@@ -549,7 +592,6 @@ try {
   checks.push('390px three-page layout without document overflow');
   checkpoint = 'real permission revocation';
   admin('member-set', '--teacher-id', teacher, '--scope-id', scope); // Cached UI cannot override server-side import revocation.
-  await page.getByLabel('测评名称', { exact: true }).fill('合成权限测试');
   await page.locator('input[type=file]').setInputFiles(path.join(temporary, 'normal.xlsx'));
   await page.getByText('当前教师没有执行此操作的权限。', { exact: true }).waitFor();
   admin('token-revoke', '--teacher-id', teacher);

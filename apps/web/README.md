@@ -32,6 +32,8 @@ pnpm start
 
 Next.js 用同源 `/api/edu` 转发到服务端环境变量 `EDU_API_ORIGIN`，默认 `http://127.0.0.1:8000`。不要使用 `NEXT_PUBLIC_*` 配置凭证。启动、认证、测试与阶段边界见 [真实 API 联调说明](docs/api-integration.md)。
 
+洞察和探索页支持保存当前分析，在已保存分析中核验候选为待定、确认或否决，然后预检并导出 XLSX / Markdown 汇总报告。上传 XLSX 自动以文件名命名，预览可改名。具体流程和版本、权限处理见 [教师第五步](docs/teacher-analysis-workflow.md)。
+
 顶部显式切换到 Demo 才启用以下本地演示；演示数据不填补正式模式的空值、空结果或接口错误。
 
 ## Demo 已有流程

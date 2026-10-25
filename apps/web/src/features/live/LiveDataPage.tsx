@@ -11,11 +11,11 @@ import { dimensionName } from '../../services/edu-api/view-model';
 import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import LiveImportPreview from './LiveImportPreview';
+import { assessmentNameFromFilename } from '../../services/assessment-name';
 
 export default function LiveDataPage() {
   const { client, scopes, batch, selectBatch, revision } = useDataMode();
   const router = useRouter();
-  const [title, setTitle] = useState('');
   const [course, setCourse] = useState('');
   const [date, setDate] = useState('');
   const [scope, setScope] = useState(scopes.find((s) => s.can_import)?.data_scope_id ?? '');
@@ -34,8 +34,8 @@ export default function LiveDataPage() {
   const batches = useRemote(`data-batches:${revision}:${offset}`, loadBatches);
   const allowed = scopes.some((s) => s.data_scope_id === scope && s.can_import);
   async function upload(file: File) {
-    if (!title.trim() || !allowed) {
-      setLocalError('请填写测评名称，并选择当前有导入权的数据来源。');
+    if (!allowed) {
+      setLocalError('请选择当前有导入权的数据来源。');
       return Upload.LIST_IGNORE;
     }
     if (!file.name.toLowerCase().endsWith('.xlsx') || file.size > 10 * 1024 * 1024) {
@@ -51,7 +51,7 @@ export default function LiveDataPage() {
     const form = new FormData();
     form.append('file', file);
     form.append('data_scope_id', scope);
-    form.append('title', title.trim());
+    form.append('title', assessmentNameFromFilename(file.name));
     if (course.trim()) form.append('course', course.trim());
     if (date) form.append('assessment_date', date);
     try {
@@ -91,15 +91,6 @@ export default function LiveDataPage() {
               disabled={busy}
               placeholder="选择具有导入权的数据来源"
             />
-            <label htmlFor="live-upload-title">测评名称</label>
-            <Input
-              id="live-upload-title"
-              value={title}
-              maxLength={100}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="填写本次测评名称"
-              disabled={busy}
-            />
             <label htmlFor="live-course">课程（可选）</label>
             <Input
               id="live-course"
@@ -125,22 +116,18 @@ export default function LiveDataPage() {
             multiple={false}
             showUploadList={false}
             beforeUpload={upload}
-            disabled={busy || !allowed || !title.trim()}
+            disabled={busy || !allowed}
             className="excel-dropzone"
           >
             <div className="upload-symbol">
               <CloudUploadOutlined />
             </div>
             <h3>{busy ? '服务端正在解析和校验…' : '选择原始双 Sheet 五维 Excel'}</h3>
-            <Button
-              type="primary"
-              tabIndex={-1}
-              loading={busy}
-              disabled={!allowed || !title.trim()}
-            >
+            <Button type="primary" tabIndex={-1} loading={busy} disabled={!allowed}>
               选择正式文件
             </Button>
             <p>固定五维双工作表模板 · .xlsx · 最大 10 MiB</p>
+            <p>测评名称默认使用文件名，可在预览中修改。</p>
           </Upload.Dragger>
           {localError && (
             <Alert className="session-notice" type="error" showIcon title={localError} />

@@ -1,5 +1,10 @@
 // Same-origin, fixed-upstream teacher API relay.
 import { testSessionAuthorization, testSessionEnabled } from '../../../../server/test-session';
+import {
+  readReportFile,
+  ReportFileError,
+  REPORT_MIME,
+} from '../../../../services/edu-api/report-file';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const routes: Record<string, RegExp[]> = {
@@ -7,6 +12,8 @@ const routes: Record<string, RegExp[]> = {
     /^(me|scopes|batches|test-session)$/,
     /^batches\/[^/]+$/,
     /^batches\/[^/]+\/(statistics|students|rubric)$/,
+    /^batches\/[^/]+\/(capabilities|analysis-results)$/,
+    /^batches\/[^/]+\/analysis-results\/[^/]+(?:\/export)?$/,
     /^batches\/[^/]+\/students\/[^/]+\/evidence$/,
     /^batches\/[^/]+\/evidence\/[^/]+$/,
     /^imports\/[^/]+$/,
@@ -17,8 +24,10 @@ const routes: Record<string, RegExp[]> = {
     /^imports\/[^/]+\/commit$/,
     /^batches\/[^/]+\/(groups|insights)\/query$/,
     /^batches\/[^/]+\/insights\/[^/]+\/records\/query$/,
+    /^batches\/[^/]+\/analysis-results$/,
+    /^batches\/[^/]+\/analysis-results\/[^/]+\/export-check$/,
   ],
-  PATCH: [/^imports\/[^/]+$/],
+  PATCH: [/^imports\/[^/]+$/, /^batches\/[^/]+\/analysis-results\/[^/]+$/],
 };
 const queryNames = new Set([
   'snapshot_id',
@@ -34,11 +43,17 @@ const queryNames = new Set([
   'student_limit',
   'data_scope_id',
   'include_revisions',
+  'expected_version',
+  'format',
 ]);
-function fail(status: number, code: string) {
+function fail(status: number, code: string, requestId?: string | null) {
+  const safeId = requestId && /^req_[a-zA-Z0-9-]{1,100}$/.test(requestId) ? requestId : null;
   return Response.json(
-    { error: { code, message: '请求未完成' } },
-    { status, headers: { 'Cache-Control': 'no-store' } },
+    { error: { code, message: '请求未完成', ...(safeId ? { request_id: safeId } : {}) } },
+    {
+      status,
+      headers: { 'Cache-Control': 'no-store', ...(safeId ? { 'X-Request-ID': safeId } : {}) },
+    },
   );
 }
 async function relay(
@@ -51,6 +66,17 @@ async function relay(
   if (!routes[request.method]?.some((pattern) => pattern.test(route)))
     return fail(404, 'NOT_FOUND');
   const source = new URL(request.url);
+  const report = request.method === 'GET' && path[2] === 'analysis-results' && path[4] === 'export';
+  const format = source.searchParams.get('format');
+  const version = Number(source.searchParams.get('expected_version'));
+  if (
+    report &&
+    ((format !== 'xlsx' && format !== 'md') ||
+      !Number.isSafeInteger(version) ||
+      version < 1 ||
+      !source.searchParams.get('snapshot_id'))
+  )
+    return fail(422, 'INVALID_REPORT_REQUEST');
   // Next may normalize request.url to localhost even when the browser used 127.0.0.1.
   // Compare Origin to the actual HTTP Host; never trust forwarded host headers.
   const receivedHost = request.headers.get('host');
@@ -110,9 +136,14 @@ async function relay(
       },
     }),
   );
-  const headers = new Headers({ Authorization: authorization, Accept: 'application/json' });
+  const headers = new Headers({
+    Authorization: authorization,
+    Accept:
+      report && (format === 'xlsx' || format === 'md') ? REPORT_MIME[format] : 'application/json',
+  });
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('Content-Type', contentType);
+  let upstreamRequestId: string | null = null;
   try {
     const init: RequestInit & { duplex?: 'half' } = {
       method: request.method,
@@ -126,8 +157,23 @@ async function relay(
       init.duplex = 'half';
     }
     const response = await fetch(new URL(`/api/v1/edu/${route}${source.search}`, origin), init);
+    upstreamRequestId = response.headers.get('x-request-id');
+    if (report && response.ok && (format === 'xlsx' || format === 'md')) {
+      const file = await readReportFile(response, { resultId: path[3]!, version, format });
+      const outgoing = new Headers({
+        'Content-Type': format === 'md' ? 'text/markdown; charset=utf-8' : file.contentType,
+        'Content-Disposition': `attachment; filename="${file.filename}"`,
+        'Content-Length': String(file.bytes.byteLength),
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      const requestId = response.headers.get('x-request-id');
+      if (requestId && /^req_[a-zA-Z0-9-]{1,100}$/.test(requestId))
+        outgoing.set('X-Request-ID', requestId);
+      return new Response(file.bytes, { status: 200, headers: outgoing });
+    }
     if (!response.headers.get('content-type')?.includes('application/json'))
-      return fail(502, 'INVALID_API_RESPONSE');
+      return fail(502, 'INVALID_API_RESPONSE', upstreamRequestId);
     const body = await response.arrayBuffer();
     const outgoing = new Headers({
       'Content-Type': 'application/json',
@@ -138,7 +184,8 @@ async function relay(
     if (requestId && /^req_[a-zA-Z0-9-]{1,100}$/.test(requestId))
       outgoing.set('X-Request-ID', requestId);
     return new Response(body, { status: response.status, headers: outgoing });
-  } catch {
+  } catch (error) {
+    if (error instanceof ReportFileError) return fail(error.status, error.code, upstreamRequestId);
     return controller.signal.reason === 'size'
       ? fail(413, 'REQUEST_TOO_LARGE')
       : controller.signal.reason === 'timeout'

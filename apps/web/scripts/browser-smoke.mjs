@@ -55,6 +55,12 @@ async function main() {
     await page.getByText('Demo', { exact: true }).click();
     await page.getByRole('heading', { name: '五维能力概况' }).waitFor();
     await page.locator('.ability-chart svg').waitFor();
+    const demoLabels = await page
+      .locator('.finding-top .ant-tag')
+      .evaluateAll((elements) =>
+        elements.map((element) => parseFloat(getComputedStyle(element).fontSize)),
+      );
+    assert.ok(demoLabels.length > 0 && demoLabels.every((size) => size <= 13));
     await noOverflow();
     await shot('insights-desktop');
     checks.push('桌面首页及雷达图正常渲染');
