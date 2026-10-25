@@ -4,7 +4,7 @@ import json
 from decimal import Decimal, DecimalException
 
 from fastapi import Request
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from app.core.errors import APIError
 
@@ -24,7 +24,7 @@ def _constant(_: str) -> None:
     raise ValueError("FINITE_JSON_REQUIRED")
 
 
-async def group_query(request: Request) -> GroupQuery:
+async def read_query[T: BaseModel](request: Request, model: type[T]) -> T:
     if (
         request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
         != "application/json"
@@ -42,14 +42,18 @@ async def group_query(request: Request) -> GroupQuery:
             parse_constant=_constant,
             object_pairs_hook=_pairs,
         )
-        return GroupQuery.model_validate(value)
+        return model.model_validate(value)
     except (ValueError, ValidationError, DecimalException, RecursionError):
         raise APIError(422, "VALIDATION_ERROR", "筛选条件不符合要求") from None
 
 
-def group_schema() -> dict:
+async def group_query(request: Request) -> GroupQuery:
+    return await read_query(request, GroupQuery)
+
+
+def request_schema(model: type[BaseModel]) -> dict:
     """Inline request models so OpenAPI refs resolve inside the enclosing document."""
-    schema = GroupQuery.model_json_schema(mode="validation")
+    schema = model.model_json_schema(mode="validation")
     definitions = schema.pop("$defs", {})
 
     def expand(value: object) -> object:
@@ -62,3 +66,7 @@ def group_schema() -> dict:
         return value
 
     return expand(schema)
+
+
+def group_schema() -> dict:
+    return request_schema(GroupQuery)

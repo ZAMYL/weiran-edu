@@ -12,7 +12,8 @@
 | 教师权限 | 管理员预置教师、来源成员和限时可撤销随机凭证，逐请求核验；学校 SSO/公开注册未实现 |
 | 统计、群体与评分证据 | 全批五维统计、二维矩阵、1–2 维 AND 筛选、匿名学生、同快照评分及依据来源；见 [接口说明](STATISTICS_GROUP_EVIDENCE_API.md) |
 | 多规模内核验证 | 合成输入覆盖 1–2000 人及 401 个合法分值；见 [V1_ANALYSIS_ACCEPTANCE.md](V1_ANALYSIS_ACCEPTANCE.md)，不代表导入/AI/并发容量 |
-| 内部候选、评语复核和 AI | 已有内核与合成边界；正式批次洞察查询及逐指标参与记录 HTTP 回查未交付 |
+| 正式批次评分洞察 | 已接入确认入库与教师权限，支持候选查询及逐指标参与记录回查；见 [正式洞察接口](FORMAL_INSIGHTS_API.md) |
+| 评语复核和 AI | 已有内核与合成边界；正式评语分析不可用，仍不读取 withheld 原文或开放 Production |
 | 原文展示 | 非空评语与评分依据原文暂不展示；未实现原文审核/发布流程 |
 | 浏览器真实接口接入 | 尚未完成，需要前后端共同联调与整条流程验收 |
 | 导出、真实教师试用、生产部署 | 尚未完成；不因后端测试通过而自动视为完成 |
@@ -24,7 +25,7 @@
 | 历史草案或设计意图 | 当前实际行为 |
 | --- | --- |
 | 仅健康检查、无迁移或教师授权 | 已有 SQL 迁移和受控业务 API；凭证由管理员 CLI 签发，最长 168 小时，非学校 SSO |
-| 全部设计操作均可调用 | 实际另有 `/me` 和 `/scopes`；`insights/query` 与 `insights/{candidate_id}/records/query` 未注册 |
+| 全部设计操作均可调用 | 实际另有 `/me`、`/scopes` 和两个正式洞察 POST；需配置数据库，并以运行时 OpenAPI 为准 |
 | 部分草案问题码与快照码 | 使用解析器实际问题码；快照冲突是 `409 SNAPSHOT_MISMATCH`，不是草案的 `SNAPSHOT_STALE` |
 | GroupResult.items 为较完整的 StudentProfile | 实际为匿名 `student_id/display_label/scores`；快照在结果容器内，详情按需请求学生证据 API |
 | 依据正文必返、评语已有展示投影 | `criteria_text=null, criteria_status=withheld`；评语为 `comment=null`，区分 empty/withheld，不把扣留当作没有内容 |

@@ -13,6 +13,13 @@ from app.core.errors import APIError
 from app.edu.analysis import AnalysisReader
 from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
 from app.edu.auth import Principal, authenticate, deny, require_teacher
+from app.edu.insight_models import (
+    InsightQuery,
+    InsightRecordsQuery,
+    InsightRecordsResult,
+    InsightResult,
+)
+from app.edu.insights import InsightReader
 from app.edu.models import (
     Batch,
     BatchList,
@@ -27,14 +34,18 @@ from app.edu.models import (
     StudentEvidence,
     StudentList,
 )
-from app.edu.query import group_query, group_schema
+from app.edu.query import group_query, group_schema, read_query, request_schema
 from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
+from app.schemas.common import ErrorResponse
 
 router = APIRouter(prefix="/api/v1/edu", tags=["EDU"])
 bearer = HTTPBearer(auto_error=False)
+INSIGHT_ERRORS = {
+    status: {"model": ErrorResponse} for status in (401, 404, 409, 413, 415, 422, 500, 503)
+}
 type Offset = Annotated[int, Query(ge=0)]
 type Limit = Annotated[int, Query(ge=1, le=100)]
 
@@ -359,3 +370,52 @@ def rubric(batch_id: str, actor: Actor, backend: Backend, snapshot_id: str | Non
     return BatchReader(backend.database, clock=backend.clock).rubric(
         actor, batch_id, snapshot_id=snapshot_id
     )
+
+
+@router.post(
+    "/batches/{batch_id}/insights/query",
+    response_model=InsightResult,
+    responses=INSIGHT_ERRORS,
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {"schema": request_schema(InsightQuery)},
+            },
+        }
+    },
+)
+async def insights(
+    batch_id: str,
+    request: Request,
+    actor: Actor,
+    backend: Backend,
+) -> InsightResult:
+    query = await read_query(request, InsightQuery)
+    reader = InsightReader(backend.database, clock=backend.clock)
+    return await run_in_threadpool(reader.query, actor, batch_id, query)
+
+
+@router.post(
+    "/batches/{batch_id}/insights/{candidate_id}/records/query",
+    response_model=InsightRecordsResult,
+    responses=INSIGHT_ERRORS,
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {"schema": request_schema(InsightRecordsQuery)},
+            },
+        }
+    },
+)
+async def insight_records(
+    batch_id: str,
+    candidate_id: str,
+    request: Request,
+    actor: Actor,
+    backend: Backend,
+) -> InsightRecordsResult:
+    query = await read_query(request, InsightRecordsQuery)
+    reader = InsightReader(backend.database, clock=backend.clock)
+    return await run_in_threadpool(reader.records, actor, batch_id, candidate_id, query)

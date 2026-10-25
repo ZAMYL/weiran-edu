@@ -1,0 +1,509 @@
+{
+  "data_kind": "synthetic_http_disposable_database",
+  "note": "Captured from confirmed temporary database batches; IDs are documentation examples, not deployed resources.",
+  "runs": [
+    {
+      "students": 1,
+      "upload_preview_confirm_ms": 323.18,
+      "insights_query_ms": 28.47,
+      "metric_records_ms": 26.62,
+      "external_model_calls": 0
+    },
+    {
+      "students": 4,
+      "upload_preview_confirm_ms": 337.16,
+      "insights_query_ms": 28.43,
+      "metric_records_ms": 26.59,
+      "external_model_calls": 0,
+      "query": {
+        "method": "POST",
+        "path": "/api/v1/edu/batches/00bbded0-8b87-460d-9ae7-dfce7f73f5e5/insights/query",
+        "body": {
+          "snapshot_id": "517e899b-9cfb-4994-9c11-d14444f4fae4",
+          "conditions": [
+            {
+              "dimension_code": "solution_strategy",
+              "operator": "gte",
+              "value": 4
+            },
+            {
+              "dimension_code": "algorithm_data_structure",
+              "operator": "lt",
+              "value": 3
+            }
+          ],
+          "include_dimensions": false
+        },
+        "response": {
+          "batch_id": "00bbded0-8b87-460d-9ae7-dfce7f73f5e5",
+          "snapshot_id": "517e899b-9cfb-4994-9c11-d14444f4fae4",
+          "audience": "authorized_teacher_only",
+          "scope": {
+            "kind": "batch",
+            "record_count": 4
+          },
+          "conditions": [
+            {
+              "dimension_code": "solution_strategy",
+              "operator": "gte",
+              "value": 4.0
+            },
+            {
+              "dimension_code": "algorithm_data_structure",
+              "operator": "lt",
+              "value": 3.0
+            }
+          ],
+          "include_dimensions": false,
+          "rule_version": "edu.insights.v1",
+          "display_policy": {
+            "digits": 2,
+            "rounding": "HALF_UP"
+          },
+          "comment_analysis_status": "unavailable",
+          "comment_analysis_reason": "reviewed_comment_provider_not_available",
+          "limitations": [
+            "仅供当前获授权教师查看，不代表可公开发布。",
+            "评语审核提供器尚未接入，未执行评语分类或一致性复核；扣留不等于空评语或零异常。",
+            "观察来自本批结构化评分，不代表能力诊断、因果关系或教学效果。"
+          ],
+          "total_count": 1,
+          "items": [
+            {
+              "candidate_id": "candidate-13ca5fe15b777e454c8bc467",
+              "batch_id": "00bbded0-8b87-460d-9ae7-dfce7f73f5e5",
+              "snapshot_id": "517e899b-9cfb-4994-9c11-d14444f4fae4",
+              "candidate_type": "ability_group",
+              "dimension_code": null,
+              "title": "能力组合：算法与数据结构<3 且 解题策略>=4",
+              "summary": "2/4条记录满足条件，占比1/2；可判定样本4，不可判定0条。",
+              "metrics": [
+                {
+                  "key": "matched_count",
+                  "value": {
+                    "value": 2.0,
+                    "exact": {
+                      "numerator": 2,
+                      "denominator": 1
+                    },
+                    "display": "2.00"
+                  },
+                  "unit": "records",
+                  "denominator": 4,
+                  "at_score": null,
+                  "source_record_count": 2
+                },
+                {
+                  "key": "matched_ratio",
+                  "value": {
+                    "value": 0.5,
+                    "exact": {
+                      "numerator": 1,
+                      "denominator": 2
+                    },
+                    "display": "0.50"
+                  },
+                  "unit": "ratio",
+                  "denominator": 4,
+                  "at_score": null,
+                  "source_record_count": 2
+                },
+                {
+                  "key": "eligible_count",
+                  "value": {
+                    "value": 4.0,
+                    "exact": {
+                      "numerator": 4,
+                      "denominator": 1
+                    },
+                    "display": "4.00"
+                  },
+                  "unit": "records",
+                  "denominator": 4,
+                  "at_score": null,
+                  "source_record_count": 4
+                },
+                {
+                  "key": "matched_among_eligible",
+                  "value": {
+                    "value": 0.5,
+                    "exact": {
+                      "numerator": 1,
+                      "denominator": 2
+                    },
+                    "display": "0.50"
+                  },
+                  "unit": "ratio",
+                  "denominator": 4,
+                  "at_score": null,
+                  "source_record_count": 2
+                },
+                {
+                  "key": "unevaluable_count",
+                  "value": {
+                    "value": 0.0,
+                    "exact": {
+                      "numerator": 0,
+                      "denominator": 1
+                    },
+                    "display": "0.00"
+                  },
+                  "unit": "records",
+                  "denominator": 4,
+                  "at_score": null,
+                  "source_record_count": 0
+                }
+              ],
+              "conditions": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "operator": "lt",
+                  "value": 3.0
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "operator": "gte",
+                  "value": 4.0
+                }
+              ],
+              "denominator": 4,
+              "rule_id": "edu.insight.custom_group.v1",
+              "rule_version": "edu-insight-candidates-0.1.0-draft",
+              "status": "observed",
+              "limitations": [
+                "观察来自当前输入快照，不代表学生能力诊断或因果结论。",
+                "引用只作内部定位，来源真实性及详情权限须由后端复核。",
+                "当前人数是有测评记录的群体，不代表应测花名册人数。",
+                "阈值只是探索条件；不同群体可以相交，人数不能直接相加。",
+                "仅供当前获授权教师查看，不代表可公开发布。",
+                "评语审核提供器尚未接入，未执行评语分类或一致性复核；扣留不等于空评语或零异常。",
+                "观察来自本批结构化评分，不代表能力诊断、因果关系或教学效果。"
+              ],
+              "suggested_next_action": "按同一条件与快照查看获授权的匹配记录，再核对各维评分依据。",
+              "public_display_allowed": false,
+              "public_restrictions": [
+                "small_scope",
+                "small_cell_or_complement"
+              ]
+            }
+          ],
+          "page": {
+            "offset": 0,
+            "limit": 20,
+            "returned": 1,
+            "has_more": false
+          }
+        }
+      },
+      "records": {
+        "method": "POST",
+        "path": "/api/v1/edu/batches/00bbded0-8b87-460d-9ae7-dfce7f73f5e5/insights/candidate-13ca5fe15b777e454c8bc467/records/query",
+        "body": {
+          "snapshot_id": "517e899b-9cfb-4994-9c11-d14444f4fae4",
+          "conditions": [
+            {
+              "dimension_code": "solution_strategy",
+              "operator": "gte",
+              "value": 4
+            },
+            {
+              "dimension_code": "algorithm_data_structure",
+              "operator": "lt",
+              "value": 3
+            }
+          ],
+          "include_dimensions": false,
+          "metric_key": "matched_count",
+          "limit": 1
+        },
+        "response": {
+          "batch_id": "00bbded0-8b87-460d-9ae7-dfce7f73f5e5",
+          "snapshot_id": "517e899b-9cfb-4994-9c11-d14444f4fae4",
+          "candidate_id": "candidate-13ca5fe15b777e454c8bc467",
+          "metric": {
+            "key": "matched_count",
+            "value": {
+              "value": 2.0,
+              "exact": {
+                "numerator": 2,
+                "denominator": 1
+              },
+              "display": "2.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": null,
+            "source_record_count": 2
+          },
+          "conditions": [
+            {
+              "dimension_code": "algorithm_data_structure",
+              "operator": "lt",
+              "value": 3.0
+            },
+            {
+              "dimension_code": "solution_strategy",
+              "operator": "gte",
+              "value": 4.0
+            }
+          ],
+          "rule_version": "edu-insight-candidates-0.1.0-draft",
+          "total_count": 2,
+          "scope_record_count": 4,
+          "items": [
+            {
+              "student_id": "ef035579-8a5e-4710-aebb-fc8717dcf241",
+              "display_label": "学生 001",
+              "scores": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "score": 2.0,
+                  "evidence_id": "09d0ef3e-3f65-4534-95a5-40437b23df65"
+                },
+                {
+                  "dimension_code": "solution_strategy",
+                  "score": 4.0,
+                  "evidence_id": "7c67512c-9ea1-4307-872b-6b56b2874256"
+                }
+              ]
+            }
+          ],
+          "page": {
+            "offset": 0,
+            "limit": 1,
+            "returned": 1,
+            "has_more": true
+          }
+        }
+      },
+      "existing_evidence_response": {
+        "evidence_id": "09d0ef3e-3f65-4534-95a5-40437b23df65",
+        "batch_id": "00bbded0-8b87-460d-9ae7-dfce7f73f5e5",
+        "snapshot_id": "517e899b-9cfb-4994-9c11-d14444f4fae4",
+        "student_id": "ef035579-8a5e-4710-aebb-fc8717dcf241",
+        "dimension_code": "algorithm_data_structure",
+        "score": 2.0,
+        "score_raw": "2",
+        "comment": null,
+        "comment_status": "withheld",
+        "source": {
+          "file_sha256": "ee82c9b435102f4a4a65e7832a29143354769025064122c50d0a38f484467619",
+          "sheet_name": "Sheet2",
+          "row_number": 3,
+          "dimension_cell": "B3",
+          "score_cell": "C3",
+          "comment_cell": "D3"
+        },
+        "rubric_criterion_id": "f14f0e0c-3a38-4262-8ad3-4ef8ba79cc64"
+      },
+      "dimension_card_from_unfiltered_query": {
+        "candidate_id": "candidate-d64bc4df3f25b2683bba2cee",
+        "batch_id": "00bbded0-8b87-460d-9ae7-dfce7f73f5e5",
+        "snapshot_id": "517e899b-9cfb-4994-9c11-d14444f4fae4",
+        "candidate_type": "dimension_distribution",
+        "dimension_code": "algorithm_data_structure",
+        "title": "算法与数据结构评分分布",
+        "summary": "有效4/4条；均值47/16，中位数23/8；缺失0条、无效0条。",
+        "metrics": [
+          {
+            "key": "valid_count",
+            "value": {
+              "value": 4.0,
+              "exact": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "display": "4.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": null,
+            "source_record_count": 4
+          },
+          {
+            "key": "missing_count",
+            "value": {
+              "value": 0.0,
+              "exact": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "display": "0.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": null,
+            "source_record_count": 0
+          },
+          {
+            "key": "invalid_count",
+            "value": {
+              "value": 0.0,
+              "exact": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "display": "0.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": null,
+            "source_record_count": 0
+          },
+          {
+            "key": "mean",
+            "value": {
+              "value": 2.9375,
+              "exact": {
+                "numerator": 47,
+                "denominator": 16
+              },
+              "display": "2.94"
+            },
+            "unit": "score",
+            "denominator": 4,
+            "at_score": null,
+            "source_record_count": 4
+          },
+          {
+            "key": "median",
+            "value": {
+              "value": 2.875,
+              "exact": {
+                "numerator": 23,
+                "denominator": 8
+              },
+              "display": "2.88"
+            },
+            "unit": "score",
+            "denominator": 4,
+            "at_score": null,
+            "source_record_count": 4
+          },
+          {
+            "key": "frequency:2",
+            "value": {
+              "value": 1.0,
+              "exact": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "display": "1.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": {
+              "value": 2.0,
+              "exact": {
+                "numerator": 2,
+                "denominator": 1
+              },
+              "display": "2.00"
+            },
+            "source_record_count": 1
+          },
+          {
+            "key": "frequency:11/4",
+            "value": {
+              "value": 1.0,
+              "exact": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "display": "1.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": {
+              "value": 2.75,
+              "exact": {
+                "numerator": 11,
+                "denominator": 4
+              },
+              "display": "2.75"
+            },
+            "source_record_count": 1
+          },
+          {
+            "key": "frequency:3",
+            "value": {
+              "value": 1.0,
+              "exact": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "display": "1.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": {
+              "value": 3.0,
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "display": "3.00"
+            },
+            "source_record_count": 1
+          },
+          {
+            "key": "frequency:4",
+            "value": {
+              "value": 1.0,
+              "exact": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "display": "1.00"
+            },
+            "unit": "records",
+            "denominator": 4,
+            "at_score": {
+              "value": 4.0,
+              "exact": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "display": "4.00"
+            },
+            "source_record_count": 1
+          }
+        ],
+        "conditions": [],
+        "denominator": 4,
+        "rule_id": "edu.insight.distribution",
+        "rule_version": "edu-insight-candidates-0.1.0-draft",
+        "status": "observed",
+        "limitations": [
+          "观察来自当前输入快照，不代表学生能力诊断或因果结论。",
+          "引用只作内部定位，来源真实性及详情权限须由后端复核。",
+          "当前人数是有测评记录的群体，不代表应测花名册人数。",
+          "区间条件只用于探索，不是正式教学标准，低分不等于能力不足。",
+          "仅供当前获授权教师查看，不代表可公开发布。",
+          "评语审核提供器尚未接入，未执行评语分类或一致性复核；扣留不等于空评语或零异常。",
+          "观察来自本批结构化评分，不代表能力诊断、因果关系或教学效果。"
+        ],
+        "suggested_next_action": "分别查看有效评分样本及缺失、无效记录，并核对本批评分标准。",
+        "public_display_allowed": false,
+        "public_restrictions": [
+          "small_scope",
+          "small_cell_or_complement"
+        ]
+      }
+    },
+    {
+      "students": 17,
+      "upload_preview_confirm_ms": 468.69,
+      "insights_query_ms": 38.44,
+      "metric_records_ms": 36.2,
+      "external_model_calls": 0
+    },
+    {
+      "students": 53,
+      "upload_preview_confirm_ms": 824.8,
+      "insights_query_ms": 41.13,
+      "metric_records_ms": 49.46,
+      "external_model_calls": 0
+    }
+  ]
+}
