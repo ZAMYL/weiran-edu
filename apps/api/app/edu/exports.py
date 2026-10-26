@@ -106,6 +106,18 @@ class ResultExporter(ResultService):
                     )
                     if current.analysis != result.analysis:
                         fail("DATA_INTEGRITY_ERROR", 503)
+                    if current.analysis.discovery is not None:
+                        # The discovery recomputation can outlive a text publication.
+                        # Refresh approved text under this final transaction; never ship
+                        # a comment/rubric withdrawn while the child was calculating.
+                        _, payload, content = self._prepare(
+                            connection,
+                            principal,
+                            batch_id,
+                            result_id,
+                            snapshot_id,
+                            expected_version,
+                        )
             return result, payload, content, report_content
         except ReportError as error:
             if str(error) in {

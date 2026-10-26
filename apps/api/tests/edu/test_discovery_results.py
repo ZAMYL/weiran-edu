@@ -286,6 +286,57 @@ def test_readonly_download_and_revoke_after_preflight(client, runtime, formal_ba
     assert denied.status_code == 404 and "content-disposition" not in denied.headers
 
 
+@pytest.mark.parametrize("format", ["json", "zip"])
+@pytest.mark.parametrize("kind", ["comment", "rubric"])
+def test_private_export_observes_text_withdrawn_during_discovery_recheck(
+    client, formal_batch, monkeypatch, format, kind
+):
+    from .test_reviewed_results import publish, review_path
+
+    base, batch, _ = formal_batch(17)
+    listed = query(client, base, batch, limit=1).json()
+    saved = save(client, base, batch, listed).json()
+    student = client.get(base + "/students").json()["items"][0]
+    proof = client.get(base + "/evidence/" + student["scores"][0]["evidence_id"]).json()
+    assert (
+        publish(client, base, batch, proof, kind=kind, text="已确认的合成正文").status_code == 200
+    )
+    execute = discovery_worker.execute
+
+    async def withdraw_during_compute(*args, **kwargs):
+        result = await execute(*args, **kwargs)
+        withdrawn = await asyncio.to_thread(
+            client.put,
+            review_path(base, proof, kind),
+            json={
+                "snapshot_id": batch["snapshot_id"],
+                "expected_version": 1,
+                "status": "withheld",
+            },
+        )
+        assert withdrawn.status_code == 200, withdrawn.text
+        return result
+
+    monkeypatch.setattr(discovery_worker, "execute", withdraw_during_compute)
+    response = exported(client, base, batch, saved, format)
+    assert response.status_code == 200, response.text
+    if format == "json":
+        payload = response.json()
+    else:
+        with ZipFile(BytesIO(response.content)) as archive:
+            payload = json.loads(archive.read("analysis.json"))
+            assert "已确认的合成正文" not in archive.read("evidence.csv").decode("utf-8-sig")
+    assert "已确认的合成正文" not in json.dumps(payload, ensure_ascii=False)
+    if kind == "comment":
+        actual = next(p for p in payload["evidence"] if p["evidence_id"] == proof["evidence_id"])
+        assert actual["comment"] is None and actual["comment_review_version"] == 2
+    else:
+        actual = next(
+            p for p in payload["rubric"] if p["rubric_criterion_id"] == proof["rubric_criterion_id"]
+        )
+        assert actual["criteria_text"] is None and actual["criteria_review_version"] == 2
+
+
 @pytest.mark.parametrize("kind", ["dimension_relation", "group_difference", "rare_combination"])
 def test_all_supported_discovery_reports_have_chinese_readable_metrics(
     client, formal_batch, custom_batch, kind
