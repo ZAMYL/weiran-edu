@@ -7,8 +7,9 @@ import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
 import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 import type { DiscoveryDetail, DiscoverySpec } from '../../services/edu-api/discovery-types';
-import type { ApiBatch, ApiCondition, ApiStudent } from '../../services/edu-api/types';
-import { conditionText, dimensionName, operatorLabels, parseThreshold } from '../../services/edu-api/view-model';
+import type { ApiBatch, ApiStudent } from '../../services/edu-api/types';
+import { conditionText, dimensionName, operatorLabels } from '../../services/edu-api/view-model';
+import { explorerConditions } from '../../services/edu-api/discovery-navigation';
 import { DiscoveryChart, exactValue, scoreText } from './DiscoveryChart';
 import { LiveScoreDrawer } from './LiveStudents';
 import { LoadingPanel, RequestError } from './LiveStatus';
@@ -56,22 +57,6 @@ function metricsText(d: DiscoveryDetail) {
     case 'boundary_sensitivity':
       return `低于边界 ${d.metrics.strict_count} 人，包含边界 ${d.metrics.inclusive_count} 人，新增 ${d.metrics.added_count} 人；分析范围 ${d.metrics.student_denominator} 人。`;
   }
-}
-function explorerConditions(scope: ApiCondition[], detail: DiscoveryDetail): ApiCondition[] | null {
-  const merged = scope.map((condition) => ({ ...condition }));
-  for (const condition of detail.conditions) {
-    const value = parseThreshold(condition.threshold.display);
-    // A source query can express overlapping or more-than-two AND constraints;
-    // the current explorer cannot. Never silently discard a source condition.
-    if (
-      value === null ||
-      Math.abs(value - condition.threshold.numerator / condition.threshold.denominator) > 1e-10 ||
-      merged.some((current) => current.dimension_code === condition.dimension_code)
-    )
-      return null;
-    merged.push({ dimension_code: condition.dimension_code, operator: condition.operator, value });
-  }
-  return merged.length <= 2 ? merged : null;
 }
 export default function LiveDiscoveries({ batch }: { batch: ApiBatch }) {
   const { client, conditions } = useDataMode();
