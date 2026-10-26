@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from app.core.errors import APIError
-from app.importing.edu import ParsedWorkbook, build_preview, build_quality_report, parse_excel
+from app.importing.edu import ParsedWorkbook, build_quality_report, parse_excel
 from app.importing.edu.preview import (
     Page,
     PreviewIssue,
@@ -25,6 +25,7 @@ from app.importing.edu.types import DIMENSIONS, PARSER_VERSION, Issue
 from app.storage.database import Database
 
 from .auth import Principal, accessible_batch, deny, require_scope, require_teacher
+from .import_projections import project_import_payload, rubric_fingerprint
 from .models import (
     Batch,
     BatchList,
@@ -178,35 +179,9 @@ class EduService:
                     ),
                 )
         report = build_quality_report(parsed)
-        # Store only public projections as JSON. Raw input is a separate controlled BLOB.
-        payload = {
-            "rows": [
-                r.model_dump(mode="json")
-                for offset in range(0, report.summary.parsed_evaluation_count, 100)
-                for r in build_preview(parsed, row_offset=offset, row_limit=100).rows
-            ],
-            "students": [
-                s.model_dump(mode="json")
-                for offset in range(0, report.summary.complete_student_count, 100)
-                for s in build_preview(
-                    parsed, student_offset=offset, student_limit=100
-                ).student_samples
-            ],
-            "issues": [i.model_dump(mode="json") for i in report.issues],
-        }
-        rubric_version = None
-        if not any(i.sheet_name == "Sheet1" and i.severity == "error" for i in parsed.issues):
-            rubric_version = (
-                "rubric.v1."
-                + hashlib.sha256(
-                    json.dumps(
-                        [[r.dimension_code, r.title, r.text_cells] for r in parsed.rubrics],
-                        ensure_ascii=False,
-                        sort_keys=True,
-                        separators=(",", ":"),
-                    ).encode()
-                ).hexdigest()
-            )
+        # Keep private storage and authorization in this service; projections are pure.
+        payload = project_import_payload(parsed, report)
+        rubric_version = rubric_fingerprint(parsed)
         with self.database.transaction(write=True) as connection:
             self._teacher(connection, principal)
             require_scope(connection, principal, metadata.data_scope_id, importing=True)
