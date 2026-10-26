@@ -474,6 +474,7 @@ def test_http_failures_have_no_retry_or_error_body_leak(tmp_path, status):
     assert result["status"] == "failed" and len(calls) == 1 and not result["cards"]
     assert "synthetic-sensitive-error-body" not in json.dumps(result)
     assert result["budget"]["blocked"] == "unverifiable_usage"
+    assert result["budget"]["entries"][0]["http_status"] == status
 
 
 @pytest.mark.parametrize(

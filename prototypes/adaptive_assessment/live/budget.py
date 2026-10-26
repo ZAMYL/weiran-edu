@@ -193,6 +193,8 @@ class CampaignBudget:
                 "charged_cny_upper_bound": str(cost),
                 "actual_usage": None,
                 "elapsed_ms": None,
+                "http_status": None,
+                "transport_status": None,
                 "error": None,
             }
         )
@@ -205,6 +207,8 @@ class CampaignBudget:
         entry = self._entries[-1]
         if metric is not None:
             entry["elapsed_ms"] = metric.elapsed_ms
+            entry["http_status"] = metric.http_status
+            entry["transport_status"] = metric.status
         valid = metric is not None and all(
             type(v) is int and v >= 0
             for v in (metric.input_tokens, metric.output_tokens, metric.total_tokens)
