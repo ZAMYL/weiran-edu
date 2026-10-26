@@ -340,8 +340,10 @@ try {
   await shot('group-chart');
   checkpoint = 'from real discovery into scoped explorer';
   await drawers().first().getByRole('button', { name: '按发现条件探索', exact: true }).click();
-  await page.locator('.match-summary')
-    .filter({ hasText: `${groupChart.metrics.target_count} / 53` }).waitFor();
+  await page
+    .locator('.match-summary')
+    .filter({ hasText: `${groupChart.metrics.target_count} / 53` })
+    .waitFor();
   await page.getByRole('button', { name: '重置', exact: true }).click();
   const allAgain = nextResponse('/discoveries/query');
   await navigation('学情洞察');
@@ -350,8 +352,10 @@ try {
 
   checkpoint = 'same live session review and reporting after verified discovery';
   const savedResponse = waitResponse(
-    (r) => r.url().endsWith('/analysis-results') &&
-      r.request().method() === 'POST' && r.status() === 201,
+    (r) =>
+      r.url().endsWith('/analysis-results') &&
+      r.request().method() === 'POST' &&
+      r.status() === 201,
   );
   await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
   await page.getByLabel('分析名称', { exact: true }).fill('合成发现与报告联合验收');
@@ -359,13 +363,18 @@ try {
   const saved = await (await savedResponse).json();
   assert.equal(saved.analysis.matched_count, 53);
   assert.equal(saved.batch_id, wide.batchId);
-  assert.ok(saved.findings.length > 0, '53-person fixture needs reviewable legacy insight candidates');
+  assert.ok(
+    saved.findings.length > 0,
+    '53-person fixture needs reviewable legacy insight candidates',
+  );
   const reviewDrawer = page.getByRole('dialog', { name: '分析核验', exact: true });
   await reviewDrawer.locator('.review-finding').first().waitFor();
   await reviewDrawer.locator('.review-finding').first().getByText('确认', { exact: true }).click();
   const reviewResponse = waitResponse(
-    (r) => r.url().includes('/analysis-results/') &&
-      r.request().method() === 'PATCH' && r.status() === 200,
+    (r) =>
+      r.url().includes('/analysis-results/') &&
+      r.request().method() === 'PATCH' &&
+      r.status() === 200,
   );
   await reviewDrawer.getByRole('button', { name: '保存核验结果', exact: true }).click();
   const reviewed = await (await reviewResponse).json();
