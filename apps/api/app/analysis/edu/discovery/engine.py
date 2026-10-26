@@ -10,7 +10,7 @@ from itertools import combinations
 from math import ceil
 from statistics import median
 
-from ..correlation import spearman_correlations
+from ..correlation import dimension_pair, spearman_correlations
 from ..engine import cohort, dimension_stats, select_students, summarize
 from ..models import (
     AnalysisInputError,
@@ -18,6 +18,7 @@ from ..models import (
     Dataset,
     Dimension,
     Operator,
+    PairCorrelation,
     Scope,
     ScoreState,
     Summary,
@@ -201,6 +202,381 @@ def _status(ranking: Ranking, policy: Policy) -> Status:
     )
 
 
+class TargetedDiscovery:
+    """Shared discovery assessor. Construction calculates no statistics or candidates."""
+
+    def __init__(
+        self,
+        dataset: Dataset,
+        *,
+        batch_id: str,
+        snapshot_id: str,
+        student_ids: tuple[str, ...] | None = None,
+        policy: Policy = DEFAULT_POLICY,
+    ) -> None:
+        require_id(snapshot_id)
+        scope, records = _scope(dataset, batch_id, student_ids, policy)
+        self.dataset, self.policy, self.scope, self.records = dataset, policy, scope, records
+        self.context = Context(batch_id, snapshot_id, scope)
+        self.folds = tuple(
+            tuple(r.reference.student_id for i, r in enumerate(records) if i % 3 != f)
+            for f in range(3)
+        )
+
+        # Hash only normalized values/states, never raw invalid text or comments.
+        self.fingerprint = hashlib.sha256(
+            json.dumps(
+                {
+                    "version": VERSION,
+                    "snapshot": snapshot_id,
+                    "batch": batch_id,
+                    "policy": asdict(policy),
+                    "records": [
+                        (asdict(r.reference), [(s.state.value, s.value) for s in r.scores])
+                        for r in records
+                    ],
+                },
+                default=str,
+                sort_keys=True,
+                ensure_ascii=True,
+            ).encode()
+        ).hexdigest()
+
+    def make(
+        self,
+        kind: DiscoveryType,
+        descriptor: str | int,
+        title: str,
+        text: str,
+        payload: Payload,
+        ranking: Ranking,
+        source_sets: Sequence[SourceSet],
+        limits: Sequence[str] = (),
+    ) -> Discovery:
+        identity = hashlib.sha256(f"{self.fingerprint}:{kind}:{descriptor}".encode()).hexdigest()[
+            :24
+        ]
+        return Discovery(
+            identity,
+            kind,
+            self.context,
+            title,
+            text,
+            payload,
+            ranking,
+            "interpret_cautiously"
+            if kind in ("rare_combination", "boundary_sensitivity")
+            else _status(ranking, self.policy),
+            tuple(source_sets),
+            COMMON_LIMITS + tuple(limits),
+            self.policy,
+        )
+
+    def pair(
+        self, left: Dimension, right: Dimension, student_ids: tuple[str, ...] | None = None
+    ) -> PairCorrelation:
+        return dimension_pair(
+            self.dataset,
+            batch_id=self.scope.batch_id,
+            left=left,
+            right=right,
+            student_ids=self.scope.student_ids if student_ids is None else student_ids,
+            minimum_pairs=self.policy.minimum_samples,
+        )
+
+    def relation(
+        self, left: Dimension, right: Dimension
+    ) -> tuple[PairCorrelation, Discovery | None]:
+        pair = self.pair(left, right)
+        coefficients = [self.pair(left, right, ids).coefficient for ids in self.folds]
+        return pair, _relation(self, pair, coefficients)
+
+    def group(
+        self, conditions: tuple[Condition, ...], outcomes: tuple[Dimension, ...]
+    ) -> tuple[GroupComparison, tuple[Discovery, ...]]:
+        if (
+            not outcomes
+            or len(set(outcomes)) != len(outcomes)
+            or any(
+                not isinstance(d, Dimension) or d in {c.dimension for c in conditions}
+                for d in outcomes
+            )
+        ):
+            raise AnalysisInputError("non_condition_outcomes_required")
+        comparison = compare_groups(
+            self.dataset,
+            batch_id=self.scope.batch_id,
+            student_ids=self.scope.student_ids,
+            conditions=conditions,
+            policy=self.policy,
+        )
+        findings, _ = _groups(self, comparison, set(), outcomes)
+        return comparison, tuple(findings)
+
+    def rare(
+        self, left: Dimension, right: Dimension
+    ) -> tuple[PairCorrelation, tuple[Discovery, ...]]:
+        pair = self.pair(left, right)
+        return pair, tuple(_rare(self, pair))
+
+    def boundary(self, request: BoundaryRequest) -> tuple[BoundaryComparison, Discovery | None]:
+        result = compare_boundary(
+            self.dataset,
+            batch_id=self.scope.batch_id,
+            student_ids=self.scope.student_ids,
+            request=request,
+            policy=self.policy,
+        )
+        return result, _boundary(self, result, request)
+
+
+def _collector(builder):
+    findings = []
+
+    def emit(*args, **kwargs):
+        findings.append(builder.make(*args, **kwargs))
+
+    return findings, emit
+
+
+def _relation(builder, pair, coefficients):
+    policy, scope = builder.policy, builder.scope
+    findings, emit = _collector(builder)
+    rho = pair.coefficient
+    if rho is None or abs(rho) < policy.correlation_threshold:
+        return None
+    evaluated = [value for value in coefficients if value is not None]
+    robust = Robustness(
+        "three_fixed_deletions",
+        3,
+        len(evaluated),
+        sum(value * rho > 0 and abs(value) >= policy.correlation_threshold for value in evaluated),
+    )
+    refs = tuple(o.reference for o in pair.observations)
+    rank = _ranking(
+        Fraction(str(abs(rho))),
+        pair.paired_count,
+        scope.student_count,
+        pair.paired_count,
+        robust,
+        policy,
+    )
+    emit(
+        "dimension_relation",
+        tuple(combinations(Dimension, 2)).index((pair.left, pair.right)),
+        f"{pair.left.value}与{pair.right.value}的评分关系",
+        f"成对有效记录{pair.paired_count}条，排除{len(pair.excluded_records)}条；"
+        f"Spearman={rho:.6g}，相关不代表因果。",
+        pair,
+        rank,
+        [SourceSet("paired_scores", (pair.left, pair.right), refs)],
+        ["并列评分使用平均秩；删组检查受规范学生顺序影响。"],
+    )
+    return findings[0]
+
+
+def _groups(builder, comparison, seen, outcomes=None):
+    policy, scope, records, folds = builder.policy, builder.scope, builder.records, builder.folds
+    conditions = comparison.selection.conditions
+    findings, emit = _collector(builder)
+    target = comparison.selection.matches
+    rest = comparison.remainder
+    eligible = [
+        d
+        for d in comparison.dimensions
+        if (outcomes is None or d.dimension in outcomes)
+        and not d.condition_defined
+        and min(d.target.valid_count, d.remainder.valid_count) >= policy.minimum_samples
+        and d.difference is not None
+        and abs(d.difference) >= policy.mean_difference
+    ]
+    if not eligible:
+        return findings, "insufficient_support_or_effect"
+    target_set, rest_set = set(target), set(rest)
+    partition = frozenset((frozenset(target), frozenset(rest)))
+    filter_dimensions = frozenset(c.dimension for c in conditions)
+    source_sets = [
+        SourceSet("target_members", tuple(c.dimension for c in conditions), target),
+        SourceSet("remainder_members", tuple(c.dimension for c in conditions), rest),
+    ]
+    for d in comparison.dimensions:
+        for group, stats in (("target", d.target), ("remainder", d.remainder)):
+            key = f"{group}.{d.dimension.name}"
+            source_sets.append(SourceSet(key, (d.dimension,), stats.valid_records))
+    emitted = False
+    for outcome in eligible:
+        # Complementary orientations represent the same comparison, but a different
+        # filter or outcome dimension changes its meaning even for identical members.
+        identity = (partition, filter_dimensions, outcome.dimension)
+        if identity in seen:
+            continue
+        evaluated = passed = 0
+        for ids in folds:
+            allowed = set(ids)
+            a = dimension_stats(
+                tuple(
+                    r
+                    for r in records
+                    if r.reference in target_set and r.reference.student_id in allowed
+                ),
+                outcome.dimension,
+            )
+            b = dimension_stats(
+                tuple(
+                    r
+                    for r in records
+                    if r.reference in rest_set and r.reference.student_id in allowed
+                ),
+                outcome.dimension,
+            )
+            if min(a.valid_count, b.valid_count) >= policy.minimum_samples:
+                evaluated += 1
+                delta = a.mean - b.mean
+                passed += delta * outcome.difference > 0 and abs(delta) >= policy.mean_difference
+        rank = _ranking(
+            abs(outcome.difference) / 4,
+            min(outcome.target.valid_count, outcome.remainder.valid_count),
+            scope.student_count,
+            outcome.target.valid_count + outcome.remainder.valid_count,
+            Robustness("three_fixed_deletions", 3, evaluated, passed),
+            policy,
+        )
+        emit(
+            "group_difference",
+            f"{conditions}:{outcome.dimension.name}",
+            f"互斥群体的{outcome.dimension.value}评分差异",
+            f"目标组{len(target)}人，余组{len(rest)}人；"
+            f"{outcome.dimension.value}有效均值差为{outcome.difference}分（目标减余组）。",
+            replace(comparison, outcome_dimension=outcome.dimension),
+            rank,
+            source_sets,
+            ["余组排除条件不可判定者；筛选维度差异属于条件定义，不作为新发现。"],
+        )
+        # Only a published, qualified outcome can reserve a semantic deduplication key.
+        seen.add(identity)
+        emitted = True
+    # One audit entry per attempted rule, including rejected and duplicate attempts.
+    return findings, "qualified" if emitted else "duplicate_partition"
+
+
+def _rare(builder, pair):
+    policy, scope = builder.policy, builder.scope
+    findings, emit = _collector(builder)
+    values = [o.left_score - o.right_score for o in pair.observations]
+    if len(values) < policy.minimum_samples:
+        return findings
+    q1, q3 = _quantile(values, Fraction(1, 4)), _quantile(values, Fraction(3, 4))
+    center, iqr = median(values), q3 - q1
+    lower, upper = q1 - Fraction(3, 2) * iqr, q3 + Fraction(3, 2) * iqr
+    for side in ("lower", "upper"):
+        observations = tuple(
+            o
+            for o in pair.observations
+            if (
+                (
+                    o.left_score - o.right_score < lower
+                    if side == "lower"
+                    else o.left_score - o.right_score > upper
+                )
+                and abs(o.left_score - o.right_score - center) >= policy.minimum_contrast
+            )
+        )
+        if not observations or Fraction(len(observations), len(values)) > policy.rare_share:
+            continue
+        outer = sum(
+            (
+                o.left_score - o.right_score < q1 - 3 * iqr
+                if side == "lower"
+                else o.left_score - o.right_score > q3 + 3 * iqr
+            )
+            for o in observations
+        )
+        refs = tuple(o.reference for o in observations)
+        rare = RareCombination(
+            pair.left,
+            pair.right,
+            len(values),
+            len(pair.excluded_records),
+            q1,
+            q3,
+            center,
+            lower,
+            upper,
+            side,
+            "individual_review"
+            if len(refs) == 1
+            else "small_group_review"
+            if len(refs) < policy.minimum_samples
+            else "group_pattern",
+            tuple(sorted(Counter(values).items())),
+            refs,
+            tuple(o.reference for o in pair.observations),
+        )
+        rank = _ranking(
+            max(abs(o.left_score - o.right_score - center) for o in observations) / 8,
+            len(refs),
+            scope.student_count,
+            len(values),
+            Robustness("three_iqr_outer_fence", len(refs), len(refs), outer),
+            policy,
+        )
+        emit(
+            "rare_combination",
+            f"{pair.left.name}:{pair.right.name}:{side}",
+            "少见评分组合，待教师复核",
+            f"{pair.left.value}减{pair.right.value}的评分差：{len(refs)}/{len(values)}条"
+            "位于探索围栏之外，不代表能力缺陷或评分错误。",
+            rare,
+            rank,
+            [
+                SourceSet("rare_members", (pair.left, pair.right), refs),
+                SourceSet(
+                    "pair_reference",
+                    (pair.left, pair.right),
+                    tuple(o.reference for o in pair.observations),
+                ),
+            ],
+            [
+                "差值围栏是探索启发式，不同维度分差不等价于能力差。",
+                "IQR 为零时最小分差约束仍生效。",
+            ],
+        )
+    return findings
+
+
+def _boundary(builder, result, request):
+    policy, scope = builder.policy, builder.scope
+    findings, emit = _collector(builder)
+    if not result.observed_boundary or not result.added:
+        return None
+    eligible = result.strict.eligible_count
+    rank = _ranking(
+        Fraction(len(result.added), eligible),
+        eligible,
+        scope.student_count,
+        eligible,
+        Robustness("exact_boundary_membership", 1, 1, 1),
+        policy,
+    )
+    dims = tuple(c.dimension for c in request.conditions)
+    emit(
+        "boundary_sensitivity",
+        str(request),
+        "筛选边界的成员变化",
+        f"同一边界从 < 改为 ≤，命中人数由{len(result.strict.matches)}变为"
+        f"{len(result.inclusive.matches)}，新增{len(result.added)}人；不改变任何分数。",
+        result,
+        rank,
+        [
+            SourceSet("strict_members", dims, result.strict.matches),
+            SourceSet("inclusive_members", dims, result.inclusive.matches),
+            SourceSet("added_members", dims, result.added),
+        ],
+        ["边界变化是筛选定义的机械结果，不是新增教学诊断。"],
+    )
+    return findings[0]
+
+
 def discover(
     dataset: Dataset,
     *,
@@ -210,11 +586,12 @@ def discover(
     policy: Policy = DEFAULT_POLICY,
     boundaries: tuple[BoundaryRequest, ...] = (),
 ) -> DiscoveryResult:
-    require_id(snapshot_id)
-    scope, records = _scope(dataset, batch_id, student_ids, policy)
+    builder = TargetedDiscovery(
+        dataset, batch_id=batch_id, snapshot_id=snapshot_id, student_ids=student_ids, policy=policy
+    )
+    scope = builder.scope
     if len(boundaries) > 20:
         raise AnalysisInputError("boundary_budget_exceeded")
-    context = Context(batch_id, snapshot_id, scope)
     summary = summarize(dataset, batch_id=batch_id, student_ids=scope.student_ids)
     correlations = spearman_correlations(
         dataset,
@@ -222,105 +599,17 @@ def discover(
         student_ids=scope.student_ids,
         minimum_pairs=policy.minimum_samples,
     )
-    # Hash only normalized values/states, never raw invalid text or comments.
-    fingerprint = hashlib.sha256(
-        json.dumps(
-            {
-                "version": VERSION,
-                "snapshot": snapshot_id,
-                "batch": batch_id,
-                "policy": asdict(policy),
-                "records": [
-                    (asdict(r.reference), [(s.state.value, s.value) for s in r.scores])
-                    for r in records
-                ],
-            },
-            default=str,
-            sort_keys=True,
-            ensure_ascii=True,
-        ).encode()
-    ).hexdigest()
-    findings = []
-
-    def emit(
-        kind: DiscoveryType,
-        descriptor: str | int,
-        title: str,
-        text: str,
-        payload: Payload,
-        ranking: Ranking,
-        source_sets: Sequence[SourceSet],
-        limits: Sequence[str] = (),
-    ) -> None:
-        identity = hashlib.sha256(f"{fingerprint}:{kind}:{descriptor}".encode()).hexdigest()[:24]
-        findings.append(
-            Discovery(
-                identity,
-                kind,
-                context,
-                title,
-                text,
-                payload,
-                ranking,
-                "interpret_cautiously"
-                if kind in ("rare_combination", "boundary_sensitivity")
-                else _status(ranking, policy),
-                tuple(source_sets),
-                COMMON_LIMITS + tuple(limits),
-                policy,
-            )
-        )
-
-    # Fixed deletion folds are diagnostics, not confidence intervals or random samples.
-    folds = tuple(
-        tuple(r.reference.student_id for i, r in enumerate(records) if i % 3 != f) for f in range(3)
-    )
     folded_pairs = tuple(
         spearman_correlations(
-            dataset,
-            batch_id=batch_id,
-            student_ids=ids,
-            minimum_pairs=policy.minimum_samples,
+            dataset, batch_id=batch_id, student_ids=ids, minimum_pairs=policy.minimum_samples
         ).pairs
-        for ids in folds
+        for ids in builder.folds
     )
+    findings = []
     for index, pair in enumerate(correlations.pairs):
-        rho = pair.coefficient
-        if rho is None or abs(rho) < policy.correlation_threshold:
-            continue
-        evaluated = [
-            fold[index].coefficient for fold in folded_pairs if fold[index].coefficient is not None
-        ]
-        robust = Robustness(
-            "three_fixed_deletions",
-            3,
-            len(evaluated),
-            sum(
-                value * rho > 0 and abs(value) >= policy.correlation_threshold
-                for value in evaluated
-            ),
-        )
-        refs = tuple(o.reference for o in pair.observations)
-        rank = _ranking(
-            Fraction(str(abs(rho))),
-            pair.paired_count,
-            scope.student_count,
-            pair.paired_count,
-            robust,
-            policy,
-        )
-        emit(
-            "dimension_relation",
-            index,
-            f"{pair.left.value}与{pair.right.value}的评分关系",
-            f"成对有效记录{pair.paired_count}条，排除{len(pair.excluded_records)}条；"
-            f"Spearman={rho:.6g}，相关不代表因果。",
-            pair,
-            rank,
-            [SourceSet("paired_scores", (pair.left, pair.right), refs)],
-            ["并列评分使用平均秩；删组检查受规范学生顺序影响。"],
-        )
-
+        result = _relation(builder, pair, [fold[index].coefficient for fold in folded_pairs])
+        if result is not None:
+            findings.append(result)
     audit = []
     seen = set()
     for conditions in _rules(summary)[: policy.search_budget]:
@@ -331,168 +620,11 @@ def discover(
             conditions=conditions,
             policy=policy,
         )
-        target = comparison.selection.matches
-        rest = comparison.remainder
-        eligible = [
-            d
-            for d in comparison.dimensions
-            if not d.condition_defined
-            and min(d.target.valid_count, d.remainder.valid_count) >= policy.minimum_samples
-            and d.difference is not None
-            and abs(d.difference) >= policy.mean_difference
-        ]
-        if not eligible:
-            audit.append(SearchAttempt(conditions, "insufficient_support_or_effect"))
-            continue
-        target_set, rest_set = set(target), set(rest)
-        partition = frozenset((frozenset(target), frozenset(rest)))
-        filter_dimensions = frozenset(c.dimension for c in conditions)
-        source_sets = [
-            SourceSet("target_members", tuple(c.dimension for c in conditions), target),
-            SourceSet("remainder_members", tuple(c.dimension for c in conditions), rest),
-        ]
-        for d in comparison.dimensions:
-            for group, stats in (("target", d.target), ("remainder", d.remainder)):
-                key = f"{group}.{d.dimension.name}"
-                source_sets.append(SourceSet(key, (d.dimension,), stats.valid_records))
-        emitted = False
-        for outcome in eligible:
-            # Complementary orientations represent the same comparison, but a different
-            # filter or outcome dimension changes its meaning even for identical members.
-            identity = (partition, filter_dimensions, outcome.dimension)
-            if identity in seen:
-                continue
-            evaluated = passed = 0
-            for ids in folds:
-                allowed = set(ids)
-                a = dimension_stats(
-                    tuple(
-                        r
-                        for r in records
-                        if r.reference in target_set and r.reference.student_id in allowed
-                    ),
-                    outcome.dimension,
-                )
-                b = dimension_stats(
-                    tuple(
-                        r
-                        for r in records
-                        if r.reference in rest_set and r.reference.student_id in allowed
-                    ),
-                    outcome.dimension,
-                )
-                if min(a.valid_count, b.valid_count) >= policy.minimum_samples:
-                    evaluated += 1
-                    delta = a.mean - b.mean
-                    passed += (
-                        delta * outcome.difference > 0 and abs(delta) >= policy.mean_difference
-                    )
-            rank = _ranking(
-                abs(outcome.difference) / 4,
-                min(outcome.target.valid_count, outcome.remainder.valid_count),
-                scope.student_count,
-                outcome.target.valid_count + outcome.remainder.valid_count,
-                Robustness("three_fixed_deletions", 3, evaluated, passed),
-                policy,
-            )
-            emit(
-                "group_difference",
-                f"{conditions}:{outcome.dimension.name}",
-                f"互斥群体的{outcome.dimension.value}评分差异",
-                f"目标组{len(target)}人，余组{len(rest)}人；"
-                f"{outcome.dimension.value}有效均值差为{outcome.difference}分（目标减余组）。",
-                replace(comparison, outcome_dimension=outcome.dimension),
-                rank,
-                source_sets,
-                ["余组排除条件不可判定者；筛选维度差异属于条件定义，不作为新发现。"],
-            )
-            # Only a published, qualified outcome can reserve a semantic deduplication key.
-            seen.add(identity)
-            emitted = True
-        # One audit entry per attempted rule, including rejected and duplicate attempts.
-        audit.append(SearchAttempt(conditions, "qualified" if emitted else "duplicate_partition"))
-
+        created, outcome = _groups(builder, comparison, seen)
+        findings.extend(created)
+        audit.append(SearchAttempt(conditions, outcome))
     for pair in correlations.pairs:
-        values = [o.left_score - o.right_score for o in pair.observations]
-        if len(values) < policy.minimum_samples:
-            continue
-        q1, q3 = _quantile(values, Fraction(1, 4)), _quantile(values, Fraction(3, 4))
-        center, iqr = median(values), q3 - q1
-        lower, upper = q1 - Fraction(3, 2) * iqr, q3 + Fraction(3, 2) * iqr
-        for side in ("lower", "upper"):
-            observations = tuple(
-                o
-                for o in pair.observations
-                if (
-                    (
-                        o.left_score - o.right_score < lower
-                        if side == "lower"
-                        else o.left_score - o.right_score > upper
-                    )
-                    and abs(o.left_score - o.right_score - center) >= policy.minimum_contrast
-                )
-            )
-            if not observations or Fraction(len(observations), len(values)) > policy.rare_share:
-                continue
-            outer = sum(
-                (
-                    o.left_score - o.right_score < q1 - 3 * iqr
-                    if side == "lower"
-                    else o.left_score - o.right_score > q3 + 3 * iqr
-                )
-                for o in observations
-            )
-            refs = tuple(o.reference for o in observations)
-            rare = RareCombination(
-                pair.left,
-                pair.right,
-                len(values),
-                len(pair.excluded_records),
-                q1,
-                q3,
-                center,
-                lower,
-                upper,
-                side,
-                "individual_review"
-                if len(refs) == 1
-                else "small_group_review"
-                if len(refs) < policy.minimum_samples
-                else "group_pattern",
-                tuple(sorted(Counter(values).items())),
-                refs,
-                tuple(o.reference for o in pair.observations),
-            )
-            rank = _ranking(
-                max(abs(o.left_score - o.right_score - center) for o in observations) / 8,
-                len(refs),
-                scope.student_count,
-                len(values),
-                Robustness("three_iqr_outer_fence", len(refs), len(refs), outer),
-                policy,
-            )
-            emit(
-                "rare_combination",
-                f"{pair.left.name}:{pair.right.name}:{side}",
-                "少见评分组合，待教师复核",
-                f"{pair.left.value}减{pair.right.value}的评分差：{len(refs)}/{len(values)}条"
-                "位于探索围栏之外，不代表能力缺陷或评分错误。",
-                rare,
-                rank,
-                [
-                    SourceSet("rare_members", (pair.left, pair.right), refs),
-                    SourceSet(
-                        "pair_reference",
-                        (pair.left, pair.right),
-                        tuple(o.reference for o in pair.observations),
-                    ),
-                ],
-                [
-                    "差值围栏是探索启发式，不同维度分差不等价于能力差。",
-                    "IQR 为零时最小分差约束仍生效。",
-                ],
-            )
-
+        findings.extend(_rare(builder, pair))
     for request in boundaries:
         result = compare_boundary(
             dataset,
@@ -501,36 +633,12 @@ def discover(
             request=request,
             policy=policy,
         )
-        if not result.observed_boundary or not result.added:
-            continue
-        eligible = result.strict.eligible_count
-        rank = _ranking(
-            Fraction(len(result.added), eligible),
-            eligible,
-            scope.student_count,
-            eligible,
-            Robustness("exact_boundary_membership", 1, 1, 1),
-            policy,
-        )
-        dims = tuple(c.dimension for c in request.conditions)
-        emit(
-            "boundary_sensitivity",
-            str(request),
-            "筛选边界的成员变化",
-            f"同一边界从 < 改为 ≤，命中人数由{len(result.strict.matches)}变为"
-            f"{len(result.inclusive.matches)}，新增{len(result.added)}人；不改变任何分数。",
-            result,
-            rank,
-            [
-                SourceSet("strict_members", dims, result.strict.matches),
-                SourceSet("inclusive_members", dims, result.inclusive.matches),
-                SourceSet("added_members", dims, result.added),
-            ],
-            ["边界变化是筛选定义的机械结果，不是新增教学诊断。"],
-        )
+        finding = _boundary(builder, result, request)
+        if finding is not None:
+            findings.append(finding)
     findings.sort(key=lambda d: (-d.ranking.score, d.type, d.discovery_id))
     return DiscoveryResult(
-        context,
+        builder.context,
         tuple(findings[: policy.maximum_findings]),
         correlations,
         tuple(audit),

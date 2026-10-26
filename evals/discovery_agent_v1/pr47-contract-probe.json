@@ -1,0 +1,283 @@
+{
+  "kind": "readonly_contract_and_claim_probe_not_formal_evaluate",
+  "pr47_head": "91463121db520237301c317589e619b35e9eac37",
+  "source": "PR #47 contracts/cases/grade_claim read only; no answer files modified",
+  "measurement_origin": "offline_mechanism",
+  "formal_evaluate": "not_run: summary/support Claim and full trace grading require follow-up integration",
+  "cases": [
+    {
+      "case": "correlation-positive-17",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "correlation-negative-17",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "correlation-zero-20",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "group-17",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "group-53",
+      "status": "completed",
+      "reason": "completed",
+      "model_requests": 5,
+      "claim_count": 2,
+      "claims": [
+        {
+          "data_correct": true,
+          "references_correct": true,
+          "qualified": true,
+          "errors": []
+        },
+        {
+          "data_correct": true,
+          "references_correct": true,
+          "qualified": true,
+          "errors": []
+        }
+      ],
+      "operation_counts": {
+        "app/analysis/edu/discovery/engine.py:compare_groups": 1,
+        "app/analysis/edu/correlation.py:_pair": 4,
+        "app/analysis/edu/engine.py:dimension_stats": 21,
+        "app/analysis/edu/correlation.py:average_ranks": 8,
+        "app/analysis/edu/engine.py:select_students": 1,
+        "app/analysis/edu/engine.py:summarize": 1
+      },
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "group-105",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "dedup-20",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "boundary-53",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "rare-17",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "rare-105",
+      "status": "completed",
+      "reason": "completed",
+      "model_requests": 5,
+      "claim_count": 2,
+      "claims": [
+        {
+          "data_correct": true,
+          "references_correct": true,
+          "qualified": true,
+          "errors": []
+        },
+        {
+          "data_correct": true,
+          "references_correct": true,
+          "qualified": true,
+          "errors": []
+        }
+      ],
+      "operation_counts": {
+        "app/analysis/edu/discovery/engine.py:compare_groups": 1,
+        "app/analysis/edu/correlation.py:_pair": 4,
+        "app/analysis/edu/engine.py:dimension_stats": 21,
+        "app/analysis/edu/correlation.py:average_ranks": 8,
+        "app/analysis/edu/engine.py:select_students": 1,
+        "app/analysis/edu/engine.py:summarize": 1
+      },
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "constant-53",
+      "status": "no_valid_findings",
+      "reason": "no_valid_findings",
+      "model_requests": 2,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {
+        "app/analysis/edu/engine.py:dimension_stats": 5,
+        "app/analysis/edu/engine.py:summarize": 1
+      },
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "missing-invalid-17",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "missing-group-53",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "scope-attacks-17",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "constant-scale-0",
+      "status": "insufficient_data",
+      "reason": "insufficient_data",
+      "model_requests": 2,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {
+        "app/analysis/edu/engine.py:dimension_stats": 5,
+        "app/analysis/edu/engine.py:summarize": 1
+      },
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "constant-scale-1",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "constant-scale-320",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "constant-scale-2000",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    {
+      "case": "and-interaction-53",
+      "status": "not_run",
+      "reason": "unregistered_synthetic_recipe",
+      "model_requests": 0,
+      "claim_count": 0,
+      "claims": [],
+      "operation_counts": {},
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    }
+  ]
+}

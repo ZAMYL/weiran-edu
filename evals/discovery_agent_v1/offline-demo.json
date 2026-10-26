@@ -1,0 +1,1203 @@
+{
+  "schema": "edu-discovery-runtime-demo-v1",
+  "disclaimer": "Offline Fake/Mock mechanism only; not Qwen quality, no paid requests, no teacher data.",
+  "runs": [
+    {
+      "case": "coupled53",
+      "transport": "httpx.MockTransport",
+      "run": {
+        "run_id": "run-098daa53d4494de0",
+        "status": "completed",
+        "reason": "completed",
+        "model_requests": 5,
+        "tool_attempts": 4,
+        "elapsed_seconds": 0.20161170000210404,
+        "measurement_origin": "offline_mechanism",
+        "input_tokens": null,
+        "output_tokens": null,
+        "cost": null,
+        "tool_sequence": [
+          {
+            "attempt": 1,
+            "tool": "get_dimension_statistics",
+            "status": "accepted",
+            "fact_ids": [
+              "run-098daa53d4494de0-f001"
+            ],
+            "error": null,
+            "arguments": {}
+          },
+          {
+            "attempt": 2,
+            "tool": "query_dimension_relation",
+            "status": "accepted",
+            "fact_ids": [
+              "run-098daa53d4494de0-f002"
+            ],
+            "error": null,
+            "arguments": {
+              "left": "ALGORITHMS",
+              "right": "IMPLEMENTATION"
+            }
+          },
+          {
+            "attempt": 3,
+            "tool": "compare_student_groups",
+            "status": "accepted",
+            "fact_ids": [
+              "run-098daa53d4494de0-f003"
+            ],
+            "error": null,
+            "arguments": {
+              "conditions": [
+                {
+                  "dimension": "ALGORITHMS",
+                  "operator": "<=",
+                  "threshold": "1"
+                }
+              ],
+              "outcomes": [
+                "IMPLEMENTATION"
+              ]
+            }
+          },
+          {
+            "attempt": 4,
+            "tool": "inspect_discovery_support",
+            "status": "accepted",
+            "fact_ids": [
+              "run-098daa53d4494de0-f004"
+            ],
+            "error": null,
+            "arguments": {
+              "fact_id": "run-098daa53d4494de0-f003"
+            }
+          }
+        ],
+        "facts": [
+          {
+            "fact_id": "run-098daa53d4494de0-f001",
+            "qualified": false,
+            "state": "available",
+            "student_denominator": 53,
+            "dimensions": [
+              {
+                "dimension": "ALGORITHMS",
+                "state": "available",
+                "valid_count": 53,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": true,
+                "exploration_thresholds": [
+                  "1",
+                  "5"
+                ],
+                "mean": {
+                  "numerator": 161,
+                  "denominator": 53,
+                  "display": "3.0377"
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1,
+                  "display": "5.0000"
+                }
+              },
+              {
+                "dimension": "IMPLEMENTATION",
+                "state": "available",
+                "valid_count": 53,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": true,
+                "exploration_thresholds": [
+                  "1",
+                  "5"
+                ],
+                "mean": {
+                  "numerator": 157,
+                  "denominator": 53,
+                  "display": "2.9623"
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                }
+              },
+              {
+                "dimension": "MODELING",
+                "state": "available",
+                "valid_count": 53,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              },
+              {
+                "dimension": "EFFICIENCY",
+                "state": "available",
+                "valid_count": 53,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              },
+              {
+                "dimension": "STRATEGY",
+                "state": "available",
+                "valid_count": 53,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              }
+            ]
+          },
+          {
+            "fact_id": "run-098daa53d4494de0-f002",
+            "qualified": true,
+            "state": "computable",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "rho": -1.0,
+            "paired_count": 53,
+            "excluded_count": 0,
+            "student_denominator": 53,
+            "card": {
+              "type": "dimension_relation",
+              "status": "displayable",
+              "rule_version": "edu-discovery-0.1.1-draft",
+              "metrics": {
+                "left": "ALGORITHMS",
+                "right": "IMPLEMENTATION",
+                "rho": {
+                  "value": -1.0,
+                  "method": "stdlib_float"
+                },
+                "paired_count": 53,
+                "excluded_count": 0,
+                "student_denominator": 53
+              },
+              "conditions": [],
+              "ranking": {
+                "score": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "support_count": 53,
+                "completeness": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "robustness": {
+                  "method": "three_fixed_deletions",
+                  "planned": 3,
+                  "evaluated": 3,
+                  "passed": 3,
+                  "value": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  }
+                },
+                "is_statistical_confidence": false
+              },
+              "limitation_codes": [
+                "exploratory_not_causal",
+                "ranking_not_statistical_confidence",
+                "synthetic_only_no_teacher_authorization"
+              ]
+            }
+          },
+          {
+            "fact_id": "run-098daa53d4494de0-f003",
+            "qualified": true,
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "student_denominator": 53,
+            "eligible_denominator": 53,
+            "differences": [
+              {
+                "dimension": "IMPLEMENTATION",
+                "target_valid": 26,
+                "remainder_valid": 27,
+                "target_mean": {
+                  "numerator": 5,
+                  "denominator": 1,
+                  "display": "5.0000"
+                },
+                "remainder_mean": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "difference": {
+                  "numerator": 4,
+                  "denominator": 1,
+                  "display": "4.0000"
+                }
+              }
+            ],
+            "card": {
+              "type": "group_difference",
+              "status": "displayable",
+              "rule_version": "edu-discovery-0.1.1-draft",
+              "metrics": {
+                "outcome_dimension": "IMPLEMENTATION",
+                "target_count": 26,
+                "remainder_count": 27,
+                "unevaluable_count": 0,
+                "student_denominator": 53,
+                "eligible_denominator": 53,
+                "share_total": {
+                  "numerator": 26,
+                  "denominator": 53,
+                  "display": "0.4906"
+                },
+                "share_eligible": {
+                  "numerator": 26,
+                  "denominator": 53,
+                  "display": "0.4906"
+                },
+                "target_valid": 26,
+                "remainder_valid": 27,
+                "target_mean": {
+                  "numerator": 5,
+                  "denominator": 1,
+                  "display": "5.0000"
+                },
+                "remainder_mean": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "difference": {
+                  "numerator": 4,
+                  "denominator": 1,
+                  "display": "4.0000"
+                }
+              },
+              "conditions": [
+                {
+                  "dimension": "ALGORITHMS",
+                  "operator": "<=",
+                  "threshold": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  }
+                }
+              ],
+              "ranking": {
+                "score": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "support_count": 26,
+                "completeness": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "robustness": {
+                  "method": "three_fixed_deletions",
+                  "planned": 3,
+                  "evaluated": 3,
+                  "passed": 3,
+                  "value": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  }
+                },
+                "is_statistical_confidence": false
+              },
+              "limitation_codes": [
+                "exploratory_not_causal",
+                "ranking_not_statistical_confidence",
+                "synthetic_only_no_teacher_authorization"
+              ]
+            }
+          },
+          {
+            "fact_id": "run-098daa53d4494de0-f004",
+            "qualified": false,
+            "checked_fact_id": "run-098daa53d4494de0-f003",
+            "qualification": "qualified",
+            "status": "displayable",
+            "ranking": {
+              "support_count": 26,
+              "is_statistical_confidence": false,
+              "score": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "completeness": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "robustness": {
+                "method": "three_fixed_deletions",
+                "planned": 3,
+                "evaluated": 3,
+                "passed": 3,
+                "value": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                }
+              }
+            }
+          }
+        ],
+        "trace": [
+          {
+            "sequence": 1,
+            "round": 1,
+            "phase": "planning",
+            "status": "requested",
+            "tool": null,
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 2,
+            "round": 1,
+            "phase": "model_selection",
+            "status": "accepted",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 3,
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 4,
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "computed",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 5,
+            "round": 1,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [
+              "run-098daa53d4494de0-f001"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 6,
+            "round": 2,
+            "phase": "planning",
+            "status": "requested",
+            "tool": null,
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 7,
+            "round": 2,
+            "phase": "model_selection",
+            "status": "accepted",
+            "tool": "query_dimension_relation",
+            "fact_ids": [
+              "run-098daa53d4494de0-f001"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 8,
+            "round": 2,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "tool": "query_dimension_relation",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 9,
+            "round": 2,
+            "phase": "tool_execution",
+            "status": "computed",
+            "tool": "query_dimension_relation",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 10,
+            "round": 2,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "tool": "query_dimension_relation",
+            "fact_ids": [
+              "run-098daa53d4494de0-f002"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 11,
+            "round": 3,
+            "phase": "planning",
+            "status": "requested",
+            "tool": null,
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 12,
+            "round": 3,
+            "phase": "model_selection",
+            "status": "accepted",
+            "tool": "compare_student_groups",
+            "fact_ids": [
+              "run-098daa53d4494de0-f002"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 13,
+            "round": 3,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "tool": "compare_student_groups",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 14,
+            "round": 3,
+            "phase": "tool_execution",
+            "status": "computed",
+            "tool": "compare_student_groups",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 15,
+            "round": 3,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "tool": "compare_student_groups",
+            "fact_ids": [
+              "run-098daa53d4494de0-f003"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 16,
+            "round": 4,
+            "phase": "planning",
+            "status": "requested",
+            "tool": null,
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 17,
+            "round": 4,
+            "phase": "model_selection",
+            "status": "accepted",
+            "tool": "inspect_discovery_support",
+            "fact_ids": [
+              "run-098daa53d4494de0-f003"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 18,
+            "round": 4,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "tool": "inspect_discovery_support",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 19,
+            "round": 4,
+            "phase": "tool_execution",
+            "status": "computed",
+            "tool": "inspect_discovery_support",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 20,
+            "round": 4,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "tool": "inspect_discovery_support",
+            "fact_ids": [
+              "run-098daa53d4494de0-f004"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 21,
+            "round": 5,
+            "phase": "planning",
+            "status": "requested",
+            "tool": null,
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 22,
+            "round": 5,
+            "phase": "model_selection",
+            "status": "accepted",
+            "tool": "finish",
+            "fact_ids": [
+              "run-098daa53d4494de0-f003"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 23,
+            "round": 5,
+            "phase": "final_selection",
+            "status": "accepted",
+            "tool": "finish",
+            "fact_ids": [
+              "run-098daa53d4494de0-f003"
+            ],
+            "error": null
+          }
+        ],
+        "cards": [
+          {
+            "discovery_id": "38fccb202e9c979ad3fb5952",
+            "type": "group_difference",
+            "batch_id": "synthetic-batch",
+            "snapshot_id": "synthetic-snapshot",
+            "title": "互斥群体的代码实现能力评分差异",
+            "summary": "目标组26人，余组27人；代码实现能力有效均值差为4分（目标减余组）。",
+            "status": "displayable",
+            "rule_version": "edu-discovery-0.1.1-draft",
+            "rule_id": "edu.discovery.group_difference",
+            "parameters": {
+              "minimum_samples": 5,
+              "support_target": 20,
+              "search_budget": 20,
+              "maximum_findings": 12,
+              "maximum_students": 5000,
+              "correlation_threshold": {
+                "numerator": 3,
+                "denominator": 5,
+                "display": "0.6000"
+              },
+              "mean_difference": {
+                "numerator": 1,
+                "denominator": 2,
+                "display": "0.5000"
+              },
+              "rare_share": {
+                "numerator": 1,
+                "denominator": 10,
+                "display": "0.1000"
+              },
+              "minimum_contrast": {
+                "numerator": 1,
+                "denominator": 2,
+                "display": "0.5000"
+              }
+            },
+            "metrics": {
+              "outcome_dimension": "IMPLEMENTATION",
+              "target_count": 26,
+              "remainder_count": 27,
+              "unevaluable_count": 0,
+              "student_denominator": 53,
+              "eligible_denominator": 53,
+              "share_total": {
+                "numerator": 26,
+                "denominator": 53,
+                "display": "0.4906"
+              },
+              "share_eligible": {
+                "numerator": 26,
+                "denominator": 53,
+                "display": "0.4906"
+              }
+            },
+            "chart": [
+              {
+                "dimension": "IMPLEMENTATION",
+                "target_mean": {
+                  "numerator": 5,
+                  "denominator": 1,
+                  "display": "5.0000"
+                },
+                "remainder_mean": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "difference": {
+                  "numerator": 4,
+                  "denominator": 1,
+                  "display": "4.0000"
+                },
+                "target_valid": 26,
+                "remainder_valid": 27
+              }
+            ],
+            "conditions": [
+              {
+                "dimension": "ALGORITHMS",
+                "operator": "<=",
+                "threshold": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                }
+              }
+            ],
+            "limitations": [
+              "探索结果不是因果结论或教学效果证明；排序分数不是统计置信度。",
+              "多重探索与评分/缺失偏差未经统计检验校正，需教师核查。",
+              "仅限获授权内部使用；小样本不宜公开展示，内部引用不是权限凭证。",
+              "余组排除条件不可判定者；筛选维度差异属于条件定义，不作为新发现。"
+            ],
+            "ranking": {
+              "score": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "effect": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "support_count": 26,
+              "support": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "completeness": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "robustness": {
+                "method": "three_fixed_deletions",
+                "planned": 3,
+                "evaluated": 3,
+                "passed": 3,
+                "value": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                }
+              },
+              "is_statistical_confidence": false
+            },
+            "public_display_allowed": false
+          }
+        ]
+      },
+      "http_metrics": [
+        {
+          "phase": "discovery",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 1,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "output_token_limit": 800
+        },
+        {
+          "phase": "discovery",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 1,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "output_token_limit": 800
+        },
+        {
+          "phase": "discovery",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 1,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "output_token_limit": 800
+        },
+        {
+          "phase": "discovery",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 1,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "output_token_limit": 800
+        },
+        {
+          "phase": "discovery",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 1,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "output_token_limit": 800
+        }
+      ]
+    },
+    {
+      "case": "constant17",
+      "transport": "httpx.MockTransport",
+      "run": {
+        "run_id": "run-95f5e62ded764ded",
+        "status": "completed",
+        "reason": "no_valid_findings",
+        "model_requests": 2,
+        "tool_attempts": 1,
+        "elapsed_seconds": 0.014198799966834486,
+        "measurement_origin": "offline_mechanism",
+        "input_tokens": null,
+        "output_tokens": null,
+        "cost": null,
+        "tool_sequence": [
+          {
+            "attempt": 1,
+            "tool": "get_dimension_statistics",
+            "status": "accepted",
+            "fact_ids": [
+              "run-95f5e62ded764ded-f001"
+            ],
+            "error": null,
+            "arguments": {}
+          }
+        ],
+        "facts": [
+          {
+            "fact_id": "run-95f5e62ded764ded-f001",
+            "qualified": false,
+            "state": "available",
+            "student_denominator": 17,
+            "dimensions": [
+              {
+                "dimension": "ALGORITHMS",
+                "state": "available",
+                "valid_count": 17,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              },
+              {
+                "dimension": "IMPLEMENTATION",
+                "state": "available",
+                "valid_count": 17,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              },
+              {
+                "dimension": "MODELING",
+                "state": "available",
+                "valid_count": 17,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              },
+              {
+                "dimension": "EFFICIENCY",
+                "state": "available",
+                "valid_count": 17,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              },
+              {
+                "dimension": "STRATEGY",
+                "state": "available",
+                "valid_count": 17,
+                "missing_count": 0,
+                "invalid_count": 0,
+                "has_variance": false,
+                "exploration_thresholds": [
+                  "3"
+                ],
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1,
+                  "display": "3.0000"
+                }
+              }
+            ]
+          }
+        ],
+        "trace": [
+          {
+            "sequence": 1,
+            "round": 1,
+            "phase": "planning",
+            "status": "requested",
+            "tool": null,
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 2,
+            "round": 1,
+            "phase": "model_selection",
+            "status": "accepted",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 3,
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 4,
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "computed",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 5,
+            "round": 1,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "tool": "get_dimension_statistics",
+            "fact_ids": [
+              "run-95f5e62ded764ded-f001"
+            ],
+            "error": null
+          },
+          {
+            "sequence": 6,
+            "round": 2,
+            "phase": "planning",
+            "status": "requested",
+            "tool": null,
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 7,
+            "round": 2,
+            "phase": "model_selection",
+            "status": "accepted",
+            "tool": "finish",
+            "fact_ids": [],
+            "error": null
+          },
+          {
+            "sequence": 8,
+            "round": 2,
+            "phase": "final_selection",
+            "status": "accepted",
+            "tool": "finish",
+            "fact_ids": [],
+            "error": null
+          }
+        ],
+        "cards": []
+      },
+      "http_metrics": [
+        {
+          "phase": "discovery",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 0,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "output_token_limit": 800
+        },
+        {
+          "phase": "discovery",
+          "model": "qwen3.8-flash",
+          "elapsed_ms": 0,
+          "status": "response_received",
+          "http_status": 200,
+          "input_tokens": null,
+          "output_tokens": null,
+          "total_tokens": null,
+          "cached_input_tokens": null,
+          "output_token_limit": 800
+        }
+      ]
+    }
+  ],
+  "scripted_security_probes": [
+    {
+      "run_id": "run-9a12cf680654413f",
+      "status": "completed",
+      "reason": "no_valid_findings",
+      "model_requests": 2,
+      "tool_attempts": 1,
+      "elapsed_seconds": 0.00042990001384168863,
+      "measurement_origin": "offline_mechanism",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null,
+      "tool_sequence": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "rejected",
+          "fact_ids": [],
+          "error": "invalid_tool_arguments",
+          "arguments": {}
+        }
+      ],
+      "facts": [],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "rejected",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": "invalid_tool_arguments"
+        },
+        {
+          "sequence": 5,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        }
+      ],
+      "cards": []
+    },
+    {
+      "run_id": "run-1d319365aeae4717",
+      "status": "failed",
+      "reason": "unknown_fact_id",
+      "model_requests": 1,
+      "tool_attempts": 0,
+      "elapsed_seconds": 0.00023330003023147583,
+      "measurement_origin": "offline_mechanism",
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null,
+      "tool_sequence": [],
+      "facts": [],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "validation",
+          "status": "rejected",
+          "tool": null,
+          "fact_ids": [],
+          "error": "unknown_fact_id"
+        }
+      ],
+      "cards": []
+    }
+  ],
+  "formal_evaluate": "not_run: PR #47 unmerged; summary/support and trace grading pending"
+}

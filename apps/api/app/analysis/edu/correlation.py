@@ -80,3 +80,22 @@ def spearman_correlations(
         _pair(records, left, right, minimum_pairs) for left, right in combinations(Dimension, 2)
     )
     return Correlations(scope, minimum_pairs, pairs)
+
+
+def dimension_pair(
+    dataset: Dataset,
+    *,
+    batch_id: str,
+    left: Dimension,
+    right: Dimension,
+    student_ids: Iterable[str] | None = None,
+    minimum_pairs: int = 2,
+) -> PairCorrelation:
+    """Target one pair with exactly the same ranking/validation as the matrix."""
+    if not isinstance(left, Dimension) or not isinstance(right, Dimension) or left is right:
+        raise AnalysisInputError("two_distinct_dimensions_required")
+    if type(minimum_pairs) is not int or minimum_pairs < 2:
+        raise AnalysisInputError("minimum_pairs_must_be_an_integer_at_least_two")
+    _, records = cohort(dataset, batch_id, student_ids)
+    ordered = sorted((left, right), key=list(Dimension).index)
+    return _pair(records, *ordered, minimum_pairs)
