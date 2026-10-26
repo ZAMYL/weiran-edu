@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
 import { once } from 'node:events';
 import { existsSync } from 'node:fs';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm, readFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -200,11 +200,12 @@ try {
   };
   async function importThroughPage(kind, title) {
     await navigation('测评数据');
+    await page.locator('input[type=file]').setInputFiles(path.join(temporary, `${kind}.xlsx`));
     await page.getByLabel('测评名称', { exact: true }).fill(title);
     const previewReady = waitResponse(
       (r) => r.url().includes('/imports/preview') && r.status() === 201,
     );
-    await page.locator('input[type=file]').setInputFiles(path.join(temporary, `${kind}.xlsx`));
+    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     const preview = await (await previewReady).json();
     assert.equal(preview.summary.error_count, 0);
     await page.getByRole('heading', { name: '正式导入预览' }).waitFor();
@@ -214,7 +215,7 @@ try {
     const committed = waitResponse((r) => r.url().endsWith('/commit') && r.status() === 201);
     await page.getByRole('button', { name: '确认入库', exact: true }).click();
     const batchId = (await (await committed).json()).batch_id;
-    await page.getByRole('heading', { name: '上传正式测评' }).waitFor();
+    await page.getByRole('heading', { name: '上传测评' }).waitFor();
     const list = nextResponse('/discoveries/query');
     await navigation('学情洞察');
     return { batchId, data: await (await list).json() };
@@ -337,7 +338,73 @@ try {
   assert.equal((await records('选定群体')).total_count, groupChart.metrics.target_count);
   await closeTop();
   await shot('group-chart');
-  await closeTop();
+  checkpoint = 'from real discovery into scoped explorer';
+  await drawers().first().getByRole('button', { name: '按发现条件探索', exact: true }).click();
+  await page.locator('.match-summary')
+    .filter({ hasText: `${groupChart.metrics.target_count} / 53` }).waitFor();
+  await page.getByRole('button', { name: '重置', exact: true }).click();
+  const allAgain = nextResponse('/discoveries/query');
+  await navigation('学情洞察');
+  await allAgain;
+  checks.push('discovery query -> explorer preserves actual group conditions and original N=53');
+
+  checkpoint = 'same live session review and reporting after verified discovery';
+  const savedResponse = waitResponse(
+    (r) => r.url().endsWith('/analysis-results') &&
+      r.request().method() === 'POST' && r.status() === 201,
+  );
+  await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
+  await page.getByLabel('分析名称', { exact: true }).fill('合成发现与报告联合验收');
+  await page.getByRole('button', { name: '保存分析', exact: true }).click();
+  const saved = await (await savedResponse).json();
+  assert.equal(saved.analysis.matched_count, 53);
+  assert.equal(saved.batch_id, wide.batchId);
+  assert.ok(saved.findings.length > 0, '53-person fixture needs reviewable legacy insight candidates');
+  const reviewDrawer = page.getByRole('dialog', { name: '分析核验', exact: true });
+  await reviewDrawer.locator('.review-finding').first().waitFor();
+  await reviewDrawer.locator('.review-finding').first().getByText('确认', { exact: true }).click();
+  const reviewResponse = waitResponse(
+    (r) => r.url().includes('/analysis-results/') &&
+      r.request().method() === 'PATCH' && r.status() === 200,
+  );
+  await reviewDrawer.getByRole('button', { name: '保存核验结果', exact: true }).click();
+  const reviewed = await (await reviewResponse).json();
+  assert.equal(reviewed.version, 2);
+  assert.equal(reviewed.findings[0].teacher_review.status, 'confirmed');
+  const reread = await post(`/batches/${wide.batchId}/discoveries/query`, spec);
+  assert.equal(reread.status, 200);
+  const exportResponse = waitResponse(
+    (r) => r.url().endsWith('/export-check') && r.request().method() === 'POST',
+  );
+  await reviewDrawer.getByRole('button', { name: '导出测评报告', exact: true }).click();
+  const preflight = await (await exportResponse).json();
+  assert.equal(preflight.result_version, 2);
+  assert.equal(preflight.member_count, 53);
+  const exportDialog = page.getByRole('dialog', { name: '导出测评报告', exact: true });
+  await exportDialog.getByText('报告预估大小', { exact: false }).waitFor();
+  const acknowledgment = exportDialog.getByRole('checkbox', {
+    name: '我已了解以上提醒，按当前核验结果导出',
+  });
+  if (await acknowledgment.count()) await acknowledgment.check();
+  const markdownPreflight = waitResponse(
+    (r) => r.url().endsWith('/export-check') && r.request().postDataJSON().format === 'md',
+  );
+  await exportDialog.getByText('Markdown', { exact: true }).click();
+  await markdownPreflight;
+  if (await acknowledgment.count()) await acknowledgment.check();
+  const downloadReady = page.waitForEvent('download');
+  await exportDialog.getByRole('button', { name: '下载 Markdown', exact: true }).click();
+  const markdown = await downloadReady;
+  assert.match(markdown.suggestedFilename(), /-v2\\.md$/);
+  const content = await readFile(await markdown.path(), 'utf8');
+  assert.match(content, /^#/);
+  assert.ok(!content.includes('合成私密姓名') && !content.includes('未审核合成私密评语'));
+  await shot('discovery-to-saved-reviewed-report');
+  await exportDialog.locator('.ant-modal-close').click();
+  await reviewDrawer.locator('.ant-drawer-close').click();
+  checks.push(
+    'single live Chromium session: upload -> discovery -> scoped exploration -> legacy insight save/review -> actual Markdown report; new discovery IDs are not stored in legacy report',
+  );
   checks.push(
     'group comparison uses full five-dimension chart and exact original target membership, with M+R+U=53',
   );
