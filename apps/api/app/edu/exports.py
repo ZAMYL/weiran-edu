@@ -1,5 +1,6 @@
 """Private, bounded exports from saved server facts and current approved text."""
 
+import asyncio
 import csv
 import io
 import json
@@ -12,6 +13,7 @@ from app.reporting.edu import ExportLimits, ReportError, generate_report
 
 from .analysis import DIMENSION_MAP
 from .auth import Principal
+from .discovery_results import DiscoveryResultService
 from .report_exports import report_input
 from .results import ResultService
 from .review_models import AnalysisResult
@@ -80,6 +82,13 @@ class ResultExporter(ResultService):
                     report = report_input(
                         connection, batch, result, payload["rubric"], generated_at=self.clock()
                     )
+            if result.analysis.discovery is not None:
+                # No SQLite read lock while the bounded worker recomputes selected facts.
+                asyncio.run(
+                    DiscoveryResultService(self.database, clock=self.clock).verify_saved(
+                        principal, result
+                    )
+                )
             report_content = None
             if report is not None:
                 # Build once, completely in memory. Both preflight/download use these guards.
@@ -89,7 +98,8 @@ class ResultExporter(ResultService):
                 report_content = files.xlsx if format == "xlsx" else files.markdown.encode("utf-8")
                 if len(report_content) > MAX_REPORT_BYTES:
                     raise APIError(413, "EXPORT_TOO_LARGE", "报告超过当前同步导出限制")
-                # Reopen after rendering so revocation/version changes cannot reuse the old read.
+            if report is not None or result.analysis.discovery is not None:
+                # Reopen after compute/render so revocation/version cannot reuse the old read.
                 with self.database.transaction() as connection:
                     _, current = self._current(
                         connection, principal, batch_id, result_id, snapshot_id, expected_version
@@ -169,14 +179,19 @@ class ResultExporter(ResultService):
                     "criteria_review_version": version,
                 }
             )
-        counts = Counter(f.teacher_review.status for f in result.findings)
+        all_findings = (*result.findings, *result.discovery_findings)
+        counts = Counter(f.teacher_review.status for f in all_findings)
         payload = {
             "format_version": "edu.private-export.v1",
             "audience": "authorized_teacher_only",
             "public_display_allowed": False,
             "exported_at": stamp(self.clock()),
-            "result": result.model_dump(mode="json", exclude={"analysis", "findings"}),
-            "analysis": result.analysis.model_dump(mode="json", exclude={"candidates"}),
+            "result": result.model_dump(
+                mode="json", exclude={"analysis", "findings", "discovery_findings"}
+            ),
+            "analysis": result.analysis.model_dump(
+                mode="json", exclude={"candidates", "discovery"}
+            ),
             "confirmed_findings": [
                 f.model_dump(mode="json")
                 for f in result.findings
@@ -191,6 +206,13 @@ class ResultExporter(ResultService):
                 "正文按导出时最新审核版本读取；withheld 不等于空原文。教师判断不构成因果证明。"
             ),
         }
+        if result.analysis.discovery is not None:
+            payload["discovery_spec"] = result.analysis.discovery.spec.model_dump(mode="json")
+            payload["confirmed_discoveries"] = [
+                f.model_dump(mode="json")
+                for f in result.discovery_findings
+                if f.teacher_review.status == "confirmed"
+            ]
         content = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         if len(content) > MAX_EXPORT_BYTES:
             raise APIError(413, "EXPORT_TOO_LARGE", "导出内容超过当前同步限制")
@@ -251,7 +273,8 @@ class ResultExporter(ResultService):
             result_version=result.version,
             format=format,
             member_count=len(result.analysis.members),
-            confirmed_finding_count=len(payload["confirmed_findings"]),
+            confirmed_finding_count=len(payload["confirmed_findings"])
+            + len(payload.get("confirmed_discoveries", [])),
             json_payload_bytes=len(content),
             max_json_payload_bytes=MAX_EXPORT_BYTES,
             warnings=tuple(warnings),
@@ -348,6 +371,20 @@ class ResultExporter(ResultService):
                         card.title,
                         card.summary,
                         card.denominator,
+                        card.rule_version,
+                        "confirmed",
+                        finding.teacher_review.note,
+                    ]
+                )
+        for finding in result.discovery_findings:
+            if finding.teacher_review.status == "confirmed":
+                card = finding.discovery
+                findings.append(
+                    [
+                        card.discovery_id,
+                        card.title,
+                        card.summary,
+                        card.scope.scope_record_count,
                         card.rule_version,
                         "confirmed",
                         finding.teacher_review.note,

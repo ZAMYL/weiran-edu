@@ -7,6 +7,7 @@ from pydantic import Field, field_validator, model_validator
 from app.importing.edu.preview import Page
 
 from .analysis_models import Statistics, StatValue
+from .discovery_models import DiscoveryDetail, DiscoveryScope, DiscoverySpec
 from .insight_models import InsightCard, InsightSpec
 from .models import Identifier, Model, Student, Title
 
@@ -48,10 +49,27 @@ class TextReviewPreview(TextReview):
     notice: str = "仅提供自动脱敏预览；发布前仍须教师人工核对，不代表公开发布许可。"
 
 
+class DiscoverySelection(Model):
+    input_key: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+    discovery_ids: Annotated[tuple[Identifier, ...], Field(max_length=3)]
+
+    @field_validator("discovery_ids", mode="before")
+    @classmethod
+    def json_ids(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, list) else value
+
+    @model_validator(mode="after")
+    def unique_ids(self) -> "DiscoverySelection":
+        if len(set(self.discovery_ids)) != len(self.discovery_ids):
+            raise ValueError("DUPLICATE_DISCOVERY")
+        return self
+
+
 class AnalysisCreate(InsightSpec):
     title: Title
     note: Note = ""
     candidate_ids: Annotated[tuple[Identifier, ...], Field(max_length=6)] | None = None
+    discovery: DiscoverySelection | None = None
 
     @field_validator("candidate_ids", mode="before")
     @classmethod
@@ -60,6 +78,8 @@ class AnalysisCreate(InsightSpec):
 
     @model_validator(mode="after")
     def unique_ids(self) -> "AnalysisCreate":
+        if self.discovery is not None and (self.include_dimensions or self.candidate_ids):
+            raise ValueError("DISCOVERY_SELECTION_REQUIRES_SEPARATE_CANDIDATES")
         if self.candidate_ids is not None and len(set(self.candidate_ids)) != len(
             self.candidate_ids
         ):
@@ -99,6 +119,12 @@ class AnalysisPatch(Model):
         return self
 
 
+class SavedDiscoverySnapshot(Model):
+    spec: DiscoverySpec
+    scope: DiscoveryScope
+    findings: tuple[DiscoveryDetail, ...]
+
+
 class AnalysisSnapshot(Model):
     query: InsightSpec
     statistics: Statistics
@@ -108,10 +134,16 @@ class AnalysisSnapshot(Model):
     ratio: StatValue
     members: tuple[Student, ...]
     candidates: tuple[InsightCard, ...]
+    discovery: SavedDiscoverySnapshot | None = Field(default=None, exclude_if=lambda v: v is None)
 
 
 class SavedFinding(Model):
     candidate: InsightCard
+    teacher_review: FindingDecision
+
+
+class SavedDiscoveryFinding(Model):
+    discovery: DiscoveryDetail
     teacher_review: FindingDecision
 
 
@@ -131,6 +163,9 @@ class AnalysisResult(AnalysisSummary):
     reviewed_by: str
     analysis: AnalysisSnapshot
     findings: tuple[SavedFinding, ...]
+    discovery_findings: tuple[SavedDiscoveryFinding, ...] = Field(
+        default=(), exclude_if=lambda v: not v
+    )
     notice: str = "系统候选与教师判断分别保存；教师确认不等于因果证明或公开发布许可。"
 
 

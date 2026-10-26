@@ -133,7 +133,7 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
     stats = Sheet("维度统计", (30, 18, 18, 18, 18, 18), [])
     groups = Sheet("选定群体", (30, 62, 38), []) if report.groups else None
     findings = report.reviewed.findings if report.reviewed else ()
-    facts = Sheet("教师确认发现", (40, 26, 62), []) if findings else None
+    facts = Sheet("教师确认发现", (40, 26, 62), []) if findings or report.discoveries else None
     details = Sheet("授权学生明细", (18, 32, 18), []) if include_details and report.groups else None
     audit = Sheet("技术附录", (38, 38, 38, 18, 56), [])
     sheets = tuple(s for s in (info, stats, groups, facts, details, audit) if s is not None)
@@ -163,7 +163,7 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
     add(info, "测评记录数", report.record_count, formats={1: "#,##0"})
     add(info, "统计项目数", len(report.dimensions), formats={1: "#,##0"})
     if report.reviewed is not None:
-        add(info, "教师已确认发现数", len(findings), formats={1: "#,##0"})
+        add(info, "教师已确认发现数", len(findings) + len(report.discoveries), formats={1: "#,##0"})
     add(info, "分析范围", "完整批次" if report.scope_kind == "batch" else "已授权子范围")
     add(
         info,
@@ -291,6 +291,34 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
                     },
                 )
 
+    if report.discoveries:
+        from .discovery import exact, rows
+
+        for index, finding in enumerate(report.discoveries, len(findings) + 1):
+            title, metrics = rows(finding, label)
+            add(facts, f"发现 {index}：{title}（教师已确认）", section=True)
+            if finding.conditions:
+                text = "，且".join(
+                    f"{label(c.dimension_code)}{OPS[c.operator]} "
+                    f"{number_text(exact(c.threshold))} 分"
+                    for c in finding.conditions
+                )
+                add(facts, "群体筛选条件", text, "用于本项发现；整体分析范围见概况")
+            add(facts, "指标", "结果", "统计口径", header=True)
+            for name, value, note in metrics:
+                if value is None:
+                    value = "无有效评分"
+                add(
+                    facts,
+                    name,
+                    value,
+                    note,
+                    formats={
+                        1: "#,##0" if type(value) is int else "0.00%" if note == "比例" else "0.00"
+                    },
+                )
+            add(facts, "使用说明", "仅反映本次测评记录；供教师复核，不作为能力标签。")
+
     add(audit, "核查说明", "本附录保留溯源引用与精确值；有理数的分母不是学生人数。")
     add(audit, "核查说明", "不同量表不默认可比；评分范围、步长和版本见下表。")
     add(audit, "项目", "值", header=True)
@@ -411,6 +439,21 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
                     metric.source_record_count,
                     "参与记录数仅说明该指标的来源，不另行推断群体人数。",
                 )
+    if report.discoveries:
+        from .discovery import rows
+
+        add(audit, "已确认主动发现溯源", section=True)
+        for index, finding in enumerate(report.discoveries, 1):
+            ref = f"主动发现 {index}"
+            add(audit, ref, finding.discovery_id, finding.rule_id, finding.rule_version)
+            add(audit, "分析范围引用", finding.input_key)
+            for name, value, note in rows(finding, label)[1]:
+                if isinstance(value, Fraction):
+                    add(audit, name, rational(value), note)
+            if finding.type == "dimension_relation" and finding.metrics.rho is not None:
+                add(audit, "等级相关系数原值", str(finding.metrics.rho.value))
+            for query in finding.controlled_queries:
+                add(audit, "授权证据查询指标", query.metric_key)
     if details is not None:
         add(audit, "授权明细引用", section=True)
         add(

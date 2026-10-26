@@ -130,6 +130,15 @@ def report_input(
             fail("DATA_INTEGRITY_ERROR", 503)
     if _members(matches) != _members(result.analysis.members):
         fail("DATA_INTEGRITY_ERROR", 503)
-    return with_reviewed_findings(
+    report = with_reviewed_findings(
         report, result, expected_result_id=result.result_id, expected_version=result.version
+    )
+    # Candidate text, notes and unconfirmed discoveries do not cross into report layout.
+    return replace(
+        report,
+        discoveries=tuple(
+            finding.discovery
+            for finding in result.discovery_findings
+            if finding.teacher_review.status == "confirmed"
+        ),
     )

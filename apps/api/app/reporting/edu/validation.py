@@ -278,6 +278,10 @@ def validate(
         from .reviewed import validate_reviewed
 
         validate_reviewed(report)
+    if report.discoveries:
+        from .discovery import validate_discoveries
+
+        validate_discoveries(report)
     require(type(include_details) is bool, "boolean_detail_option_required")
     if not include_details:
         return

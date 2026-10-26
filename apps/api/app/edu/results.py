@@ -15,6 +15,7 @@ from app.importing.edu.preview import validate_page
 
 from .analysis import DIMENSION_MAP, OPERATOR_MAP, stat
 from .auth import Principal, deny
+from .discovery_bridge import DiscoveryInput, DiscoveryInputReader
 from .insight_models import InsightSpec
 from .insights import InsightReader, card_view
 from .privacy import checked_text
@@ -27,6 +28,7 @@ from .review_models import (
     AnalysisSnapshot,
     AnalysisSummary,
     FindingDecision,
+    SavedDiscoveryFinding,
     SavedFinding,
 )
 from .reviews import require_owner, version_conflict
@@ -79,6 +81,9 @@ class ResultService(BatchReader):
             fail("DATA_INTEGRITY_ERROR", 503)
         by_id = {decision.candidate_id: decision for decision in decisions}
         ids = {card.candidate_id for card in snapshot.candidates}
+        discovery = snapshot.discovery
+        discovery_ids = {f.discovery_id for f in discovery.findings} if discovery else set()
+        ids |= discovery_ids
         if (
             len(by_id) != len(decisions)
             or set(by_id) - ids
@@ -88,6 +93,28 @@ class ResultService(BatchReader):
             or any(
                 c.batch_id != row["batch_id"] or c.snapshot_id != row["snapshot_id"]
                 for c in snapshot.candidates
+            )
+        ):
+            fail("DATA_INTEGRITY_ERROR", 503)
+        if discovery is not None and (
+            snapshot.candidates
+            or snapshot.query.include_dimensions
+            or len(discovery.findings) > 3
+            or len(discovery_ids) != len(discovery.findings)
+            or discovery.spec.snapshot_id != row["snapshot_id"]
+            or set(discovery.spec.scope_conditions) != set(snapshot.query.conditions)
+            or discovery.scope.batch_id != row["batch_id"]
+            or discovery.scope.snapshot_id != row["snapshot_id"]
+            or discovery.scope.scope_record_count != snapshot.matched_count
+            or discovery.scope.batch_record_count != snapshot.total_count
+            or discovery.scope.scope_conditions != discovery.spec.scope_conditions
+            or discovery.scope.statistics != (snapshot.group_statistics or snapshot.statistics)
+            or any(
+                f.scope != discovery.scope
+                or f.input_key != discovery.scope.input_key
+                or f.batch_id != row["batch_id"]
+                or f.snapshot_id != row["snapshot_id"]
+                for f in discovery.findings
             )
         ):
             fail("DATA_INTEGRITY_ERROR", 503)
@@ -104,9 +131,21 @@ class ResultService(BatchReader):
                 )
                 for card in snapshot.candidates
             ),
+            discovery_findings=tuple(
+                SavedDiscoveryFinding(
+                    discovery=card,
+                    teacher_review=by_id.get(card.discovery_id)
+                    or FindingDecision(candidate_id=card.discovery_id, status="pending"),
+                )
+                for card in discovery.findings
+            )
+            if discovery
+            else (),
         )
 
     def create(self, principal: Principal, batch_id: str, body: AnalysisCreate) -> AnalysisResult:
+        if body.discovery is not None:
+            raise ValueError("Use the bounded async discovery save path")
         with self.database.transaction() as connection:
             batch = self._batch(connection, principal, batch_id, body.snapshot_id)
             require_owner(batch, principal)
@@ -159,13 +198,30 @@ class ResultService(BatchReader):
                     card_view(available[candidate_id], spec, batch_id) for candidate_id in ids
                 ),
             )
-            payload = snapshot.model_dump_json()
-            if len(payload.encode()) > MAX_SNAPSHOT_BYTES:
-                raise APIError(413, "ANALYSIS_RESULT_TOO_LARGE", "分析结果超过保存限制")
+        return self._save(principal, batch_id, body, snapshot)
+
+    def _save(
+        self,
+        principal: Principal,
+        batch_id: str,
+        body: AnalysisCreate,
+        snapshot: AnalysisSnapshot,
+        *,
+        expected_input: DiscoveryInput | None = None,
+    ) -> AnalysisResult:
+        payload = snapshot.model_dump_json()
+        if len(payload.encode()) > MAX_SNAPSHOT_BYTES:
+            raise APIError(413, "ANALYSIS_RESULT_TOO_LARGE", "分析结果超过保存限制")
         # Computation finishes before the short write lock. Recheck current credentials/access.
         with self.database.transaction(write=True) as connection:
             batch = self._batch(connection, principal, batch_id, body.snapshot_id)
             require_owner(batch, principal)
+            if expected_input is not None:
+                current = DiscoveryInputReader(self.database, clock=self.clock)._load_input(
+                    connection, principal, batch_id, expected_input.spec
+                )
+                if current != expected_input:
+                    fail("DATA_INTEGRITY_ERROR", 503)
             title = checked_text(connection, batch["data_scope_id"], body.title)
             note = checked_text(connection, batch["data_scope_id"], body.note)
             result_id, now = str(uuid4()), stamp(self.clock())
@@ -242,6 +298,12 @@ class ResultService(BatchReader):
                 finding.candidate.candidate_id: finding.teacher_review
                 for finding in result.findings
             }
+            decisions.update(
+                {
+                    finding.discovery.discovery_id: finding.teacher_review
+                    for finding in result.discovery_findings
+                }
+            )
             for decision in body.decisions:
                 if decision.candidate_id not in decisions:
                     deny(404)

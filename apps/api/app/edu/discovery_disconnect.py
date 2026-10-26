@@ -13,7 +13,11 @@ class DiscoveryDisconnectMiddleware:
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         path = scope.get("path", "")
         if scope["type"] != "http" or not (
-            path.startswith("/api/v1/edu/batches/") and "/discoveries/" in path
+            path.startswith("/api/v1/edu/batches/")
+            and (
+                "/discoveries/" in path
+                or (scope.get("method") == "POST" and path.endswith("/analysis-results"))
+            )
         ):
             await self.app(scope, receive, send)
             return
