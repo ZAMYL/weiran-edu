@@ -238,6 +238,8 @@ async def post_chat(
     phase: str,
     payload: dict,
     maximum: int,
+    *,
+    expected_model: str | None = None,
 ) -> dict:
     """Shared bounded HTTP transport; the caller owns its non-resettable run budget."""
     body = encoded(
@@ -287,6 +289,8 @@ async def post_chat(
                 result = json.loads(raw, object_pairs_hook=_unique_pairs)
                 if not isinstance(result, dict):
                     raise InsightError("qwen_invalid_response")
+                if expected_model is not None and result.get("model") != expected_model:
+                    raise InsightError("qwen_response_model_mismatch")
                 usage = result.get("usage") or {}
                 if not isinstance(usage, dict):
                     usage = {}

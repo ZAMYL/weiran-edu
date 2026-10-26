@@ -252,8 +252,9 @@ class LiveAuthorization:
 def prepare_synthetic_live(recipe: str, authorization: LiveAuthorization | None = None) -> dict:
     """Prepare the same native schemas; no credential lookup/client creation/network.
 
-    An actual live client, verified pricing/usage guard and human authorization remain
-    future work. Neither this spec nor offline_only flags can enable network execution.
+    Legacy preparation remains non-executable and its small authorization is insufficient.
+    The separate live.cli uses live.budget.SyntheticLiveAuthorization and a durable ledger.
+    Neither this spec nor offline_only flags can enable network execution.
     """
     source = admit(recipe)
     source.validate()
@@ -278,10 +279,10 @@ def prepare_synthetic_live(recipe: str, authorization: LiveAuthorization | None 
         "cost_cap_cny": str(authorization.cost_cap_cny) if authorization else None,
         "total_token_limit": authorization.total_token_limit if authorization else None,
         "missing_before_live": [
-            "reviewed_synthetic_live_client",
+            "use_live_cli_with_separate_scoped_authorization",
             "explicit_human_request_token_cost_authorization",
             "verified_endpoint_and_model",
-            "actual_usage_and_pricing_fail_closed_guard",
+            "current_reviewed_price_and_durable_campaign_ledger",
         ],
         "production_enabled": False,
     }
