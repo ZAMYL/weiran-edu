@@ -55,7 +55,7 @@ try {
 
   for (const [route, title] of [
     ['explorer', '画像探索'],
-    ['data', '测评数据中心'],
+    ['data', '测评数据'],
   ]) {
     const response = await fetch(`${url}/${route}`, { signal: AbortSignal.timeout(5000) });
     assert.equal(response.status, 200);
