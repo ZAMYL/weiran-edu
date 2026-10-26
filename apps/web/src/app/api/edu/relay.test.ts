@@ -7,6 +7,47 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
+it.each([
+  'batches/b/discoveries/query',
+  'batches/b/discoveries/012345678901234567890123/query',
+  'batches/b/discoveries/012345678901234567890123/chart/query',
+  'batches/b/discoveries/012345678901234567890123/records/query',
+])('relays controlled discovery POST %s and preserves failures', async (route) => {
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(
+      Response.json(
+        { error: { code: 'SNAPSHOT_MISMATCH' } },
+        { status: 409, headers: { 'x-request-id': 'req_discovery' } },
+      ),
+    );
+  vi.stubGlobal('fetch', fetcher);
+  const body = JSON.stringify({ snapshot_id: 's', scope_conditions: [] });
+  const response = await POST(
+    new Request(`http://localhost/api/edu/${route}`, {
+      method: 'POST',
+      headers: { authorization: bearer, 'content-type': 'application/json' },
+      body,
+    }),
+    context(route),
+  );
+  expect(response.status).toBe(409);
+  expect(response.headers.get('cache-control')).toBe('no-store');
+  expect(response.headers.get('x-request-id')).toBe('req_discovery');
+  const [url, init] = fetcher.mock.calls[0]!;
+  expect(String(url)).toBe(`http://127.0.0.1:8000/api/v1/edu/${route}`);
+  expect(await new Response(init?.body).text()).toBe(body);
+  const before = fetcher.mock.calls.length;
+  expect(
+    (
+      await GET(
+        new Request(`http://localhost/api/edu/${route}`, { headers: { authorization: bearer } }),
+        context(route),
+      )
+    ).status,
+  ).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(before);
+});
 it('relays only allowed routes to a fixed server, without cookies or permissive CORS', async () => {
   vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
   const fetcher = vi.fn<typeof fetch>().mockResolvedValue(

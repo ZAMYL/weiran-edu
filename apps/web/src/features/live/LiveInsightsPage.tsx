@@ -10,6 +10,7 @@ import { useRemote } from './useRemote';
 import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
 import { ServerAbilityChart } from './ServerCharts';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
+import LiveDiscoveries from './LiveDiscoveries';
 
 export default function LiveInsightsPage() {
   const { batch } = useDataMode();
@@ -107,6 +108,10 @@ function Insights({ batch }: { batch: ApiBatch }) {
           )}
         </Panel>
         <div className="insights-right">
+          <LiveDiscoveries
+            key={`${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`}
+            batch={batch}
+          />
           <Panel
             title="服务端评分洞察"
             subtitle="系统根据当前快照生成的候选；仅供获授权教师查看。"

@@ -13,6 +13,9 @@ const routes: Record<string, RegExp[]> = {
     /^imports\/[^/]+\/quality-report$/,
   ],
   POST: [
+    /^batches\/[^/]+\/discoveries\/query$/,
+    /^batches\/[^/]+\/discoveries\/[^/]+\/query$/,
+    /^batches\/[^/]+\/discoveries\/[^/]+\/(chart|records)\/query$/,
     /^imports\/preview$/,
     /^imports\/[^/]+\/commit$/,
     /^batches\/[^/]+\/(groups|insights)\/query$/,
