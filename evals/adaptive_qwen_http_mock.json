@@ -1,0 +1,6085 @@
+{
+  "failure_cases": [
+    {
+      "failure_fixture": "missing_usage",
+      "measurement_origin": "offline_mechanism",
+      "status": "failed",
+      "reason": "unverifiable_usage",
+      "model": "qwen3.8-flash",
+      "model_choices": [],
+      "tool_ledger": [],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "validation",
+          "status": "rejected",
+          "tool": null,
+          "fact_ids": [],
+          "error": "unverifiable_usage"
+        }
+      ],
+      "verified_facts": [],
+      "selected_ids": [],
+      "cards": [],
+      "model_requests": 1,
+      "tool_attempts": 0,
+      "elapsed_seconds": 0.38394299999345094,
+      "budget": {
+        "campaign_id": "mock-failure-missing_usage",
+        "authorization_fingerprint": "73cdb2e983c2bc255f3d1c2038ecea0606b9d3fe9521082e793f2a8164e735f4",
+        "source_fingerprints": {
+          "five": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 1,
+        "blocked": "unverifiable_usage",
+        "claimed": true,
+        "charged_tokens": 992608,
+        "charged_cny_upper_bound": "0.7956064",
+        "entries": [
+          {
+            "request": 1,
+            "state": "usage_unknown_reservation_held",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 992608,
+            "charged_cny_upper_bound": "0.7956064",
+            "actual_usage": null,
+            "elapsed_ms": 1,
+            "error": "unverifiable_usage"
+          }
+        ]
+      }
+    },
+    {
+      "failure_fixture": "unknown_tool",
+      "measurement_origin": "offline_mechanism",
+      "status": "failed",
+      "reason": "invalid_model_response",
+      "model": "qwen3.8-flash",
+      "model_choices": [],
+      "tool_ledger": [],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "validation",
+          "status": "rejected",
+          "tool": null,
+          "fact_ids": [],
+          "error": "invalid_model_response"
+        }
+      ],
+      "verified_facts": [],
+      "selected_ids": [],
+      "cards": [],
+      "model_requests": 1,
+      "tool_attempts": 0,
+      "elapsed_seconds": 0.4358065000269562,
+      "budget": {
+        "campaign_id": "mock-failure-unknown_tool",
+        "authorization_fingerprint": "b0e2b53033be637e10da3d108c9709993dbff630a7df198cceca696c28598340",
+        "source_fingerprints": {
+          "five": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 1,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 1100,
+        "charged_cny_upper_bound": "0.001",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "failure_fixture": "cost_cap",
+      "measurement_origin": "offline_mechanism",
+      "status": "failed",
+      "reason": "authorized_cost_limit",
+      "model": "qwen3.8-flash",
+      "model_choices": [],
+      "tool_ledger": [],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "validation",
+          "status": "rejected",
+          "tool": null,
+          "fact_ids": [],
+          "error": "authorized_cost_limit"
+        }
+      ],
+      "verified_facts": [],
+      "selected_ids": [],
+      "cards": [],
+      "model_requests": 1,
+      "tool_attempts": 0,
+      "elapsed_seconds": 0.5974313999759033,
+      "budget": {
+        "campaign_id": "mock-failure-cost_cap",
+        "authorization_fingerprint": "4b57c8525eba5e411d3488d66eaaae60e603a03f832c73c00cfa5ac1f8459dbd",
+        "source_fingerprints": {
+          "five": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "0.001",
+        "request_count": 0,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 0,
+        "charged_cny_upper_bound": "0",
+        "entries": []
+      }
+    }
+  ],
+  "measurement_origin": "offline_mechanism",
+  "paid_requests": 0,
+  "usage_and_cost_are_http_fixtures_not_real_billing": true,
+  "cases": [
+    {
+      "recipe": "five",
+      "measurement_origin": "offline_mechanism",
+      "status": "completed",
+      "reason": "completed",
+      "model": "qwen3.8-flash",
+      "model_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "query_dimension_relation",
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          },
+          "basis_fact_ids": [
+            "run-40dd488d0d8a44a1-f001"
+          ]
+        },
+        {
+          "round": 3,
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcomes": [
+              "I02"
+            ]
+          },
+          "basis_fact_ids": [
+            "run-40dd488d0d8a44a1-f002"
+          ]
+        },
+        {
+          "round": 4,
+          "tool": "inspect_discovery_support",
+          "arguments": {
+            "fact_id": "run-40dd488d0d8a44a1-f003"
+          },
+          "basis_fact_ids": [
+            "run-40dd488d0d8a44a1-f003"
+          ]
+        },
+        {
+          "round": 5,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [
+              "run-40dd488d0d8a44a1-f002",
+              "run-40dd488d0d8a44a1-f003"
+            ],
+            "reason": "completed"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcomes": [
+              "I02"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-40dd488d0d8a44a1-f003"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-40dd488d0d8a44a1-f002",
+            "run-40dd488d0d8a44a1-f003"
+          ],
+          "error": null
+        }
+      ],
+      "verified_facts": [
+        {
+          "fact_id": "run-40dd488d0d8a44a1-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "I01",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 161,
+                "denominator": 53,
+                "display": "3.0377"
+              },
+              "median": {
+                "numerator": 5,
+                "denominator": 1,
+                "display": "5.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "1",
+                "5"
+              ]
+            },
+            {
+              "item_id": "I02",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 157,
+                "denominator": 53,
+                "display": "2.9623"
+              },
+              "median": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "1",
+                "5"
+              ]
+            },
+            {
+              "item_id": "I03",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I04",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I05",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            }
+          ],
+          "state": "available"
+        },
+        {
+          "fact_id": "run-40dd488d0d8a44a1-f002",
+          "qualified": true,
+          "metrics": {
+            "left": "I01",
+            "right": "I02",
+            "rho": -1.0,
+            "paired_count": 53,
+            "excluded_count": 0,
+            "denominator": 53,
+            "state": "computable"
+          },
+          "status": "displayable",
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 53,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "type": "item_relation"
+        },
+        {
+          "fact_id": "run-40dd488d0d8a44a1-f003",
+          "qualified": true,
+          "metrics": {
+            "outcome": "I02",
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "denominator": 53,
+            "eligible_denominator": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "target_valid": 26,
+            "remainder_valid": 27,
+            "target_mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "remainder_mean": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1,
+              "display": "4.0000"
+            },
+            "outcome_unit": "level"
+          },
+          "status": "displayable",
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 26,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "type": "item_group_difference"
+        },
+        {
+          "fact_id": "run-40dd488d0d8a44a1-f004",
+          "qualified": false,
+          "checked_fact_id": "run-40dd488d0d8a44a1-f003",
+          "qualification": "qualified",
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 26,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ]
+        }
+      ],
+      "selected_ids": [
+        "run-40dd488d0d8a44a1-f002",
+        "run-40dd488d0d8a44a1-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-40dd488d0d8a44a1-f002",
+          "discovery_id": "b345d6425588b66889a97ea7",
+          "type": "item_relation",
+          "title": "I01 与 I02 的评分关联",
+          "summary": "有效成对53人，Spearman=-1；相关不代表因果。",
+          "batch_id": "synthetic-batch-18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "left": "I01",
+            "right": "I02",
+            "rho": -1.0,
+            "paired_count": 53,
+            "excluded_count": 0,
+            "denominator": 53,
+            "state": "computable"
+          },
+          "chart": {
+            "left": "I01",
+            "right": "I02",
+            "rho": -1.0,
+            "paired_count": 53,
+            "excluded_count": 0,
+            "denominator": 53,
+            "state": "computable"
+          },
+          "status": "displayable",
+          "limitations": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 53,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-40dd488d0d8a44a1-f002",
+              "metric_key": "left.paired"
+            },
+            {
+              "fact_id": "run-40dd488d0d8a44a1-f002",
+              "metric_key": "right.paired"
+            }
+          ]
+        },
+        {
+          "fact_id": "run-40dd488d0d8a44a1-f003",
+          "discovery_id": "7e35fe77213b3b2aac7278c9",
+          "type": "item_group_difference",
+          "title": "I02 的互斥群体描述差异",
+          "summary": "目标26人，余组27人，均值差4；不表示因果或能力等级。",
+          "batch_id": "synthetic-batch-18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "outcome": "I02",
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "denominator": 53,
+            "eligible_denominator": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "target_valid": 26,
+            "remainder_valid": 27,
+            "target_mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "remainder_mean": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1,
+              "display": "4.0000"
+            },
+            "outcome_unit": "level"
+          },
+          "chart": {
+            "outcome": "I02",
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "denominator": 53,
+            "eligible_denominator": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "target_valid": 26,
+            "remainder_valid": 27,
+            "target_mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "remainder_mean": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1,
+              "display": "4.0000"
+            },
+            "outcome_unit": "level"
+          },
+          "status": "displayable",
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 26,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-40dd488d0d8a44a1-f003",
+              "metric_key": "target.valid"
+            },
+            {
+              "fact_id": "run-40dd488d0d8a44a1-f003",
+              "metric_key": "remainder.valid"
+            },
+            {
+              "fact_id": "run-40dd488d0d8a44a1-f003",
+              "metric_key": "target.condition.I01"
+            },
+            {
+              "fact_id": "run-40dd488d0d8a44a1-f003",
+              "metric_key": "remainder.condition.I01"
+            },
+            {
+              "fact_id": "run-40dd488d0d8a44a1-f003",
+              "metric_key": "unevaluable.rows"
+            }
+          ]
+        }
+      ],
+      "model_requests": 5,
+      "tool_attempts": 4,
+      "elapsed_seconds": 4.534763999981806,
+      "budget": {
+        "campaign_id": "mock-campaign-five",
+        "authorization_fingerprint": "bca730d079c0ffa551cc0acc01a093809fcaece66de6ea7babefca80365869dd",
+        "source_fingerprints": {
+          "five": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 5,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 3,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1300,
+            "charged_cny_upper_bound": "0.00116",
+            "actual_usage": {
+              "input_tokens": 1200,
+              "output_tokens": 100,
+              "total_tokens": 1300,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 4,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1400,
+            "charged_cny_upper_bound": "0.00124",
+            "actual_usage": {
+              "input_tokens": 1300,
+              "output_tokens": 100,
+              "total_tokens": 1400,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 5,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1500,
+            "charged_cny_upper_bound": "0.00132",
+            "actual_usage": {
+              "input_tokens": 1400,
+              "output_tokens": 100,
+              "total_tokens": 1500,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "recipe": "contest13",
+      "measurement_origin": "offline_mechanism",
+      "status": "completed",
+      "reason": "completed",
+      "model": "qwen3.8-flash",
+      "model_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q13"
+          },
+          "basis_fact_ids": [
+            "run-0f20d9a3d0074f13-f001"
+          ]
+        },
+        {
+          "round": 3,
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          },
+          "basis_fact_ids": [
+            "run-0f20d9a3d0074f13-f002"
+          ]
+        },
+        {
+          "round": 4,
+          "tool": "inspect_discovery_support",
+          "arguments": {
+            "fact_id": "run-0f20d9a3d0074f13-f003"
+          },
+          "basis_fact_ids": [
+            "run-0f20d9a3d0074f13-f003"
+          ]
+        },
+        {
+          "round": 5,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [
+              "run-0f20d9a3d0074f13-f002",
+              "run-0f20d9a3d0074f13-f003"
+            ],
+            "reason": "completed"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "inspect_item_quality",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "item_id": "Q13"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-0f20d9a3d0074f13-f003"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-0f20d9a3d0074f13-f002",
+            "run-0f20d9a3d0074f13-f003"
+          ],
+          "error": null
+        }
+      ],
+      "verified_facts": [
+        {
+          "fact_id": "run-0f20d9a3d0074f13-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "Q01",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q02",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q03",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q04",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q05",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q06",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q07",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q08",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q09",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q10",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q11",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q12",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q13",
+              "denominator": 20,
+              "valid_count": 15,
+              "excluded_count": 5,
+              "states": {
+                "missing": 5,
+                "valid": 15
+              },
+              "mean": {
+                "numerator": 60,
+                "denominator": 1,
+                "display": "60.0000"
+              },
+              "median": {
+                "numerator": 80,
+                "denominator": 1,
+                "display": "80.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            }
+          ],
+          "state": "available"
+        },
+        {
+          "fact_id": "run-0f20d9a3d0074f13-f002",
+          "qualified": true,
+          "metrics": {
+            "item_id": "Q13",
+            "denominator": 20,
+            "counts": {
+              "missing": 5,
+              "valid": 15
+            },
+            "scale_known": true,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "status": "interpret_cautiously",
+          "ranking": {},
+          "limitation_codes": [
+            "missing_not_zero",
+            "no_score_correctness_diagnosis",
+            "no_invented_rubric"
+          ],
+          "type": "item_quality_review"
+        },
+        {
+          "fact_id": "run-0f20d9a3d0074f13-f003",
+          "qualified": true,
+          "metrics": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "type": "item_group_difference"
+        },
+        {
+          "fact_id": "run-0f20d9a3d0074f13-f004",
+          "qualified": false,
+          "checked_fact_id": "run-0f20d9a3d0074f13-f003",
+          "qualification": "qualified",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ]
+        }
+      ],
+      "selected_ids": [
+        "run-0f20d9a3d0074f13-f002",
+        "run-0f20d9a3d0074f13-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-0f20d9a3d0074f13-f002",
+          "discovery_id": "35a4e658ae586124d4d44c4f",
+          "type": "item_quality_review",
+          "title": "Q13 的资料复核现象",
+          "summary": "总人数20，状态计数{'missing': 5, 'valid': 15}；缺失不当零分，不判断成绩对错。",
+          "batch_id": "synthetic-batch-11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+          "snapshot_id": "11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "item_id": "Q13",
+            "denominator": 20,
+            "counts": {
+              "missing": 5,
+              "valid": 15
+            },
+            "scale_known": true,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "chart": {
+            "item_id": "Q13",
+            "denominator": 20,
+            "counts": {
+              "missing": 5,
+              "valid": 15
+            },
+            "scale_known": true,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "status": "interpret_cautiously",
+          "limitations": [
+            "missing_not_zero",
+            "no_score_correctness_diagnosis",
+            "no_invented_rubric"
+          ],
+          "ranking": {},
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-0f20d9a3d0074f13-f002",
+              "metric_key": "state.missing"
+            },
+            {
+              "fact_id": "run-0f20d9a3d0074f13-f002",
+              "metric_key": "state.valid"
+            }
+          ]
+        },
+        {
+          "fact_id": "run-0f20d9a3d0074f13-f003",
+          "discovery_id": "d6634274ac15fd2c8fa370ee",
+          "type": "item_group_difference",
+          "title": "Q02 的互斥群体描述差异",
+          "summary": "目标10人，余组10人，均值差60；不表示因果或能力等级。",
+          "batch_id": "synthetic-batch-11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+          "snapshot_id": "11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "chart": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-0f20d9a3d0074f13-f003",
+              "metric_key": "target.valid"
+            },
+            {
+              "fact_id": "run-0f20d9a3d0074f13-f003",
+              "metric_key": "remainder.valid"
+            },
+            {
+              "fact_id": "run-0f20d9a3d0074f13-f003",
+              "metric_key": "target.condition.Q01"
+            },
+            {
+              "fact_id": "run-0f20d9a3d0074f13-f003",
+              "metric_key": "remainder.condition.Q01"
+            },
+            {
+              "fact_id": "run-0f20d9a3d0074f13-f003",
+              "metric_key": "unevaluable.rows"
+            }
+          ]
+        }
+      ],
+      "model_requests": 5,
+      "tool_attempts": 4,
+      "elapsed_seconds": 7.756294300081208,
+      "budget": {
+        "campaign_id": "mock-campaign-contest13",
+        "authorization_fingerprint": "c44d11f2bcc6fe0d92f8c7150e646bf1b7f32d817a794c721fc9f2d219a153b2",
+        "source_fingerprints": {
+          "contest13": "11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 5,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 3,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1300,
+            "charged_cny_upper_bound": "0.00116",
+            "actual_usage": {
+              "input_tokens": 1200,
+              "output_tokens": 100,
+              "total_tokens": 1300,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 4,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1400,
+            "charged_cny_upper_bound": "0.00124",
+            "actual_usage": {
+              "input_tokens": 1300,
+              "output_tokens": 100,
+              "total_tokens": 1400,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 3,
+            "error": null
+          },
+          {
+            "request": 5,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1500,
+            "charged_cny_upper_bound": "0.00132",
+            "actual_usage": {
+              "input_tokens": 1400,
+              "output_tokens": 100,
+              "total_tokens": 1500,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "recipe": "contest13_complete",
+      "measurement_origin": "offline_mechanism",
+      "status": "completed",
+      "reason": "completed",
+      "model": "qwen3.8-flash",
+      "model_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "query_dimension_relation",
+          "arguments": {
+            "left": "Q01",
+            "right": "Q02"
+          },
+          "basis_fact_ids": [
+            "run-8561843930214c3f-f001"
+          ]
+        },
+        {
+          "round": 3,
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          },
+          "basis_fact_ids": [
+            "run-8561843930214c3f-f002"
+          ]
+        },
+        {
+          "round": 4,
+          "tool": "inspect_discovery_support",
+          "arguments": {
+            "fact_id": "run-8561843930214c3f-f003"
+          },
+          "basis_fact_ids": [
+            "run-8561843930214c3f-f003"
+          ]
+        },
+        {
+          "round": 5,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [
+              "run-8561843930214c3f-f002",
+              "run-8561843930214c3f-f003"
+            ],
+            "reason": "completed"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-8561843930214c3f-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-8561843930214c3f-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "Q01",
+            "right": "Q02"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-8561843930214c3f-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-8561843930214c3f-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-8561843930214c3f-f003"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-8561843930214c3f-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-8561843930214c3f-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-8561843930214c3f-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-8561843930214c3f-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-8561843930214c3f-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-8561843930214c3f-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-8561843930214c3f-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-8561843930214c3f-f002",
+            "run-8561843930214c3f-f003"
+          ],
+          "error": null
+        }
+      ],
+      "verified_facts": [
+        {
+          "fact_id": "run-8561843930214c3f-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "Q01",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q02",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q03",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q04",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q05",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q06",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q07",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q08",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q09",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q10",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q11",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q12",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q13",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            }
+          ],
+          "state": "available"
+        },
+        {
+          "fact_id": "run-8561843930214c3f-f002",
+          "qualified": true,
+          "metrics": {
+            "left": "Q01",
+            "right": "Q02",
+            "rho": -1.0,
+            "paired_count": 20,
+            "excluded_count": 0,
+            "denominator": 20,
+            "state": "computable"
+          },
+          "status": "displayable",
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 20,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "type": "item_relation"
+        },
+        {
+          "fact_id": "run-8561843930214c3f-f003",
+          "qualified": true,
+          "metrics": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "type": "item_group_difference"
+        },
+        {
+          "fact_id": "run-8561843930214c3f-f004",
+          "qualified": false,
+          "checked_fact_id": "run-8561843930214c3f-f003",
+          "qualification": "qualified",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ]
+        }
+      ],
+      "selected_ids": [
+        "run-8561843930214c3f-f002",
+        "run-8561843930214c3f-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-8561843930214c3f-f002",
+          "discovery_id": "3ff7dd32985691bd9ec240c5",
+          "type": "item_relation",
+          "title": "Q01 与 Q02 的评分关联",
+          "summary": "有效成对20人，Spearman=-1；相关不代表因果。",
+          "batch_id": "synthetic-batch-630527444a31e29405a6906d19a7c1ddb84a6c403f13625f025dff8d4950fc27",
+          "snapshot_id": "630527444a31e29405a6906d19a7c1ddb84a6c403f13625f025dff8d4950fc27",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "left": "Q01",
+            "right": "Q02",
+            "rho": -1.0,
+            "paired_count": 20,
+            "excluded_count": 0,
+            "denominator": 20,
+            "state": "computable"
+          },
+          "chart": {
+            "left": "Q01",
+            "right": "Q02",
+            "rho": -1.0,
+            "paired_count": 20,
+            "excluded_count": 0,
+            "denominator": 20,
+            "state": "computable"
+          },
+          "status": "displayable",
+          "limitations": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 20,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-8561843930214c3f-f002",
+              "metric_key": "left.paired"
+            },
+            {
+              "fact_id": "run-8561843930214c3f-f002",
+              "metric_key": "right.paired"
+            }
+          ]
+        },
+        {
+          "fact_id": "run-8561843930214c3f-f003",
+          "discovery_id": "c127e60b13cc5416caa6caf2",
+          "type": "item_group_difference",
+          "title": "Q02 的互斥群体描述差异",
+          "summary": "目标10人，余组10人，均值差60；不表示因果或能力等级。",
+          "batch_id": "synthetic-batch-630527444a31e29405a6906d19a7c1ddb84a6c403f13625f025dff8d4950fc27",
+          "snapshot_id": "630527444a31e29405a6906d19a7c1ddb84a6c403f13625f025dff8d4950fc27",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "chart": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-8561843930214c3f-f003",
+              "metric_key": "target.valid"
+            },
+            {
+              "fact_id": "run-8561843930214c3f-f003",
+              "metric_key": "remainder.valid"
+            },
+            {
+              "fact_id": "run-8561843930214c3f-f003",
+              "metric_key": "target.condition.Q01"
+            },
+            {
+              "fact_id": "run-8561843930214c3f-f003",
+              "metric_key": "remainder.condition.Q01"
+            },
+            {
+              "fact_id": "run-8561843930214c3f-f003",
+              "metric_key": "unevaluable.rows"
+            }
+          ]
+        }
+      ],
+      "model_requests": 5,
+      "tool_attempts": 4,
+      "elapsed_seconds": 9.553774900035933,
+      "budget": {
+        "campaign_id": "mock-campaign-contest13_complete",
+        "authorization_fingerprint": "706f394bf777b55bff9962e4a0f0cceed5c9faeb9acc96cf7f4457aa304a8b17",
+        "source_fingerprints": {
+          "contest13_complete": "630527444a31e29405a6906d19a7c1ddb84a6c403f13625f025dff8d4950fc27"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 5,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 3,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1300,
+            "charged_cny_upper_bound": "0.00116",
+            "actual_usage": {
+              "input_tokens": 1200,
+              "output_tokens": 100,
+              "total_tokens": 1300,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 4,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1400,
+            "charged_cny_upper_bound": "0.00124",
+            "actual_usage": {
+              "input_tokens": 1300,
+              "output_tokens": 100,
+              "total_tokens": 1400,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 4,
+            "error": null
+          },
+          {
+            "request": 5,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1500,
+            "charged_cny_upper_bound": "0.00132",
+            "actual_usage": {
+              "input_tokens": 1400,
+              "output_tokens": 100,
+              "total_tokens": 1500,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 5,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "recipe": "limited",
+      "measurement_origin": "offline_mechanism",
+      "status": "completed",
+      "reason": "completed",
+      "model": "qwen3.8-flash",
+      "model_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q12"
+          },
+          "basis_fact_ids": [
+            "run-0a1af08ce11b4c4f-f001"
+          ]
+        },
+        {
+          "round": 3,
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          },
+          "basis_fact_ids": [
+            "run-0a1af08ce11b4c4f-f002"
+          ]
+        },
+        {
+          "round": 4,
+          "tool": "inspect_discovery_support",
+          "arguments": {
+            "fact_id": "run-0a1af08ce11b4c4f-f003"
+          },
+          "basis_fact_ids": [
+            "run-0a1af08ce11b4c4f-f003"
+          ]
+        },
+        {
+          "round": 5,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [
+              "run-0a1af08ce11b4c4f-f002",
+              "run-0a1af08ce11b4c4f-f003"
+            ],
+            "reason": "completed"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "inspect_item_quality",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "item_id": "Q12"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-0a1af08ce11b4c4f-f003"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-0a1af08ce11b4c4f-f002",
+            "run-0a1af08ce11b4c4f-f003"
+          ],
+          "error": null
+        }
+      ],
+      "verified_facts": [
+        {
+          "fact_id": "run-0a1af08ce11b4c4f-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "Q01",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q02",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q03",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q04",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q05",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q06",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q07",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q08",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q09",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q10",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q11",
+              "denominator": 20,
+              "valid_count": 0,
+              "excluded_count": 20,
+              "states": {
+                "evidence_absent": 20
+              },
+              "mean": null,
+              "median": null,
+              "range_checked": true,
+              "state": "no_authorized_numeric_data",
+              "has_variance": false,
+              "exploration_thresholds": []
+            },
+            {
+              "item_id": "Q12",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "range_unknown": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": false,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q13",
+              "denominator": 20,
+              "valid_count": 15,
+              "excluded_count": 5,
+              "states": {
+                "missing": 5,
+                "valid": 15
+              },
+              "mean": {
+                "numerator": 60,
+                "denominator": 1,
+                "display": "60.0000"
+              },
+              "median": {
+                "numerator": 80,
+                "denominator": 1,
+                "display": "80.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            }
+          ],
+          "state": "available"
+        },
+        {
+          "fact_id": "run-0a1af08ce11b4c4f-f002",
+          "qualified": true,
+          "metrics": {
+            "item_id": "Q12",
+            "denominator": 20,
+            "counts": {
+              "range_unknown": 20
+            },
+            "scale_known": false,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "status": "interpret_cautiously",
+          "ranking": {},
+          "limitation_codes": [
+            "missing_not_zero",
+            "no_score_correctness_diagnosis",
+            "no_invented_rubric"
+          ],
+          "type": "item_quality_review"
+        },
+        {
+          "fact_id": "run-0a1af08ce11b4c4f-f003",
+          "qualified": true,
+          "metrics": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "type": "item_group_difference"
+        },
+        {
+          "fact_id": "run-0a1af08ce11b4c4f-f004",
+          "qualified": false,
+          "checked_fact_id": "run-0a1af08ce11b4c4f-f003",
+          "qualification": "qualified",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ]
+        }
+      ],
+      "selected_ids": [
+        "run-0a1af08ce11b4c4f-f002",
+        "run-0a1af08ce11b4c4f-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-0a1af08ce11b4c4f-f002",
+          "discovery_id": "fc81fff7975597fd1fc5c6a2",
+          "type": "item_quality_review",
+          "title": "Q12 的资料复核现象",
+          "summary": "总人数20，状态计数{'range_unknown': 20}；缺失不当零分，不判断成绩对错。",
+          "batch_id": "synthetic-batch-69281bbf4905440e38d398599b260b3980cfbdf2f24a6e09a708fed32a549c53",
+          "snapshot_id": "69281bbf4905440e38d398599b260b3980cfbdf2f24a6e09a708fed32a549c53",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "item_id": "Q12",
+            "denominator": 20,
+            "counts": {
+              "range_unknown": 20
+            },
+            "scale_known": false,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "chart": {
+            "item_id": "Q12",
+            "denominator": 20,
+            "counts": {
+              "range_unknown": 20
+            },
+            "scale_known": false,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "status": "interpret_cautiously",
+          "limitations": [
+            "missing_not_zero",
+            "no_score_correctness_diagnosis",
+            "no_invented_rubric"
+          ],
+          "ranking": {},
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-0a1af08ce11b4c4f-f002",
+              "metric_key": "state.range_unknown"
+            }
+          ]
+        },
+        {
+          "fact_id": "run-0a1af08ce11b4c4f-f003",
+          "discovery_id": "33f3cf3c0125e4271627fb52",
+          "type": "item_group_difference",
+          "title": "Q02 的互斥群体描述差异",
+          "summary": "目标10人，余组10人，均值差60；不表示因果或能力等级。",
+          "batch_id": "synthetic-batch-69281bbf4905440e38d398599b260b3980cfbdf2f24a6e09a708fed32a549c53",
+          "snapshot_id": "69281bbf4905440e38d398599b260b3980cfbdf2f24a6e09a708fed32a549c53",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "chart": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-0a1af08ce11b4c4f-f003",
+              "metric_key": "target.valid"
+            },
+            {
+              "fact_id": "run-0a1af08ce11b4c4f-f003",
+              "metric_key": "remainder.valid"
+            },
+            {
+              "fact_id": "run-0a1af08ce11b4c4f-f003",
+              "metric_key": "target.condition.Q01"
+            },
+            {
+              "fact_id": "run-0a1af08ce11b4c4f-f003",
+              "metric_key": "remainder.condition.Q01"
+            },
+            {
+              "fact_id": "run-0a1af08ce11b4c4f-f003",
+              "metric_key": "unevaluable.rows"
+            }
+          ]
+        }
+      ],
+      "model_requests": 5,
+      "tool_attempts": 4,
+      "elapsed_seconds": 8.784263800014742,
+      "budget": {
+        "campaign_id": "mock-campaign-limited",
+        "authorization_fingerprint": "e7a317ca8df717c8458d8f69cec04d9c84d19a4fca8e5ec6058fb17ec605cbd8",
+        "source_fingerprints": {
+          "limited": "69281bbf4905440e38d398599b260b3980cfbdf2f24a6e09a708fed32a549c53"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 5,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 3,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1300,
+            "charged_cny_upper_bound": "0.00116",
+            "actual_usage": {
+              "input_tokens": 1200,
+              "output_tokens": 100,
+              "total_tokens": 1300,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 4,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1400,
+            "charged_cny_upper_bound": "0.00124",
+            "actual_usage": {
+              "input_tokens": 1300,
+              "output_tokens": 100,
+              "total_tokens": 1400,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 7,
+            "error": null
+          },
+          {
+            "request": 5,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1500,
+            "charged_cny_upper_bound": "0.00132",
+            "actual_usage": {
+              "input_tokens": 1400,
+              "output_tokens": 100,
+              "total_tokens": 1500,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "recipe": "no_evidence",
+      "measurement_origin": "offline_mechanism",
+      "status": "completed",
+      "reason": "completed",
+      "model": "qwen3.8-flash",
+      "model_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q01"
+          },
+          "basis_fact_ids": [
+            "run-0312c783c69e4c6f-f001"
+          ]
+        },
+        {
+          "round": 3,
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q02",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q03"
+            ]
+          },
+          "basis_fact_ids": [
+            "run-0312c783c69e4c6f-f002"
+          ]
+        },
+        {
+          "round": 4,
+          "tool": "inspect_discovery_support",
+          "arguments": {
+            "fact_id": "run-0312c783c69e4c6f-f003"
+          },
+          "basis_fact_ids": [
+            "run-0312c783c69e4c6f-f003"
+          ]
+        },
+        {
+          "round": 5,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [
+              "run-0312c783c69e4c6f-f002",
+              "run-0312c783c69e4c6f-f003"
+            ],
+            "reason": "completed"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "inspect_item_quality",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "item_id": "Q01"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q02",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q03"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-0312c783c69e4c6f-f003"
+          }
+        }
+      ],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-0312c783c69e4c6f-f002",
+            "run-0312c783c69e4c6f-f003"
+          ],
+          "error": null
+        }
+      ],
+      "verified_facts": [
+        {
+          "fact_id": "run-0312c783c69e4c6f-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "Q01",
+              "denominator": 20,
+              "valid_count": 0,
+              "excluded_count": 20,
+              "states": {
+                "evidence_absent": 20
+              },
+              "mean": null,
+              "median": null,
+              "range_checked": true,
+              "state": "no_authorized_numeric_data",
+              "has_variance": false,
+              "exploration_thresholds": []
+            },
+            {
+              "item_id": "Q02",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            },
+            {
+              "item_id": "Q03",
+              "denominator": 20,
+              "valid_count": 20,
+              "excluded_count": 0,
+              "states": {
+                "valid": 20
+              },
+              "mean": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "median": {
+                "numerator": 50,
+                "denominator": 1,
+                "display": "50.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "20",
+                "80"
+              ]
+            }
+          ],
+          "state": "available"
+        },
+        {
+          "fact_id": "run-0312c783c69e4c6f-f002",
+          "qualified": true,
+          "metrics": {
+            "item_id": "Q01",
+            "denominator": 20,
+            "counts": {
+              "evidence_absent": 20
+            },
+            "scale_known": true,
+            "rubric_available": true,
+            "score_changed": false
+          },
+          "status": "interpret_cautiously",
+          "ranking": {},
+          "limitation_codes": [
+            "missing_not_zero",
+            "no_score_correctness_diagnosis",
+            "no_invented_rubric"
+          ],
+          "type": "item_quality_review"
+        },
+        {
+          "fact_id": "run-0312c783c69e4c6f-f003",
+          "qualified": true,
+          "metrics": {
+            "outcome": "Q03",
+            "conditions": [
+              {
+                "item_id": "Q02",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "type": "item_group_difference"
+        },
+        {
+          "fact_id": "run-0312c783c69e4c6f-f004",
+          "qualified": false,
+          "checked_fact_id": "run-0312c783c69e4c6f-f003",
+          "qualification": "qualified",
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ]
+        }
+      ],
+      "selected_ids": [
+        "run-0312c783c69e4c6f-f002",
+        "run-0312c783c69e4c6f-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-0312c783c69e4c6f-f002",
+          "discovery_id": "a5f6140b51f898aeb6581910",
+          "type": "item_quality_review",
+          "title": "Q01 的资料复核现象",
+          "summary": "总人数20，状态计数{'evidence_absent': 20}；缺失不当零分，不判断成绩对错。",
+          "batch_id": "synthetic-batch-54b6d027f0670f967c592af281960a2e257c1eb54370c96b268d5ea90d37b450",
+          "snapshot_id": "54b6d027f0670f967c592af281960a2e257c1eb54370c96b268d5ea90d37b450",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "item_id": "Q01",
+            "denominator": 20,
+            "counts": {
+              "evidence_absent": 20
+            },
+            "scale_known": true,
+            "rubric_available": true,
+            "score_changed": false
+          },
+          "chart": {
+            "item_id": "Q01",
+            "denominator": 20,
+            "counts": {
+              "evidence_absent": 20
+            },
+            "scale_known": true,
+            "rubric_available": true,
+            "score_changed": false
+          },
+          "status": "interpret_cautiously",
+          "limitations": [
+            "missing_not_zero",
+            "no_score_correctness_diagnosis",
+            "no_invented_rubric"
+          ],
+          "ranking": {},
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-0312c783c69e4c6f-f002",
+              "metric_key": "state.evidence_absent"
+            }
+          ]
+        },
+        {
+          "fact_id": "run-0312c783c69e4c6f-f003",
+          "discovery_id": "89b08223da93af36f28e7eac",
+          "type": "item_group_difference",
+          "title": "Q03 的互斥群体描述差异",
+          "summary": "目标10人，余组10人，均值差60；不表示因果或能力等级。",
+          "batch_id": "synthetic-batch-54b6d027f0670f967c592af281960a2e257c1eb54370c96b268d5ea90d37b450",
+          "snapshot_id": "54b6d027f0670f967c592af281960a2e257c1eb54370c96b268d5ea90d37b450",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "outcome": "Q03",
+            "conditions": [
+              {
+                "item_id": "Q02",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "chart": {
+            "outcome": "Q03",
+            "conditions": [
+              {
+                "item_id": "Q02",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2,
+              "display": "0.5000"
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1,
+              "display": "80.0000"
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1,
+              "display": "20.0000"
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1,
+              "display": "60.0000"
+            },
+            "outcome_unit": "points"
+          },
+          "status": "interpret_cautiously",
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 37,
+              "denominator": 50,
+              "display": "0.7400"
+            },
+            "support_count": 10,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-0312c783c69e4c6f-f003",
+              "metric_key": "target.valid"
+            },
+            {
+              "fact_id": "run-0312c783c69e4c6f-f003",
+              "metric_key": "remainder.valid"
+            },
+            {
+              "fact_id": "run-0312c783c69e4c6f-f003",
+              "metric_key": "target.condition.Q02"
+            },
+            {
+              "fact_id": "run-0312c783c69e4c6f-f003",
+              "metric_key": "remainder.condition.Q02"
+            },
+            {
+              "fact_id": "run-0312c783c69e4c6f-f003",
+              "metric_key": "unevaluable.rows"
+            }
+          ]
+        }
+      ],
+      "model_requests": 5,
+      "tool_attempts": 4,
+      "elapsed_seconds": 2.2456173000391573,
+      "budget": {
+        "campaign_id": "mock-campaign-no_evidence",
+        "authorization_fingerprint": "b67aa11fdb35eec2525ab980251de971c136df84c9336db203a738aa6f585006",
+        "source_fingerprints": {
+          "no_evidence": "54b6d027f0670f967c592af281960a2e257c1eb54370c96b268d5ea90d37b450"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 5,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 3,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1300,
+            "charged_cny_upper_bound": "0.00116",
+            "actual_usage": {
+              "input_tokens": 1200,
+              "output_tokens": 100,
+              "total_tokens": 1300,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 4,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1400,
+            "charged_cny_upper_bound": "0.00124",
+            "actual_usage": {
+              "input_tokens": 1300,
+              "output_tokens": 100,
+              "total_tokens": 1400,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 5,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1500,
+            "charged_cny_upper_bound": "0.00132",
+            "actual_usage": {
+              "input_tokens": 1400,
+              "output_tokens": 100,
+              "total_tokens": 1500,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "recipe": "constant17",
+      "measurement_origin": "offline_mechanism",
+      "status": "completed",
+      "reason": "no_valid_findings",
+      "model": "qwen3.8-flash",
+      "model_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [],
+            "reason": "no_valid_findings"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-b52dfee98f6f46db-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        }
+      ],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-b52dfee98f6f46db-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        }
+      ],
+      "verified_facts": [
+        {
+          "fact_id": "run-b52dfee98f6f46db-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "I01",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I02",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I03",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I04",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I05",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            }
+          ],
+          "state": "available"
+        }
+      ],
+      "selected_ids": [],
+      "cards": [],
+      "model_requests": 2,
+      "tool_attempts": 1,
+      "elapsed_seconds": 0.3397684999508783,
+      "budget": {
+        "campaign_id": "mock-campaign-constant17",
+        "authorization_fingerprint": "96d8c87f50de9c0a035d0e26a4e9c08f79ace95ddeaf87aec1f56688cf097587",
+        "source_fingerprints": {
+          "constant17": "2d8c2045ecfc0c9eea45893e78b1ac697688d909cea5d24813100bb856ff404c"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 2,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 2300,
+        "charged_cny_upper_bound": "0.00208",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          }
+        ]
+      }
+    },
+    {
+      "recipe": "small",
+      "measurement_origin": "offline_mechanism",
+      "status": "completed",
+      "reason": "insufficient_data",
+      "model": "qwen3.8-flash",
+      "model_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [],
+            "reason": "insufficient_data"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-06cdfb7cbb6348d3-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        }
+      ],
+      "trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-06cdfb7cbb6348d3-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        }
+      ],
+      "verified_facts": [
+        {
+          "fact_id": "run-06cdfb7cbb6348d3-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "Q01",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q02",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q03",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q04",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q05",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q06",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q07",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q08",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q09",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q10",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q11",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q12",
+              "state": "privacy_or_data_limited"
+            },
+            {
+              "item_id": "Q13",
+              "state": "privacy_or_data_limited"
+            }
+          ],
+          "state": "insufficient_data"
+        }
+      ],
+      "selected_ids": [],
+      "cards": [],
+      "model_requests": 2,
+      "tool_attempts": 1,
+      "elapsed_seconds": 0.3651351999724284,
+      "budget": {
+        "campaign_id": "mock-campaign-small",
+        "authorization_fingerprint": "eb3c4ab3cd190b5e892f0c93bc4258450eca96f63123226c5c096c6b69831804",
+        "source_fingerprints": {
+          "small": "67cb3bc3b83d9b606a4344cb7d7d805df7d3e011fee9cd4a363b8e0956fa342b"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 2,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 2300,
+        "charged_cny_upper_bound": "0.00208",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "error": null
+          }
+        ]
+      }
+    }
+  ]
+}

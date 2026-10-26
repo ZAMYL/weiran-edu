@@ -10,6 +10,7 @@ def test_prototype_ruff_and_format_are_exercised_by_backend_ci():
     paths = [
         str(root / "prototypes/adaptive_assessment"),
         str(root / "scripts/edu_adaptive_demo.py"),
+        str(root / "scripts/edu_qwen_adaptive_live.py"),
     ]
     for args in (("check",), ("format", "--check")):
         result = subprocess.run(
