@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
-import { teacherProductFlow } from './teacher-product-flow.mjs';
+import { teacherProductFlow, credentialRelayFlow } from './teacher-product-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..');
@@ -28,7 +28,11 @@ const database = path.join(temporary, 'synthetic.sqlite3');
 const credentialFile = path.join(temporary, 'test-session.private.json');
 const artifacts = path.join(
   web,
-  process.env.EDU_PRODUCT_FLOW === '1' ? 'artifacts/teacher-product' : 'artifacts/discovery-flow',
+  process.env.EDU_AUTH_RELAY_ONLY === '1'
+    ? 'artifacts/auth-relay'
+    : process.env.EDU_PRODUCT_FLOW === '1'
+      ? 'artifacts/teacher-product'
+      : 'artifacts/discovery-flow',
 );
 await mkdir(artifacts, { recursive: true });
 const env = {
@@ -81,6 +85,7 @@ const checks = [],
   browserCredentials = [],
   modelRequests = [];
 const responses = [];
+const consoleErrors = [];
 try {
   admin('init');
   const teacher = admin('teacher-create', '--subject', 'synthetic-discovery-owner').teacher_id;
@@ -149,6 +154,9 @@ try {
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(25_000);
   page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text());
+  });
   page.on('request', (request) => {
     if (request.url().includes('/api/edu/') && request.headers().authorization)
       browserCredentials.push(true);
@@ -246,7 +254,9 @@ try {
     await page.getByTestId('discovery-record-count').waitFor();
     return result;
   }
-  if (process.env.EDU_PRODUCT_FLOW === '1') {
+  if (process.env.EDU_AUTH_RELAY_ONLY === '1') {
+    checks.push(...(await credentialRelayFlow({ page, origin, api, admin, setToken, token })));
+  } else if (process.env.EDU_PRODUCT_FLOW === '1') {
     checks.push(
       ...(await teacherProductFlow({
         page,
@@ -512,6 +522,16 @@ try {
       '390px list/detail without document overflow; no browser Authorization/storage tokens or remote model requests',
     );
   }
+  assert.deepEqual(errors, []);
+  assert.deepEqual(modelRequests, []);
+  assert.deepEqual(browserCredentials, []);
+  const unexpectedConsoleErrors = consoleErrors.filter(
+    (text) =>
+      !/^Failed to load resource: the server responded with a status of (401|403|404|409|410|413|415|422|503)\b/.test(
+        text,
+      ),
+  );
+  assert.deepEqual(unexpectedConsoleErrors, []);
   const successCount = responses.filter((r) => r.status() === 200).length;
   await writeFile(
     path.join(artifacts, 'result.json'),
@@ -519,6 +539,8 @@ try {
       {
         checks,
         pageErrors: errors,
+        consoleErrors,
+        unexpectedConsoleErrors,
         discoveryResponses: responses.map((r) => ({
           status: r.status(),
           path: new URL(r.url()).pathname

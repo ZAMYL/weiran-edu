@@ -49,10 +49,12 @@ pnpm build
 pnpm test
 
 # 指向项目负责人批准的只读固定后端，不修改后端源码。
+$env:PYTHONUTF8='1'
 $env:EDU_TEST_API_ROOT='D:\AI\weiran-edu-v1-backend-pr61\apps\api'
 $env:EDU_TEST_PYTHON="$env:EDU_TEST_API_ROOT\.venv\Scripts\python.exe"
 # 需要时指定现有 Chromium 可执行文件，否则测试尝试已安装 Chrome/Edge。
 # $env:EDU_TEST_BROWSER='...'
+node tests/credential-relay-e2e.mjs
 node tests/discovery-api-flow.mjs
 node tests/live-api-smoke.mjs
 node tests/teacher-product-e2e.mjs
@@ -71,3 +73,13 @@ node tests/teacher-product-e2e.mjs
 保留「学情洞察」「画像探索」「测评数据」三页及原视觉，不新增聊天框。当前正式输入仍为五维 Excel；逐题 ZIP/HTML 与远程 Qwen 只是受控合成原型，教师页面不开放。
 
 请 AooMing 检查发现选择、原群体跳转及窄屏交互；请 Peng-Kai789 检查 #61 保存契约、快照、版本与权限。正式上线须先完成 #61 后端审核，再由负责人做产品验收。本分支不自动合并、不部署公网。
+
+### 本机后端回归说明
+
+固定 #61 源码保持不变。首次直接运行全量 pytest：1437 passed / 1 skipped / 2 failed（1459.99s）。失败项为独立 CLI 子进程输出的 UTF-8 解码，以及崩溃子进程在 5 秒内未返回而得到 `DISCOVERY_TIMEOUT`。按 CI 配置设置 `PYTHONUTF8=1` 后复测：CLI 项通过，崩溃检测项仍超时；未修改测试超时或后端代码掩盖结果。#61 自身 GitHub CI 的 Ubuntu、Windows 后端均通过（run 40368733942），本集成 PR 的主线后端 CI 也独立执行。这里的远端结果不能代替本机失败记录。
+
+### 凭证失效的代理回归
+
+真实 HTTP 最小复现确认：撤销同一合成凭证后，FastAPI 直接 POST 返回 401，Next 的流式 JSON POST 曾返回 503 `BACKEND_UNAVAILABLE`。本次只对非文件上传请求先在原 64 KiB 上限内完整读取，再转发；40 秒超时及浏览器取消信号也约束读取过程。10 MiB 文件上传仍流式转发，不放宽路径、授权或响应校验。单元测试验证立即 401、请求 ID、no-store 与原超限场景；独立 `credential-relay-e2e.mjs` 用真实后端复核。
+
+已保存结果内的发现依据抽屉不允许直接跨页跳转，避免绕过未保存核验修改的离开确认。正常发现页面仍可进入原群体。

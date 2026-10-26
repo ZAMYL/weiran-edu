@@ -281,3 +281,30 @@ it('allows only the required analysis and capability methods', async () => {
     ).status,
   ).toBe(404);
 });
+
+it('finishes bounded JSON before an immediate upstream auth rejection, retaining 401 and request ID', async () => {
+  vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async (_url, init) => {
+    expect(init?.body).toBeInstanceOf(ArrayBuffer);
+    expect(init && 'duplex' in init ? init.duplex : undefined).toBeUndefined();
+    expect(JSON.parse(new TextDecoder().decode(init?.body as ArrayBuffer))).toEqual({
+      snapshot_id: 's',
+    });
+    return Response.json(
+      { error: { code: 'UNAUTHORIZED', request_id: 'req_auth' } },
+      { status: 401, headers: { 'x-request-id': 'req_auth' } },
+    );
+  });
+  vi.stubGlobal('fetch', fetcher);
+  const response = await POST(
+    new Request('http://localhost/api/edu/batches/b/discoveries/query', {
+      method: 'POST',
+      headers: { authorization: bearer, 'content-type': 'application/json' },
+      body: JSON.stringify({ snapshot_id: 's' }),
+    }),
+    context('batches/b/discoveries/query'),
+  );
+  expect(response.status).toBe(401);
+  expect(response.headers.get('x-request-id')).toBe('req_auth');
+  expect(response.headers.get('cache-control')).toBe('no-store');
+});

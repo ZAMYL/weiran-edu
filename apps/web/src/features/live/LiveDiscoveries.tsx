@@ -183,11 +183,13 @@ export function DiscoveryDetailDrawer({
   spec,
   discoveryId,
   onClose,
+  allowExplore = true,
 }: {
   batch: ApiBatch;
   spec: DiscoverySpec;
   discoveryId: string;
   onClose: () => void;
+  allowExplore?: boolean;
 }) {
   const { client, exploreDiscovery } = useDataMode();
   const router = useRouter();
@@ -255,6 +257,7 @@ export function DiscoveryDetailDrawer({
             )}
             <Button
               type="primary"
+              disabled={!allowExplore}
               onClick={() => {
                 const metric_key = {
                   dimension_relation: 'paired_scores',

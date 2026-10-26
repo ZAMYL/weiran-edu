@@ -138,6 +138,7 @@ async function relay(
         target.enqueue(chunk);
       },
     }),
+    { signal: AbortSignal.any([request.signal, controller.signal]) },
   );
   const headers = new Headers({
     Authorization: authorization,
@@ -156,8 +157,14 @@ async function relay(
       signal: AbortSignal.any([request.signal, controller.signal]),
     };
     if (stream) {
-      init.body = stream;
-      init.duplex = 'half';
+      // Bound and finish small JSON uploads before forwarding. A fast 401 from
+      // FastAPI must not race an unfinished Node duplex upload and become 503.
+      if (route === 'imports/preview') {
+        init.body = stream;
+        init.duplex = 'half';
+      } else {
+        init.body = await new Response(stream).arrayBuffer();
+      }
     }
     const response = await fetch(new URL(`/api/v1/edu/${route}${source.search}`, origin), init);
     upstreamRequestId = response.headers.get('x-request-id');

@@ -79,7 +79,7 @@ export async function teacherProductFlow(h) {
     const bytes = await readFile(await file.path());
     const destination = path.join(
       artifacts,
-      format === 'md' ? 'reviewed-report.md' : 'reviewed-report.xlsx',
+      `${preflight.confirmed_finding_count ? 'confirmed' : 'empty'}-report.${format === 'md' ? 'md' : 'xlsx'}`,
     );
     await writeFile(destination, bytes);
     await exportDialog().locator('.ant-modal-close').click();
@@ -288,6 +288,25 @@ export async function teacherProductFlow(h) {
   checks.push(
     '17 constant: zero qualified discoveries, valid empty report and manual exploration; batch switch clears origin; reader/revoked access enforced',
   );
+  // Expire only this harness's synthetic credential in its disposable database.
+  execFileSync(
+    python,
+    [
+      '-c',
+      "import os,sqlite3,sys,tempfile; from pathlib import Path; p=Path(os.environ['WEIRAN_EDU_DATABASE']).resolve(); assert p.is_relative_to(Path(tempfile.gettempdir()).resolve()) and p.parent.name.startswith('weiran-discovery-flow-'); c=sqlite3.connect(p); c.execute(\"UPDATE teacher_tokens SET expires_at='2000-01-01T00:00:00+00:00' WHERE teacher_id=?\",(sys.argv[1],)); c.commit(); c.close()",
+      h.teacher,
+    ],
+    { cwd: apiRoot, env, windowsHide: true },
+  );
+  await navigation('学情洞察');
+  const expired = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 401);
+  await page.getByRole('button', { name: '刷新发现', exact: true }).click();
+  await expired;
+  await page.getByRole('heading', { name: '连接测试数据', exact: true }).waitFor();
+  assert.equal(await page.locator('.live-workspace').count(), 0);
+  checks.push(
+    'actually expired temporary credential receives 401 and clears all formal workspace data',
+  );
   await writeFile(
     path.join(artifacts, 'product-result.json'),
     JSON.stringify(
@@ -308,4 +327,53 @@ export async function teacherProductFlow(h) {
     ),
   );
   return checks;
+}
+
+// Small real HTTP reproduction: an auth rejection must survive JSON forwarding.
+export async function credentialRelayFlow({ page, origin, api, admin, setToken, token }) {
+  console.log('Auth relay reproduction: setup');
+  const teacher = admin('teacher-create', '--subject', 'synthetic-auth-relay').teacher_id;
+  const credential = admin('token-issue', '--teacher-id', teacher, '--hours', '1').access_token;
+  const route = '/batches/11111111-1111-4111-8111-111111111111/discoveries/query';
+  const body = {
+    snapshot_id: 'synthetic',
+    scope_conditions: [],
+    profile: 'edu.discovery.profile.v1',
+  };
+  await setToken(credential);
+  await page.goto(origin);
+  await page.locator('.live-workspace').waitFor();
+  admin('token-revoke', '--teacher-id', teacher);
+  console.log('Auth relay reproduction: direct POST');
+  const direct = await fetch(api + '/api/v1/edu' + route, {
+    signal: AbortSignal.timeout(10000),
+    method: 'POST',
+    headers: { authorization: `Bearer ${credential}`, 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  console.log(JSON.stringify({ directStatus: direct.status }));
+  await direct.arrayBuffer();
+  assert.equal(direct.status, 401);
+  const relayed = await page.evaluate(
+    async ({ route, body }) => {
+      const r = await fetch('/api/edu' + route, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      return { status: r.status, body: await r.json() };
+    },
+    { route, body },
+  );
+  console.log(
+    JSON.stringify({
+      authRelay: { direct: direct.status, relayed: relayed.status, code: relayed.body.error?.code },
+    }),
+  );
+  assert.equal(relayed.status, 401);
+  assert.ok(relayed.body.error.request_id);
+  await setToken(token);
+  return [
+    'real revoked credential JSON POST preserves upstream 401 and request ID through Next proxy',
+  ];
 }

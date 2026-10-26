@@ -560,6 +560,7 @@ function AnalysisEditor({
           batch={batch}
           spec={initial.analysis.discovery.spec}
           discoveryId={formalDetail}
+          allowExplore={false}
           onClose={() => setFormalDetail(null)}
         />
       )}
