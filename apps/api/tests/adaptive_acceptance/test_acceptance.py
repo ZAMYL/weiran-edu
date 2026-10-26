@@ -421,3 +421,13 @@ def test_no_score_evidence_scope_produces_no_numeric_discovery(tmp_path):
     ]
     assert result["audit"]["issued_facts"][0]["items"][0]["valid_count"] == 0
     assert all(card["type"] == "item_quality_review" for card in result["audit"]["cards"])
+
+
+def test_duplicate_ledger_records_stay_in_accuracy_denominator(captured):
+    c = copy.deepcopy(captured["five"])
+    c.run = replace(c.run, facts=(*c.run.facts, c.run.facts[0]))
+    g = grade_native(five_spec(), c)
+    assert g["data_accuracy"] == {"count": 3, "denominator": 5}
+    assert g["source_accuracy"] == {"count": 3, "denominator": 5}
+    assert not g["passed"]
+    assert "ambiguous_ledger_fact_id" in g["fact_checks"][0]["errors"]

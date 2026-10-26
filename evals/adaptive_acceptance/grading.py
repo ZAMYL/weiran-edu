@@ -381,12 +381,12 @@ def grade_native(spec, collected):
         - len(set(checks[i]["signature"] if i in qualified else i for i in proposed)),
         "wrong_final_proposals": sum(i not in qualified for i in proposed),
         "data_accuracy": {
-            "count": sum(c["data_correct"] for c in checks.values()),
-            "denominator": len(checks),
+            "count": sum(checks[f.fact_id]["data_correct"] for f in run.facts),
+            "denominator": len(run.facts),
         },
         "source_accuracy": {
-            "count": sum(c["sources_correct"] for c in checks.values()),
-            "denominator": len(checks),
+            "count": sum(checks[f.fact_id]["sources_correct"] for f in run.facts),
+            "denominator": len(run.facts),
         },
         "illegal_tool_proposals": invalid_proposals,
         "disclosure_errors": sorted(set(disclosure_errors)),
