@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from app.analysis.edu.discovery import BoundaryRequest, TargetedDiscovery, present, sources
 from app.analysis.edu.discovery.models import (
+    VERSION,
     BoundaryComparison,
     GroupComparison,
     RareCombination,
@@ -19,6 +20,7 @@ from app.analysis.edu.engine import summarize
 from app.analysis.edu.models import AnalysisInputError, Condition, Dimension, Operator
 
 from .models import SCHEMAS, AgentError, Fact, Limits
+from .projection import model_discovery, model_investigation, model_ranking
 
 
 def conditions(items) -> tuple[Condition, ...]:
@@ -73,7 +75,8 @@ class ToolExecutor:
         self.output_bytes = 0
         self.compute_seconds = 0.0
 
-    def _gate(self, sets: list[tuple]) -> list[frozenset]:
+    def _gate(self, sets: list[tuple], *, staged: list[frozenset]) -> list[frozenset]:
+        """Check against all earlier disclosures, including this execution; never commit here."""
         pending = []
         for records in sets:
             group = frozenset(records)
@@ -81,19 +84,20 @@ class ToolExecutor:
                 raise AgentError("privacy_limited")
             # Conservative differencing protection across this run, not just per-tool k.
             if any(
-                0 < len(group ^ old) < self.limits.minimum_cell for old in self.released + pending
+                0 < len(group ^ old) < self.limits.minimum_cell
+                for old in self.released + staged + pending
             ):
                 raise AgentError("privacy_limited")
             pending.append(group)
         return pending
 
-    def _card(self, discovery) -> dict:
+    def _validate_discovery(self, discovery) -> None:
         try:
-            card = present(discovery)  # Exact-value / denominator invariant checks.
+            present(discovery)  # Exact-value / denominator invariant checks.
         except AnalysisInputError:
             raise AgentError("source_validation_failed") from None
         allowed = set(self.builder.scope.records)
-        if discovery.context != self.builder.context:
+        if discovery.context != self.builder.context or discovery.rule_version != VERSION:
             raise AgentError("source_scope_mismatch")
         for source in discovery.sources:
             try:
@@ -105,7 +109,11 @@ class ToolExecutor:
                 for ref, _ in rows
             ):
                 raise AgentError("source_scope_mismatch")
-        # Never send the scatter, fine-grained frequency table or query/evidence locators.
+
+    def _card(self, discovery) -> dict:
+        """Local teacher display only; this object is never sent to the planner."""
+        self._validate_discovery(discovery)
+        card = present(discovery)
         card.pop("controlled_queries")
         payload = discovery.payload
         if isinstance(payload, GroupComparison):
@@ -184,7 +192,7 @@ class ToolExecutor:
                         )
                         continue
                     try:
-                        permitted = self._gate([s.valid_records])
+                        permitted = self._gate([s.valid_records], staged=pending)
                     except AgentError:
                         dims.append(
                             {"dimension": s.dimension.name, "state": "privacy_or_data_limited"}
@@ -242,7 +250,9 @@ class ToolExecutor:
                 if pair.paired_count < self.limits.minimum_cell:
                     candidates = [({"state": "insufficient_data"}, None)]
                 else:
-                    pending = self._gate([tuple(o.reference for o in pair.observations)])
+                    pending = self._gate(
+                        [tuple(o.reference for o in pair.observations)], staged=pending
+                    )
                     candidates = [
                         (
                             {
@@ -266,7 +276,8 @@ class ToolExecutor:
                         comparison.selection.matches,
                         comparison.remainder,
                         comparison.selection.unevaluable_records,
-                    ]
+                    ],
+                    staged=pending,
                 )
                 metric_sources = [
                     SourceSet(
@@ -284,7 +295,9 @@ class ToolExecutor:
                 for d in comparison.dimensions:
                     if d.dimension.name in model.outcomes:
                         pending.extend(
-                            self._gate([d.target.valid_records, d.remainder.valid_records])
+                            self._gate(
+                                [d.target.valid_records, d.remainder.valid_records], staged=pending
+                            )
                         )
                         metric_sources.extend(
                             (
@@ -332,10 +345,14 @@ class ToolExecutor:
                     candidates = [({"state": "insufficient_data"}, None)]
                 elif qualified:
                     for d in qualified:
-                        pending.extend(self._gate([d.payload.matches, d.payload.pair_records]))
+                        pending.extend(
+                            self._gate([d.payload.matches, d.payload.pair_records], staged=pending)
+                        )
                     candidates = [({"state": "computed"}, d) for d in qualified]
                 else:
-                    pending = self._gate([tuple(o.reference for o in pair.observations)])
+                    pending = self._gate(
+                        [tuple(o.reference for o in pair.observations)], staged=pending
+                    )
                     candidates = [
                         (
                             {"state": "no_qualified_discovery", "paired_count": pair.paired_count},
@@ -371,7 +388,8 @@ class ToolExecutor:
                         result.inclusive.matches,
                         result.added,
                         result.strict.unevaluable_records,
-                    ]
+                    ],
+                    staged=pending,
                 )
                 candidates = [
                     (
@@ -403,15 +421,14 @@ class ToolExecutor:
                         )
                     ]
                 else:
-                    card = self._card(fact.discovery)
+                    self._validate_discovery(fact.discovery)
                     candidates = [
                         (
                             {
                                 "checked_fact_id": fact.fact_id,
                                 "qualification": "qualified",
-                                "ranking": card["ranking"],
-                                "status": card["status"],
-                                "limitations": card["limitations"],
+                                "ranking": model_ranking(fact.discovery.ranking),
+                                "status": fact.discovery.status,
                             },
                             None,
                         )
@@ -422,8 +439,10 @@ class ToolExecutor:
             raise AgentError("analysis_rejected") from None
         output = []
         for view, discovery in candidates:
+            view = model_investigation(name, view)
             if discovery is not None:
-                card = self._card(discovery)
+                self._validate_discovery(discovery)
+                card = model_discovery(discovery)
                 if self._identity(discovery) in self.discoveries:
                     raise AgentError("duplicate_discovery")
                 view = {**view, "card": card}

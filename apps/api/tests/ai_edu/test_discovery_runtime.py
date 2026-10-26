@@ -635,7 +635,9 @@ def test_small_cumulative_differences_are_withheld():
     refs = e.builder.scope.records
     e.released.append(frozenset(refs[:10]))
     with pytest.raises(AgentError, match="privacy_limited"):
-        e._gate([refs[:11]])  # Both sets >=k; their one-member difference is still unsafe.
+        e._gate(
+            [refs[:11]], staged=[]
+        )  # Both sets >=k; their one-member difference is still unsafe.
 
 
 def test_unverified_model_numbers_and_stop_mismatch_are_rejected():
