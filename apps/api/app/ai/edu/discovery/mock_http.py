@@ -15,6 +15,8 @@ from .models import SCHEMAS, AgentError, Decision
 
 class MockQwenPlanner:
     offline_only = True
+    schemas = SCHEMAS
+    decision_type = Decision
 
     def __init__(self, transport: httpx.MockTransport):
         if type(transport) is not httpx.MockTransport:
@@ -54,7 +56,7 @@ class MockQwenPlanner:
         else:
             self.history.append({"role": "user", "content": prompt})
         native_tools = []
-        for name, schema in SCHEMAS.items():
+        for name, schema in self.schemas.items():
             parameters = schema.model_json_schema()
             parameters["properties"]["basis_fact_ids"] = {
                 "type": "array",
@@ -105,7 +107,7 @@ class MockQwenPlanner:
             if not isinstance(arguments, dict):
                 raise ValueError
             basis = arguments.pop("basis_fact_ids", [])
-            decision = Decision.model_validate(
+            decision = self.decision_type.model_validate(
                 {"name": call["function"]["name"], "arguments": arguments, "basis_fact_ids": basis}
             )
         except (KeyError, ValueError, TypeError, RecursionError):
