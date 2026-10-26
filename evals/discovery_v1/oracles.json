@@ -1,0 +1,4036 @@
+{
+  "version": "edu-discovery-oracles-v1",
+  "cases": [
+    {
+      "case_id": "correlation-positive-17",
+      "seed": 0,
+      "recipe": "i=0..16; x=1+i%5; y=positive",
+      "objective": "identify the ALGORITHMS/IMPLEMENTATION monotone relation",
+      "student_count": 17,
+      "distractor_count": 0,
+      "dataset_digest": "3f3e0c54e4afae6056df45781ff61266bad7603872807953cf75f26b05137368",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 17,
+            "excluded_count": 0,
+            "state": "computable",
+            "rho": {
+              "decimal": "1"
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_relation"
+          ],
+          "signature": "14e95de694e0a3b6dd538a1922ac0486d59bcaa7e726dc1848feb6eed374565d",
+          "sources": {
+            "paired_scores": {
+              "count": 17,
+              "digest": "fa424c3ff36a5121edde06508c3dd4b08770ab22ea3246560656d2e0b683ba6b"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "correlation-negative-17",
+      "seed": 0,
+      "recipe": "i=0..16; x=1+i%5; y=negative",
+      "objective": "identify the ALGORITHMS/IMPLEMENTATION monotone relation",
+      "student_count": 17,
+      "distractor_count": 0,
+      "dataset_digest": "9678bfaa6ed98480d1e6af9758197c829ba17c097f2294976a55af72b338e3e5",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 17,
+            "excluded_count": 0,
+            "state": "computable",
+            "rho": {
+              "decimal": "-1"
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_relation"
+          ],
+          "signature": "f92e42a1ce92ed7ee511b8af8c8ce6d4a90843bdf35482e3303d53d3be2580dc",
+          "sources": {
+            "paired_scores": {
+              "count": 17,
+              "digest": "a344fa159981111c4b05142007828441453c408a78ed4ac31d2a9bdbe5f4edfc"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "correlation-zero-20",
+      "seed": 0,
+      "recipe": "repeat (x=1,2,3,4; y=2,4,1,3) five times",
+      "objective": "rho=0 must not become a relationship finding",
+      "student_count": 20,
+      "distractor_count": 0,
+      "dataset_digest": "b9eb8b3abd9239d3cd132b3607e201af854d4fe40e48438278806ae1283c12e0",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 20,
+            "excluded_count": 0,
+            "state": "computable",
+            "rho": {
+              "decimal": "0"
+            }
+          },
+          "qualified": false,
+          "qualification_reasons": [
+            "below_effect_threshold"
+          ],
+          "signature": "796896ef509fb8133e8ad40a256ba7707693e30bae6158e51a9fd3682d30cc52",
+          "sources": {
+            "paired_scores": {
+              "count": 20,
+              "digest": "d703451aec49d3d2a51b9616afbbf4cf686049caab4db16461147321ba5640c3"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "nonzero_correlation"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "group-17",
+      "seed": 0,
+      "recipe": "first floor(n/2) ALGORITHMS=1/IMPLEMENTATION=5; rest 5/1",
+      "objective": "compare disjoint groups, not group vs its containing class",
+      "student_count": 17,
+      "distractor_count": 0,
+      "dataset_digest": "bd69b48d87312dbfc14f8ef117416e0a397004cd2f19508a9e68252efe29182c",
+      "targets": [
+        {
+          "query": {
+            "kind": "group",
+            "left": "",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "ALGORITHMS",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcome": "IMPLEMENTATION",
+            "side": ""
+          },
+          "values": {
+            "target_count": 8,
+            "remainder_count": 9,
+            "unevaluable_count": 0,
+            "population_count": 17,
+            "eligible_count": 17,
+            "share_total": {
+              "numerator": 8,
+              "denominator": 17
+            },
+            "share_eligible": {
+              "numerator": 8,
+              "denominator": 17
+            },
+            "ALGORITHMS": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -4,
+                "denominator": 1
+              },
+              "condition_defined": true
+            },
+            "IMPLEMENTATION": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "MODELING": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "EFFICIENCY": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "STRATEGY": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_non_condition_outcome"
+          ],
+          "signature": "bf8ceca7ebaccf7061e1be1c1b5b0e7954ca6dcfb2cc83bbb9e5fbfacf868372",
+          "sources": {
+            "target_members": {
+              "count": 8,
+              "digest": "82eaa106b1527140e9ff23f9a982aae105d1e013df7c9ca1e37a93f67fb3ecc6"
+            },
+            "remainder_members": {
+              "count": 9,
+              "digest": "af81393c173ef6123936d55994acd90daa5828b302aae92f31c9e80f67d0ca50"
+            },
+            "target.ALGORITHMS": {
+              "count": 8,
+              "digest": "82eaa106b1527140e9ff23f9a982aae105d1e013df7c9ca1e37a93f67fb3ecc6"
+            },
+            "remainder.ALGORITHMS": {
+              "count": 9,
+              "digest": "af81393c173ef6123936d55994acd90daa5828b302aae92f31c9e80f67d0ca50"
+            },
+            "target.IMPLEMENTATION": {
+              "count": 8,
+              "digest": "fb40d2c5c8b47bf5e50dbe7549b9e24d34cbc7cbd1f284b972c042e802b38521"
+            },
+            "remainder.IMPLEMENTATION": {
+              "count": 9,
+              "digest": "c94c4b01ca3b309f2549cc943232df159452e454a0db3705389c4018476a737f"
+            },
+            "target.MODELING": {
+              "count": 8,
+              "digest": "a86e7ffec886b493de73b8452f8e2e10624d698813281aab38926773b763e6b9"
+            },
+            "remainder.MODELING": {
+              "count": 9,
+              "digest": "ecd0e8a3a8f0c375c5cb140932aa2e5e02407b6e6dda2692d805a307626574ac"
+            },
+            "target.EFFICIENCY": {
+              "count": 8,
+              "digest": "57fe2873504037df5900397f76cc85ce4d3c798f30d9ec42e584c6459cf49be4"
+            },
+            "remainder.EFFICIENCY": {
+              "count": 9,
+              "digest": "31cdae7c657d26df16bcc9dbed16a826eabf466fb00bb48a934f6fcaedd37f9c"
+            },
+            "target.STRATEGY": {
+              "count": 8,
+              "digest": "9e199e4827d526e2395505d4bd302e5081e811bb6e8aa33686e3040495a9af25"
+            },
+            "remainder.STRATEGY": {
+              "count": 9,
+              "digest": "ff7949e5a6d5414ff8ac8a3d22499552a7f9ef3930198c481671b19a07fe20fb"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "group-53",
+      "seed": 0,
+      "recipe": "first floor(n/2) ALGORITHMS=1/IMPLEMENTATION=5; rest 5/1",
+      "objective": "compare disjoint groups, not group vs its containing class",
+      "student_count": 53,
+      "distractor_count": 0,
+      "dataset_digest": "0930249a7b0395ce88d7c47374c8ea44ccd03457b6521eb72b55b30c8aa5c0e1",
+      "targets": [
+        {
+          "query": {
+            "kind": "group",
+            "left": "",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "ALGORITHMS",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcome": "IMPLEMENTATION",
+            "side": ""
+          },
+          "values": {
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "population_count": 53,
+            "eligible_count": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53
+            },
+            "ALGORITHMS": {
+              "target": {
+                "valid": 26,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    26,
+                    26
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -4,
+                "denominator": 1
+              },
+              "condition_defined": true
+            },
+            "IMPLEMENTATION": {
+              "target": {
+                "valid": 26,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    26,
+                    26
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "MODELING": {
+              "target": {
+                "valid": 26,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    26,
+                    26
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "EFFICIENCY": {
+              "target": {
+                "valid": 26,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    26,
+                    26
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "STRATEGY": {
+              "target": {
+                "valid": 26,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    26,
+                    26
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_non_condition_outcome"
+          ],
+          "signature": "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a",
+          "sources": {
+            "target_members": {
+              "count": 26,
+              "digest": "b38ec9e2e10ff5843017fc220e569ce40cb0820b2f8e06ac052ee74ddcee39f2"
+            },
+            "remainder_members": {
+              "count": 27,
+              "digest": "44677c280ff4a76646a1499fb94c046b7a9653c76fad9434f580dead1519d525"
+            },
+            "target.ALGORITHMS": {
+              "count": 26,
+              "digest": "b38ec9e2e10ff5843017fc220e569ce40cb0820b2f8e06ac052ee74ddcee39f2"
+            },
+            "remainder.ALGORITHMS": {
+              "count": 27,
+              "digest": "44677c280ff4a76646a1499fb94c046b7a9653c76fad9434f580dead1519d525"
+            },
+            "target.IMPLEMENTATION": {
+              "count": 26,
+              "digest": "ea2ff3679bccb25921c574d083930b516482c711497b53a696ebe37073e8ac1c"
+            },
+            "remainder.IMPLEMENTATION": {
+              "count": 27,
+              "digest": "049ecae21944717d409e2132c1b8eb8126161661c5589e6f7b8b2aded386cfe7"
+            },
+            "target.MODELING": {
+              "count": 26,
+              "digest": "130e30c9abd29f3e4f0f4ea7c55c27c18c1421b0906fc46c0a19b28bce2b3344"
+            },
+            "remainder.MODELING": {
+              "count": 27,
+              "digest": "b102c87981bb4eb053451acb94d2e9e15b242c182a46c79bf6da875b5e75afab"
+            },
+            "target.EFFICIENCY": {
+              "count": 26,
+              "digest": "bf9d0b252d7d60b13c48ee6293f70c84a79b887c3cc02c556dfab771d5fab49c"
+            },
+            "remainder.EFFICIENCY": {
+              "count": 27,
+              "digest": "5bd2fa312f433a541ed1573fae7044eb576b9fd117648568a6fcb825dbdd37a4"
+            },
+            "target.STRATEGY": {
+              "count": 26,
+              "digest": "c9bd0d1ae68361f640bd710c4da3572a45647e7984ebbbad9b50856e6e6769b3"
+            },
+            "remainder.STRATEGY": {
+              "count": 27,
+              "digest": "f009cf16c792d8912d392ce6ad136166a09033f5fa42fb19efd5f75d1b6a55de"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "group-105",
+      "seed": 0,
+      "recipe": "first floor(n/2) MODELING=1/STRATEGY=5; rest 5/1",
+      "objective": "compare disjoint groups, not group vs its containing class",
+      "student_count": 105,
+      "distractor_count": 0,
+      "dataset_digest": "35137a4bd92dd1a2205fecd80dd38ba5ce731d6413240b640eddd807cde47b95",
+      "targets": [
+        {
+          "query": {
+            "kind": "group",
+            "left": "",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "MODELING",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcome": "STRATEGY",
+            "side": ""
+          },
+          "values": {
+            "target_count": 52,
+            "remainder_count": 53,
+            "unevaluable_count": 0,
+            "population_count": 105,
+            "eligible_count": 105,
+            "share_total": {
+              "numerator": 52,
+              "denominator": 105
+            },
+            "share_eligible": {
+              "numerator": 52,
+              "denominator": 105
+            },
+            "ALGORITHMS": {
+              "target": {
+                "valid": 52,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    52,
+                    52
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 53,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    53,
+                    53
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "IMPLEMENTATION": {
+              "target": {
+                "valid": 52,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    52,
+                    52
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 53,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    53,
+                    53
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "MODELING": {
+              "target": {
+                "valid": 52,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    52,
+                    52
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 53,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    53,
+                    53
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -4,
+                "denominator": 1
+              },
+              "condition_defined": true
+            },
+            "EFFICIENCY": {
+              "target": {
+                "valid": 52,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    52,
+                    52
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 53,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    53,
+                    53
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "STRATEGY": {
+              "target": {
+                "valid": 52,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    52,
+                    52
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 53,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    53,
+                    53
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "condition_defined": false
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_non_condition_outcome"
+          ],
+          "signature": "444ee70c4caadfa9ef48eb603b49cad63ca05615e969ed2e42200bc846cf63a3",
+          "sources": {
+            "target_members": {
+              "count": 52,
+              "digest": "4bfbb2743241f56392ab19887cff4baa69a63a9f37c2142fca6381d2aeeb8c9e"
+            },
+            "remainder_members": {
+              "count": 53,
+              "digest": "ec92bae2fb20f595b6ac445ea7a2e2c87775daf542e429a4d69fedbf76f60d80"
+            },
+            "target.ALGORITHMS": {
+              "count": 52,
+              "digest": "be5a85cd9ee6b0604b9f475272ba099657b8afae7f4012774908b78829bdac0c"
+            },
+            "remainder.ALGORITHMS": {
+              "count": 53,
+              "digest": "fc60d0dd6e6f4375baa79ba708b453c5e39a3da36cdacc56352df1eaa1f6c109"
+            },
+            "target.IMPLEMENTATION": {
+              "count": 52,
+              "digest": "b12d3ea4e91ba5f89cac87982ebf23bf8d5974dd90c04c7e9f89dc484b72f26b"
+            },
+            "remainder.IMPLEMENTATION": {
+              "count": 53,
+              "digest": "7f38470641c9fa1bcb3094a025730c7d1cf0412e617b0b1e07543130f2f7fc36"
+            },
+            "target.MODELING": {
+              "count": 52,
+              "digest": "4bfbb2743241f56392ab19887cff4baa69a63a9f37c2142fca6381d2aeeb8c9e"
+            },
+            "remainder.MODELING": {
+              "count": 53,
+              "digest": "ec92bae2fb20f595b6ac445ea7a2e2c87775daf542e429a4d69fedbf76f60d80"
+            },
+            "target.EFFICIENCY": {
+              "count": 52,
+              "digest": "1b5a959eafb2c4dd002945730064b9281e70dd9b93622406abaf00863647f67a"
+            },
+            "remainder.EFFICIENCY": {
+              "count": 53,
+              "digest": "d7a40f49b2f533f66bbb67495555a147cfb008b58790d7103ffef89cff30d63d"
+            },
+            "target.STRATEGY": {
+              "count": 52,
+              "digest": "0d164baee8977eccc7183e43bfad68e9812a5b39e9b3acc22602b2b968d4b6d7"
+            },
+            "remainder.STRATEGY": {
+              "count": 53,
+              "digest": "94d98d1e76e5ecc623a15e17bbb7ce97b4f99257cacdb1b1fae73eb33b7cf6e5"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "dedup-20",
+      "seed": 0,
+      "recipe": "10 rows (1,2.90,3,3,3), 10 rows (5,3.10,3,3,3)",
+      "objective": "the first ineligible partition must not suppress a different outcome",
+      "student_count": 20,
+      "distractor_count": 0,
+      "dataset_digest": "f09d4bb42222fb2213f672cc55e6f51984585fa1dd8e583c15d1df232ffb936f",
+      "targets": [
+        {
+          "query": {
+            "kind": "group",
+            "left": "",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "IMPLEMENTATION",
+                "operator": "<=",
+                "threshold": "2.90"
+              }
+            ],
+            "outcome": "ALGORITHMS",
+            "side": ""
+          },
+          "values": {
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "population_count": 20,
+            "eligible_count": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "ALGORITHMS": {
+              "target": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -4,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "IMPLEMENTATION": {
+              "target": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 29,
+                  "denominator": 10
+                },
+                "median": {
+                  "numerator": 29,
+                  "denominator": 10
+                },
+                "minimum": {
+                  "numerator": 29,
+                  "denominator": 10
+                },
+                "maximum": {
+                  "numerator": 29,
+                  "denominator": 10
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 29,
+                      "denominator": 10
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 31,
+                  "denominator": 10
+                },
+                "median": {
+                  "numerator": 31,
+                  "denominator": 10
+                },
+                "minimum": {
+                  "numerator": 31,
+                  "denominator": 10
+                },
+                "maximum": {
+                  "numerator": 31,
+                  "denominator": 10
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 31,
+                      "denominator": 10
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -1,
+                "denominator": 5
+              },
+              "condition_defined": true
+            },
+            "MODELING": {
+              "target": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "EFFICIENCY": {
+              "target": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "STRATEGY": {
+              "target": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 10,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    10,
+                    10
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_non_condition_outcome"
+          ],
+          "signature": "4ce71061b200312cd5105ee402fe3a0736aff00b9bead635873701a5e7aac08b",
+          "sources": {
+            "target_members": {
+              "count": 10,
+              "digest": "237d69b6a82dc26df13df37421ff9bc435aac9cfe8f1386844f02685746daab1"
+            },
+            "remainder_members": {
+              "count": 10,
+              "digest": "3aeffa14fc508185bc31b53d0aa1da3349e2f2e22d9dab044d75ff6b0f3a6913"
+            },
+            "target.ALGORITHMS": {
+              "count": 10,
+              "digest": "652a1396b80a4cd09580fc0149f804196c52bcc3ab52b4430ab60631f0c59b78"
+            },
+            "remainder.ALGORITHMS": {
+              "count": 10,
+              "digest": "b3494bb230a7dc0f39a47f9ad04dbf5c0b227524699d79613390e314d5b08c05"
+            },
+            "target.IMPLEMENTATION": {
+              "count": 10,
+              "digest": "237d69b6a82dc26df13df37421ff9bc435aac9cfe8f1386844f02685746daab1"
+            },
+            "remainder.IMPLEMENTATION": {
+              "count": 10,
+              "digest": "3aeffa14fc508185bc31b53d0aa1da3349e2f2e22d9dab044d75ff6b0f3a6913"
+            },
+            "target.MODELING": {
+              "count": 10,
+              "digest": "4672168e0764eb10ba7ce7f898425b21cccbef205bd2a4f9e2fa74a08c6ef100"
+            },
+            "remainder.MODELING": {
+              "count": 10,
+              "digest": "9bf7ba36d2649379f3939a2c07335cd78c708ad834be3902ecefad61f47100be"
+            },
+            "target.EFFICIENCY": {
+              "count": 10,
+              "digest": "a299052edb83451b22f8b3ebb911e18b2e2373effab4209749662971eee60624"
+            },
+            "remainder.EFFICIENCY": {
+              "count": 10,
+              "digest": "16fe430f8f03afd65bea35fe3ba4f0e954fabf50aca558512c14c083c0bc2e20"
+            },
+            "target.STRATEGY": {
+              "count": 10,
+              "digest": "c4649f5e501e4878a1dbc36df4ad5f18a66805d80a0ec6fc352f02b09824141b"
+            },
+            "remainder.STRATEGY": {
+              "count": 10,
+              "digest": "043f45181a6d8b3b1b04be6645061aba74b68e505d17aec109a22060f0e33ffc"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "boundary-53",
+      "seed": 42,
+      "recipe": "Random(42).randint(100,500)/100 row-major 53x5; first five A/S overrides",
+      "objective": "strict count4, inclusive5, exactly one boundary member",
+      "student_count": 53,
+      "distractor_count": 0,
+      "dataset_digest": "1a7025cd485dd0b45a2e2622419d84e8859aaf2c7142f987cae1376b9e489fa0",
+      "targets": [
+        {
+          "query": {
+            "kind": "boundary",
+            "left": "ALGORITHMS",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "ALGORITHMS",
+                "operator": "<=",
+                "threshold": "2.75"
+              },
+              {
+                "dimension": "STRATEGY",
+                "operator": ">=",
+                "threshold": "4"
+              }
+            ],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "strict_count": 4,
+            "inclusive_count": 5,
+            "added_count": 1,
+            "removed_count": 0,
+            "population_count": 53,
+            "eligible_count": 53,
+            "unevaluable_count": 0,
+            "observed_boundary": true
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "exact_definition_change_not_diagnosis"
+          ],
+          "signature": "a87b4459295ee244a2dd8a81488ad17cefff50d6b902185305990a0468e0a3d7",
+          "sources": {
+            "strict_members": {
+              "count": 4,
+              "digest": "4b9e1a17409e7f523e1dc857daeb3d7f525f201f3ee5ffec21e77dbf769dc426"
+            },
+            "inclusive_members": {
+              "count": 5,
+              "digest": "9e265befb974c85f2b9e775a014ab70f9b53bdcc129f00bf91739dffb03adabc"
+            },
+            "added_members": {
+              "count": 1,
+              "digest": "3f892a3a673313f06c1ff7ed35b95e276ee34509e1846dfb2cb8664f7a568338"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "display_rounding_changes_filter"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "rare-17",
+      "seed": 0,
+      "recipe": "16 rows all3; 1 rows A5/B1/others3",
+      "objective": "review rare score contrasts without diagnosing students",
+      "student_count": 17,
+      "distractor_count": 0,
+      "dataset_digest": "4e925717d36ad5d637deb926cb55f304ec99bc025a0fd27f84ebe96064c0aab5",
+      "targets": [
+        {
+          "query": {
+            "kind": "rare",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": "upper"
+          },
+          "values": {
+            "pair_count": 17,
+            "excluded_count": 0,
+            "q1": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "q3": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "median": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "lower_fence": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "upper_fence": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "match_count": 1,
+            "distribution": [
+              [
+                {
+                  "numerator": 0,
+                  "denominator": 1
+                },
+                16
+              ],
+              [
+                {
+                  "numerator": 4,
+                  "denominator": 1
+                },
+                1
+              ]
+            ],
+            "pattern": "individual_review"
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "review_only_not_diagnosis"
+          ],
+          "signature": "e382fecb748948fd32917f50faacd4ae2f177fd58a06319b670ead68068b81be",
+          "sources": {
+            "rare_members": {
+              "count": 1,
+              "digest": "7a76799caef7ee39c22c0e5295b7578d460c74d0937c64e4dd3fd1ea123c5bbf"
+            },
+            "pair_reference": {
+              "count": 17,
+              "digest": "efbcea4695da2c04ea10914ffc623b9a42cc9d68d98c1836b4e8016ae0fc5c78"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "ability_defect"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "rare-105",
+      "seed": 0,
+      "recipe": "100 rows all3; 5 rows A5/B1/others3",
+      "objective": "review rare score contrasts without diagnosing students",
+      "student_count": 105,
+      "distractor_count": 0,
+      "dataset_digest": "7fb2cf5abbfafecb4fa324c0261d582365140cfd67d3d02158e657401bdad891",
+      "targets": [
+        {
+          "query": {
+            "kind": "rare",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": "upper"
+          },
+          "values": {
+            "pair_count": 105,
+            "excluded_count": 0,
+            "q1": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "q3": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "median": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "lower_fence": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "upper_fence": {
+              "numerator": 0,
+              "denominator": 1
+            },
+            "match_count": 5,
+            "distribution": [
+              [
+                {
+                  "numerator": 0,
+                  "denominator": 1
+                },
+                100
+              ],
+              [
+                {
+                  "numerator": 4,
+                  "denominator": 1
+                },
+                5
+              ]
+            ],
+            "pattern": "group_pattern"
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "review_only_not_diagnosis"
+          ],
+          "signature": "cf5942364d0e6802a7cda45f796d0e20c270cc571e394529f65ad4fcbfdf0250",
+          "sources": {
+            "rare_members": {
+              "count": 5,
+              "digest": "71e2279cf718db8cf8e8a7f931d9461720788aadd2fc1b85247df1c95661e65d"
+            },
+            "pair_reference": {
+              "count": 105,
+              "digest": "661e86d13ba04374af20f8bd323d9884af13510689b5a0662fa0c798dbe4e95f"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "ability_defect"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "constant-53",
+      "seed": 0,
+      "recipe": "53 rows all3",
+      "objective": "no qualified discoveries",
+      "student_count": 53,
+      "distractor_count": 0,
+      "dataset_digest": "cd39b44f42baf45a64a96443aa020e284283e311192d7d364b9ddbb867907ca5",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "state": "constant_input",
+            "rho": null
+          },
+          "qualified": false,
+          "qualification_reasons": [
+            "constant_input"
+          ],
+          "signature": "23b4b9740843367be2ea607c657f569164200f98d3e0146c7f25675ebd50227f",
+          "sources": {
+            "paired_scores": {
+              "count": 53,
+              "digest": "81cdf7ec46917006a3bbc30ccee7128a29e246d58cc4053060f81ecadba90b47"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "forced_discovery"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "missing-invalid-17",
+      "seed": 0,
+      "recipe": "4 paired scores1..4; 7 missing A; 5 out-of-range A; 1 off-grid A",
+      "objective": "paired n4/excluded13, below minimum5",
+      "student_count": 17,
+      "distractor_count": 0,
+      "dataset_digest": "68ee48a822bac00aaee52d44b9127ce15aca33f457d84ba5f8208419cca23755",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 4,
+            "excluded_count": 13,
+            "state": "insufficient_pairs",
+            "rho": null
+          },
+          "qualified": false,
+          "qualification_reasons": [
+            "insufficient_pairs"
+          ],
+          "signature": "196d5ad7656a09a2977c09b2c60c3a867875b89d0435f111f687040d74fc0446",
+          "sources": {
+            "paired_scores": {
+              "count": 4,
+              "digest": "9abbe2bb1631eae819bcee09ad24a865f80afbae7cb34c96cb904fe9666d73d2"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "missing_as_zero"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "missing-group-53",
+      "seed": 0,
+      "recipe": "group53 with first A missing",
+      "objective": "M25/R27/U1/N53/E52; no zero imputation",
+      "student_count": 53,
+      "distractor_count": 0,
+      "dataset_digest": "bd879ac03547876939284f65a1281a956c80b3ab24fe6e094672d303f68649dc",
+      "targets": [
+        {
+          "query": {
+            "kind": "group",
+            "left": "",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "ALGORITHMS",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcome": "IMPLEMENTATION",
+            "side": ""
+          },
+          "values": {
+            "target_count": 25,
+            "remainder_count": 27,
+            "unevaluable_count": 1,
+            "population_count": 53,
+            "eligible_count": 52,
+            "share_total": {
+              "numerator": 25,
+              "denominator": 53
+            },
+            "share_eligible": {
+              "numerator": 25,
+              "denominator": 52
+            },
+            "ALGORITHMS": {
+              "target": {
+                "valid": 25,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    25,
+                    25
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -4,
+                "denominator": 1
+              },
+              "condition_defined": true
+            },
+            "IMPLEMENTATION": {
+              "target": {
+                "valid": 25,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    25,
+                    25
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "MODELING": {
+              "target": {
+                "valid": 25,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    25,
+                    25
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "EFFICIENCY": {
+              "target": {
+                "valid": 25,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    25,
+                    25
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "STRATEGY": {
+              "target": {
+                "valid": 25,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    25,
+                    25
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 27,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    27,
+                    27
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_non_condition_outcome"
+          ],
+          "signature": "965e5719cada8e8b27271776f4e59b48b8d8a7cbcaf13c01d9f715f039446ab4",
+          "sources": {
+            "target_members": {
+              "count": 25,
+              "digest": "eec48a0e2f06b3b16c56daad20e1d9e50befb4e6dad0a77061dc0112c902e7fe"
+            },
+            "remainder_members": {
+              "count": 27,
+              "digest": "3030c1132b5c54d7ce7cd918aa1684b14cf849fcd1da017be05bb3e5f09cf327"
+            },
+            "target.ALGORITHMS": {
+              "count": 25,
+              "digest": "eec48a0e2f06b3b16c56daad20e1d9e50befb4e6dad0a77061dc0112c902e7fe"
+            },
+            "remainder.ALGORITHMS": {
+              "count": 27,
+              "digest": "3030c1132b5c54d7ce7cd918aa1684b14cf849fcd1da017be05bb3e5f09cf327"
+            },
+            "target.IMPLEMENTATION": {
+              "count": 25,
+              "digest": "b88ffa368d935b9af9de27df60ec8c93f841226400c640d4eb3465040a84b5a8"
+            },
+            "remainder.IMPLEMENTATION": {
+              "count": 27,
+              "digest": "3189ffd79b27d214e535a45e7ff550262a5d887181829db0205f1ae21b3ab37a"
+            },
+            "target.MODELING": {
+              "count": 25,
+              "digest": "ecf3e1ed9d0e9c04317546a30330afa0674f58b5aebbd3604e3cea776df23bce"
+            },
+            "remainder.MODELING": {
+              "count": 27,
+              "digest": "2470c2cb89ab99ffe2c1e27ce64a50332ed660fb89919cda88a40199bff40859"
+            },
+            "target.EFFICIENCY": {
+              "count": 25,
+              "digest": "feff7b5b0bb331f9fd95e0c9f7ceafc188be9d1f682dae6efb28d3a2db550fd8"
+            },
+            "remainder.EFFICIENCY": {
+              "count": 27,
+              "digest": "2baf1f341825dc56c2eda2f0e069eca555ef9c9aa5deabbaf0fce9a339737f45"
+            },
+            "target.STRATEGY": {
+              "count": 25,
+              "digest": "7e935b9387f4946c04f24b31f666b89350733363f560b9ed7ad684fc44a858ac"
+            },
+            "remainder.STRATEGY": {
+              "count": 27,
+              "digest": "50102ef441128d2b94feeb103ecfd8b0faa4f49c094b4f037c43a643d6ee7aa5"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "scope-attacks-17",
+      "seed": 0,
+      "recipe": "8 A1/B5,9 A5/B1; foreign batch53 rows all5",
+      "objective": "ignore foreign batch; reject forged IDs, sources, numbers and requests",
+      "student_count": 17,
+      "distractor_count": 53,
+      "dataset_digest": "53ce6bef3ce51781fb11f8f6bad69704597bc61a81378c239ce78b6330509e1c",
+      "targets": [
+        {
+          "query": {
+            "kind": "group",
+            "left": "",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "ALGORITHMS",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcome": "IMPLEMENTATION",
+            "side": ""
+          },
+          "values": {
+            "target_count": 8,
+            "remainder_count": 9,
+            "unevaluable_count": 0,
+            "population_count": 17,
+            "eligible_count": 17,
+            "share_total": {
+              "numerator": 8,
+              "denominator": 17
+            },
+            "share_eligible": {
+              "numerator": 8,
+              "denominator": 17
+            },
+            "ALGORITHMS": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -4,
+                "denominator": 1
+              },
+              "condition_defined": true
+            },
+            "IMPLEMENTATION": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "MODELING": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "EFFICIENCY": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "STRATEGY": {
+              "target": {
+                "valid": 8,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    8,
+                    8
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 9,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    9,
+                    9
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 0,
+                "denominator": 1
+              },
+              "condition_defined": false
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_non_condition_outcome"
+          ],
+          "signature": "855f0832f4e9d23ab2c612087ee141110068efaba368aa9057d581150507b972",
+          "sources": {
+            "target_members": {
+              "count": 8,
+              "digest": "c8b83637507f07e23c50ffc4c735a9da4db81f10eb6188aada9cee96e057a196"
+            },
+            "remainder_members": {
+              "count": 9,
+              "digest": "2aa4547470f91a26000af1bc20be0d84aa6e88e123ba3fa0cc6920e9fc03fdd7"
+            },
+            "target.ALGORITHMS": {
+              "count": 8,
+              "digest": "c8b83637507f07e23c50ffc4c735a9da4db81f10eb6188aada9cee96e057a196"
+            },
+            "remainder.ALGORITHMS": {
+              "count": 9,
+              "digest": "2aa4547470f91a26000af1bc20be0d84aa6e88e123ba3fa0cc6920e9fc03fdd7"
+            },
+            "target.IMPLEMENTATION": {
+              "count": 8,
+              "digest": "8a106385bcba6244fa68344e043a82bd6ccceb9d4f6b6f0572cd6dd4b7019227"
+            },
+            "remainder.IMPLEMENTATION": {
+              "count": 9,
+              "digest": "f2e0da2308b633e3346a739a7aeed7b107dc26766ed40ed03707e5c66ac83202"
+            },
+            "target.MODELING": {
+              "count": 8,
+              "digest": "eb0227ec5c9c3463517ef11c63be411c6dd8f94dd91b57edfa4f5cc4701b9edb"
+            },
+            "remainder.MODELING": {
+              "count": 9,
+              "digest": "adf4d69ea51b92d09f70c471b84b66f43ce54fd993bccd8299bde5dd0fcdc058"
+            },
+            "target.EFFICIENCY": {
+              "count": 8,
+              "digest": "d8fa5b060ce652fa7307816e3473b987f94067e47b3668f062a99d13c667615b"
+            },
+            "remainder.EFFICIENCY": {
+              "count": 9,
+              "digest": "966aae7405fe837ff65d1d73fa07fd0820f53c06360865fb8e8a341114dc8981"
+            },
+            "target.STRATEGY": {
+              "count": 8,
+              "digest": "be15ab534ab400dc8fa702cafe6ff77b41947ca146a62556382a5ec81f95ccea"
+            },
+            "remainder.STRATEGY": {
+              "count": 9,
+              "digest": "16c1af82286d0ab24beabb18f528dee2bc6014655a52035b12c6edc4db53ec23"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "cross_batch_reference",
+        "unknown_fact",
+        "unauthorized_tool"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "constant-scale-0",
+      "seed": 0,
+      "recipe": "0 rows all3",
+      "objective": "scale independence and safe empty outcome",
+      "student_count": 0,
+      "distractor_count": 0,
+      "dataset_digest": "8cbd89241342ffb04f63f8685738d3240c24bd513badad95494d197b7a17df15",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 0,
+            "excluded_count": 0,
+            "state": "insufficient_pairs",
+            "rho": null
+          },
+          "qualified": false,
+          "qualification_reasons": [
+            "insufficient_pairs"
+          ],
+          "signature": "36ec34193a271a97b60bba32d2a3c6e3f571658748fcb68263780cbffd0a6e78",
+          "sources": {
+            "paired_scores": {
+              "count": 0,
+              "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "forced_discovery"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "constant-scale-1",
+      "seed": 0,
+      "recipe": "1 rows all3",
+      "objective": "scale independence and safe empty outcome",
+      "student_count": 1,
+      "distractor_count": 0,
+      "dataset_digest": "a6b7e671e14b7071c5889a8e52a91a73bbf2981fac5d33eea3e271c5d87c2baf",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 1,
+            "excluded_count": 0,
+            "state": "insufficient_pairs",
+            "rho": null
+          },
+          "qualified": false,
+          "qualification_reasons": [
+            "insufficient_pairs"
+          ],
+          "signature": "91391349087097f7e5562e8ac0c411183d9b201da86a75ee4eff571329b12058",
+          "sources": {
+            "paired_scores": {
+              "count": 1,
+              "digest": "5b7128802795def69f47b7ed5a8574437caa05e71b49e4fc7207dc1a8af999fb"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "forced_discovery"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "constant-scale-320",
+      "seed": 0,
+      "recipe": "320 rows all3",
+      "objective": "scale independence and safe empty outcome",
+      "student_count": 320,
+      "distractor_count": 0,
+      "dataset_digest": "66b7b3a2f000e8607b3c74920d4076a6a11416522806343fcae0e023ae291050",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 320,
+            "excluded_count": 0,
+            "state": "constant_input",
+            "rho": null
+          },
+          "qualified": false,
+          "qualification_reasons": [
+            "constant_input"
+          ],
+          "signature": "f215b7aa883b9914b99e87dfbe12d4f918008a8022f3d4ac3529f5e99a050404",
+          "sources": {
+            "paired_scores": {
+              "count": 320,
+              "digest": "ae54e05f1e3e84e06ec8a7252296d4d6f6e53bda52125c5e970f9ddafc20cf7b"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "forced_discovery"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "constant-scale-2000",
+      "seed": 0,
+      "recipe": "2000 rows all3",
+      "objective": "scale independence and safe empty outcome",
+      "student_count": 2000,
+      "distractor_count": 0,
+      "dataset_digest": "b845351d62e0ff41ba278b5a3725a3b340666506af505cd972640f7877e5e14f",
+      "targets": [
+        {
+          "query": {
+            "kind": "relation",
+            "left": "ALGORITHMS",
+            "right": "IMPLEMENTATION",
+            "conditions": [],
+            "outcome": "",
+            "side": ""
+          },
+          "values": {
+            "paired_count": 2000,
+            "excluded_count": 0,
+            "state": "constant_input",
+            "rho": null
+          },
+          "qualified": false,
+          "qualification_reasons": [
+            "constant_input"
+          ],
+          "signature": "709e35c26297a2be286f9284bb32a48bde82e46387d2a7e5479dbd890c467466",
+          "sources": {
+            "paired_scores": {
+              "count": 2000,
+              "digest": "6facbdf0d709dfa2f9c92a3ad2696551ccdad6fad49dc5b19f500cbf390893e4"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "forced_discovery"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    },
+    {
+      "case_id": "and-interaction-53",
+      "seed": 0,
+      "recipe": "four A/B cells of size13,13,13,14; Modeling5 only at A1/B5; E=1+i%5,S=1+3i%5",
+      "objective": "discover the two-condition interaction; bounded default search may miss it",
+      "student_count": 53,
+      "distractor_count": 0,
+      "dataset_digest": "311206a052ad70f900020b3c62b6e11e37c1df26e17d6cc03dc2a54d901c6287",
+      "targets": [
+        {
+          "query": {
+            "kind": "group",
+            "left": "",
+            "right": "",
+            "conditions": [
+              {
+                "dimension": "ALGORITHMS",
+                "operator": "<=",
+                "threshold": "1"
+              },
+              {
+                "dimension": "IMPLEMENTATION",
+                "operator": ">=",
+                "threshold": "5"
+              }
+            ],
+            "outcome": "MODELING",
+            "side": ""
+          },
+          "values": {
+            "target_count": 13,
+            "remainder_count": 40,
+            "unevaluable_count": 0,
+            "population_count": 53,
+            "eligible_count": 53,
+            "share_total": {
+              "numerator": 13,
+              "denominator": 53
+            },
+            "share_eligible": {
+              "numerator": 13,
+              "denominator": 53
+            },
+            "ALGORITHMS": {
+              "target": {
+                "valid": 13,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    13,
+                    13
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 40,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 37,
+                  "denominator": 10
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    13,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    27,
+                    40
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": -27,
+                "denominator": 10
+              },
+              "condition_defined": true
+            },
+            "IMPLEMENTATION": {
+              "target": {
+                "valid": 13,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    13,
+                    13
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 40,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 12,
+                  "denominator": 5
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    26,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    14,
+                    40
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 13,
+                "denominator": 5
+              },
+              "condition_defined": true
+            },
+            "MODELING": {
+              "target": {
+                "valid": 13,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    13,
+                    13
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 40,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    40,
+                    40
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 4,
+                "denominator": 1
+              },
+              "condition_defined": false
+            },
+            "EFFICIENCY": {
+              "target": {
+                "valid": 13,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 40,
+                  "denominator": 13
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    3,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 2,
+                      "denominator": 1
+                    },
+                    2,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    2,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 4,
+                      "denominator": 1
+                    },
+                    3,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    3,
+                    13
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 40,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 29,
+                  "denominator": 10
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    8,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 2,
+                      "denominator": 1
+                    },
+                    9,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    9,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 4,
+                      "denominator": 1
+                    },
+                    7,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    7,
+                    40
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 23,
+                "denominator": 130
+              },
+              "condition_defined": false
+            },
+            "STRATEGY": {
+              "target": {
+                "valid": 13,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    3,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 2,
+                      "denominator": 1
+                    },
+                    2,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    3,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 4,
+                      "denominator": 1
+                    },
+                    2,
+                    13
+                  ],
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    3,
+                    13
+                  ]
+                ]
+              },
+              "remainder": {
+                "valid": 40,
+                "missing": 0,
+                "invalid": 0,
+                "mean": {
+                  "numerator": 59,
+                  "denominator": 20
+                },
+                "median": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "minimum": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "maximum": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "distribution": [
+                  [
+                    {
+                      "numerator": 1,
+                      "denominator": 1
+                    },
+                    8,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 2,
+                      "denominator": 1
+                    },
+                    9,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 3,
+                      "denominator": 1
+                    },
+                    7,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 4,
+                      "denominator": 1
+                    },
+                    9,
+                    40
+                  ],
+                  [
+                    {
+                      "numerator": 5,
+                      "denominator": 1
+                    },
+                    7,
+                    40
+                  ]
+                ]
+              },
+              "difference": {
+                "numerator": 1,
+                "denominator": 20
+              },
+              "condition_defined": false
+            }
+          },
+          "qualified": true,
+          "qualification_reasons": [
+            "qualified_non_condition_outcome"
+          ],
+          "signature": "31474b3967d78d93b5c78865d419781f626c1fed07b95754434ad929fc300d07",
+          "sources": {
+            "target_members": {
+              "count": 13,
+              "digest": "b994d8e0c98f76119f42c2e096095f8d741f4123bfca30b013924d758b28e6e1"
+            },
+            "remainder_members": {
+              "count": 40,
+              "digest": "e29a7c760e4eec4a0cf10d6555390458019feb3dc0b2b9d6c690c50777d2dde1"
+            },
+            "target.ALGORITHMS": {
+              "count": 13,
+              "digest": "f92cf14cd1fa528faae9d8c04555678cbd5cb3c00df8b77b73178d9512631512"
+            },
+            "remainder.ALGORITHMS": {
+              "count": 40,
+              "digest": "afb3454dfebfe3212755c14349b8fd9a7e236604c845faa0eb9641a92e3c73fc"
+            },
+            "target.IMPLEMENTATION": {
+              "count": 13,
+              "digest": "1d0f5ec453f988740610a58ddab85809937ee3a11eacfc90da8392ac8d647125"
+            },
+            "remainder.IMPLEMENTATION": {
+              "count": 40,
+              "digest": "8bdeeda1c60f1d4da532b6b4679e9e41b0fa832768a752d0c564766d8791341e"
+            },
+            "target.MODELING": {
+              "count": 13,
+              "digest": "d4cd920bf176400e0a79e43ee6833b3884f5110504d4914451ae825654269905"
+            },
+            "remainder.MODELING": {
+              "count": 40,
+              "digest": "7bfb4fb845d1164d2d1eef596f5fc53e9529b92d551ef4d79e1f2ce91b17121b"
+            },
+            "target.EFFICIENCY": {
+              "count": 13,
+              "digest": "d67bd63222db2629c60a4fe8c281c58c8f3523bcf52752dcfdfd8676798c4780"
+            },
+            "remainder.EFFICIENCY": {
+              "count": 40,
+              "digest": "7a0c414d8031e56812a024a6f649cc4b4149231c95daeb5207cd0f8233af9231"
+            },
+            "target.STRATEGY": {
+              "count": 13,
+              "digest": "05511cbb5972e940f32b466d939ffccc0f3ad5367e8e4e7563698f35a070ec11"
+            },
+            "remainder.STRATEGY": {
+              "count": 40,
+              "digest": "09b3c079a750f990796df0a0036fef3f7d651b91447a86ff57da7dde61ea923c"
+            }
+          }
+        }
+      ],
+      "forbidden": [
+        "fabricated_numbers",
+        "causal_diagnosis",
+        "wrong_denominator",
+        "wrong_sources",
+        "condition_dimension_as_outcome"
+      ],
+      "allowed_stops": [
+        "completed",
+        "no_valid_findings",
+        "insufficient_data"
+      ]
+    }
+  ]
+}
