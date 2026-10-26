@@ -64,5 +64,7 @@ def test_rubric_fingerprint_preserves_v1_format_and_digest(book, pack):
 def test_rubric_fingerprint_rejects_sheet1_errors(book, pack):
     book["Sheet1"][DIMENSIONS[0].title_cell] = "纯合成错误维度"
     parsed = parse_excel(pack(book))
-    assert any(issue.sheet_name == "Sheet1" and issue.severity == "error" for issue in parsed.issues)
+    assert any(
+        issue.sheet_name == "Sheet1" and issue.severity == "error" for issue in parsed.issues
+    )
     assert rubric_fingerprint(parsed) is None
