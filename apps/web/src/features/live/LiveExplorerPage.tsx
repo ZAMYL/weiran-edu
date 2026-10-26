@@ -22,6 +22,7 @@ import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
 import { SparseMatrix } from './ServerCharts';
 import { LiveScoreDrawer, LiveStudentDrawer, LiveStudentTable } from './LiveStudents';
 import AnalysisActions from './AnalysisActions';
+import { DiscoveryChart, scoreText } from './DiscoveryChart';
 
 interface Draft {
   dimension_code: DimensionCode;
@@ -33,8 +34,13 @@ export default function LiveExplorerPage() {
   return batch ? <Explorer batch={batch} /> : <NoBatch />;
 }
 function Explorer({ batch }: { batch: ApiBatch }) {
-  const { client, conditions, setConditions } = useDataMode();
+  const { client, conditions, setConditions, discoveryOrigin } = useDataMode();
   const router = useRouter();
+  const origin =
+    discoveryOrigin?.batch_id === batch.batch_id &&
+    discoveryOrigin.spec.snapshot_id === batch.snapshot_id
+      ? discoveryOrigin
+      : null;
   const [draft, setDraft] = useState<Draft[]>(() =>
     conditions.map((c) => ({ ...c, value: String(c.value) })),
   );
@@ -56,6 +62,30 @@ function Explorer({ batch }: { batch: ApiBatch }) {
   );
   const loadGroup = useCallback(
     async (signal: AbortSignal) => {
+      if (origin) {
+        const detail = await client.discoveryDetail(
+          batch,
+          origin.discovery_id,
+          origin.spec,
+          signal,
+        );
+        const records = await client.discoveryRecords(
+          batch,
+          origin.discovery_id,
+          origin.metric_key,
+          origin.spec,
+          offset,
+          signal,
+        );
+        return {
+          items: records.items,
+          matched: records.total_count,
+          total: records.scope.scope_record_count,
+          ratio: null,
+          statistics: null,
+          detail,
+        };
+      }
       if (conditions.length) {
         const group = await client.group(batch, conditions, offset, signal);
         return {
@@ -64,6 +94,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
           total: group.total_count,
           ratio: group.ratio,
           statistics: group.statistics,
+          detail: null,
         };
       }
       const page = await client.students(batch, offset, signal);
@@ -73,12 +104,13 @@ function Explorer({ batch }: { batch: ApiBatch }) {
         total: page.total_count,
         ratio: page.total_count ? 1 : 0,
         statistics: null,
+        detail: null,
       };
     },
-    [client, batch, conditions, offset],
+    [client, batch, conditions, offset, origin],
   );
   const group = useRemote(
-    `group:${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}:${offset}`,
+    `group:${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}:${JSON.stringify(origin)}:${offset}`,
     loadGroup,
   );
   function apply() {
@@ -116,7 +148,15 @@ function Explorer({ batch }: { batch: ApiBatch }) {
     },
     [axes, setConditions],
   );
-  const distribution = group.data?.statistics ?? (conditions.length ? null : stats.data);
+  const distribution = group.data?.statistics ?? (conditions.length || origin ? null : stats.data);
+  const originalConditions = group.data?.detail?.conditions
+    .map(
+      (c) =>
+        `${dimensionName(c.dimension_code)} ${operatorLabels[c.operator]} ${scoreText(c.threshold)}`,
+    )
+    .join(' 且 ');
+  const targetStats =
+    group.data?.detail?.type === 'group_difference' ? group.data.detail.chart : null;
   const unapplied =
     draft.length !== conditions.length ||
     draft.some(
@@ -127,6 +167,14 @@ function Explorer({ batch }: { batch: ApiBatch }) {
     );
   return (
     <div className="page-stack explorer-page live-explorer">
+      {origin && (
+        <Alert
+          type="info"
+          showIcon
+          title="正在查看原发现群体"
+          description={`${group.data?.detail?.title ?? '正在核查发现'}；批次与快照保持一致。保存时保留原发现及其完整分析范围；应用手动条件将退出原群体。`}
+        />
+      )}
       <Panel className="filter-panel">
         <div className="filter-builder">
           {draft.map((condition, index) => (
@@ -212,38 +260,57 @@ function Explorer({ batch }: { batch: ApiBatch }) {
       <div className="match-summary">
         <span>
           当前匹配 <strong>{group.data?.matched ?? '—'}</strong> / {group.data?.total ?? '—'} 人 ·
-          占参评人数 <b>{group.data ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}</b>
+          占参评人数{' '}
+          <b>{group.data?.ratio != null ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}</b>
         </span>
         <Tag>服务端完整结果，分页不改变人数</Tag>
-        <p>{conditionText(conditions)}</p>
+        <p>
+          {origin
+            ? `原发现条件：${originalConditions || '由受控指标参与记录确定'}；分析范围：${conditionText(conditions)}`
+            : conditionText(conditions)}
+        </p>
       </div>
       <AnalysisActions
         batch={batch}
         spec={{ snapshot_id: batch.snapshot_id, conditions, include_dimensions: true }}
-        blocked={unapplied ? '筛选条件有未应用的修改，请先应用筛选再保存。' : undefined}
+        discovery={
+          origin && group.data?.detail
+            ? { input_key: group.data.detail.scope.input_key, discovery_ids: [origin.discovery_id] }
+            : undefined
+        }
+        blocked={
+          origin && !group.data?.detail
+            ? '正在核验原发现，请稍候或重试。'
+            : unapplied
+              ? '筛选条件有未应用的修改，请先应用筛选再保存。'
+              : undefined
+        }
       />
       <div className="explorer-grid">
         <Panel title="能力组合分布" subtitle="本次测评的实际评分组合">
-          <div className="axis-controls">
-            <Select
-              aria-label="正式热力图横轴"
-              value={axes.x}
-              options={DIMENSIONS.map((d) => ({ value: d.code, label: `横轴 · ${d.name}` }))}
-              onChange={(x) => setAxes({ x, y: x === axes.y ? axes.x : axes.y })}
-            />
-            <Select
-              aria-label="正式热力图纵轴"
-              value={axes.y}
-              options={DIMENSIONS.filter((d) => d.code !== axes.x).map((d) => ({
-                value: d.code,
-                label: `纵轴 · ${d.name}`,
-              }))}
-              onChange={(y) => setAxes({ ...axes, y })}
-            />
-          </div>
+          {!origin && (
+            <div className="axis-controls">
+              <Select
+                aria-label="正式热力图横轴"
+                value={axes.x}
+                options={DIMENSIONS.map((d) => ({ value: d.code, label: `横轴 · ${d.name}` }))}
+                onChange={(x) => setAxes({ x, y: x === axes.y ? axes.x : axes.y })}
+              />
+              <Select
+                aria-label="正式热力图纵轴"
+                value={axes.y}
+                options={DIMENSIONS.filter((d) => d.code !== axes.x).map((d) => ({
+                  value: d.code,
+                  label: `纵轴 · ${d.name}`,
+                }))}
+                onChange={(y) => setAxes({ ...axes, y })}
+              />
+            </div>
+          )}
           {stats.loading && <LoadingPanel />}
           {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
-          {stats.data && (
+          {origin && group.data?.detail && <DiscoveryChart data={group.data.detail} />}
+          {!origin && stats.data && (
             <SparseMatrix statistics={stats.data} conditions={conditions} onCell={selectCell} />
           )}
         </Panel>
@@ -252,19 +319,39 @@ function Explorer({ batch }: { batch: ApiBatch }) {
             <Tag>当前正式群体</Tag>
             <small>服务端统计</small>
           </div>
-          <h2>{conditions.length ? '符合当前能力组合条件的学生' : '本次测评全部参评者'}</h2>
-          <p>{conditionText(conditions)}</p>
+          <h2>
+            {origin
+              ? '原发现指定的学生群体'
+              : conditions.length
+                ? '符合当前能力组合条件的学生'
+                : '本次测评全部参评者'}
+          </h2>
+          <p>
+            {origin
+              ? `原发现条件：${originalConditions || '由受控指标参与记录确定'}；分析范围：${conditionText(conditions)}`
+              : conditionText(conditions)}
+          </p>
           <div className="finding-numbers">
             <strong>
               {group.data?.matched ?? '—'}
               <small> / {group.data?.total ?? '—'} 人</small>
             </strong>
-            <strong>{group.data ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}</strong>
+            <strong>
+              {group.data?.ratio != null ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}
+            </strong>
           </div>
           {group.error && <RequestError error={group.error} retry={group.retry} />}
           <div className="group-distribution">
             <h3>群体评分概况</h3>
-            {distribution ? (
+            {targetStats ? (
+              targetStats.map((d) => (
+                <div className="server-mean-row" key={d.dimension_code}>
+                  <span>{dimensionName(d.dimension_code)}</span>
+                  <b>{scoreText(d.target.mean)}</b>
+                  <span className="muted small">有效 {d.target.valid_count} 人</span>
+                </div>
+              ))
+            ) : distribution ? (
               distribution.dimensions.map((d) => (
                 <div className="server-mean-row" key={d.dimension_code}>
                   <span>{dimensionName(d.dimension_code)}</span>

@@ -22,6 +22,7 @@ import {
   type DecisionStatus,
   type FindingDecision,
   type ReportFormat,
+  type DiscoverySelection,
 } from '../../services/edu-api/analysis-types';
 import { saveReportFile } from '../../services/edu-api/report-file';
 import type { ApiBatch, InsightSpec } from '../../services/edu-api/types';
@@ -29,6 +30,8 @@ import { conditionText, metricDisplay } from '../../services/edu-api/view-model'
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { useRemote } from './useRemote';
+import { DiscoveryDetailDrawer } from './LiveDiscoveries';
+import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 
 // Mutations are cancelled with the containing batch/session UI, including streamed downloads.
 function useOperation() {
@@ -61,10 +64,12 @@ export default function AnalysisActions({
   batch,
   spec,
   blocked,
+  discovery,
 }: {
   batch: ApiBatch;
   spec: InsightSpec;
   blocked?: string;
+  discovery?: DiscoverySelection;
 }) {
   const { client } = useDataMode();
   const [save, setSave] = useState(false);
@@ -82,7 +87,7 @@ export default function AnalysisActions({
       <section className="panel analysis-actions">
         <div>
           <h2>保存与核验</h2>
-          <p className="muted">保存当前已应用条件，核验系统候选后导出测评报告。</p>
+          <p className="muted">保存当前已应用范围；勾选正式发现后，可一并保存、逐卡核验和导出。</p>
         </div>
         <div className="batch-actions">
           <Button
@@ -104,6 +109,7 @@ export default function AnalysisActions({
         <SaveAnalysis
           batch={batch}
           spec={spec}
+          discovery={discovery}
           onClose={() => setSave(false)}
           onSaved={(result) => {
             setSave(false);
@@ -125,11 +131,13 @@ export default function AnalysisActions({
 function SaveAnalysis({
   batch,
   spec,
+  discovery,
   onClose,
   onSaved,
 }: {
   batch: ApiBatch;
   spec: InsightSpec;
+  discovery?: DiscoverySelection;
   onClose: () => void;
   onSaved: (result: AnalysisResult) => void;
 }) {
@@ -152,7 +160,12 @@ function SaveAnalysis({
         operation.run(async (signal) => {
           const result = await client.createAnalysis(
             batch,
-            { ...spec, title: title.trim(), note },
+            {
+              ...spec,
+              ...(discovery ? { include_dimensions: false, discovery } : {}),
+              title: title.trim(),
+              note,
+            },
             signal,
           );
           if (!signal.aborted) onSaved(result);
@@ -161,7 +174,11 @@ function SaveAnalysis({
     >
       <p>分析范围：{conditionText(spec.conditions)}</p>
       <p className="muted small">
-        {spec.include_dimensions ? '包含五维评分候选' : '不包含维度候选'}
+        {discovery
+          ? `已选择 ${discovery.discovery_ids.length} 项正式发现；未选择时仅保存范围概况`
+          : spec.include_dimensions
+            ? '包含五维评分统计候选'
+            : '不包含维度候选'}
         ；完整统计和候选由服务端重新计算并保存，不受当前分页影响。
       </p>
       <div className="analysis-fields">
@@ -321,15 +338,38 @@ function AnalysisEditor({
   const [modal, contextHolder] = Modal.useModal();
   const [title, setTitle] = useState(initial.title);
   const [note, setNote] = useState(initial.note);
+  const reviewItems = [
+    ...initial.findings.map(({ candidate, teacher_review }) => ({
+      id: candidate.candidate_id,
+      title: candidate.title,
+      summary: candidate.summary,
+      denominator: candidate.denominator,
+      limitations: candidate.limitations,
+      teacher_review,
+      candidate,
+      discovery: null,
+    })),
+    ...initial.discovery_findings.map(({ discovery, teacher_review }) => ({
+      id: discovery.discovery_id,
+      title: discovery.title,
+      summary: discoverySummaryText(discovery.summary),
+      denominator: discovery.scope.scope_record_count,
+      limitations: discovery.limitations,
+      teacher_review,
+      candidate: null,
+      discovery,
+    })),
+  ];
   const [decisions, setDecisions] = useState<FindingDecision[]>(() =>
-    initial.findings.map((finding) => ({ ...finding.teacher_review })),
+    reviewItems.map((finding) => ({ ...finding.teacher_review })),
   );
+  const [formalDetail, setFormalDetail] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [selection, setSelection] = useState<MetricSelection | null>(null);
   const operation = useOperation();
   const changes = decisions.filter((decision) => {
-    const previous = initial.findings.find(
-      (finding) => finding.candidate.candidate_id === decision.candidate_id,
+    const previous = reviewItems.find(
+      (finding) => finding.id === decision.candidate_id,
     )?.teacher_review;
     return previous?.status !== decision.status || previous.note !== decision.note;
   });
@@ -411,13 +451,12 @@ function AnalysisEditor({
         />
       </div>
       <h2 className="review-heading">候选发现核验</h2>
-      {!initial.findings.length && (
-        <Empty description="本次分析没有保存候选发现，仍可导出测评报告。" />
-      )}
-      {initial.findings.map(({ candidate }, index) => {
+      {!reviewItems.length && <Empty description="本次分析没有保存候选发现，仍可导出测评报告。" />}
+      {reviewItems.map((item, index) => {
+        const candidate = item.candidate;
         const decision = decisions[index]!;
         return (
-          <section className="panel review-finding" key={candidate.candidate_id}>
+          <section className="panel review-finding" key={item.id}>
             <div className="finding-top">
               <Tag
                 color={
@@ -430,21 +469,21 @@ function AnalysisEditor({
               >
                 教师{decisionLabels[decision.status]}
               </Tag>
-              <small>统计范围 {candidate.denominator} 人</small>
+              <small>统计范围 {item.denominator} 人</small>
             </div>
-            <h3>{candidate.title}</h3>
-            <p>{candidate.summary}</p>
+            <h3>{item.title}</h3>
+            <p>{item.summary}</p>
             <div className="batch-actions">
-              {candidate.metrics
+              {candidate?.metrics
                 .filter((metric) => metric.key === 'mean' || metric.key === 'matched_count')
                 .map((metric) => (
                   <Button
                     key={metric.key}
                     onClick={() =>
                       setSelection({
-                        candidateId: candidate.candidate_id,
+                        candidateId: item.id,
                         metricKey: metric.key,
-                        title: candidate.title,
+                        title: item.title,
                         spec: initial.analysis.query,
                       })
                     }
@@ -452,30 +491,31 @@ function AnalysisEditor({
                     查看评分证据 · {metricDisplay(metric)}
                   </Button>
                 ))}
+              {item.discovery && (
+                <Button onClick={() => setFormalDetail(item.id)}>查看完整发现与评分依据</Button>
+              )}
             </div>
             <label className="review-decision-label" id={`decision-${index}`}>
-              教师判断 · {candidate.title}
+              教师判断 · {item.title}
             </label>
             <Segmented
               aria-labelledby={`decision-${index}`}
               options={Object.entries(decisionLabels).map(([value, label]) => ({ value, label }))}
               value={decision.status}
               disabled={!editable || operation.busy}
-              onChange={(value) =>
-                update(candidate.candidate_id, { status: value as DecisionStatus })
-              }
+              onChange={(value) => update(item.id, { status: value as DecisionStatus })}
             />
-            <label htmlFor={`finding-note-${index}`}>核验备注 · {candidate.title}</label>
+            <label htmlFor={`finding-note-${index}`}>核验备注 · {item.title}</label>
             <Input.TextArea
               id={`finding-note-${index}`}
               value={decision.note}
               maxLength={2000}
               disabled={!editable || operation.busy}
-              onChange={(e) => update(candidate.candidate_id, { note: e.target.value })}
+              onChange={(e) => update(item.id, { note: e.target.value })}
             />
             <details>
               <summary>查看候选限制</summary>
-              {candidate.limitations.map((text) => (
+              {item.limitations.map((text) => (
                 <p className="muted small" key={text}>
                   {text}
                 </p>
@@ -514,6 +554,14 @@ function AnalysisEditor({
         >
           保存核验结果
         </Button>
+      )}
+      {formalDetail && initial.analysis.discovery && (
+        <DiscoveryDetailDrawer
+          batch={batch}
+          spec={initial.analysis.discovery.spec}
+          discoveryId={formalDetail}
+          onClose={() => setFormalDetail(null)}
+        />
       )}
       {exporting && (
         <ReportExport

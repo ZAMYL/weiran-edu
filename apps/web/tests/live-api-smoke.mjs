@@ -15,7 +15,7 @@ import { teacherAnalysisFlow, saveEmptyAnalysis } from './teacher-analysis-flow.
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..'),
-  apiRoot = path.join(repo, 'apps/api');
+  apiRoot = process.env.EDU_TEST_API_ROOT || path.join(repo, 'apps/api');
 const python =
   process.env.EDU_TEST_PYTHON ||
   path.join(
@@ -140,10 +140,16 @@ try {
     },
   );
   await ready(origin, frontend);
-  const chrome = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+  const chrome = [
+    process.env.EDU_TEST_BROWSER,
+    'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    process.env.LOCALAPPDATA &&
+      path.join(process.env.LOCALAPPDATA, 'Google/Chrome/Application/chrome.exe'),
+    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+  ].find((value) => value && existsSync(value));
   browser = await chromium.launch({
     headless: true,
-    ...(existsSync(chrome) ? { executablePath: chrome } : {}),
+    ...(chrome ? { executablePath: chrome } : {}),
   });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(15_000);

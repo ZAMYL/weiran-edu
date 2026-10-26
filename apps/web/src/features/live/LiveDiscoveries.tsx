@@ -1,6 +1,9 @@
 'use client';
 import { useCallback, useMemo, useState } from 'react';
-import { Button, Drawer, Empty, Pagination, Table, Tag } from 'antd';
+import { Checkbox, Button, Drawer, Empty, Pagination, Table, Tag } from 'antd';
+import { useRouter } from 'next/navigation';
+import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
+import { discoveryUrl } from '../../services/edu-api/discovery-navigation';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
@@ -56,7 +59,14 @@ function metricsText(d: DiscoveryDetail) {
       return `低于边界 ${d.metrics.strict_count} 人，包含边界 ${d.metrics.inclusive_count} 人，新增 ${d.metrics.added_count} 人；分析范围 ${d.metrics.student_denominator} 人。`;
   }
 }
-export default function LiveDiscoveries({ batch }: { batch: ApiBatch }) {
+export default function LiveDiscoveries({
+  batch,
+  onSelection,
+}: {
+  batch: ApiBatch;
+  onSelection?: (selection: DiscoverySelection) => void;
+}) {
+  const [checked, setChecked] = useState<string[]>([]);
   const { client, conditions } = useDataMode();
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -91,6 +101,19 @@ export default function LiveDiscoveries({ batch }: { batch: ApiBatch }) {
             当前范围 {resource.data.scope.scope_record_count} 人 · 本次测评{' '}
             {resource.data.scope.batch_record_count} 人
           </p>
+          {onSelection && (
+            <p>
+              已选择 {checked.length} 项正式发现（最多三项）。
+              <Button
+                onClick={() => {
+                  setChecked([]);
+                  onSelection({ input_key: resource.data!.scope.input_key, discovery_ids: [] });
+                }}
+              >
+                仅保存本次范围概况
+              </Button>
+            </p>
+          )}
           {resource.data.items.length ? (
             resource.data.items.map((card) => (
               <section
@@ -98,6 +121,25 @@ export default function LiveDiscoveries({ batch }: { batch: ApiBatch }) {
                 key={card.discovery_id}
                 data-testid="discovery-card"
               >
+                {onSelection && (
+                  <Checkbox
+                    aria-label={`保存发现 ${card.title}`}
+                    checked={checked.includes(card.discovery_id)}
+                    disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
+                    onChange={(e) => {
+                      const ids = e.target.checked
+                        ? [...checked, card.discovery_id]
+                        : checked.filter((id) => id !== card.discovery_id);
+                      setChecked(ids);
+                      onSelection({
+                        input_key: resource.data!.scope.input_key,
+                        discovery_ids: ids,
+                      });
+                    }}
+                  >
+                    纳入保存分析
+                  </Checkbox>
+                )}
                 <Tag color="blue">{typeNames[card.type]}</Tag>
                 {card.status !== 'displayable' && <Tag>需谨慎解释</Tag>}
                 <h3>{card.title}</h3>
@@ -136,7 +178,7 @@ export default function LiveDiscoveries({ batch }: { batch: ApiBatch }) {
     </Panel>
   );
 }
-function DiscoveryDetailDrawer({
+export function DiscoveryDetailDrawer({
   batch,
   spec,
   discoveryId,
@@ -147,7 +189,8 @@ function DiscoveryDetailDrawer({
   discoveryId: string;
   onClose: () => void;
 }) {
-  const { client } = useDataMode();
+  const { client, exploreDiscovery } = useDataMode();
+  const router = useRouter();
   const [metric, setMetric] = useState<string | null>(null);
   const load = useCallback(
     async (signal: AbortSignal) => {
@@ -210,6 +253,29 @@ function DiscoveryDetailDrawer({
                 ]}
               />
             )}
+            <Button
+              type="primary"
+              onClick={() => {
+                const metric_key = {
+                  dimension_relation: 'paired_scores',
+                  group_difference: 'target_members',
+                  rare_combination: 'rare_members',
+                  boundary_sensitivity: 'inclusive_members',
+                }[d.type];
+                if (!d.controlled_queries.some((q) => q.metric_key === metric_key)) return;
+                const origin = {
+                  batch_id: batch.batch_id,
+                  discovery_id: discoveryId,
+                  metric_key,
+                  spec,
+                };
+                exploreDiscovery(origin);
+                onClose();
+                router.push(discoveryUrl(origin));
+              }}
+            >
+              在画像探索查看原群体
+            </Button>
             <h3>查看学生与评分依据</h3>
             <div className="live-metrics">
               {d.controlled_queries.map((q) => (

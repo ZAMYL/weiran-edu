@@ -272,3 +272,6 @@ export const discoveryRecordsDto = checked(
         i.scores.every((s) => v.source_dimensions.includes(s.dimension_code)),
     ),
 );
+
+// Shared only by the formal saved-result decoder; not a new backend DTO.
+export { scope as discoveryScopeDto };

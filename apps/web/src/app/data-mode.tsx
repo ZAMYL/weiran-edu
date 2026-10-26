@@ -7,6 +7,11 @@ import type { ApiBatch, ApiCondition, ApiScope } from '../services/edu-api/types
 import { Panel } from '../components/ui';
 import { useRemote } from '../features/live/useRemote';
 
+import {
+  readDiscoveryOrigin,
+  type DiscoveryOrigin,
+} from '../services/edu-api/discovery-navigation';
+
 type Mode = 'live' | 'demo';
 interface SessionState {
   mode: Mode;
@@ -16,6 +21,7 @@ interface SessionState {
   scopes: ApiScope[];
   batch: ApiBatch | null;
   conditions: ApiCondition[];
+  discoveryOrigin: DiscoveryOrigin | null;
   revision: number;
   notice: string | null;
   loginOpen: boolean;
@@ -28,6 +34,7 @@ const initial: SessionState = {
   scopes: [],
   batch: null,
   conditions: [],
+  discoveryOrigin: null,
   revision: 0,
   notice: null,
   loginOpen: false,
@@ -40,6 +47,7 @@ interface DataMode extends SessionState {
   openLogin: (open: boolean) => void;
   selectBatch: (batch: ApiBatch | null) => void;
   setConditions: (conditions: ApiCondition[]) => void;
+  exploreDiscovery: (origin: DiscoveryOrigin) => void;
   batchChanged: (batch: ApiBatch) => void;
 }
 const Context = createContext<DataMode | null>(null);
@@ -90,15 +98,29 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           client.batches(),
         ]);
         if (!connecting.isCurrent(sequence)) return;
+        const origin = readDiscoveryOrigin(window.location.search);
+        let selected = batches.items[0] ?? null;
+        let notice: string | null = null;
+        if (origin) {
+          try {
+            selected = await client.batch(origin.batch_id);
+            if (selected.snapshot_id !== origin.spec.snapshot_id) throw new Error('STALE_SNAPSHOT');
+          } catch {
+            selected = null;
+            notice = '原发现链接已失效或无权访问，请重新选择授权批次。';
+          }
+        }
+        if (!connecting.isCurrent(sequence)) return;
         setState((s) => ({
           ...s,
           connected: true,
           teacherId: me.teacher_id,
           scopes: scopes.items,
-          batch: batches.items[0] ?? null,
-          conditions: [],
+          batch: selected,
+          discoveryOrigin: selected && origin ? origin : null,
+          conditions: selected && origin ? origin.spec.scope_conditions : [],
           revision: s.revision + 1,
-          notice: null,
+          notice,
           loginOpen: false,
         }));
       } catch (error) {
@@ -149,8 +171,18 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       client.clear();
     };
   }, [state.mode, connect, client, connecting]);
+  function clearPointer() {
+    if (window.location.search) window.history.replaceState(null, '', window.location.pathname);
+  }
   function selectBatch(batch: ApiBatch | null) {
-    setState((s) => ({ ...s, batch, conditions: [], revision: s.revision + 1 }));
+    clearPointer();
+    setState((s) => ({
+      ...s,
+      batch,
+      discoveryOrigin: null,
+      conditions: [],
+      revision: s.revision + 1,
+    }));
   }
   return (
     <Context.Provider
@@ -163,8 +195,21 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
         openLogin: (loginOpen) => setState((s) => ({ ...s, loginOpen })),
         selectBatch,
         batchChanged: selectBatch,
-        setConditions: (conditions) =>
-          setState((s) => ({ ...s, conditions: conditions.map((c) => ({ ...c })) })),
+        exploreDiscovery: (discoveryOrigin) =>
+          setState((s) => ({
+            ...s,
+            discoveryOrigin,
+            conditions: discoveryOrigin.spec.scope_conditions.map((c) => ({ ...c })),
+            revision: s.revision + 1,
+          })),
+        setConditions: (conditions) => {
+          clearPointer();
+          setState((s) => ({
+            ...s,
+            discoveryOrigin: null,
+            conditions: conditions.map((c) => ({ ...c })),
+          }));
+        },
       }}
     >
       {children}
@@ -304,6 +349,7 @@ export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
     );
   return (
     <div key={session.revision} className="live-workspace">
+      {session.notice && <Alert type="warning" showIcon title={session.notice} />}
       {live}
     </div>
   );

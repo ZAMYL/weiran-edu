@@ -12,6 +12,7 @@ import { ServerAbilityChart } from './ServerCharts';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
 import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
+import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
   const { batch } = useDataMode();
@@ -20,6 +21,16 @@ export default function LiveInsightsPage() {
 function Insights({ batch }: { batch: ApiBatch }) {
   const { client, conditions } = useDataMode();
   const router = useRouter();
+  const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
+  const [savedSelection, setSavedSelection] = useState<{
+    key: string;
+    selection: DiscoverySelection;
+  } | null>(null);
+  const discovery = savedSelection?.key === contextKey ? savedSelection.selection : undefined;
+  const onSelection = useCallback(
+    (selection: DiscoverySelection) => setSavedSelection({ key: contextKey, selection }),
+    [contextKey],
+  );
   const [mode, setMode] = useState<'radar' | 'distribution'>('radar');
   const [includeDimensions, setIncludeDimensions] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -61,7 +72,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
     });
   return (
     <div className="page-stack live-insights">
-      <AnalysisActions batch={batch} spec={spec} />
+      <AnalysisActions batch={batch} spec={spec} discovery={discovery} />
       <div className="stat-grid">
         {[
           ['参评人数', stats.data?.statistics.scope.record_count ?? null, '人'],
@@ -111,10 +122,11 @@ function Insights({ batch }: { batch: ApiBatch }) {
           <LiveDiscoveries
             key={`${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`}
             batch={batch}
+            onSelection={onSelection}
           />
           <Panel
-            title="测评洞察"
-            subtitle="系统生成的候选发现，需结合评分证据核验。"
+            title="评分统计依据"
+            subtitle="维度评分统计，供教师查看计算依据。"
             action={<Button onClick={insights.retry}>刷新洞察</Button>}
           >
             <div className="live-insight-controls">

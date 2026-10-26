@@ -130,3 +130,124 @@ describe('saved result context checks', () => {
     expect(JSON.parse(fetcher.mock.calls[1]![1]!.body as string)).toEqual(patch);
   });
 });
+
+function formalSaved() {
+  const exact = { numerator: 1, denominator: 1, display: '1.00' };
+  const stats = { ...statistics, scope: { kind: 'batch', record_count: 20 } };
+  const scope = {
+    batch_id: 'batch',
+    snapshot_id: 'snapshot',
+    input_key: 'a'.repeat(64),
+    profile: 'edu.discovery.profile.v1',
+    scope_conditions: [],
+    batch_record_count: 20,
+    scope_record_count: 20,
+    eligible_count: 20,
+    unevaluable_count: 0,
+    statistics: stats,
+    public_display_allowed: false,
+  };
+  const detail = {
+    discovery_id: 'a'.repeat(24),
+    batch_id: 'batch',
+    snapshot_id: 'snapshot',
+    input_key: scope.input_key,
+    type: 'dimension_relation',
+    rule_id: 'relation',
+    rule_version: 'synthetic-v1',
+    title: '合成关联',
+    summary: '合成摘要',
+    status: 'interpret_cautiously',
+    public_display_allowed: false,
+    scope,
+    conditions: [],
+    limitations: ['不是因果结论'],
+    controlled_queries: [{ discovery_id: 'a'.repeat(24), metric_key: 'paired_scores' }],
+    parameters: {
+      minimum_samples: 5,
+      support_target: 20,
+      search_budget: 20,
+      maximum_findings: 20,
+      maximum_students: 2000,
+      correlation_threshold: exact,
+      mean_difference: exact,
+      rare_share: exact,
+      minimum_contrast: exact,
+    },
+    ranking: {
+      score: exact,
+      effect: exact,
+      support_count: 20,
+      support: exact,
+      completeness: exact,
+      is_statistical_confidence: false,
+      robustness: { method: 'synthetic', planned: 0, evaluated: 0, passed: 0, value: null },
+    },
+    metrics: {
+      left: 'algorithm_data_structure',
+      right: 'solution_strategy',
+      rho: { value: 1, method: 'stdlib_float' },
+      paired_count: 20,
+      excluded_count: 0,
+      student_denominator: 20,
+    },
+    chart: [{ x: exact, y: exact, count: 20 }],
+  };
+  return {
+    ...saved(),
+    analysis: {
+      ...saved().analysis,
+      query: { snapshot_id: 'snapshot', conditions: [], include_dimensions: false },
+      statistics: stats,
+      total_count: 20,
+      matched_count: 20,
+      members: Array.from({ length: 20 }, (_, i) => ({
+        student_id: `anon-${i}`,
+        display_label: `学生${i}`,
+        scores: [],
+      })),
+      candidates: [] as (typeof candidate)[],
+      discovery: {
+        spec: {
+          snapshot_id: 'snapshot',
+          profile: 'edu.discovery.profile.v1',
+          scope_conditions: [],
+        },
+        scope,
+        findings: [detail],
+      },
+    },
+    findings: [],
+    discovery_findings: [
+      {
+        discovery: structuredClone(detail),
+        teacher_review: { candidate_id: detail.discovery_id, status: 'confirmed', note: '' },
+      },
+    ],
+  };
+}
+it('decodes formal discoveries separately from statistical candidates and keeps confirmed decisions', () => {
+  const result = analysisResultDto(formalSaved());
+  expect(result.findings).toEqual([]);
+  expect(result.discovery_findings[0]?.teacher_review.status).toBe('confirmed');
+  expect(result.analysis.members).toHaveLength(20);
+});
+it.each(['snapshot', 'scope', 'query', 'review', 'version', 'metrics', 'duplicate', 'legacy'])(
+  'rejects inconsistent saved formal discovery %s',
+  (kind) => {
+    const value = formalSaved();
+    if (kind === 'snapshot') value.analysis.discovery.spec.snapshot_id = 'other';
+    if (kind === 'scope') value.analysis.discovery.scope.scope_record_count = 19;
+    if (kind === 'query') value.analysis.query.include_dimensions = true;
+    if (kind === 'review') value.discovery_findings[0]!.teacher_review.candidate_id = 'other';
+    if (kind === 'version') value.discovery_findings[0]!.discovery.rule_version = 'other';
+    if (kind === 'metrics') value.discovery_findings[0]!.discovery.metrics.paired_count = 19;
+    if (kind === 'duplicate')
+      value.discovery_findings.push(structuredClone(value.discovery_findings[0]!));
+    if (kind === 'legacy') value.analysis.candidates.push(candidate);
+    expect(() => analysisResultDto(value)).toThrow('INVALID_API_RESPONSE');
+  },
+);
+it('normalizes absent optional discoveries for older backends without inventing findings', () => {
+  expect(analysisResultDto(saved()).discovery_findings).toEqual([]);
+});

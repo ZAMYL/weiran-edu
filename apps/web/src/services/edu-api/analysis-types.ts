@@ -8,6 +8,7 @@ import {
   object,
   text,
   type Decoded,
+  type Decoder,
 } from './schema';
 import {
   cardDto,
@@ -18,6 +19,34 @@ import {
   studentDto,
   type InsightSpec,
 } from './types';
+
+import { discoveryDetailDto, discoveryScopeDto } from './discovery-types';
+
+const optional =
+  <T>(decode: Decoder<T>): Decoder<T | undefined> =>
+  (value) =>
+    value === undefined ? undefined : decode(value);
+const optionalList =
+  <T>(decode: Decoder<T>): Decoder<T[]> =>
+  (value) =>
+    value === undefined ? [] : list(decode)(value);
+const sameConditions = (a: InsightSpec['conditions'], b: InsightSpec['conditions']) =>
+  JSON.stringify(a.map((c) => [c.dimension_code, c.operator, c.value]).sort()) ===
+  JSON.stringify(b.map((c) => [c.dimension_code, c.operator, c.value]).sort());
+export interface DiscoverySelection {
+  input_key: string;
+  discovery_ids: string[];
+}
+const discoverySpecDto = object({
+  snapshot_id: text,
+  profile: literal('edu.discovery.profile.v1'),
+  scope_conditions: list(conditionDto),
+});
+const savedDiscoveryDto = object({
+  spec: discoverySpecDto,
+  scope: discoveryScopeDto,
+  findings: list(discoveryDetailDto),
+});
 
 const positiveVersion = checked(count, (value) => value > 0);
 export const decisionStatus = literal('pending', 'confirmed', 'dismissed');
@@ -59,10 +88,44 @@ export const analysisResultDto = checked(
       ratio: statValueDto,
       members: list(studentDto),
       candidates: list(cardDto),
+      discovery: optional(savedDiscoveryDto),
     }),
     findings: list(object({ candidate: cardDto, teacher_review: decisionDto })),
+    discovery_findings: optionalList(
+      object({ discovery: discoveryDetailDto, teacher_review: decisionDto }),
+    ),
   }),
   (value) =>
+    (value.analysis.discovery === undefined
+      ? value.discovery_findings.length === 0
+      : value.analysis.query.include_dimensions === false &&
+        value.findings.length === 0 &&
+        value.analysis.candidates.length === 0 &&
+        value.analysis.discovery.spec.snapshot_id === value.snapshot_id &&
+        value.analysis.discovery.scope.batch_id === value.batch_id &&
+        value.analysis.discovery.scope.snapshot_id === value.snapshot_id &&
+        value.analysis.discovery.scope.scope_record_count === value.analysis.matched_count &&
+        sameConditions(
+          value.analysis.query.conditions,
+          value.analysis.discovery.spec.scope_conditions,
+        ) &&
+        sameConditions(
+          value.analysis.discovery.spec.scope_conditions,
+          value.analysis.discovery.scope.scope_conditions,
+        ) &&
+        value.analysis.discovery.findings.length === value.discovery_findings.length &&
+        new Set(value.discovery_findings.map((f) => f.discovery.discovery_id)).size ===
+          value.discovery_findings.length &&
+        value.discovery_findings.every(
+          (f) =>
+            f.teacher_review.candidate_id === f.discovery.discovery_id &&
+            f.discovery.batch_id === value.batch_id &&
+            f.discovery.snapshot_id === value.snapshot_id &&
+            f.discovery.scope.input_key === value.analysis.discovery?.scope.input_key &&
+            value.analysis.discovery.findings.some(
+              (d) => JSON.stringify(d) === JSON.stringify(f.discovery),
+            ),
+        )) &&
     value.analysis.query.snapshot_id === value.snapshot_id &&
     value.analysis.statistics.snapshot_id === value.snapshot_id &&
     value.analysis.statistics.batch_id === value.batch_id &&
@@ -102,6 +165,7 @@ export const analysisListDto = checked(
     ),
 );
 export interface AnalysisCreate extends InsightSpec {
+  discovery?: DiscoverySelection;
   title: string;
   note: string;
 }
