@@ -1,5 +1,12 @@
 import { ContractError, type Decoder } from './schema';
 import {
+  discoveriesDto,
+  discoveryDetailDto,
+  discoveryChartDto,
+  discoveryRecordsDto,
+  type DiscoverySpec,
+} from './discovery-types';
+import {
   batchDto,
   batchListDto,
   commitDto,
@@ -161,7 +168,87 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     request(path, decoder, { method: 'POST', body: JSON.stringify(body) }, signal);
   const base = (b: ApiBatch) => `/batches/${id(b.batch_id)}`;
   const snapshot = (b: ApiBatch) => `snapshot_id=${id(b.snapshot_id)}`;
+  const discovery = async <
+    T extends {
+      scope: { batch_id: string; snapshot_id: string; scope_conditions: ApiCondition[] };
+    },
+  >(
+    batch: ApiBatch,
+    spec: DiscoverySpec,
+    suffix: string,
+    decoder: Decoder<T>,
+    body: unknown,
+    signal?: AbortSignal,
+  ) => {
+    const result = await post(`${base(batch)}/discoveries/${suffix}`, decoder, body, signal);
+    assertSnapshot(result.scope, batch);
+    const canonical = (conditions: ApiCondition[]) =>
+      JSON.stringify(
+        [...conditions]
+          .sort((a, b) => a.dimension_code.localeCompare(b.dimension_code))
+          .map((c) => [c.dimension_code, c.operator, c.value]),
+      );
+    if (canonical(result.scope.scope_conditions) !== canonical(spec.scope_conditions))
+      throw new ApiError(409, 'SNAPSHOT_MISMATCH');
+    return result;
+  };
   return {
+    discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal) =>
+      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal),
+    discoveryDetail: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      spec: DiscoverySpec,
+      signal?: AbortSignal,
+    ) => {
+      const value = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/query`,
+        discoveryDetailDto,
+        spec,
+        signal,
+      );
+      if (value.discovery_id !== discoveryId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    discoveryChart: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      spec: DiscoverySpec,
+      signal?: AbortSignal,
+    ) => {
+      const value = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/chart/query`,
+        discoveryChartDto,
+        spec,
+        signal,
+      );
+      if (value.discovery_id !== discoveryId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    discoveryRecords: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      metricKey: string,
+      spec: DiscoverySpec,
+      offset = 0,
+      signal?: AbortSignal,
+    ) => {
+      const value = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/records/query`,
+        discoveryRecordsDto,
+        { ...spec, metric_key: metricKey, offset, limit: 10 },
+        signal,
+      );
+      if (value.discovery_id !== discoveryId || value.metric_key !== metricKey)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
     clear,
     authenticate,
     useTestSession: () => {
