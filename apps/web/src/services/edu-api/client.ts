@@ -184,12 +184,11 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     assertSnapshot(result.scope, batch);
     const canonical = (conditions: ApiCondition[]) =>
       JSON.stringify(
-        [...conditions].sort((a, b) => a.dimension_code.localeCompare(b.dimension_code)),
+        [...conditions]
+          .sort((a, b) => a.dimension_code.localeCompare(b.dimension_code))
+          .map((c) => [c.dimension_code, c.operator, c.value]),
       );
-    if (
-      JSON.stringify(result.scope.scope_conditions) !== JSON.stringify(spec.scope_conditions) &&
-      canonical(result.scope.scope_conditions) !== canonical(spec.scope_conditions)
-    )
+    if (canonical(result.scope.scope_conditions) !== canonical(spec.scope_conditions))
       throw new ApiError(409, 'SNAPSHOT_MISMATCH');
     return result;
   };

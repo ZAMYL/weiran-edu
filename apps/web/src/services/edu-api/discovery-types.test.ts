@@ -146,6 +146,32 @@ it('rejects cross-snapshot, wrong discovery, different scope, and substituted so
     code: 'INVALID_API_RESPONSE',
   });
 });
+it('treats AND order and JSON property order as the same scope', async () => {
+  const scoped: DiscoverySpec = {
+    ...spec,
+    scope_conditions: [
+      { value: 3, operator: 'lte', dimension_code: 'code_implementation' },
+      { operator: 'gte', value: 4, dimension_code: 'solution_strategy' },
+    ],
+  };
+  const client = createEduClient(
+    vi.fn(),
+    vi.fn<typeof fetch>().mockResolvedValue(
+      reply({
+        ...chart,
+        scope: {
+          ...scope,
+          scope_conditions: [
+            { dimension_code: 'solution_strategy', operator: 'gte', value: 4 },
+            { dimension_code: 'code_implementation', operator: 'lte', value: 3 },
+          ],
+        },
+      }),
+    ),
+  );
+  client.useTestSession();
+  expect((await client.discoveryChart(batch, 'id', scoped)).scope.scope_record_count).toBe(53);
+});
 it.each([401, 404, 409, 503])(
   'preserves backend discovery error %s without falling back to demo',
   async (status) => {
