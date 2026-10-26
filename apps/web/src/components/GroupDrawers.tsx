@@ -19,7 +19,7 @@ import {
 } from 'antd';
 import type { Batch, Condition, DimensionId, Student } from '../domain/model';
 import { conditionLabel, filterStudents, percentage } from '../domain/statistics';
-import { Panel, PendingTag, VerifiedTag } from './ui';
+import { AssessmentContext, Panel, PendingTag, VerifiedTag } from './ui';
 
 export type GroupPanel = 'evidence' | 'analysis' | null;
 export function SourceLine({
@@ -73,7 +73,7 @@ export function GroupDrawers({
   const students = filterStudents(batch.students, conditions);
   const conditionText = conditions.length
     ? conditions.map((c) => conditionLabel(batch, c)).join(' 且 ')
-    : '本批次全部学生';
+    : '本次测评全部参评者';
   const example = students.find((s) => s.id === 'S008') ?? students[0];
   return (
     <Drawer
@@ -83,7 +83,7 @@ export function GroupDrawers({
       className="group-drawer"
       title={
         <div className="drawer-title">
-          {panel === 'analysis' ? '教学分析' : '洞察依据'}
+          {panel === 'analysis' ? '测评分析' : '洞察依据'}
           {panel === 'analysis' && <Tag color="blue">规则模板 · 未接入 AI</Tag>}
         </div>
       }
@@ -125,7 +125,7 @@ export function GroupDrawers({
           </div>
           <Panel title="计算条件">
             <div className="condition-box">{conditionText}</div>
-            <p className="muted">统计分母：本批次 {batch.students.length} 名学生</p>
+            <p className="muted">统计分母：本次测评参评人数 {batch.students.length} 人</p>
             <p className="muted small">
               {batch.demo
                 ? '本地合成演示记录计算一致；不代表真实学情核验。'
@@ -181,7 +181,7 @@ export function GroupDrawers({
             action={<VerifiedTag />}
           >
             <p>
-              本批次共有{' '}
+              本次测评共有{' '}
               <b className="blue-text">
                 {students.length} / {batch.students.length}
               </b>{' '}
@@ -207,14 +207,14 @@ export function GroupDrawers({
           <Panel
             title={
               <>
-                <span className="section-number">03</span>教学检查建议
+                <span className="section-number">03</span>后续核对建议
               </>
             }
           >
             <ol>
               <li>围绕当前筛选涉及的能力安排短小诊断练习。</li>
               <li>结合原始评语和评价标准，观察学生的思考与实现过程。</li>
-              <li>记录个体差异，再决定是否采用共同的教学活动。</li>
+              <li>核对群体差异，再决定后续练习或指导安排。</li>
             </ol>
           </Panel>
           <Panel
@@ -294,7 +294,7 @@ export function StudentDrawer({
     >
       {student && (
         <>
-          <p className="drawer-subtitle">当前测评 · {batch.name}</p>
+          <AssessmentContext title={batch.name} />
           <Segmented block value={tab} options={['五维评价', '原始记录']} onChange={setTab} />
           {tab === '五维评价' ? (
             <>

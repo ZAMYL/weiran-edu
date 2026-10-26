@@ -101,8 +101,8 @@ export default function LiveImportPreview({
     <div className="page-stack import-preview">
       <div className="preview-heading">
         <div>
-          <h2>正式导入预览</h2>
-          <p className="muted">服务端暂存 · 原始双 Sheet 五维 Excel · 评分最多两位小数</p>
+          <h2>导入预览</h2>
+          <p className="muted">文件已自动检查，确认后导入。</p>
         </div>
         <Button onClick={onCancel} disabled={busy}>
           返回测评数据
@@ -111,7 +111,7 @@ export default function LiveImportPreview({
       <Panel>
         <Steps
           current={1}
-          items={[{ title: '上传文件' }, { title: '预览校验' }, { title: '确认入库' }]}
+          items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
         />
       </Panel>
       {resource.loading && <LoadingPanel />}
@@ -267,7 +267,7 @@ export default function LiveImportPreview({
                 </Checkbox>
               )}
               <div className="batch-name-field">
-                <label htmlFor="live-preview-title">正式测评名称</label>
+                <label htmlFor="live-preview-title">测评名称</label>
                 <Input
                   id="live-preview-title"
                   value={title}
@@ -295,12 +295,12 @@ export default function LiveImportPreview({
           </span>
           <Button
             type="primary"
-            aria-label="确认入库"
+            aria-label="确认导入"
             disabled={!canCommit}
             loading={busy}
             onClick={confirm}
           >
-            确认入库
+            确认导入
           </Button>
         </div>
       </section>

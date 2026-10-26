@@ -1,5 +1,22 @@
 import { ContractError, type Decoder } from './schema';
 import {
+  discoveriesDto,
+  discoveryDetailDto,
+  discoveryChartDto,
+  discoveryRecordsDto,
+  type DiscoverySpec,
+} from './discovery-types';
+import {
+  analysisListDto,
+  analysisResultDto,
+  capabilitiesDto,
+  exportCheckDto,
+  type AnalysisCreate,
+  type AnalysisPatch,
+  type ReportFormat,
+} from './analysis-types';
+import { readReportFile, ReportFileError, type ReportFile } from './report-file';
+import {
   batchDto,
   batchListDto,
   commitDto,
@@ -41,10 +58,14 @@ export class ApiError extends Error {
     super(
       code === 'SNAPSHOT_MISMATCH'
         ? '批次快照已变化，请刷新批次后重新查询。'
-        : (STATUS_MESSAGES[status] ??
-            (status === 0
-              ? '无法连接数据服务，请检查本机服务和网络后重试。'
-              : '请求未完成，请重试。')),
+        : code === 'ANALYSIS_RESULT_VERSION_MISMATCH'
+          ? '分析的核验版本已更新，请加载最新结果后重新操作。'
+          : code === 'INVALID_REPORT_FILE'
+            ? '报告响应格式异常，已停止下载，请重试或联系维护人员。'
+            : (STATUS_MESSAGES[status] ??
+              (status === 0
+                ? '无法连接数据服务，请检查本机服务和网络后重试。'
+                : '请求未完成，请重试。')),
     );
   }
 }
@@ -84,6 +105,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     decode: Decoder<T>,
     init: RequestInit = {},
     signal?: AbortSignal,
+    readResponse?: (response: Response) => Promise<T>,
   ): Promise<T> {
     if (!bearer && !testSession) throw new ApiError(401, 'UNAUTHORIZED');
     const epoch = generation;
@@ -107,7 +129,8 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       });
       if (epoch !== generation || signal?.aborted || controller.signal.aborted)
         throw new DOMException('Aborted', 'AbortError');
-      const payload: unknown = await response.json().catch(() => null);
+      const payload: unknown =
+        readResponse && response.ok ? null : await response.json().catch(() => null);
       if (epoch !== generation || signal?.aborted || controller.signal.aborted)
         throw new DOMException('Aborted', 'AbortError');
       if (!response.ok) {
@@ -127,8 +150,13 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
         throw failure;
       }
       try {
-        return decode(payload);
+        const value = readResponse ? await readResponse(response) : decode(payload);
+        if (epoch !== generation || signal?.aborted || controller.signal.aborted)
+          throw new DOMException('Aborted', 'AbortError');
+        return value;
       } catch (e) {
+        if (e instanceof ReportFileError)
+          throw new ApiError(e.status, e.code, safeRequestId(response.headers.get('x-request-id')));
         if (e instanceof ContractError)
           throw new ApiError(
             502,
@@ -161,7 +189,87 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     request(path, decoder, { method: 'POST', body: JSON.stringify(body) }, signal);
   const base = (b: ApiBatch) => `/batches/${id(b.batch_id)}`;
   const snapshot = (b: ApiBatch) => `snapshot_id=${id(b.snapshot_id)}`;
+  const discovery = async <
+    T extends {
+      scope: { batch_id: string; snapshot_id: string; scope_conditions: ApiCondition[] };
+    },
+  >(
+    batch: ApiBatch,
+    spec: DiscoverySpec,
+    suffix: string,
+    decoder: Decoder<T>,
+    body: unknown,
+    signal?: AbortSignal,
+  ) => {
+    const result = await post(`${base(batch)}/discoveries/${suffix}`, decoder, body, signal);
+    assertSnapshot(result.scope, batch);
+    const canonical = (conditions: ApiCondition[]) =>
+      JSON.stringify(
+        [...conditions]
+          .sort((a, b) => a.dimension_code.localeCompare(b.dimension_code))
+          .map((c) => [c.dimension_code, c.operator, c.value]),
+      );
+    if (canonical(result.scope.scope_conditions) !== canonical(spec.scope_conditions))
+      throw new ApiError(409, 'SNAPSHOT_MISMATCH');
+    return result;
+  };
   return {
+    discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal) =>
+      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal),
+    discoveryDetail: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      spec: DiscoverySpec,
+      signal?: AbortSignal,
+    ) => {
+      const value = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/query`,
+        discoveryDetailDto,
+        spec,
+        signal,
+      );
+      if (value.discovery_id !== discoveryId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    discoveryChart: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      spec: DiscoverySpec,
+      signal?: AbortSignal,
+    ) => {
+      const value = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/chart/query`,
+        discoveryChartDto,
+        spec,
+        signal,
+      );
+      if (value.discovery_id !== discoveryId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    discoveryRecords: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      metricKey: string,
+      spec: DiscoverySpec,
+      offset = 0,
+      signal?: AbortSignal,
+    ) => {
+      const value = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/records/query`,
+        discoveryRecordsDto,
+        { ...spec, metric_key: metricKey, offset, limit: 10 },
+        signal,
+      );
+      if (value.discovery_id !== discoveryId || value.metric_key !== metricKey)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
     clear,
     authenticate,
     useTestSession: () => {
@@ -267,6 +375,95 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
           signal,
         ),
         batch,
+      ),
+    capabilities: async (batch: ApiBatch, signal?: AbortSignal) =>
+      assertSnapshot(
+        await get(`${base(batch)}/capabilities?${snapshot(batch)}`, capabilitiesDto, signal),
+        batch,
+      ),
+    analyses: async (batch: ApiBatch, offset: number, signal?: AbortSignal) =>
+      assertSnapshot(
+        await get(
+          `${base(batch)}/analysis-results?${snapshot(batch)}&offset=${offset}&limit=10`,
+          analysisListDto,
+          signal,
+        ),
+        batch,
+      ),
+    createAnalysis: async (batch: ApiBatch, body: AnalysisCreate, signal?: AbortSignal) =>
+      assertSnapshot(
+        await post(`${base(batch)}/analysis-results`, analysisResultDto, body, signal),
+        batch,
+      ),
+    analysis: async (batch: ApiBatch, resultId: string, signal?: AbortSignal) => {
+      const value = assertSnapshot(
+        await get(
+          `${base(batch)}/analysis-results/${id(resultId)}?${snapshot(batch)}`,
+          analysisResultDto,
+          signal,
+        ),
+        batch,
+      );
+      if (value.result_id !== resultId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    patchAnalysis: async (
+      batch: ApiBatch,
+      resultId: string,
+      body: AnalysisPatch,
+      signal?: AbortSignal,
+    ) => {
+      const value = assertSnapshot(
+        await request(
+          `${base(batch)}/analysis-results/${id(resultId)}`,
+          analysisResultDto,
+          { method: 'PATCH', body: JSON.stringify(body) },
+          signal,
+        ),
+        batch,
+      );
+      if (value.result_id !== resultId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    exportCheck: async (
+      batch: ApiBatch,
+      resultId: string,
+      version: number,
+      format: ReportFormat,
+      signal?: AbortSignal,
+    ) => {
+      const value = assertSnapshot(
+        await post(
+          `${base(batch)}/analysis-results/${id(resultId)}/export-check`,
+          exportCheckDto,
+          { snapshot_id: batch.snapshot_id, expected_version: version, format },
+          signal,
+        ),
+        batch,
+      );
+      if (
+        value.result_id !== resultId ||
+        value.result_version !== version ||
+        value.format !== format
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    report: (
+      batch: ApiBatch,
+      resultId: string,
+      version: number,
+      format: ReportFormat,
+      signal?: AbortSignal,
+    ) =>
+      request<ReportFile>(
+        `${base(batch)}/analysis-results/${id(resultId)}/export?${snapshot(batch)}&expected_version=${version}&format=${format}`,
+        () => {
+          throw new ContractError();
+        },
+        {},
+        signal,
+        (response) => readReportFile(response, { resultId, version, format }),
       ),
     preview: (form: FormData, signal?: AbortSignal) =>
       request('/imports/preview', importDto, { method: 'POST', body: form }, signal),

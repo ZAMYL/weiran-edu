@@ -55,7 +55,7 @@ export function AbilityChart({ batch, mode }: { batch: Batch; mode: 'radar' | 'd
             series: [
               {
                 type: 'radar',
-                name: '本批次有效评分均值',
+                name: '测评平均分',
                 symbolSize: 8,
                 lineStyle: { width: 2.5, color: '#2463f5' },
                 itemStyle: { color: '#2463f5' },
@@ -63,7 +63,7 @@ export function AbilityChart({ batch, mode }: { batch: Batch; mode: 'radar' | 'd
                 data: [
                   {
                     value: radarDimensions.map((d) => mean(batch.students, d.id)),
-                    name: `${batch.students.length} 名学生`,
+                    name: `${batch.students.length} 人参评`,
                   },
                 ],
               },

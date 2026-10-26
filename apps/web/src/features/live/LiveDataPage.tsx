@@ -1,26 +1,29 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Drawer, Input, Select, Steps, Table, Tag, Upload } from 'antd';
+import { Alert, Button, Collapse, Drawer, Input, Select, Steps, Table, Tag, Upload } from 'antd';
 import { CloudUploadOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
-import { Panel } from '../../components/ui';
+import { AssessmentContext, Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
 import type { ApiBatch, ApiImport } from '../../services/edu-api/types';
 import { dimensionName } from '../../services/edu-api/view-model';
 import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import LiveImportPreview from './LiveImportPreview';
+import { assessmentNameFromFilename } from '../../services/assessment-name';
+import { UploadSelection } from '../assessments/UploadSelection';
 
 export default function LiveDataPage() {
   const { client, scopes, batch, selectBatch, revision } = useDataMode();
   const router = useRouter();
-  const [title, setTitle] = useState('');
   const [course, setCourse] = useState('');
   const [date, setDate] = useState('');
   const [scope, setScope] = useState(scopes.find((s) => s.can_import)?.data_scope_id ?? '');
   const [offset, setOffset] = useState(0);
   const [preview, setPreview] = useState<ApiImport | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -33,15 +36,25 @@ export default function LiveDataPage() {
   );
   const batches = useRemote(`data-batches:${revision}:${offset}`, loadBatches);
   const allowed = scopes.some((s) => s.data_scope_id === scope && s.can_import);
-  async function upload(file: File) {
-    if (!title.trim() || !allowed) {
-      setLocalError('请填写测评名称，并选择当前有导入权的数据来源。');
+  function selectFile(file: File) {
+    if (busy) return Upload.LIST_IGNORE;
+    setError(null);
+    setLocalError(null);
+    setSelectedFile(null);
+    if (!allowed) {
+      setLocalError('请选择当前有导入权的数据来源。');
       return Upload.LIST_IGNORE;
     }
     if (!file.name.toLowerCase().endsWith('.xlsx') || file.size > 10 * 1024 * 1024) {
       setLocalError('请选择不超过 10 MiB 的原始双 Sheet .xlsx 文件。');
       return Upload.LIST_IGNORE;
     }
+    setSelectedFile(file);
+    setTitle(assessmentNameFromFilename(file.name));
+    return Upload.LIST_IGNORE;
+  }
+  async function next() {
+    if (busy || !selectedFile || !title.trim() || !allowed) return;
     uploadController.current?.abort();
     const controller = new AbortController();
     uploadController.current = controller;
@@ -49,7 +62,7 @@ export default function LiveDataPage() {
     setError(null);
     setLocalError(null);
     const form = new FormData();
-    form.append('file', file);
+    form.append('file', selectedFile);
     form.append('data_scope_id', scope);
     form.append('title', title.trim());
     if (course.trim()) form.append('course', course.trim());
@@ -62,7 +75,6 @@ export default function LiveDataPage() {
     } finally {
       if (!controller.signal.aborted) setBusy(false);
     }
-    return Upload.LIST_IGNORE;
   }
   const enter = (target: ApiBatch) => {
     selectBatch(target);
@@ -72,14 +84,14 @@ export default function LiveDataPage() {
   return (
     <div className="page-stack data-page live-data">
       <div className="data-top-grid">
-        <Panel title="上传正式测评" className="upload-panel">
+        <Panel title="上传测评" className="upload-panel">
           <Steps
             current={0}
             size="small"
-            items={[{ title: '上传文件' }, { title: '预览校验' }, { title: '确认入库' }]}
+            items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
           />
           <div className="live-upload-fields">
-            <label htmlFor="live-scope">授权数据来源</label>
+            <label htmlFor="live-scope">数据来源</label>
             <Select
               id="live-scope"
               aria-label="授权数据来源"
@@ -91,32 +103,37 @@ export default function LiveDataPage() {
               disabled={busy}
               placeholder="选择具有导入权的数据来源"
             />
-            <label htmlFor="live-upload-title">测评名称</label>
-            <Input
-              id="live-upload-title"
-              value={title}
-              maxLength={100}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="填写本次测评名称"
-              disabled={busy}
-            />
-            <label htmlFor="live-course">课程（可选）</label>
-            <Input
-              id="live-course"
-              value={course}
-              maxLength={100}
-              onChange={(e) => setCourse(e.target.value)}
-              disabled={busy}
-            />
-            <label htmlFor="live-date">测评日期（可选）</label>
-            <Input
-              id="live-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              disabled={busy}
-            />
           </div>
+          <Collapse
+            className="upload-metadata"
+            size="small"
+            items={[
+              {
+                key: 'optional',
+                label: '补充信息（可选）',
+                children: (
+                  <div className="live-upload-fields">
+                    <label htmlFor="live-course">课程（可选）</label>
+                    <Input
+                      id="live-course"
+                      value={course}
+                      maxLength={100}
+                      onChange={(e) => setCourse(e.target.value)}
+                      disabled={busy}
+                    />
+                    <label htmlFor="live-date">测评日期（可选）</label>
+                    <Input
+                      id="live-date"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      disabled={busy}
+                    />
+                  </div>
+                ),
+              },
+            ]}
+          />
           {!scopes.some((s) => s.can_import) && (
             <Alert type="warning" showIcon title="当前教师没有导入权，可查看已授权批次。" />
           )}
@@ -124,24 +141,36 @@ export default function LiveDataPage() {
             accept=".xlsx"
             multiple={false}
             showUploadList={false}
-            beforeUpload={upload}
-            disabled={busy || !allowed || !title.trim()}
+            beforeUpload={selectFile}
+            disabled={busy || !allowed}
             className="excel-dropzone"
           >
             <div className="upload-symbol">
               <CloudUploadOutlined />
             </div>
-            <h3>{busy ? '服务端正在解析和校验…' : '选择原始双 Sheet 五维 Excel'}</h3>
-            <Button
-              type="primary"
-              tabIndex={-1}
-              loading={busy}
-              disabled={!allowed || !title.trim()}
-            >
-              选择正式文件
+            <h3>{busy ? '正在检查文件…' : '选择 Excel 测评文件'}</h3>
+            <Button type="primary" tabIndex={-1} loading={busy} disabled={!allowed}>
+              选择 Excel
             </Button>
-            <p>固定五维双工作表模板 · .xlsx · 最大 10 MiB</p>
+            <p>.xlsx · 双工作表五维模板 · 最大 10 MiB</p>
+            <p>选择文件后可修改测评名称，点击下一步再预览。</p>
           </Upload.Dragger>
+          {selectedFile && (
+            <UploadSelection
+              filename={selectedFile.name}
+              name={title}
+              onNameChange={setTitle}
+              onNext={next}
+              onClear={() => {
+                setSelectedFile(null);
+                setTitle('');
+                setError(null);
+                setLocalError(null);
+              }}
+              busy={busy}
+              disabled={!allowed}
+            />
+          )}
           {localError && (
             <Alert className="session-notice" type="error" showIcon title={localError} />
           )}
@@ -150,12 +179,9 @@ export default function LiveDataPage() {
         <Panel title="数据准备" className="preparation-panel">
           <div className="preparation-list">
             {[
-              [
-                '原始双工作表格式',
-                'Sheet1 为评分依据，Sheet2 为学生原始五维评分。请使用原始双工作表文件。',
-              ],
-              ['服务端预览与质量报告', '评分范围 1–5、精度 0.01；错误阻断，警告需教师显式确认。'],
-              ['确认入库后再分析', '预览不是成功入库；重复文件、预览版本和访问权限由后端核验。'],
+              ['原始双工作表格式', 'Sheet1 为评分依据，Sheet2 为参评者五维评分。'],
+              ['自动检查', '评分范围 1–5，最多两位小数；错误修正后再导入。'],
+              ['确认导入', '查看检查结果，有提醒时确认后再导入。'],
             ].map(([heading, description]) => (
               <div className="preparation-item" key={heading}>
                 <div>
@@ -174,8 +200,8 @@ export default function LiveDataPage() {
         </Panel>
       </div>
       <Panel
-        title="已入库的授权批次"
-        subtitle="服务端分页读取，确认入库的批次保存在后端数据库，可在批次列表中再次查看。"
+        title="已导入测评"
+        subtitle="查看已确认导入、且有权访问的测评。"
         action={
           <Button icon={<ReloadOutlined />} onClick={batches.retry}>
             刷新批次
@@ -215,7 +241,7 @@ export default function LiveDataPage() {
                 dataIndex: 'file_sha256',
                 render: (value) => <code>{String(value).slice(0, 12)}…</code>,
               },
-              { title: '学生人数', dataIndex: 'student_count' },
+              { title: '参评人数', dataIndex: 'student_count' },
               { title: '评分记录', dataIndex: 'evaluation_count' },
               { title: '状态', render: () => <Tag color="success">服务端已入库</Tag> },
               {
@@ -251,7 +277,7 @@ function BatchOverview({ batch, onClose }: { batch: ApiBatch; onClose: () => voi
   const resource = useRemote(`batch-overview:${batch.batch_id}:${batch.snapshot_id}`, load);
   return (
     <Drawer title="正式批次评分概况" open onClose={onClose} size={550}>
-      <p className="drawer-subtitle">{batch.title}</p>
+      <AssessmentContext title={batch.title} course={batch.course} date={batch.assessment_date} />
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {resource.data && (
