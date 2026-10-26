@@ -38,7 +38,7 @@ def test_scale_reports_come_from_actual_statistics(size):
     info = {
         row[0]: row[1] for row in workbook["测评概况"].iter_rows(values_only=True) if row and row[0]
     }
-    assert info["测评记录数"] == size
+    assert info["参评人数"] == size
     assert info["统计项目数"] == len(report.dimensions)
     assert "合成演示" in result.markdown
     assert "synthetic-member-" not in all_text(result.xlsx)

@@ -14,17 +14,19 @@ OPS = {"lt": "低于", "lte": "不高于", "eq": "等于", "gte": "不低于", "
 NOTES = (
     "教师内部使用，非公开；匿名标识不等于可以公开传播。",
     "文件可编辑，编辑后不会自动重算平台结果。",
-    "统计观察供教学核查使用，不直接代表能力等级或教学效果。",
+    "统计范围为当前测评中的参评记录，不推定所属班级、学校或课程。",
+    "评分按本次测评提供的维度和量表统计。",
+    "统计观察供测评复核使用，不直接代表能力等级或教学效果。",
 )
 REVIEW_NOTICE = "教师确认只记录核验判断，不证明因果关系、能力等级或实际教学效果。"
 METRIC_LABELS = {
     "valid_count": "有效评分人数",
     "missing_count": "缺失评分人数",
     "invalid_count": "无效评分人数",
-    "mean": "平均分",
+    "mean": "测评平均分",
     "median": "中位数",
     "matched_count": "符合条件人数",
-    "matched_ratio": "占全部测评人数比例",
+    "matched_ratio": "占参评人数比例",
     "eligible_count": "可判定人数",
     "matched_among_eligible": "占可判定人数比例",
     "unevaluable_count": "不可判定人数",
@@ -160,11 +162,11 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
     add(info, "项目", "内容", header=True)
     if report.synthetic:
         add(info, "数据性质", "合成演示，不含真实学生数据")
-    add(info, "测评记录数", report.record_count, formats={1: "#,##0"})
+    add(info, "参评人数", report.record_count, formats={1: "#,##0"})
     add(info, "统计项目数", len(report.dimensions), formats={1: "#,##0"})
     if report.reviewed is not None:
         add(info, "教师已确认发现数", len(findings), formats={1: "#,##0"})
-    add(info, "分析范围", "完整批次" if report.scope_kind == "batch" else "已授权子范围")
+    add(info, "分析范围", "本次测评" if report.scope_kind == "batch" else "当前授权参评范围")
     add(
         info,
         "生成时间（协调世界时）",
@@ -176,7 +178,7 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
         add(info, "使用说明", note)
 
     def dimension_rows(dims, total):
-        add(stats, "维度", "有效人数", "平均分", "中位数", "最低分", "最高分", header=True)
+        add(stats, "维度", "有效人数", "测评平均分", "中位数", "最低分", "最高分", header=True)
         for item in sorted(dims, key=lambda d: d.code):
             add(
                 stats,
@@ -217,8 +219,8 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
         add(groups, "筛选条件", condition_text(group))
         for name, value, denominator, rate in (
             ("符合条件人数", group.matched_count, group.total_count, False),
-            ("全部测评人数", group.total_count, group.total_count, False),
-            ("占全部测评人数比例", group.ratio, group.total_count, True),
+            ("参评人数", group.total_count, group.total_count, False),
+            ("占参评人数比例", group.ratio, group.total_count, True),
             ("可判定人数", group.eligible_count, group.total_count, False),
             ("占可判定人数比例", group.eligible_ratio, group.eligible_count, True),
         ):
@@ -234,7 +236,7 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
                 groups,
                 "不可判定人数",
                 group.unevaluable_count,
-                "相关评分缺失或无效；仍保留在全部测评人数中。",
+                "相关评分缺失或无效；仍保留在参评人数中。",
                 formats={1: "#,##0"},
             )
         if not group.matched_count:
@@ -308,7 +310,7 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
 
     scopes = [
         (
-            "完整批次" if report.scope_kind == "batch" else "已授权子范围",
+            "本次测评" if report.scope_kind == "batch" else "当前授权参评范围",
             report.record_count,
             report.dimensions,
         )
@@ -331,7 +333,7 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
             ("符合条件人数", Fraction(group.matched_count), group.total_count),
             ("可判定人数", Fraction(group.eligible_count), group.total_count),
             ("不可判定人数", Fraction(group.unevaluable_count), group.total_count),
-            ("占全部测评人数比例", group.ratio, group.total_count),
+            ("占参评人数比例", group.ratio, group.total_count),
             ("占可判定人数比例", group.eligible_ratio, group.eligible_count),
         ):
             add(audit, scope, name, rational(value), denominator)
@@ -345,7 +347,7 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
                 ("有效人数", Fraction(item.valid_count), total),
                 ("缺失人数", Fraction(item.missing_count), total),
                 ("无效人数", Fraction(item.invalid_count), total),
-                ("平均分", item.mean, item.valid_count),
+                ("测评平均分", item.mean, item.valid_count),
                 ("中位数", item.median, item.valid_count),
                 ("最低分", item.minimum, item.valid_count),
                 ("最高分", item.maximum, item.valid_count),
