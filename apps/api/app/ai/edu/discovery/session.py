@@ -15,7 +15,7 @@ from .models import AgentError, AgentRun, Decision, Event, Limits, Planner, Tool
 from .tools import parse_arguments
 
 
-async def run_session(
+async def _run_session(
     executor,
     planner: Planner,
     *,
@@ -24,8 +24,6 @@ async def run_session(
     argument_parser=parse_arguments,
     analysis_context: dict | None = None,
 ) -> AgentRun:
-    if getattr(planner, "offline_only", False) is not True:
-        raise AgentError("remote_discovery_disabled")
     run_id = executor.run_id
     trace = []
     tools = []
@@ -148,3 +146,29 @@ async def run_session(
             return result("failed", code)
     event("planning", "rejected", error="model_budget_exhausted")
     return result("failed", "model_budget_exhausted")
+
+
+async def run_session(
+    executor,
+    planner: Planner,
+    *,
+    limits: Limits,
+    decision_type=Decision,
+    argument_parser=parse_arguments,
+    analysis_context=None,
+) -> AgentRun:
+    """Public offline entry remains closed. The private loop has no authorization role.
+
+    Synthetic Live's trusted entry admits a closed source and binds its budgeted planner
+    before calling the common loop. No HTTP/Production entry exposes that internal seam.
+    """
+    if getattr(planner, "offline_only", False) is not True:
+        raise AgentError("remote_discovery_disabled")
+    return await _run_session(
+        executor,
+        planner,
+        limits=limits,
+        decision_type=decision_type,
+        argument_parser=argument_parser,
+        analysis_context=analysis_context,
+    )
