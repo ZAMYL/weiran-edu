@@ -140,7 +140,7 @@ function ExplorerContent({
       </Panel>
       <div className="match-summary">
         <span>
-          当前匹配 <strong>{students.length}</strong> 人 · 占本批次{' '}
+          当前匹配 <strong>{students.length}</strong> 人 · 占参评人数{' '}
           <b>{percentage(students.length, batch.students.length)}</b>
         </span>
         <span className="summary-divider" />
@@ -159,7 +159,7 @@ function ExplorerContent({
             </Tag>
           ))
         ) : (
-          <Tag>未设置条件 · 全部学生</Tag>
+          <Tag>未设置条件 · 全部参评者</Tag>
         )}
       </div>
       <div className={`explorer-grid ${fullscreen ? 'explorer-fullscreen-grid' : ''}`}>
@@ -247,7 +247,7 @@ function ExplorerContent({
           </div>
           <div className="heatmap-x-title">{xName}评分</div>
           <div className="heatmap-legend">
-            <span>学生人数</span>
+            <span>参评人数</span>
             <span className="gradient-legend" />
             <span>0 — {maxCount}</span>
           </div>
@@ -281,7 +281,7 @@ function ExplorerContent({
               </span>
               <VerifiedTag />
             </div>
-            <h2>{conditions.length ? '符合当前能力组合条件的学生' : '当前批次的全部学生'}</h2>
+            <h2>{conditions.length ? '符合当前能力组合条件的学生' : '本次测评全部参评者'}</h2>
             <div className="finding-numbers">
               <strong>
                 {students.length}
@@ -290,7 +290,7 @@ function ExplorerContent({
               <span className="number-divider" />
               <strong>
                 {percentage(students.length, batch.students.length)}
-                <em>占本批次</em>
+                <em>占参评人数</em>
               </strong>
             </div>
             <div className="group-condition-text">
@@ -402,9 +402,9 @@ function ExplorerContent({
       >
         <p>多个条件按“且”组合。编辑条件后点击“应用筛选”，人数、群体评分分布和列表一同更新。</p>
         <p>
-          占比的分母始终是当前批次的全部学生。热力图显示本批次总体分布，点击某个格子会改为该组合的精确匹配。
+          占比的分母始终是本次测评参评人数。热力图显示本次测评总体分布，点击某个格子会按该评分组合精确筛选。
         </p>
-        <p>重置后显示全部学生。切换批次恢复默认探索条件。</p>
+        <p>重置后显示全部参评者。切换测评恢复默认探索条件。</p>
       </Modal>
     </div>
   );

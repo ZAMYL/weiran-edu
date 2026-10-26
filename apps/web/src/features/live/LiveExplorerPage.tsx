@@ -212,7 +212,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
       <div className="match-summary">
         <span>
           当前匹配 <strong>{group.data?.matched ?? '—'}</strong> / {group.data?.total ?? '—'} 人 ·
-          占本批次 <b>{group.data ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}</b>
+          占参评人数 <b>{group.data ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}</b>
         </span>
         <Tag>服务端完整结果，分页不改变人数</Tag>
         <p>{conditionText(conditions)}</p>
@@ -223,7 +223,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
         blocked={unapplied ? '筛选条件有未应用的修改，请先应用筛选再保存。' : undefined}
       />
       <div className="explorer-grid">
-        <Panel title="能力组合分布" subtitle="全批次稀疏矩阵 · 实际评分组合">
+        <Panel title="能力组合分布" subtitle="本次测评的实际评分组合">
           <div className="axis-controls">
             <Select
               aria-label="正式热力图横轴"
@@ -252,7 +252,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
             <Tag>当前正式群体</Tag>
             <small>服务端统计</small>
           </div>
-          <h2>{conditions.length ? '符合当前能力组合条件的学生' : '当前批次全部学生'}</h2>
+          <h2>{conditions.length ? '符合当前能力组合条件的学生' : '本次测评全部参评者'}</h2>
           <p>{conditionText(conditions)}</p>
           <div className="finding-numbers">
             <strong>

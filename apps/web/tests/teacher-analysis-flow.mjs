@@ -17,7 +17,7 @@ export async function teacherAnalysisFlow({
   const checks = [];
   const base = `/batches/${batch.batch_id}/analysis-results`;
   const drawer = () => page.getByRole('dialog', { name: '分析核验', exact: true });
-  const exportDialog = () => page.getByRole('dialog', { name: '导出报告', exact: true });
+  const exportDialog = () => page.getByRole('dialog', { name: '导出测评报告', exact: true });
   const downloads = [];
   const onDownload = (download) => downloads.push(download);
   page.on('download', onDownload);
@@ -31,7 +31,7 @@ export async function teacherAnalysisFlow({
     const response = page.waitForResponse(
       (r) => r.url().endsWith('/export-check') && r.request().method() === 'POST',
     );
-    await drawer().getByRole('button', { name: '导出报告', exact: true }).click();
+    await drawer().getByRole('button', { name: '导出测评报告', exact: true }).click();
     const check = await (await response).json();
     await exportDialog().getByText('报告预估大小', { exact: false }).waitFor();
     return check;
@@ -76,7 +76,7 @@ export async function teacherAnalysisFlow({
     await drawer().locator('.review-finding').nth(1).getByText('否决', { exact: true }).click();
     await drawer().locator('.review-finding').nth(0).locator('textarea').fill('合成核验备注');
     assert.equal(
-      await drawer().getByRole('button', { name: '导出报告', exact: true }).isDisabled(),
+      await drawer().getByRole('button', { name: '导出测评报告', exact: true }).isDisabled(),
       true,
     );
     const updatedHTTP = page.waitForResponse(
@@ -116,6 +116,7 @@ export async function teacherAnalysisFlow({
     );
 
     const preflight = await openExport();
+    assert.doesNotMatch(await exportDialog().innerText(), /班级|全班|课堂成绩|算法比赛/);
     assert.equal(preflight.result_version, 2);
     assert.equal(preflight.member_count, 12);
     assert.equal(preflight.confirmed_finding_count, 1);
@@ -210,7 +211,7 @@ export async function teacherAnalysisFlow({
     await page.getByRole('button', { name: '已保存分析', exact: true }).click();
     await page.getByRole('button', { name: '查看与核验', exact: true }).first().click();
     await drawer()
-      .getByText('当前为只读权限，可查看核验结果和导出报告。', { exact: true })
+      .getByText('当前为只读权限，可查看核验结果和导出测评报告。', { exact: true })
       .waitFor();
     assert.equal(
       await drawer().getByRole('button', { name: '保存核验结果', exact: true }).count(),
@@ -310,12 +311,12 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
   if (expectedNoFindings) {
     assert.equal(result.findings.length, 0);
     await drawer
-      .getByText('本次分析没有保存候选发现，仍可导出统计报告。', { exact: true })
+      .getByText('本次分析没有保存候选发现，仍可导出测评报告。', { exact: true })
       .waitFor();
     const preflightHTTP = page.waitForResponse((r) => r.url().endsWith('/export-check'));
-    await drawer.getByRole('button', { name: '导出报告', exact: true }).click();
+    await drawer.getByRole('button', { name: '导出测评报告', exact: true }).click();
     assert.equal((await (await preflightHTTP).json()).confirmed_finding_count, 0);
-    const dialog = page.getByRole('dialog', { name: '导出报告', exact: true });
+    const dialog = page.getByRole('dialog', { name: '导出测评报告', exact: true });
     await dialog.getByText('报告预估大小', { exact: false }).waitFor();
     if (await dialog.getByRole('checkbox').count()) await dialog.getByRole('checkbox').check();
     const pendingDownload = page.waitForEvent('download');

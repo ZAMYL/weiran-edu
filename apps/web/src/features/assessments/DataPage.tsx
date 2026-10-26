@@ -126,7 +126,7 @@ export default function DataPage() {
           <Steps
             current={0}
             size="small"
-            items={[{ title: '上传文件' }, { title: '预览校验' }, { title: '确认导入' }]}
+            items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
           />
           <div className="standard-select">
             <label htmlFor="standard-select">评价标准</label>
@@ -255,7 +255,7 @@ export default function DataPage() {
               ),
             },
             { title: '来源文件', dataIndex: 'filename' },
-            { title: '学生人数', render: (_, b) => `${b.students.length} 名` },
+            { title: '参评人数', render: (_, b) => `${b.students.length} 人` },
             {
               title: '评分条数',
               render: (_, b) => `${b.students.length * b.standard.dimensions.length} 条`,

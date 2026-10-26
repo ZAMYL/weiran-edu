@@ -163,6 +163,12 @@
   color: #71809f;
   font-size: 12px;
 }
+.upload-metadata {
+  margin-bottom: 18px;
+}
+.upload-metadata .live-upload-fields {
+  margin-bottom: 0;
+}
 .warning-ack {
   display: flex;
   margin-top: 20px;

@@ -82,7 +82,7 @@ export default function AnalysisActions({
       <section className="panel analysis-actions">
         <div>
           <h2>保存与核验</h2>
-          <p className="muted">保存当前已应用条件，核验系统候选后导出报告。</p>
+          <p className="muted">保存当前已应用条件，核验系统候选后导出测评报告。</p>
         </div>
         <div className="batch-actions">
           <Button
@@ -377,7 +377,7 @@ function AnalysisEditor({
           disabled={dirty || operation.busy}
           onClick={() => setExporting(true)}
         >
-          导出报告
+          导出测评报告
         </Button>
       </div>
       <p className="saved-version">
@@ -390,7 +390,7 @@ function AnalysisEditor({
       </p>
       <p className="muted small">{initial.notice}</p>
       {!editable && (
-        <Alert type="info" title="当前为只读权限，可查看核验结果和导出报告。" showIcon />
+        <Alert type="info" title="当前为只读权限，可查看核验结果和导出测评报告。" showIcon />
       )}
       <div className="analysis-fields">
         <label htmlFor="review-analysis-title">已保存分析名称</label>
@@ -412,7 +412,7 @@ function AnalysisEditor({
       </div>
       <h2 className="review-heading">候选发现核验</h2>
       {!initial.findings.length && (
-        <Empty description="本次分析没有保存候选发现，仍可导出统计报告。" />
+        <Empty description="本次分析没有保存候选发现，仍可导出测评报告。" />
       )}
       {initial.findings.map(({ candidate }, index) => {
         const decision = decisions[index]!;
@@ -485,7 +485,9 @@ function AnalysisEditor({
         );
       })}
       {operation.error && <RequestError error={operation.error} />}
-      {dirty && <Alert type="info" showIcon title="修改尚未保存，请先保存核验结果，再导出报告。" />}
+      {dirty && (
+        <Alert type="info" showIcon title="修改尚未保存，请先保存核验结果，再导出测评报告。" />
+      )}
       {editable && (
         <Button
           type="primary"
@@ -547,7 +549,7 @@ function ReportExport({
 }) {
   const [format, setFormat] = useState<ReportFormat>('xlsx');
   return (
-    <Modal title="导出报告" open onCancel={onClose} footer={null} maskClosable={false}>
+    <Modal title="导出测评报告" open onCancel={onClose} footer={null} maskClosable={false}>
       <Segmented
         aria-label="报告格式"
         options={[

@@ -17,7 +17,7 @@ import { WorkspaceLayoutContext } from './WorkspaceLayoutContext';
 const pages = [
   { to: '/insights', label: '学情洞察', subtitle: '从测评中看见差异，从证据中形成判断' },
   { to: '/explorer', label: '画像探索', subtitle: '按能力组合找到值得进一步了解的学生' },
-  { to: '/data', label: '测评数据中心', nav: '测评数据', subtitle: '上传、检查并管理每一次测评' },
+  { to: '/data', label: '测评数据', nav: '测评数据', subtitle: '上传、检查并管理每一次测评' },
 ];
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
