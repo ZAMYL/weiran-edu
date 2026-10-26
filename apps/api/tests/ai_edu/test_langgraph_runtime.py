@@ -302,8 +302,11 @@ def test_graph_is_six_real_nodes_and_persists_no_input():
 def test_cloud_tracing_disabled_even_with_environment_opt_in(monkeypatch):
     monkeypatch.setenv("LANGSMITH_TRACING", "true")
     monkeypatch.setenv("LANGCHAIN_TRACING_V2", "true")
-    with patch("langsmith.client.Client.create_run", side_effect=AssertionError("cloud_disabled")):
+    with patch(
+        "langsmith.client.Client.create_run", side_effect=AssertionError("cloud_disabled")
+    ) as cloud:
         result = asyncio.run(run_agent_langgraph("constant17", AdaptiveFake()))
+        cloud.assert_not_called()
     assert result.status == "completed"
 
 
@@ -443,8 +446,9 @@ def test_inherited_cloud_tracer_is_suppressed_and_restored(monkeypatch):
     try:
         with patch(
             "langsmith.client.Client.create_run", side_effect=AssertionError("cloud_disabled")
-        ):
+        ) as cloud:
             result = asyncio.run(run_agent_langgraph("constant17", AdaptiveFake()))
+            cloud.assert_not_called()
         assert result.status == "completed" and tracing_v2_callback_var.get() is sentinel
     finally:
         tracing_v2_callback_var.reset(token)
