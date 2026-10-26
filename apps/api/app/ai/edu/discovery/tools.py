@@ -19,6 +19,7 @@ from app.analysis.edu.discovery.presentation import exact
 from app.analysis.edu.engine import summarize
 from app.analysis.edu.models import AnalysisInputError, Condition, Dimension, Operator
 
+from .disclosure import check_disclosure
 from .models import SCHEMAS, AgentError, Fact, Limits
 from .projection import model_discovery, model_investigation, model_ranking
 
@@ -76,20 +77,9 @@ class ToolExecutor:
         self.compute_seconds = 0.0
 
     def _gate(self, sets: list[tuple], *, staged: list[frozenset]) -> list[frozenset]:
-        """Check against all earlier disclosures, including this execution; never commit here."""
-        pending = []
-        for records in sets:
-            group = frozenset(records)
-            if group and len(group) < self.limits.minimum_cell:
-                raise AgentError("privacy_limited")
-            # Conservative differencing protection across this run, not just per-tool k.
-            if any(
-                0 < len(group ^ old) < self.limits.minimum_cell
-                for old in self.released + staged + pending
-            ):
-                raise AgentError("privacy_limited")
-            pending.append(group)
-        return pending
+        return check_disclosure(
+            sets, released=self.released, staged=staged, minimum_cell=self.limits.minimum_cell
+        )
 
     def _validate_discovery(self, discovery) -> None:
         try:
