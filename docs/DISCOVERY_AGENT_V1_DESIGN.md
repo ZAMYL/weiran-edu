@@ -1,12 +1,14 @@
 # Discovery Agent v1 — 审查与内部契约草案
 
-状态：设计评审，尚未实现。2026-10-25 核验 PR #41 仍为 OPEN、mergedAt=null；main=a7a6c2812354b2775394879cb019476d77864d5c，#41 审查头提交=50ea3719e7417e3e86cb0999f0801bf1b4dbf861。本 PR 只新增设计与评测计划，不改 #41、AI 运行代码或公共接口。合并 #41 后，重新 fetch 并从当时最新 main 新建 `feat/edu-discovery-agent-v1`，不得直接沿用本设计分支充当实现基线。
+状态：审核整合，Agent尚未实现。2026-10-26重新fetch：main=201929cca8921a9c016353e2abda5e2044004671。#41（1424655）、#43、#47（9146312）、#44（9b3f2b4）均OPEN，mergedAt=null；#41原CHANGES_REQUESTED尚无新的批准，不能把修复提交或CI绿色等同于审核通过。
+
+本轮只更新本PR已有两份文档，不改#41/#47/#44或AI运行代码，不创建依赖未合并接口的运行分支。**#41、#43、#47经人工审核合并后**，再fetch并从届时最新main建立独立worktree/`feat/edu-discovery-agent-v1`；本设计分支不是实现基线。#44仍是独立正式后端准备工作，不是本轮合成Agent的数据入口。
 
 目标是模型根据已返回聚合事实选择下一项调查，而不是一次性总结 discover()。教师确认、统计事实与因果证明互不等同。本阶段不生成聊天、练习或教学建议。
 
 ## 1. 代码审查结论
 
-### R1 / P2：群体去重先于资格判断，可压制合法候选
+### R1 / P2：历史漏检已提交修复，仍待复审和合并
 
 位置：[engine.py L335–349](https://github.com/ZAMYL/weiran-edu/blob/50ea3719e7417e3e86cb0999f0801bf1b4dbf861/apps/api/app/analysis/edu/discovery/engine.py#L335-L349)。`seen.add(partition)` 发生在非条件维度效果/样本检查之前；分区键也不区分筛选维度与结果维度。
 
@@ -19,7 +21,9 @@
 | compare_groups 单独检查实现≤2.90 | 算法均值1−5=−4 | 返回−4、10/10 |
 | discover 的群体卡 | 可能存在合格结果 | 实际0张；仍有相关性发现，不能说全部发现均漏检 |
 
-建议由 #41 维护者评估：去重应在合格候选之间进行，并保留筛选/结果维度语义，避免先前不合格规则阻塞后续规则；添加以上回归。单纯把 seen 移后不能解决所有“相同分区、不同结果维度”的去重口径。此设计 PR 不修核心。若暂不修，A/B 都必须保留此已知漏检记录；不能把 B 绕开它宣称为模型自主探索带来的增量。
+上表是旧头50ea371的历史行为，不能当作当前1424655仍未修复。1424655已改为先逐非条件结果维度检查资格，发布后按“无方向分区＋筛选维度集合＋结果维度”去重，独立计算各结果的稳健性和排序；20人例现在有1项算法差−4、两组10/10。内部`GroupComparison.outcome_dimension`和展示`metrics.outcome_dimension`标明主结果，直接compare_groups仍默认None。规则版本为`edu-discovery-0.1.1-draft`，旧发现ID不可沿用。
+
+本次只读审核再次核对该实现；修复不是单纯后移seen。#47已锁定1424655做独立离线基线，不能将修复基线漏检计作Agent增量。本PR不改核心，也不自行解决Peng-Kai789的CHANGES_REQUESTED线程或合并。
 
 ### R2：教师内部投影不能原样成为远程模型输入（接入差异）
 
@@ -82,7 +86,7 @@ RunContext 内部包含：run_id、batch_id、snapshot_id、scope fingerprint、
 | get_dimension_statistics | 空对象 | 委托既有 summarize/ToolExecutor 受限统计投影；只给每维有效/缺失/无效数、均值/中位数及固定粗分箱，不发逐分值频数/极值行。粗分箱仅为显示聚合，不改变底层筛选与0.01精度 |
 | query_dimension_relation | 不同的 left/right 维度枚举 | 复用 spearman_correlations，只投影所选 pair 的 rho、状态、n_pair、excluded；内部计算10对的成本也记录，不能谎称只算1对 |
 | compare_student_groups | 1–2个不同维度的合法 AND 条件；1–3个非条件结果维度 | 复用 #41 compare_groups。返回 M、R、U、N/E、各结果维度的两组有效n/均值/差异；目标与余组互斥。条件差异不作为新发现 |
-| inspect_rare_combination | 不同的 left/right 维度枚举 | #41 没有独立公开 rarity 函数。暂可在本 run 本地缓存 discover(search_budget=0, maximum_findings=50) 的结果，仅返回指定 pair 的少见组合诊断；全部结果不外发。记录内部相关/围栏/删组工作量；qualified_count 超过保留数时显式 truncation，不把未保留项说成不存在。是否后续拆公共小函数由核心维护者另审，本 PR 不动核心 |
+| inspect_rare_combination | 不同的 left/right 维度枚举 | 必须在合并后抽取共享的定向评分差/IQR助手，只计算已请求维度对；自动discover也调用同一助手。不再允许discover(search_budget=0)缓存所有候选作为定向工具，也不把完整发现池发给模型。单维为常数时仍可能存在少见差值，不能用Spearman不可计算直接排除。当前尚无该公开定向接口，本PR不改核心 |
 | verify_threshold_sensitivity | 已登记边界 fact_id 与一个现有条件查询引用 | 复用 #41 compare_boundary。边界必须是本 run 的实际评分/分位点白名单值；按精确 cents/Fraction 区分 <、≤，不对展示舍入值筛选。返回 N/E/U、两次M与成员变化的聚合数；不返回成员列表 |
 | inspect_discovery_support | 本 run 发现 fact_id | 复用已有发现 ranking.robustness、真实 SourceSet/sources 和样本/缺失诊断，只汇总来源覆盖、两组分母、检查次数和限制。普通 compare_groups 不包含稳健性结果，必须明确 not_computed；不得把请求成功或引用存在等同于通过稳健性检查 |
 
@@ -90,9 +94,16 @@ RunContext 内部包含：run_id、batch_id、snapshot_id、scope fingerprint、
 
 ### 定向群体结果与稳健性缺口
 
-`compare_groups` 本身不生成 Discovery/ranking/删组稳健性。定向工具可发布“计算事实，稳健性未检查”，不能伪造 Discovery 或宣称已通过 #41 全部资格。inspect_discovery_support 对已有 #41 candidate 可读取原检查；对仅定向比较的结果必须返回 not_computed。若要复用同一删组检查发布为发现，需 #41 合并后由维护者明确抽取共享资格/稳健性辅助函数，或同一 discover 搜索确实命中相同条件且结果一致；不能另抄公式、拿别的候选替代、强行把它标为可展示。
+`compare_groups`本身只提供对照，不生成Discovery/ranking/删组稳健性；outcome_dimension也不是“已经审核”的布尔凭证。合并后应从现有discover内抽取最小共享评估/构造助手，自动流程和定向工具共同调用：
 
-这是后续实现前必须决策的接口缝隙，不用临时平行算法填平。Agent 可以选择未完成验证的事实继续调查，也可以因证据不足停止；评测不能把这些当合格发现。此处和 R1 都需要核心/后端负责人审查。
+1. 服务端以同一Dataset、批次/快照、范围、条件和规则profile构造比较，不接受客户端预计算GroupComparison或任何qualified=true。
+2. 每个请求的非条件结果维度分别检查有效样本、差异门槛、原3次删组方法、实际来源和限制，生成程序化候选。保留#41的目标/互斥余组、不判定U和逐维有效分母语义。
+3. 原始比较或未计算稳健性的诊断可作为继续调查的信息，必须明确not_computed；不能进入最终发现卡。完成同一评估后的cautious状态不等于失败，也不能升级为统计显著。
+4. 自动discover继续按预算探索/语义去重，不能改变当前数值、来源、排序、阈值或ID生成口径来迁就Agent。共享助手提取须通过原回归和#47独立标准答案，必要的规则版本变更显式记录。
+
+不接受“先运行完整discover，再找同条件候选给定向结果补资格”的兜底；缓存仅限已经实际执行过的具体规范请求，不能偷偷预取未请求群体或全部候选。相关性工具可先复用已有Spearman后仅投影请求pair并如实记内部10对计算，后续若提取定向pair助手，同样复用已有并列秩算法，不另写公式。
+
+这些是合并后的必要内部共享重构，不在本轮未合并阶段实施。只有原始对照可调用，不代表全部工具接口已经就绪。
 
 ## 5. 事实、来源和展示契约
 
@@ -128,10 +139,54 @@ DiscoveryFact（拟议冻结内部对象）最少字段：
 
 ## 7. 实现与审核门槛
 
-待 #41 合并并重新审查 R1/稳健性接口缝隙后：
+#41、#43、#47审核合并后，在实现PR内补齐下述内部接缝；不增加额外口头开工批准，也不替代既定测试：
 
 - 在 ai/edu 内增量实现分步协议、受限子注册表、共享HTTP发送和run级账本，不引入统计依赖或第二套工作流框架。
 - 不改变旧run_insights的既有Plan/Proposal语义与测试；不能以所有HTTP200替代事实验收。
 - 先做Fake条件分支和Mock native多轮回归，证明同样入口在不同聚合结果下选择不同合法后续步骤，并覆盖提前finish、空选择、跨run引用、错误参数、重复调用、输出限额、超时、取消、伪造数值、模式越权、合成注册不匹配和提示注入。
 - A/B协议见 [独立评测计划](../evals/DISCOVERY_AGENT_V1_EVALUATION_PLAN.md)。在真实Qwen对照完成前，不宣称Agent提升召回、效率或智能性。Fake只验执行机制。
 - 请 Peng-Kai789 审核：工具范围绑定、事实/来源分母校验、远程投影、模式/预算和正式后端未来接线边界；ZAMYL确认探索资格/稳健性与独立预期，AooMing后续仅评审展示字段。当前不向页面或正式鉴权系统增加任何入口。
+
+## 8. 与现有交付的审核整合（2026-10-26）
+
+### 实际前置与本轮边界
+
+| PR | 已有内容 | 当前仍缺什么 |
+| --- | --- | --- |
+| #41 / 1424655 | 四类确定性发现、逐指标来源、R1修复、结果维度语义 | Peng复审/合并；共享定向资格与rare助手尚未抽取 |
+| #43 | 分步/安全/评测契约 | 评审/合并；没有Agent实现 |
+| #47 / 9146312 | 19案例、独立标准答案、A_default/B_full实测、CandidateRun接口 | 评审/合并；C_agent未运行；支持事实与全Trace还需接入扩展 |
+| #44 / 9b3f2b4 | 正式Dataset装配、范围/来源DTO及第二阶段契约 | Draft且未注册生产发现路由，硬执行器/正式接线未完成；不能视为真实Agent已获授权 |
+
+#44的范围条件与发现条件分离、当前授权重验和真实来源分页保持由后端负责。正式source_id/evidence_id和完整Dataset即便匿名，也不成为模型可读数据；本轮不得从DiscoveryInputReader取正式评分外发。内核图表字段是chart（单数），primary outcome元数据需在未来正式适配时由Peng审核；此处不改公共DTO。
+
+### #47的真实接口，不是模型输入
+
+可信评测适配器实现同步`run(CandidateInput, profile) -> CandidateRun`，通过`evaluate(fixed_adapter, agent=agent_adapter)`接入。异步Agent工作流的同步封装仅用于无运行中事件循环的CLI；正式异步后端不得嵌套asyncio.run。Agent核心不依赖评测oracle；适配器留在evals侧。
+
+- CandidateInput含本地合成rows、distractors、batch/snapshot/source token、一般问题和明确边界。没有targets/seed/recipe/分析标签；不得把整个对象发给模型，也不得读取case/oracle文件帮助规划。
+- CandidateRun.ledger必须来自真实工具执行。selected_ids保存模型原始提议，presented_ids保存验证后实际展示；两者不能在适配器里悄悄同步，以掩盖被拒绝的错误。
+- Query.outcome每个Claim只指一个结果维度，映射#41真实outcome_dimension。群体Claim.values和Binding需要完整本地五维对照及逐指标来源；模型视图可以只披露请求的维度，不能用oracle补齐未计算数据。Fraction、rho浮点、N/E/U与各组有效n按#47现有格式转换，不复制统计公式。
+- measurement_origin必须明确scripted_fake/http_mock/qwen_live等来源；Fake/Mock的Token和费用不作为真实值。首轮离线C_agent是机制验证，不是千问质量或优于固定流程的证据。
+
+### 必须先解决的评测接入缝隙
+
+当前#47独立reference只支持relation/group/rare/boundary；trace_request_valid还要求被工具引用/发布的ID已在校验通过的Claim账本中。因此直接把摘要或查询定义伪装成发现、漏掉这些ID、或删除合法事件来获得绿色评测都不成立。
+
+合并后的最小扩展应显式区分“支持事实/查询依据”和“可选发现”，为实际统计摘要、边界查询引用补独立参考/来源校验；支持事实永远不能被finish当发现。新增参考答案仍使用独立Decimal/Fraction，不调用待测内核或模型；适配器不得硬填rule_version来抹平真实来源差异。保持既有四类标准答案与R1/4↔5锚点，保留#47首份历史报告；新增结果绑定新的评测器提交/源码摘要，不手工修改历史报告的成绩或把历史摘要要求变成当前代码必须倒退。
+
+CandidateRun.tool_trace当前只接受工具事件；Agent的planner_decision/fact_validation/final_selection保存在完整Agent Trace，不能当未知工具塞进此字段，也不能直接丢弃这些阶段。实施时需明确增加独立Trace投影/伴随记录并验证四阶段ID关联，工具预算只统计真正工具尝试，不把所有事件都当调用。
+
+#47的停止状态目前是completed/no_valid_findings/insufficient_data；sufficient_evidence应映射为completed。privacy_limited、预算强制停止、超时和取消不能一律伪装completed或无发现：需显式保留原始reason及model/program来源，并在独立评测中单列，未支持状态不得篡改适配器骗过判分。
+
+### 披露与评测公平
+
+#47现有19案例是本地原始合成数学基准，尚未应用本设计的远程k/差分门槛。将来C_agent启用披露门槛时，固定两组也必须使用同一可披露视图/限制，另报数学覆盖、可披露目标覆盖和抑制原因；保留原始12项目标，不暗减分母来提升成绩。1/17个体组合和53人新增1人的边界案例可以在可信本地工具层验证，不意味着可以发给模型。此调整需要独立参考和共同策略验收后才能做真实三组质量比较。
+
+### Fake、HTTP Mock与启动门槛
+
+Fake只读取模型实际可见的聚合结果来决定下一步；测试必须展示相同入口在不同实际统计结果下走不同路径、主动finish和零发现，而非按case_id或预写列表顺序返回工具。HTTP Mock通过真正的消息序列与native call_id配对执行多轮，验证预算只持有一份；不能把真实网络Client的offline_only改成True。可分别测试受限HTTP组件与离线编排器，或用严格无网络的Mock专用客户端组合，真实Client在Offline仍必须拒绝。
+
+90秒run期限和asyncio超时不会强行中止同步CPU统计；合成阶段须限定数据/计算量并在工具前后检查期限，不声称有硬CPU中止。#44规划的正式子进程硬超时是另一条生产接线门槛，不能以线程或async超时替代。
+
+运行实现的开工条件仍是三项前置审核合并后重新fetch；届时执行原AI回归、#41发现回归、#47独立标准与新分步测试、全量及最终CI。真实Qwen合成评测另需明确case/重复次数/总请求与Token限额的费用授权；当前授权为0次真实请求。Production继续关闭。
