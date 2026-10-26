@@ -6,7 +6,7 @@ export const operatorLabels = { lt: '<', lte: '≤', eq: '=', gte: '≥', gt: '>
 export const conditionText = (conditions: ApiCondition[]) =>
   conditions
     .map((c) => `${dimensionName(c.dimension_code)} ${operatorLabels[c.operator]} ${c.value}`)
-    .join(' 且 ') || '全部学生';
+    .join(' 且 ') || '全部参评者';
 export const metricDisplay = (metric: InsightMetric) =>
   metric.unit === 'ratio' && metric.value.value !== null
     ? `${(metric.value.value * 100).toFixed(2)}%`

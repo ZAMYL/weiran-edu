@@ -1,0 +1,74 @@
+name: Teacher V1 browser E2E
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/teacher-v1-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: teacher-v1-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium:
+    name: Synthetic FastAPI + production Next + Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      WEIRAN_EDU_ENV: test
+      PYTHONUTF8: "1"
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version-file: apps/api/.python-version
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.11.14"
+          enable-cache: false
+      - name: Install locked backend
+        run: uv sync --project apps/api --locked --group dev
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: apps/web/package.json
+          package-manager-cache: false
+      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+        with:
+          package_json_file: apps/web/package.json
+          run_install: false
+      - name: Install locked frontend
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+      - name: Print formatting diff for files changed by integration
+        working-directory: apps/web
+        run: |
+          pnpm exec prettier --write docs/teacher-v1-integration.md src/services/edu-api/discovery-navigation.test.ts tests/discovery-api-flow.mjs
+          git diff -- docs/teacher-v1-integration.md src/services/edu-api/discovery-navigation.test.ts tests/discovery-api-flow.mjs
+      - name: Reject formatting drift
+        run: git diff --exit-code -- apps/web/docs/teacher-v1-integration.md apps/web/src/services/edu-api/discovery-navigation.test.ts apps/web/tests/discovery-api-flow.mjs
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Production build
+        working-directory: apps/web
+        run: pnpm build
+      - name: Real synthetic browser - discovery and reviewed report
+        working-directory: apps/web
+        env:
+          EDU_TEST_PYTHON: ${{ github.workspace }}/apps/api/.venv/bin/python
+        run: node tests/discovery-api-flow.mjs
+      - name: Real synthetic browser - saved analysis / export / revocation
+        working-directory: apps/web
+        env:
+          EDU_TEST_PYTHON: ${{ github.workspace }}/apps/api/.venv/bin/python
+        run: node tests/live-api-smoke.mjs

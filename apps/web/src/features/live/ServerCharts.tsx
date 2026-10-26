@@ -78,7 +78,7 @@ export function ServerAbilityChart({
                 itemStyle: { color: '#2463f5' },
                 lineStyle: { width: 2.5 },
                 areaStyle: { color: 'rgba(36,99,245,.22)' },
-                data: [{ value: ordered.map((d) => d.mean.value), name: '服务端五维均值' }],
+                data: [{ value: ordered.map((d) => d.mean.value), name: '测评平均分' }],
               },
             ],
           }
@@ -134,7 +134,7 @@ export function ServerAbilityChart({
                 tooltip: {
                   formatter: (params: unknown) => {
                     const p = params as { value: number[] };
-                    return `${DIMENSIONS[p.value[1] ?? -1]?.name ?? ''}：${p.value[0]} 分，${p.value[2]} 人`;
+                    return `${DIMENSIONS[p.value[1] ?? -1]?.name ?? ''}：${p.value[0]} 分，参评人数 ${p.value[2]} 人`;
                   },
                 },
               },
@@ -220,7 +220,7 @@ export function SparseMatrix({
       tooltip: {
         trigger: 'item',
         formatter: (p: { value: number[] }) =>
-          `${dimensionName(matrix.x_dimension)} ${p.value[0]} 分<br/>${dimensionName(matrix.y_dimension)} ${p.value[1]} 分<br/>${p.value[2]} 人`,
+          `${dimensionName(matrix.x_dimension)} ${p.value[0]} 分<br/>${dimensionName(matrix.y_dimension)} ${p.value[1]} 分<br/>参评人数 ${p.value[2]} 人`,
       },
       grid: { left: 50, right: 24, top: 30, bottom: 95 },
       xAxis: {

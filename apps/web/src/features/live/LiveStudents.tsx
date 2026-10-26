@@ -16,7 +16,7 @@ import {
   dimensionName,
   metricDisplay,
 } from '../../services/edu-api/view-model';
-import { Panel } from '../../components/ui';
+import { AssessmentContext, Panel } from '../../components/ui';
 import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 
@@ -150,8 +150,8 @@ export function LiveScoreDrawer({
     (c) => c.rubric_criterion_id === resource.data?.evidence.rubric_criterion_id,
   );
   return (
-    <Drawer title="服务端评分证据" open={Boolean(evidenceId)} onClose={onClose} size={550}>
-      <p className="drawer-subtitle">{batch.title} · 同一批次与快照</p>
+    <Drawer title="测评评分证据" open={Boolean(evidenceId)} onClose={onClose} size={550}>
+      <AssessmentContext title={batch.title} course={batch.course} date={batch.assessment_date} />
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {resource.data && (
@@ -238,9 +238,7 @@ export function LiveStudentDrawer({
       onClose={onClose}
       size={560}
     >
-      <p className="drawer-subtitle">
-        {batch.title} · {onStudent ? '前后切换仅限当前服务端页' : '授权评分记录'}
-      </p>
+      <AssessmentContext title={batch.title} course={batch.course} date={batch.assessment_date} />
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {resource.data?.items.map((e) => (
@@ -306,7 +304,7 @@ export function MetricEvidenceDrawer({
                 {result.scope_record_count}
               </p>
               <p className="muted small">
-                此处人数来自完整结果，分页不改变统计口径；数值的有理数分母不代表学生人数。
+                此处人数来自完整结果，分页不改变统计口径；数值的有理数分母不代表参评人数。
               </p>
               <div className="condition-box">{conditionText(selection!.spec.conditions)}</div>
             </Panel>
