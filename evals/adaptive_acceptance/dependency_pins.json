@@ -1,0 +1,29 @@
+{
+  "dependency_commits": {
+    "PR47": "91463121db520237301c317589e619b35e9eac37",
+    "PR49": "91de608a30409f92809e63d7a820b189cedcb1fd",
+    "PR56": "639609d0cc9450f799d7c985784cb14de4b00ee7",
+    "PR58": "07d2a7ddd2659ff202608b2fce33347c6f6d85aa"
+  },
+  "files": {
+    "apps/api/tests/discovery_eval/test_oracles.py": "dbde0a7b5197c03d413bed7763b611fc160ece5cac6659f8e377f0ada0833181",
+    "evals/discovery_v1/README.md": "83e871c24268d0a8f3b5ceffae9d539e5663db6f59294b784fda1e3f1f770f14",
+    "evals/discovery_v1/__init__.py": "caba00087cf2d97f286290ac631841131a22070b8e49784581594caccdc2d4e0",
+    "evals/discovery_v1/baseline.py": "93294d094f5e7c4755b2c2ecf1be4c6533df0528a4f91a072250a6f63f6f754a",
+    "evals/discovery_v1/cases.py": "5559570307ccfd18b8eedca0eb485d9e662ef0e0e615aeeaf2a0e1f736c741b4",
+    "evals/discovery_v1/contracts.py": "9d96367dac4fa0921822dd1a5502159147ab9d0c3f62466588daac2cec013be0",
+    "evals/discovery_v1/grading.py": "e209a9b6f3841e8e8a637883e11960ffde6d20a9a4ca154bea08a1a571c21bc1",
+    "evals/discovery_v1/oracles.json": "41dcd004e3f4b506544177facb4066ad10581b8a7e841db3401396a0fcc33a6b",
+    "evals/discovery_v1/reference.py": "f58d3d0a45467330eabde702eb9409ade390959e1a745315403ceabcb36a8d76",
+    "evals/discovery_v1/results/2026-10-26-offline.json": "d55035201bd38bfbe44cfdbb54fa45757da311156d9b91cd63d18a31231f3bf9",
+    "evals/discovery_v1/results/2026-10-26-offline.md": "25422c3297f05aace3f870ae61354cba6a64e062bd0b1f205c114a36b37b5eeb",
+    "evals/discovery_v1/runner.py": "e94787a3b2fc7e031c493c16976e355c4d57c62d8e1214dbc42fa3bd0cc209cc",
+    "scripts/edu_discovery_eval.py": "f6e698da7377048a7dd9504e6a020e9b46e0a33f1f1bf93a981be75b073e4cae",
+    "prototypes/adaptive_assessment/live/planner.py": "685277cafab8927045c7677b52ed4ea11c90d647c759f13953c6638cc85b2e2e",
+    "prototypes/adaptive_assessment/live/budget.py": "ae2669df27b5aff8849b87323e3c9d692bb5fbac185f500e084a2c8dd19a83c4",
+    "prototypes/adaptive_assessment/live/pricing.py": "4375435f473c08eaf1acb224ec19c1afbe6e386782cbae5c59be47c193ba85f1",
+    "prototypes/adaptive_assessment/synthetic.py": "50037262ec415fec66e98149d5f6768260f00c89e91591c8b00496656c3d72fa",
+    "apps/api/app/ai/edu/discovery/disclosure.py": "1409ce944419c729eacb7ab4b974a311f428b0c8a61730e363d2c8a033e1d8fd"
+  },
+  "hash_policy": "SHA256 of Git-canonical text bytes (CRLF normalized to LF only)"
+}

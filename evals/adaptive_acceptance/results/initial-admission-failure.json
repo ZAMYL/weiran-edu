@@ -1,0 +1,16 @@
+{
+  "scope": "actual_initial_CLI_failure_before_report_was_written",
+  "status": "failed",
+  "case": "small",
+  "reason": "synthetic_score_fingerprint_mismatch",
+  "paid_api_calls": 0,
+  "initial_reference_mistake": "assumed Q13 missing in the 3-person fixture",
+  "declared_SUT_protocol": "contest_zip(participants=3, missing=False)",
+  "independent_manual_anchors": {
+    "Q01_mean": 40,
+    "Q02_mean": 60,
+    "Q13_valid_count": 3
+  },
+  "fix_scope": "independent fixture description corrected; runtime and PR47 frozen oracles unchanged",
+  "partial_run_metrics": "not_collected_before_initial_abort; not represented as successful measurements"
+}

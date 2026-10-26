@@ -1,0 +1,2198 @@
+{
+  "version": "adaptive-acceptance-0.1",
+  "seed": 0,
+  "generation": "Seed0: odd/even80/20; base20/small3/empty0; explicit statuses",
+  "cases": [
+    {
+      "recipe": "contest13",
+      "input_fingerprint": "dba6ffcba170fd154d8328765f12dcf15c037335adf68381a84e45b5b2834c4a",
+      "participant_count": 20,
+      "items": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13"
+      ],
+      "statistics": {
+        "Q01": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q02": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q03": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q04": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q05": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q06": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q07": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q08": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q09": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q10": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q11": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q12": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q13": {
+          "denominator": 20,
+          "valid_count": 15,
+          "excluded_count": 5,
+          "states": {
+            "valid": 15,
+            "missing": 5
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        }
+      },
+      "forbidden": [
+        "question_to_five_dimension_inference",
+        "cross_item_scale_sum",
+        "causal_claim",
+        "invented_rubric"
+      ],
+      "targets": [
+        "2fce716c1b80454d920ce9597c7244d6349bc5581473104de085f26c9c140612",
+        "3550a347b769ce1bfd5f6b4e34a059c1b0d6cff3b474e80fe25e7134ad80393a",
+        "8a2c0ddd3c199be63e09b6980c4574a3e842b7a99dcbad978ea21d542dcd9522"
+      ],
+      "expected_queries": [
+        {
+          "tool": "query_dimension_relation",
+          "arguments": {
+            "left": "Q01",
+            "right": "Q02"
+          },
+          "values": {
+            "left": "Q01",
+            "right": "Q02",
+            "rho": {
+              "decimal": "-1"
+            },
+            "state": "computable",
+            "paired_count": 20,
+            "excluded_count": 0,
+            "denominator": 20
+          },
+          "qualified": true,
+          "source_scopes": {
+            "left.paired": {
+              "item": "Q01",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            },
+            "right.paired": {
+              "item": "Q02",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            }
+          }
+        },
+        {
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          },
+          "values": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1
+            },
+            "outcome_unit": "points"
+          },
+          "qualified": true,
+          "source_scopes": {
+            "target.valid": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.valid": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            },
+            "unevaluable.rows": {
+              "item": "Q01",
+              "count": 0,
+              "index_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            "target.condition.Q01": {
+              "item": "Q01",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.condition.Q01": {
+              "item": "Q01",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            }
+          }
+        },
+        {
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q13"
+          },
+          "values": {
+            "item_id": "Q13",
+            "denominator": 20,
+            "counts": {
+              "valid": 15,
+              "missing": 5
+            },
+            "scale_known": true,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "qualified": true,
+          "source_scopes": {
+            "state.valid": {
+              "item": "Q13",
+              "count": 15,
+              "index_digest": "e994167b45cad6081dd187620abc417759e9f5459b5dcbc0ac8d96ef3a7c7ba2"
+            },
+            "state.missing": {
+              "item": "Q13",
+              "count": 5,
+              "index_digest": "da23d4e87d1b953ea2fbf03eda4abc7206efe6e48b0c4201a7c767424e6b3716"
+            }
+          }
+        }
+      ],
+      "allowed_rejections": [
+        "unknown_scale",
+        "insufficient_sample",
+        "no_authorized_score_evidence",
+        "cumulative_disclosure_limit"
+      ]
+    },
+    {
+      "recipe": "contest13_complete",
+      "input_fingerprint": "dfd0460f17dd371d752d8eeda80ad5148eca256d56383040fff14bd4b23c64ca",
+      "participant_count": 20,
+      "items": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13"
+      ],
+      "statistics": {
+        "Q01": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q02": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q03": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q04": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q05": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q06": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q07": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q08": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q09": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q10": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q11": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q12": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q13": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        }
+      },
+      "forbidden": [
+        "question_to_five_dimension_inference",
+        "cross_item_scale_sum",
+        "causal_claim",
+        "invented_rubric"
+      ],
+      "targets": [
+        "2fce716c1b80454d920ce9597c7244d6349bc5581473104de085f26c9c140612",
+        "3550a347b769ce1bfd5f6b4e34a059c1b0d6cff3b474e80fe25e7134ad80393a"
+      ],
+      "expected_queries": [
+        {
+          "tool": "query_dimension_relation",
+          "arguments": {
+            "left": "Q01",
+            "right": "Q02"
+          },
+          "values": {
+            "left": "Q01",
+            "right": "Q02",
+            "rho": {
+              "decimal": "-1"
+            },
+            "state": "computable",
+            "paired_count": 20,
+            "excluded_count": 0,
+            "denominator": 20
+          },
+          "qualified": true,
+          "source_scopes": {
+            "left.paired": {
+              "item": "Q01",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            },
+            "right.paired": {
+              "item": "Q02",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            }
+          }
+        },
+        {
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          },
+          "values": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1
+            },
+            "outcome_unit": "points"
+          },
+          "qualified": true,
+          "source_scopes": {
+            "target.valid": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.valid": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            },
+            "unevaluable.rows": {
+              "item": "Q01",
+              "count": 0,
+              "index_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            "target.condition.Q01": {
+              "item": "Q01",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.condition.Q01": {
+              "item": "Q01",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            }
+          }
+        }
+      ],
+      "allowed_rejections": [
+        "unknown_scale",
+        "insufficient_sample",
+        "no_authorized_score_evidence",
+        "cumulative_disclosure_limit"
+      ]
+    },
+    {
+      "recipe": "limited",
+      "input_fingerprint": "3d15f20b3cdbf3d5b302d3bba5eaf8adc882e10b040d7af1323b251a5fec52aa",
+      "participant_count": 20,
+      "items": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13"
+      ],
+      "statistics": {
+        "Q01": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q02": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q03": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q04": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q05": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q06": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q07": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q08": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q09": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q10": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q11": {
+          "denominator": 20,
+          "valid_count": 0,
+          "excluded_count": 20,
+          "states": {
+            "evidence_absent": 20
+          },
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q12": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "range_unknown": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": false
+        },
+        "Q13": {
+          "denominator": 20,
+          "valid_count": 15,
+          "excluded_count": 5,
+          "states": {
+            "valid": 15,
+            "missing": 5
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        }
+      },
+      "forbidden": [
+        "question_to_five_dimension_inference",
+        "cross_item_scale_sum",
+        "causal_claim",
+        "invented_rubric"
+      ],
+      "targets": [
+        "2fce716c1b80454d920ce9597c7244d6349bc5581473104de085f26c9c140612",
+        "3550a347b769ce1bfd5f6b4e34a059c1b0d6cff3b474e80fe25e7134ad80393a",
+        "8a2c0ddd3c199be63e09b6980c4574a3e842b7a99dcbad978ea21d542dcd9522",
+        "e59a61b134b30fe94828668f0a4495d183dad02ccaec7121b3814f383dc9ff9d",
+        "e7fbe977762bb0ee4c012d6c7cabe71121bbbd3012a36f3290eb2caba8037965"
+      ],
+      "expected_queries": [
+        {
+          "tool": "query_dimension_relation",
+          "arguments": {
+            "left": "Q01",
+            "right": "Q02"
+          },
+          "values": {
+            "left": "Q01",
+            "right": "Q02",
+            "rho": {
+              "decimal": "-1"
+            },
+            "state": "computable",
+            "paired_count": 20,
+            "excluded_count": 0,
+            "denominator": 20
+          },
+          "qualified": true,
+          "source_scopes": {
+            "left.paired": {
+              "item": "Q01",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            },
+            "right.paired": {
+              "item": "Q02",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            }
+          }
+        },
+        {
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          },
+          "values": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1
+            },
+            "outcome_unit": "points"
+          },
+          "qualified": true,
+          "source_scopes": {
+            "target.valid": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.valid": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            },
+            "unevaluable.rows": {
+              "item": "Q01",
+              "count": 0,
+              "index_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            "target.condition.Q01": {
+              "item": "Q01",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.condition.Q01": {
+              "item": "Q01",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            }
+          }
+        },
+        {
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q11"
+          },
+          "values": {
+            "item_id": "Q11",
+            "denominator": 20,
+            "counts": {
+              "evidence_absent": 20
+            },
+            "scale_known": true,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "qualified": true,
+          "source_scopes": {
+            "state.evidence_absent": {
+              "item": "Q11",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            }
+          }
+        },
+        {
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q12"
+          },
+          "values": {
+            "item_id": "Q12",
+            "denominator": 20,
+            "counts": {
+              "range_unknown": 20
+            },
+            "scale_known": false,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "qualified": true,
+          "source_scopes": {
+            "state.range_unknown": {
+              "item": "Q12",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            }
+          }
+        },
+        {
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q13"
+          },
+          "values": {
+            "item_id": "Q13",
+            "denominator": 20,
+            "counts": {
+              "valid": 15,
+              "missing": 5
+            },
+            "scale_known": true,
+            "rubric_available": false,
+            "score_changed": false
+          },
+          "qualified": true,
+          "source_scopes": {
+            "state.valid": {
+              "item": "Q13",
+              "count": 15,
+              "index_digest": "e994167b45cad6081dd187620abc417759e9f5459b5dcbc0ac8d96ef3a7c7ba2"
+            },
+            "state.missing": {
+              "item": "Q13",
+              "count": 5,
+              "index_digest": "da23d4e87d1b953ea2fbf03eda4abc7206efe6e48b0c4201a7c767424e6b3716"
+            }
+          }
+        }
+      ],
+      "allowed_rejections": [
+        "unknown_scale",
+        "insufficient_sample",
+        "no_authorized_score_evidence",
+        "cumulative_disclosure_limit"
+      ]
+    },
+    {
+      "recipe": "no_evidence",
+      "input_fingerprint": "6054497c7621f170a7337dcf26a7ca8b9c400e2612855e021f5f2bd156c96f7b",
+      "participant_count": 20,
+      "items": [
+        "Q01",
+        "Q02",
+        "Q03"
+      ],
+      "statistics": {
+        "Q01": {
+          "denominator": 20,
+          "valid_count": 0,
+          "excluded_count": 20,
+          "states": {
+            "evidence_absent": 20
+          },
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q02": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q03": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        }
+      },
+      "forbidden": [
+        "question_to_five_dimension_inference",
+        "cross_item_scale_sum",
+        "causal_claim",
+        "invented_rubric"
+      ],
+      "targets": [
+        "7edeaa3ae7dcb63a7f23554ec32516e2f4194fe714c3fd414035c6912b604709",
+        "9565278dce2dc5cb6b9b7927f977e7da396088f929e7780f97d2e861415ef279"
+      ],
+      "expected_queries": [
+        {
+          "tool": "inspect_item_quality",
+          "arguments": {
+            "item_id": "Q01"
+          },
+          "values": {
+            "item_id": "Q01",
+            "denominator": 20,
+            "counts": {
+              "evidence_absent": 20
+            },
+            "scale_known": true,
+            "rubric_available": true,
+            "score_changed": false
+          },
+          "qualified": true,
+          "source_scopes": {
+            "state.evidence_absent": {
+              "item": "Q01",
+              "count": 20,
+              "index_digest": "bc5e474c66113c1b6bd0c58f01f4f4142bf3ed7cd6f2032a34f27831d723085f"
+            }
+          }
+        },
+        {
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q02",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q03"
+            ]
+          },
+          "values": {
+            "outcome": "Q03",
+            "conditions": [
+              {
+                "item_id": "Q02",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 10,
+            "unevaluable_count": 0,
+            "denominator": 20,
+            "eligible_denominator": 20,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "share_eligible": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "target_valid": 10,
+            "remainder_valid": 10,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1
+            },
+            "outcome_unit": "points"
+          },
+          "qualified": true,
+          "source_scopes": {
+            "target.valid": {
+              "item": "Q03",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            },
+            "remainder.valid": {
+              "item": "Q03",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "unevaluable.rows": {
+              "item": "Q02",
+              "count": 0,
+              "index_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            "target.condition.Q02": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "6c301cda718f48575f1c55c0f3ae8b643bad3d8a7967046ce3f8fad0abde4343"
+            },
+            "remainder.condition.Q02": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            }
+          }
+        }
+      ],
+      "allowed_rejections": [
+        "unknown_scale",
+        "insufficient_sample",
+        "no_authorized_score_evidence",
+        "cumulative_disclosure_limit"
+      ]
+    },
+    {
+      "recipe": "small",
+      "input_fingerprint": "06bfea4b68497b9851a13c5b936d2996def3ef85353f9967d3557a8150711c4d",
+      "participant_count": 3,
+      "items": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13"
+      ],
+      "statistics": {
+        "Q01": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q02": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q03": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q04": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q05": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q06": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q07": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q08": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q09": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q10": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q11": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q12": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 60,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q13": {
+          "denominator": 3,
+          "valid_count": 3,
+          "excluded_count": 0,
+          "states": {
+            "valid": 3
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        }
+      },
+      "forbidden": [
+        "question_to_five_dimension_inference",
+        "cross_item_scale_sum",
+        "causal_claim",
+        "invented_rubric"
+      ],
+      "targets": [],
+      "expected_queries": [],
+      "allowed_rejections": [
+        "unknown_scale",
+        "insufficient_sample",
+        "no_authorized_score_evidence",
+        "cumulative_disclosure_limit"
+      ]
+    },
+    {
+      "recipe": "privacy20",
+      "input_fingerprint": "8282a53ab4a8d1a2f0bf11ac6c7a0a7cda14f4f39ecb081ae7de492439096f84",
+      "participant_count": 20,
+      "items": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13"
+      ],
+      "statistics": {
+        "Q01": {
+          "denominator": 20,
+          "valid_count": 15,
+          "excluded_count": 5,
+          "states": {
+            "missing": 5,
+            "valid": 15
+          },
+          "mean": {
+            "numerator": 40,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 20,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q02": {
+          "denominator": 20,
+          "valid_count": 14,
+          "excluded_count": 6,
+          "states": {
+            "missing": 6,
+            "valid": 14
+          },
+          "mean": {
+            "numerator": 440,
+            "denominator": 7
+          },
+          "median": {
+            "numerator": 80,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q03": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q04": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q05": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q06": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q07": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q08": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q09": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q10": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q11": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q12": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        },
+        "Q13": {
+          "denominator": 20,
+          "valid_count": 20,
+          "excluded_count": 0,
+          "states": {
+            "valid": 20
+          },
+          "mean": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "median": {
+            "numerator": 50,
+            "denominator": 1
+          },
+          "range_checked": true
+        }
+      },
+      "forbidden": [
+        "question_to_five_dimension_inference",
+        "cross_item_scale_sum",
+        "causal_claim",
+        "invented_rubric"
+      ],
+      "targets": [
+        "3550a347b769ce1bfd5f6b4e34a059c1b0d6cff3b474e80fe25e7134ad80393a"
+      ],
+      "expected_queries": [
+        {
+          "tool": "query_dimension_relation",
+          "arguments": {
+            "left": "Q01",
+            "right": "Q02"
+          },
+          "values": {
+            "left": "Q01",
+            "right": "Q02",
+            "rho": {
+              "decimal": "-1"
+            },
+            "state": "computable",
+            "paired_count": 14,
+            "excluded_count": 6,
+            "denominator": 20
+          },
+          "qualified": true,
+          "source_scopes": {
+            "left.paired": {
+              "item": "Q01",
+              "count": 14,
+              "index_digest": "8623fe6bab1bcc3f00fdc2e73799ad32f8e2c831a69712922e7288d05e74219b"
+            },
+            "right.paired": {
+              "item": "Q02",
+              "count": 14,
+              "index_digest": "8623fe6bab1bcc3f00fdc2e73799ad32f8e2c831a69712922e7288d05e74219b"
+            }
+          }
+        },
+        {
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          },
+          "values": {
+            "outcome": "Q02",
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "target_count": 10,
+            "remainder_count": 5,
+            "unevaluable_count": 5,
+            "denominator": 20,
+            "eligible_denominator": 15,
+            "share_total": {
+              "numerator": 1,
+              "denominator": 2
+            },
+            "share_eligible": {
+              "numerator": 2,
+              "denominator": 3
+            },
+            "target_valid": 10,
+            "remainder_valid": 4,
+            "target_mean": {
+              "numerator": 80,
+              "denominator": 1
+            },
+            "remainder_mean": {
+              "numerator": 20,
+              "denominator": 1
+            },
+            "difference": {
+              "numerator": 60,
+              "denominator": 1
+            },
+            "outcome_unit": "points"
+          },
+          "qualified": false,
+          "source_scopes": {
+            "target.valid": {
+              "item": "Q02",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.valid": {
+              "item": "Q02",
+              "count": 4,
+              "index_digest": "0d4fec83aaead7219c1c60bdb94a0069903818f9995b7cb23e97699712a154bf"
+            },
+            "unevaluable.rows": {
+              "item": "Q01",
+              "count": 5,
+              "index_digest": "7f2c5f390b0c7e30e5a644380decea0554bbb62cfc03eff193d13a8c1a117708"
+            },
+            "target.condition.Q01": {
+              "item": "Q01",
+              "count": 10,
+              "index_digest": "8a04a7f0ef0645599fcf0a0518057466832d620fd673cd727fd004e62d19c109"
+            },
+            "remainder.condition.Q01": {
+              "item": "Q01",
+              "count": 5,
+              "index_digest": "c16a831fc154000abd5e58e6fde6fb693e7549e0b7c3edef9b92dd64749cfa96"
+            }
+          }
+        }
+      ],
+      "allowed_rejections": [
+        "unknown_scale",
+        "insufficient_sample",
+        "no_authorized_score_evidence",
+        "cumulative_disclosure_limit"
+      ]
+    },
+    {
+      "recipe": "empty",
+      "input_fingerprint": "6d33556a2391ef6ff215484dadedd20b04439449cadfbbffe967ae3ecc21f1ad",
+      "participant_count": 0,
+      "items": [
+        "Q01",
+        "Q02",
+        "Q03",
+        "Q04",
+        "Q05",
+        "Q06",
+        "Q07",
+        "Q08",
+        "Q09",
+        "Q10",
+        "Q11",
+        "Q12",
+        "Q13"
+      ],
+      "statistics": {
+        "Q01": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q02": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q03": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q04": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q05": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q06": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q07": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q08": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q09": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q10": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q11": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q12": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        },
+        "Q13": {
+          "denominator": 0,
+          "valid_count": 0,
+          "excluded_count": 0,
+          "states": {},
+          "mean": null,
+          "median": null,
+          "range_checked": true
+        }
+      },
+      "forbidden": [
+        "question_to_five_dimension_inference",
+        "cross_item_scale_sum",
+        "causal_claim",
+        "invented_rubric"
+      ],
+      "targets": [],
+      "expected_queries": [],
+      "allowed_rejections": [
+        "unknown_scale",
+        "insufficient_sample",
+        "no_authorized_score_evidence",
+        "cumulative_disclosure_limit"
+      ]
+    }
+  ]
+}
