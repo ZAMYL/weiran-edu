@@ -228,104 +228,116 @@ class QwenClient:
             raise InsightError("qwen_request_limit")
         self._request_count += 1
         maximum = self.settings.plan_tokens if phase == "plan" else self.settings.compose_tokens
-        body = encoded(
-            {
-                "model": self.settings.model,
-                "enable_thinking": False,
-                "preserve_thinking": False,
-                "stream": False,
-                "max_tokens": maximum,
-                **payload,
-            }
-        )
-        if len(body) > 64000:
-            raise InsightError("prompt_size_limit")
-        started = perf_counter()
-        status = "qwen_transport_error"
-        http_status = None
-        usage = {}
-        try:
-            async with asyncio.timeout(self.settings.timeout_seconds):
-                async with self._http.stream(
-                    "POST",
-                    self.settings.base_url.rstrip("/") + "/chat/completions",
-                    headers={
-                        "Authorization": "Bearer " + self.settings.api_key.get_secret_value(),
-                        "Content-Type": "application/json",
-                    },
-                    content=body,
-                ) as response:
-                    http_status = response.status_code
-                    if http_status != 200:
-                        code = {
-                            400: "qwen_bad_request",
-                            401: "qwen_authentication_failed",
-                            403: "qwen_permission_denied",
-                            404: "qwen_model_or_endpoint_unavailable",
-                            429: "qwen_rate_limited",
-                        }.get(http_status, "qwen_service_error")
-                        if 300 <= http_status < 400:
-                            code = "qwen_redirect_denied"
-                        raise InsightError(code)
-                    raw = bytearray()
-                    async for chunk in response.aiter_bytes(chunk_size=4096):
-                        raw.extend(chunk)
-                        if len(raw) > self.settings.max_response_bytes:
-                            raise InsightError("qwen_response_limit")
-                    result = json.loads(raw, object_pairs_hook=_unique_pairs)
-                    if not isinstance(result, dict):
-                        raise InsightError("qwen_invalid_response")
-                    usage = result.get("usage") or {}
-                    if not isinstance(usage, dict):
-                        usage = {}
-                    choices = result["choices"]
-                    if not isinstance(choices, list) or len(choices) != 1:
-                        raise InsightError("qwen_invalid_response")
-                    choice = choices[0]
-                    if choice["finish_reason"] == "length":
-                        raise InsightError("qwen_output_truncated")
-                    if choice["finish_reason"] not in {"stop", "tool_calls"}:
-                        raise InsightError("qwen_invalid_response")
-                    message = choice["message"]
-                    if (
-                        not isinstance(message, dict)
-                        or message.get("role") != "assistant"
-                        or message.get("refusal")
-                    ):
-                        raise InsightError("qwen_invalid_response")
-                    status = "response_received"
-                    return message
-        except asyncio.CancelledError:
-            status = "cancelled"
-            raise
-        except (TimeoutError, httpx.TimeoutException):
-            status = "model_timeout"
-            raise InsightError(status) from None
-        except InsightError as exc:
-            status = str(exc)
-            raise
-        except (json.JSONDecodeError, ValueError, KeyError, TypeError, RecursionError):
-            status = "qwen_invalid_response"
-            raise InsightError(status) from None
-        except httpx.HTTPError:
-            raise InsightError(status) from None
-        finally:
-            details = usage.get("prompt_tokens_details")
-            cached = details.get("cached_tokens") if isinstance(details, dict) else None
-            self.metrics.append(
-                CallMetric(
-                    phase,
-                    self.settings.model,
-                    int((perf_counter() - started) * 1000),
-                    status,
-                    http_status,
-                    _tokens(usage.get("prompt_tokens")),
-                    _tokens(usage.get("completion_tokens")),
-                    _tokens(usage.get("total_tokens")),
-                    _tokens(cached),
-                    maximum,
-                )
+        return await post_chat(self.settings, self._http, self.metrics, phase, payload, maximum)
+
+
+async def post_chat(
+    settings: QwenSettings,
+    http: httpx.AsyncClient,
+    metrics: list[CallMetric],
+    phase: str,
+    payload: dict,
+    maximum: int,
+) -> dict:
+    """Shared bounded HTTP transport; the caller owns its non-resettable run budget."""
+    body = encoded(
+        {
+            "model": settings.model,
+            "enable_thinking": False,
+            "preserve_thinking": False,
+            "stream": False,
+            "max_tokens": maximum,
+            **payload,
+        }
+    )
+    if len(body) > 64000:
+        raise InsightError("prompt_size_limit")
+    started = perf_counter()
+    status = "qwen_transport_error"
+    http_status = None
+    usage = {}
+    try:
+        async with asyncio.timeout(settings.timeout_seconds):
+            async with http.stream(
+                "POST",
+                settings.base_url.rstrip("/") + "/chat/completions",
+                headers={
+                    "Authorization": "Bearer " + settings.api_key.get_secret_value(),
+                    "Content-Type": "application/json",
+                },
+                content=body,
+            ) as response:
+                http_status = response.status_code
+                if http_status != 200:
+                    code = {
+                        400: "qwen_bad_request",
+                        401: "qwen_authentication_failed",
+                        403: "qwen_permission_denied",
+                        404: "qwen_model_or_endpoint_unavailable",
+                        429: "qwen_rate_limited",
+                    }.get(http_status, "qwen_service_error")
+                    if 300 <= http_status < 400:
+                        code = "qwen_redirect_denied"
+                    raise InsightError(code)
+                raw = bytearray()
+                async for chunk in response.aiter_bytes(chunk_size=4096):
+                    raw.extend(chunk)
+                    if len(raw) > settings.max_response_bytes:
+                        raise InsightError("qwen_response_limit")
+                result = json.loads(raw, object_pairs_hook=_unique_pairs)
+                if not isinstance(result, dict):
+                    raise InsightError("qwen_invalid_response")
+                usage = result.get("usage") or {}
+                if not isinstance(usage, dict):
+                    usage = {}
+                choices = result["choices"]
+                if not isinstance(choices, list) or len(choices) != 1:
+                    raise InsightError("qwen_invalid_response")
+                choice = choices[0]
+                if choice["finish_reason"] == "length":
+                    raise InsightError("qwen_output_truncated")
+                if choice["finish_reason"] not in {"stop", "tool_calls"}:
+                    raise InsightError("qwen_invalid_response")
+                message = choice["message"]
+                if (
+                    not isinstance(message, dict)
+                    or message.get("role") != "assistant"
+                    or message.get("refusal")
+                ):
+                    raise InsightError("qwen_invalid_response")
+                status = "response_received"
+                return message
+    except asyncio.CancelledError:
+        status = "cancelled"
+        raise
+    except (TimeoutError, httpx.TimeoutException):
+        status = "model_timeout"
+        raise InsightError(status) from None
+    except InsightError as exc:
+        status = str(exc)
+        raise
+    except (json.JSONDecodeError, ValueError, KeyError, TypeError, RecursionError):
+        status = "qwen_invalid_response"
+        raise InsightError(status) from None
+    except httpx.HTTPError:
+        raise InsightError(status) from None
+    finally:
+        details = usage.get("prompt_tokens_details")
+        cached = details.get("cached_tokens") if isinstance(details, dict) else None
+        metrics.append(
+            CallMetric(
+                phase,
+                settings.model,
+                int((perf_counter() - started) * 1000),
+                status,
+                http_status,
+                _tokens(usage.get("prompt_tokens")),
+                _tokens(usage.get("completion_tokens")),
+                _tokens(usage.get("total_tokens")),
+                _tokens(cached),
+                maximum,
             )
+        )
 
 
 def _unique_pairs(pairs: list[tuple[str, object]]) -> dict:
