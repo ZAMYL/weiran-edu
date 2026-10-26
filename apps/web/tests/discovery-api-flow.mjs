@@ -404,7 +404,7 @@ try {
   const downloadReady = page.waitForEvent('download');
   await exportDialog.getByRole('button', { name: '下载 Markdown', exact: true }).click();
   const markdown = await downloadReady;
-  assert.match(markdown.suggestedFilename(), /-v2\\.md$/);
+  assert.match(markdown.suggestedFilename(), /-v2\.md$/);
   const content = await readFile(await markdown.path(), 'utf8');
   assert.match(content, /^#/);
   assert.ok(!content.includes('合成私密姓名') && !content.includes('未审核合成私密评语'));
