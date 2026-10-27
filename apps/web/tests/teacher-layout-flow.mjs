@@ -66,27 +66,69 @@ export async function teacherLayoutFlow({
   await page.screenshot({ path: path.join(artifacts, 'after-diagnosis-full.png'), fullPage: true });
   const layout = await page.evaluate(() => {
     const discover = document.querySelector('.discoveries-panel').getBoundingClientRect();
+    const radar = document.querySelector('.radar-panel').getBoundingClientRect();
     const charts = document.querySelector('.insights-grid').getBoundingClientRect();
     const all = document.querySelector('.all-discoveries-panel').getBoundingClientRect();
-    const right = document.querySelector('.insights-right > .panel');
+    const right = document.querySelector('.discoveries-panel');
     return {
-      discoveryBottom: discover.bottom,
-      chartTop: charts.top,
+      discoveryTop: discover.top,
+      radarTop: radar.top,
+      discoveryLeft: discover.left,
+      radarRight: radar.right,
       allTop: all.top,
       chartsBottom: charts.bottom,
-      discoveryWidth: discover.width,
-      chartWidth: charts.width,
       rightScroll:
         ['scroll', 'auto'].includes(getComputedStyle(right).overflowY) &&
         right.scrollHeight > right.clientHeight + 1,
     };
   });
   assert.ok(
-    layout.chartTop >= layout.discoveryBottom &&
-      layout.allTop >= layout.chartsBottom &&
-      Math.abs(layout.discoveryWidth - layout.chartWidth) <= 1,
+    Math.abs(layout.discoveryTop - layout.radarTop) <= 1 &&
+      layout.discoveryLeft > layout.radarRight &&
+      layout.allTop >= layout.chartsBottom,
   );
   assert.equal(layout.rightScroll, false);
+  const matchedCards = async () => {
+    const boxes = await page.evaluate(() => {
+      const left = document.querySelector('.radar-panel').getBoundingClientRect();
+      const right = document
+        .querySelector('.insights-right > div:not([hidden]) > .panel')
+        .getBoundingClientRect();
+      return {
+        leftWidth: left.width,
+        rightWidth: right.width,
+        leftHeight: left.height,
+        rightHeight: right.height,
+      };
+    });
+    assert.ok(
+      Math.abs(boxes.leftWidth - boxes.rightWidth) <= 1 &&
+        Math.abs(boxes.leftHeight - boxes.rightHeight) <= 1,
+      JSON.stringify(boxes),
+    );
+  };
+  await matchedCards();
+  assert.equal(await page.locator('.topbar .fullscreen-button').count(), 1);
+  assert.equal(await page.locator('.assessment-toolbar .fullscreen-button').count(), 0);
+  const overview = await page.locator('.assessment-overview').boundingBox();
+  const heading = await page.locator('.page-heading').boundingBox();
+  assert.ok(
+    overview.height < 90 &&
+      overview.x > heading.x + heading.width / 2 &&
+      overview.y < heading.y + heading.height,
+  );
+
+  const pane = (value) => page.getByRole('radio', { name: value, exact: true }).locator('..');
+  assert.equal(await page.getByRole('radio', { name: '重点关注', exact: true }).isChecked(), true);
+  await focus().getByRole('checkbox').first().check();
+  await pane('评分统计').click();
+  await page.getByRole('combobox', { name: '查看洞察方面', exact: true }).waitFor();
+  assert.equal(await focus().isVisible(), false);
+  await matchedCards();
+  await capture(page, artifacts, 'statistics');
+  await pane('重点关注').click();
+  assert.equal(await focus().getByRole('checkbox').first().isChecked(), true);
+  await focus().getByRole('checkbox').first().uncheck();
   await focus().getByRole('button', { name: '查看发现与依据', exact: true }).first().click();
   await page.getByTestId('discovery-chart').locator('svg').waitFor();
   await page.getByRole('button', { name: '配对评分学生', exact: true }).click();

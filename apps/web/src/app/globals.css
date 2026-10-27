@@ -53,13 +53,109 @@
   margin-bottom: 16px;
 }
 .live-insights .insights-grid {
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
 }
 .live-insights .radar-panel {
-  height: auto;
+  height: 100%;
 }
-.live-insights .insights-right > .panel {
+.live-insights .insights-right {
+  display: grid;
+  gap: 0;
+}
+.live-insights .insights-right > div:not([hidden]),
+.live-insights .insights-right > div > .panel {
+  height: 100%;
+}
+.live-insights .radar-panel .chart-caption {
+  margin-top: auto;
+}
+.workspace-summary {
+  margin-left: auto;
+  flex: none;
+}
+.workspace-summary:empty {
+  display: none;
+}
+.workspace-summary .assessment-overview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #e5edfb;
+  border-radius: 12px;
+  background: #ffffffc9;
+}
+.workspace-summary .live-stat {
+  min-width: 76px;
+  padding: 0;
+}
+.workspace-summary .live-stat + .live-stat {
+  padding-left: 16px;
+  border-left: 1px solid #e5edfb;
+}
+.workspace-summary dt {
+  color: #71809f;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.workspace-summary dd {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.workspace-summary strong {
+  font-size: 22px;
+  line-height: 1.4;
+}
+.workspace-summary dd span {
+  font-size: 12px;
+  color: #71809f;
+}
+@media (max-width: 960px) {
+  .live-insights .insights-grid {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .live-insights .radar-panel,
+  .live-insights .insights-right > div > .panel {
+    height: auto;
+  }
+}
+@media (max-width: 640px) {
+  .workspace-summary {
+    width: 100%;
+    margin: 0;
+  }
+  .workspace-summary .assessment-overview {
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .workspace-summary .live-stat {
+    min-width: 0;
+  }
+  .workspace-summary .live-stat + .live-stat {
+    padding-left: 12px;
+  }
+  .topbar .topbar-actions {
+    gap: 6px;
+  }
+  .topbar .account-status {
+    display: none;
+  }
+}
+.live-insights .insights-right .panel {
   overflow: visible;
+}
+.live-insights .insights-right .discovery-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.live-insights .insights-right .discovery-card {
+  padding: 16px;
 }
 .live-insights .live-metrics .ant-btn {
   min-height: 76px;

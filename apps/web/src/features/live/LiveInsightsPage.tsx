@@ -1,5 +1,7 @@
 'use client';
 import { useCallback, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
 import { useRouter } from 'next/navigation';
 import { Button, Checkbox, Empty, Pagination, Segmented, Select, Tag } from 'antd';
 import { useDataMode } from '../../app/data-mode';
@@ -35,6 +37,7 @@ export default function LiveInsightsPage() {
 function Insights({ batch }: { batch: ApiBatch }) {
   const { client, conditions, reportDraft, setReportDraft } = useDataMode();
   const router = useRouter();
+  const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
   const discovery = reportDraft?.key === contextKey ? reportDraft.discovery : undefined;
   const onSelection = useCallback(
@@ -50,6 +53,18 @@ function Insights({ batch }: { batch: ApiBatch }) {
         names,
       }),
     [contextKey, batch.snapshot_id, conditions, setReportDraft],
+  );
+  const [rightView, setRightView] = useState<'focus' | 'statistics'>('focus');
+  const analysisSwitch = (
+    <Segmented
+      aria-label="右侧分析内容"
+      value={rightView}
+      options={[
+        { label: '重点关注', value: 'focus' },
+        { label: '评分统计', value: 'statistics' },
+      ]}
+      onChange={(value) => setRightView(value === 'statistics' ? 'statistics' : 'focus')}
+    />
   );
   const [mode, setMode] = useState<'radar' | 'distribution'>('radar');
   const [includeDimensions, setIncludeDimensions] = useState(true);
@@ -99,120 +114,145 @@ function Insights({ batch }: { batch: ApiBatch }) {
     cards.find((candidate) => (candidate.dimension_code ?? 'group') === aspect) ?? cards[0];
   return (
     <div className="page-stack live-insights">
-      <h2 className="section-heading">当前测评概况</h2>
-      <div className="stat-grid">
-        {[
-          ['参评人数', stats.data?.statistics.scope.record_count ?? null, '人'],
-          ['评分记录', batch.evaluation_count, '条'],
-          ['能力维度', stats.data?.statistics.dimensions.length ?? null, '个'],
-        ].map(([label, value, unit]) => (
-          <Panel className="live-stat" key={label}>
-            <p className="muted">{label}</p>
-            <strong>{value ?? '—'}</strong>
-            <span>{unit}</span>
-          </Panel>
-        ))}
-      </div>
-      <LiveDiscoveries key={contextKey} batch={batch} onSelection={onSelection}>
-        <h2 className="section-heading">评分画像与图表</h2>
-        <div className="insights-grid">
-          <Panel
-            title="评分画像"
-            subtitle="测评平均分 · 基于各维度有效评分"
-            action={
-              <Segmented
-                options={[
-                  { label: '能力画像', value: 'radar' },
-                  { label: '评分分布', value: 'distribution' },
-                ]}
-                value={mode}
-                onChange={(value) => setMode(value as 'radar' | 'distribution')}
-              />
-            }
-            className="radar-panel"
-          >
-            {stats.loading && <LoadingPanel />}
-            {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
-            {stats.data && (
-              <>
-                <ServerAbilityChart
-                  statistics={stats.data.statistics}
-                  rubric={stats.data.rubric}
-                  mode={mode}
-                />
-                <div className="chart-caption">按本次测评的有效评分计算，保留原始小数精度。</div>
-                <Button type="link" onClick={() => router.push('/explorer')}>
-                  进入画像探索 →
-                </Button>
-              </>
-            )}
-          </Panel>
-          <div className="insights-right">
-            <Panel
-              title="评分统计依据"
-              subtitle="维度评分统计，供教师查看计算依据。"
-              action={<Button onClick={insights.retry}>刷新洞察</Button>}
-            >
-              <div className="live-insight-controls">
-                <label htmlFor="insight-aspect">查看方面</label>
-                <Select
-                  id="insight-aspect"
-                  aria-label="查看洞察方面"
-                  value={card ? (card.dimension_code ?? 'group') : undefined}
-                  placeholder="暂无可查看的方面"
-                  disabled={!cards.length || insights.loading}
-                  options={cards.map((candidate) => ({
-                    value: candidate.dimension_code ?? 'group',
-                    label: candidate.dimension_code
-                      ? dimensionName(candidate.dimension_code)
-                      : '当前筛选群体',
-                  }))}
-                  onChange={(value) => {
-                    setAspect(value);
-                    setSelection(null);
-                  }}
-                />
-                <Checkbox
-                  checked={includeDimensions}
-                  onChange={(e) => {
-                    setIncludeDimensions(e.target.checked);
-                    setOffset(0);
-                  }}
-                >
-                  包含各维度洞察
-                </Checkbox>
-                <p className="muted small">当前查询：{conditionText(conditions)}</p>
+      {summaryHost &&
+        createPortal(
+          <dl className="stat-grid assessment-overview" aria-label="当前测评概况">
+            {[
+              ['参评人数', stats.data?.statistics.scope.record_count ?? null, '人'],
+              ['评分记录', batch.evaluation_count, '条'],
+              ['能力维度', stats.data?.statistics.dimensions.length ?? null, '个'],
+            ].map(([label, value, unit]) => (
+              <div className="live-stat" key={label}>
+                <dt>{label}</dt>
+                <dd>
+                  <strong>{value ?? '—'}</strong>
+                  <span>{unit}</span>
+                </dd>
               </div>
-              {insights.loading && <LoadingPanel />}
-              {insights.error && <RequestError error={insights.error} retry={insights.retry} />}
-              {insights.data && (
-                <>
-                  {card ? (
-                    <CandidateView
-                      key={card.candidate_id}
-                      card={card}
-                      onMetric={(key) => openMetric(card, key)}
-                    />
-                  ) : (
-                    <Empty description="当前查询没有可展示的评分洞察候选。" />
-                  )}
-                  <Pagination
-                    current={Math.floor(offset / 10) + 1}
-                    total={insights.data.total_count}
-                    pageSize={10}
-                    hideOnSinglePage
-                    showSizeChanger={false}
-                    onChange={(page) => setOffset((page - 1) * 10)}
-                    showTotal={(total) => `共 ${total} 张候选卡`}
+            ))}
+          </dl>,
+          summaryHost,
+        )}
+      <LiveDiscoveries
+        key={contextKey}
+        batch={batch}
+        onSelection={onSelection}
+        focusAction={analysisSwitch}
+      >
+        {(focusPanel) => (
+          <>
+            <h2 className="section-heading">评分画像与学情发现</h2>
+            <div className="insights-grid">
+              <Panel
+                title="评分画像"
+                subtitle="测评平均分 · 基于各维度有效评分"
+                action={
+                  <Segmented
+                    options={[
+                      { label: '能力画像', value: 'radar' },
+                      { label: '评分分布', value: 'distribution' },
+                    ]}
+                    value={mode}
+                    onChange={(value) => setMode(value as 'radar' | 'distribution')}
                   />
-                </>
-              )}
-            </Panel>
-            <p className="muted small insight-comment-note">
-              评语分析暂不可用。待审核的非空评语不等于空评语。
-            </p>
-          </div>
-        </div>
+                }
+                className="radar-panel"
+              >
+                {stats.loading && <LoadingPanel />}
+                {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
+                {stats.data && (
+                  <>
+                    <ServerAbilityChart
+                      statistics={stats.data.statistics}
+                      rubric={stats.data.rubric}
+                      mode={mode}
+                    />
+                    <div className="chart-caption">
+                      按本次测评的有效评分计算，保留原始小数精度。
+                    </div>
+                    <Button type="link" onClick={() => router.push('/explorer')}>
+                      进入画像探索 →
+                    </Button>
+                  </>
+                )}
+              </Panel>
+              <div className="insights-right">
+                <div hidden={rightView !== 'focus'}>{focusPanel}</div>
+                <div hidden={rightView !== 'statistics'}>
+                  <Panel
+                    title="学情分析"
+                    className="insights-statistics-panel"
+                    subtitle="维度评分统计，供教师查看计算依据。"
+                    action={analysisSwitch}
+                  >
+                    <Button size="small" onClick={insights.retry}>
+                      刷新洞察
+                    </Button>
+                    <div className="live-insight-controls">
+                      <label htmlFor="insight-aspect">查看方面</label>
+                      <Select
+                        id="insight-aspect"
+                        aria-label="查看洞察方面"
+                        value={card ? (card.dimension_code ?? 'group') : undefined}
+                        placeholder="暂无可查看的方面"
+                        disabled={!cards.length || insights.loading}
+                        options={cards.map((candidate) => ({
+                          value: candidate.dimension_code ?? 'group',
+                          label: candidate.dimension_code
+                            ? dimensionName(candidate.dimension_code)
+                            : '当前筛选群体',
+                        }))}
+                        onChange={(value) => {
+                          setAspect(value);
+                          setSelection(null);
+                        }}
+                      />
+                      <Checkbox
+                        checked={includeDimensions}
+                        onChange={(e) => {
+                          setIncludeDimensions(e.target.checked);
+                          setOffset(0);
+                        }}
+                      >
+                        包含各维度洞察
+                      </Checkbox>
+                      <p className="muted small">当前查询：{conditionText(conditions)}</p>
+                    </div>
+                    {insights.loading && <LoadingPanel />}
+                    {insights.error && (
+                      <RequestError error={insights.error} retry={insights.retry} />
+                    )}
+                    {insights.data && (
+                      <>
+                        {card ? (
+                          <CandidateView
+                            key={card.candidate_id}
+                            card={card}
+                            onMetric={(key) => openMetric(card, key)}
+                          />
+                        ) : (
+                          <Empty description="当前查询没有可展示的评分洞察候选。" />
+                        )}
+                        <Pagination
+                          current={Math.floor(offset / 10) + 1}
+                          total={insights.data.total_count}
+                          pageSize={10}
+                          hideOnSinglePage
+                          showSizeChanger={false}
+                          onChange={(page) => setOffset((page - 1) * 10)}
+                          showTotal={(total) => `共 ${total} 张候选卡`}
+                        />
+                      </>
+                    )}
+                    <p className="muted small insight-comment-note">
+                      评语分析暂不可用。待审核的非空评语不等于空评语。
+                    </p>
+                  </Panel>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </LiveDiscoveries>
       <AnalysisActions batch={batch} spec={spec} discovery={discovery} />
       <MetricEvidenceDrawer

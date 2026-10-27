@@ -26,6 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const batch = useBatch();
   const { batches, setBatch } = useWorkspace();
   const [fullscreen, setFullscreen] = useState(false);
+  const [summaryHost, setSummaryHost] = useState<HTMLElement | null>(null);
   const [help, setHelp] = useState(false);
   const { message } = App.useApp();
   const page = pages.find((p) => pathname.startsWith(p.to)) ?? pages[0]!;
@@ -127,6 +128,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   结束会话
                 </Button>
               )}
+              {fullButton}
               <Button type="text" icon={<QuestionCircleOutlined />} onClick={() => setHelp(true)}>
                 帮助
               </Button>
@@ -140,16 +142,17 @@ export function AppShell({ children }: { children: ReactNode }) {
             内部 Demo · 当前全部数据均为合成样例，不用于正式分析。
           </p>
         )}
-        {!fullscreen && (
-          <div className="page-heading">
+        <div className="page-heading">
+          {!fullscreen && (
             <div className="page-title-group">
               <h1>{page.label}</h1>
               <div>
                 <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</p>
               </div>
             </div>
-          </div>
-        )}
+          )}
+          <div className="workspace-summary" ref={setSummaryHost} />
+        </div>
         {!fullscreen && (
           <section className="assessment-toolbar" aria-label="当前测评工作台">
             {batchSelect}
@@ -181,10 +184,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 返回当前诊断
               </Button>
             )}
-            {fullButton}
           </section>
         )}
-        <WorkspaceLayoutContext.Provider value={{ fullscreen }}>
+        <WorkspaceLayoutContext.Provider value={{ fullscreen, summaryHost }}>
           {children}
         </WorkspaceLayoutContext.Provider>
       </main>

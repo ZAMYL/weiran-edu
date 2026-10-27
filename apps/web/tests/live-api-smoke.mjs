@@ -171,10 +171,15 @@ try {
       false,
       'No document overflow',
     );
-  const navigation = (name) =>
-    name === '测评数据'
-      ? page.getByRole('button', { name: '上传新测评', exact: true }).click()
-      : page.getByRole('link', { name, exact: true }).click();
+  const navigation = async (name) => {
+    if (name === '测评数据')
+      await page.getByRole('button', { name: '上传新测评', exact: true }).click();
+    else {
+      await page.getByRole('link', { name, exact: true }).click();
+      if (name === '学情诊断')
+        await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
+    }
+  };
   async function login(retryTestSession = false) {
     if (testMode) {
       const retry = page.getByRole('button', { name: '重新连接', exact: true });
@@ -433,7 +438,7 @@ try {
   await selectAspect('算法与数据结构');
   assert.equal(
     await page
-      .locator('.insights-right > .panel')
+      .locator('.insights-statistics-panel')
       .evaluate((element) => getComputedStyle(element).overflowY),
     'visible',
   );
@@ -565,6 +570,7 @@ try {
   );
   checkpoint = 'metric query replay';
   await page.getByRole('button', { name: '查看这组评分洞察' }).click();
+  await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
   await page.locator('.insights-right .live-candidate').first().waitFor();
   const batch = await request(`/batches/${normalCommit.batch_id}`);
   const spec = {
@@ -714,6 +720,7 @@ try {
   await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
   const largeRow = page.getByRole('row').filter({ hasText: '合成401评分测评' });
   await largeRow.getByRole('button', { name: '查看学情' }).click();
+  await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
   await page.getByRole('img', { name: /算法与数据结构均值3(?:，|$)/ }).waitFor();
   await page
     .locator('.insights-right .live-candidate')

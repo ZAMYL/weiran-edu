@@ -75,10 +75,12 @@ export default function LiveDiscoveries({
   batch,
   onSelection,
   children,
+  focusAction,
 }: {
   batch: ApiBatch;
   onSelection?: (selection: DiscoverySelection, names?: { id: string; title: string }[]) => void;
-  children?: ReactNode;
+  children: (focus: ReactNode) => ReactNode;
+  focusAction?: ReactNode;
 }) {
   const { client, conditions, reportDraft, exploreDiscovery } = useDataMode();
   const router = useRouter();
@@ -253,39 +255,46 @@ export default function LiveDiscoveries({
       {details.error && <RequestError error={details.error} retry={details.retry} />}
     </>
   );
+  const focusPanel = (
+    <Panel
+      className="discoveries-panel"
+      title="学情分析"
+      subtitle="查看值得核查的发现及其评分依据。"
+      action={focusAction ?? <Button onClick={resource.retry}>刷新发现</Button>}
+    >
+      <p className="muted small">当前页按类型呈现最多三项代表性发现，不代表全量价值排序。</p>
+      {focusAction && (
+        <Button size="small" onClick={resource.retry}>
+          刷新发现
+        </Button>
+      )}
+      {status}
+      {resource.data && (
+        <>
+          <p data-testid="discovery-scope">
+            当前范围 {resource.data.scope.scope_record_count} 人 · 本次测评{' '}
+            {resource.data.scope.batch_record_count} 人
+          </p>
+          {focus.length ? (
+            renderCards(focus)
+          ) : (
+            <Empty description="当前范围没有符合条件的发现，可调整筛选后重试。" />
+          )}
+        </>
+      )}
+      {onSelection && (
+        <p className="muted small">
+          已加入待保存 {checked.length} 项（最多三项）。
+          <Button type="link" onClick={() => choose([])}>
+            仅保存本次范围概况
+          </Button>
+        </p>
+      )}
+    </Panel>
+  );
   return (
     <>
-      <Panel
-        className="discoveries-panel"
-        title="最值得核查的学情发现"
-        subtitle="在当前返回结果中按不同类型选取最多三项，供教师优先核查。"
-        action={<Button onClick={resource.retry}>刷新发现</Button>}
-      >
-        <p className="muted small">这是当前页的代表性发现，不代表已对全部结果完成价值排序。</p>
-        {status}
-        {resource.data && (
-          <>
-            <p data-testid="discovery-scope">
-              当前范围 {resource.data.scope.scope_record_count} 人 · 本次测评{' '}
-              {resource.data.scope.batch_record_count} 人
-            </p>
-            {focus.length ? (
-              renderCards(focus)
-            ) : (
-              <Empty description="当前范围没有符合条件的发现，可调整筛选后重试。" />
-            )}
-          </>
-        )}
-        {onSelection && (
-          <p className="muted small">
-            已加入待保存 {checked.length} 项（最多三项）。
-            <Button type="link" onClick={() => choose([])}>
-              仅保存本次范围概况
-            </Button>
-          </p>
-        )}
-      </Panel>
-      {children}
+      {children(focusPanel)}
       <details className="panel all-discoveries-panel">
         <summary>全部发现和统计详情</summary>
         <div className="discovery-toolbar">
