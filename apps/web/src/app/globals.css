@@ -80,24 +80,24 @@
 .workspace-summary .assessment-overview {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
   margin: 0;
-  padding: 10px 16px;
+  padding: 20px 24px;
   border: 1px solid #e5edfb;
   border-radius: 12px;
   background: #ffffffc9;
 }
 .workspace-summary .live-stat {
-  min-width: 76px;
+  min-width: 96px;
   padding: 0;
 }
 .workspace-summary .live-stat + .live-stat {
-  padding-left: 16px;
+  padding-left: 24px;
   border-left: 1px solid #e5edfb;
 }
 .workspace-summary dt {
   color: #71809f;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 }
 .workspace-summary dd {
@@ -106,12 +106,12 @@
   align-items: baseline;
   gap: 6px;
 }
-.workspace-summary strong {
-  font-size: 22px;
-  line-height: 1.4;
+.workspace-summary .live-stat strong {
+  font-size: 32px;
+  line-height: 1.3;
 }
 .workspace-summary dd span {
-  font-size: 12px;
+  font-size: 14px;
   color: #71809f;
 }
 @media (max-width: 960px) {
@@ -139,6 +139,13 @@
   }
   .workspace-summary .live-stat + .live-stat {
     padding-left: 12px;
+  }
+  .workspace-summary .live-stat strong {
+    font-size: 26px;
+  }
+  .workspace-summary dt,
+  .workspace-summary dd span {
+    font-size: 12px;
   }
   .topbar .topbar-actions {
     gap: 6px;

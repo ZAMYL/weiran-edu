@@ -113,7 +113,7 @@ export async function teacherLayoutFlow({
   const overview = await page.locator('.assessment-overview').boundingBox();
   const heading = await page.locator('.page-heading').boundingBox();
   assert.ok(
-    overview.height < 90 &&
+    overview.height < 140 &&
       overview.x > heading.x + heading.width / 2 &&
       overview.y < heading.y + heading.height,
   );
