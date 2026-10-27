@@ -26,9 +26,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.add_exception_handler(Exception, handle_internal_error)
     application.include_router(health_router)
     if application.state.settings.database_path is not None:
+        from app.edu.discovery_disconnect import DiscoveryDisconnectMiddleware
         from app.edu.service import EduService
         from app.importing.edu.worker import parse_isolated
         from app.routers.edu import router as edu_router
+        from app.routers.edu_discoveries import router as edu_discoveries_router
         from app.routers.edu_reviews import router as edu_reviews_router
         from app.routers.edu_support import router as edu_support_router
         from app.storage.database import Database
@@ -38,9 +40,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             parser=parse_isolated,
         )
         application.include_router(edu_router)
+        application.include_router(edu_discoveries_router)
         application.include_router(edu_reviews_router)
         application.include_router(edu_support_router)
         application.middleware("http")(protect_edu_responses)
+        application.add_middleware(DiscoveryDisconnectMiddleware)
     return application
 
 
