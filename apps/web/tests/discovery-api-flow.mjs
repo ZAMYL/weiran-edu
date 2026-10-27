@@ -166,7 +166,11 @@ try {
     if (r.url().includes('/discoveries/')) responses.push(r);
   });
   const shot = (name) =>
-    page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage: true });
+    page.screenshot({
+      path: path.join(artifacts, `${name}.png`),
+      fullPage: page.viewportSize().width <= 480,
+      animations: 'disabled',
+    });
   const navigation = (name) => page.getByRole('link', { name, exact: true }).click();
   const panel = () =>
     page

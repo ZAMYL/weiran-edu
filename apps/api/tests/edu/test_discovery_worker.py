@@ -3,7 +3,6 @@
 import asyncio
 import json
 import multiprocessing
-import os
 import time
 
 import pytest
@@ -15,14 +14,11 @@ from app.edu import discovery_bridge, discovery_worker
 
 from .test_discovery_api import query
 from .test_insights_api import formal_batch as formal_batch
+from .worker_process_targets import crashed_child
 
 
 def sleeping_child(*args):
     time.sleep(30)
-
-
-def crashed_child(*args):
-    os._exit(7)
 
 
 def arguments():
