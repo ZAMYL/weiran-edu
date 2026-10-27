@@ -70,6 +70,20 @@ class ImportPatch(Model):
         return self
 
 
+class ScoreScale(Model):
+    minimum: int = 1
+    maximum: int = 5
+    step: float = 0.01
+
+
+class RecognizedImportItem(Model):
+    item_id: str
+    display_name: str
+    kind: Literal["competency"] = "competency"
+    scale: ScoreScale = ScoreScale()
+    score_row_count: int = Field(ge=0)
+
+
 class CommitRequest(Model):
     preview_version: Version
     acknowledge_warnings: bool = False
@@ -78,6 +92,7 @@ class CommitRequest(Model):
 class CommitResult(Model):
     import_id: str
     batch_id: str
+    snapshot_id: str
     result: Literal["created", "duplicate", "replayed"]
 
 
@@ -104,6 +119,7 @@ class ImportView(Model):
     import_info: ImportInfo = Field(alias="import")
     preview_available: bool
     summary: PreviewSummary
+    recognized_items: tuple[RecognizedImportItem, ...] | None
     student_samples: tuple[PreviewStudent, ...] | None
     student_page: Page | None
     rows: tuple[PreviewRow, ...] | None
@@ -196,12 +212,6 @@ class RubricCriterion(Model):
     criteria_status: Literal["withheld", "published"] = "withheld"
     criteria_review_version: int = 0
     source: RubricSource
-
-
-class ScoreScale(Model):
-    minimum: int = 1
-    maximum: int = 5
-    step: float = 0.01
 
 
 class Rubric(Model):

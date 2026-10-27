@@ -34,6 +34,7 @@ from .models import (
     ImportMetadata,
     ImportPatch,
     ImportView,
+    RecognizedImportItem,
 )
 
 
@@ -279,6 +280,7 @@ class EduService:
                     import_info=info,
                     summary=summary,
                     preview_available=False,
+                    recognized_items=None,
                     student_samples=None,
                     student_page=None,
                     rows=None,
@@ -288,11 +290,22 @@ class EduService:
                 )
             self._pending(row)
             stored = connection.execute(
-                "SELECT preview_json FROM import_payloads WHERE import_id=?", (import_id,)
+                "SELECT preview_json,quality_json FROM import_payloads WHERE import_id=?",
+                (import_id,),
             ).fetchone()
             if stored is None:
                 fail("DATA_INTEGRITY_ERROR", 503)
             payload = json.loads(stored["preview_json"])
+            quality = QualityReport.model_validate_json(stored["quality_json"])
+            recognized_items = tuple(
+                RecognizedImportItem(
+                    item_id=dimension.dimension_code,
+                    display_name=dimension.dimension_label,
+                    score_row_count=dimension.score_row_count,
+                )
+                for dimension in quality.dimensions
+                if dimension.score_row_count > 0
+            )
             rows = tuple(
                 PreviewRow.model_validate(r)
                 for r in payload["rows"][row_offset : row_offset + row_limit]
@@ -309,6 +322,7 @@ class EduService:
                 import_info=info,
                 summary=summary,
                 preview_available=True,
+                recognized_items=recognized_items,
                 rows=rows,
                 row_page=_page(row_offset, row_limit, len(rows), len(payload["rows"])),
                 student_samples=students,
@@ -359,9 +373,12 @@ class EduService:
     ) -> CommitResult | None:
         self._check_version(row, request.preview_version)
         if row["status"] == "committed":
-            accessible_batch(connection, principal, row["committed_batch_id"])
+            batch = accessible_batch(connection, principal, row["committed_batch_id"])
             return CommitResult(
-                import_id=row["import_id"], batch_id=row["committed_batch_id"], result="replayed"
+                import_id=row["import_id"],
+                batch_id=row["committed_batch_id"],
+                snapshot_id=batch["snapshot_id"],
+                result="replayed",
             )
         self._pending(row)
         require_scope(connection, principal, row["data_scope_id"], importing=True)
@@ -423,7 +440,13 @@ class EduService:
                 (batch_id, import_id),
             )
             connection.execute("DELETE FROM import_payloads WHERE import_id=?", (import_id,))
-            return CommitResult(import_id=import_id, batch_id=batch_id, result=result)
+            batch = accessible_batch(connection, principal, batch_id)
+            return CommitResult(
+                import_id=import_id,
+                batch_id=batch_id,
+                snapshot_id=batch["snapshot_id"],
+                result=result,
+            )
 
     def _persist_batch(
         self,
