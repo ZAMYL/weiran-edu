@@ -28,7 +28,6 @@ from app.edu.models import (
     CommitRequest,
     CommitResult,
     Evidence,
-    ImportMetadata,
     ImportPatch,
     ImportView,
     Model,
@@ -39,6 +38,7 @@ from app.edu.models import (
 from app.edu.query import group_query, group_schema, read_query, request_schema
 from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
+from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
 from app.schemas.common import ErrorResponse
@@ -72,6 +72,8 @@ type Backend = Annotated[EduService, Depends(service)]
 
 
 def _parse_failure(exc: ImportFileError) -> APIError:
+    if exc.code == "UNSUPPORTED_SHEETS":
+        return APIError(422, "IMPORT_FORMAT_UNSUPPORTED", "当前暂不支持此文件结构，未创建测评批次")
     printing_errors = {
         "INVALID_PRINTER_SETTINGS_PACKAGE": "打印设置的部件或引用不一致，原文件未被修改",
         "UNSUPPORTED_PRINTER_SETTINGS_FORMAT": "打印设置格式暂不在支持范围，原文件未被修改",
@@ -124,7 +126,7 @@ def scopes(actor: Actor, backend: Backend) -> Scopes:
         )
 
 
-async def _upload(request: Request) -> tuple[bytes, ImportMetadata]:
+async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
     # Authenticate before reading multipart. Bound actual streamed bytes, not just Content-Length.
     if request.headers.get("content-type", "").split(";", 1)[0].lower() != "multipart/form-data":
         raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用Excel文件上传表单")
@@ -165,10 +167,11 @@ async def _upload(request: Request) -> tuple[bytes, ImportMetadata]:
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "application/octet-stream",
             }:
-                raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "仅支持当前xlsx模板")
-            metadata = ImportMetadata.model_validate(
-                {key: value for key, value in items if key != "file"}
-            )
+                raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "当前支持xlsx测评文件")
+            fields = {key: value for key, value in items if key != "file"}
+            if "title" not in fields:
+                fields["title"] = filename_title(file.filename or "")
+            metadata = UploadMetadata.model_validate(fields)
             data = await file.read(ParseLimits().compressed_bytes + 1)
             if len(data) > ParseLimits().compressed_bytes:
                 raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
@@ -193,11 +196,21 @@ async def _upload(request: Request) -> tuple[bytes, ImportMetadata]:
                     "schema": {
                         "type": "object",
                         "additionalProperties": False,
-                        "required": ["file", "data_scope_id", "title"],
+                        "required": ["file"],
                         "properties": {
                             "file": {"type": "string", "format": "binary"},
-                            "data_scope_id": {"type": "string", "maxLength": 128},
-                            "title": {"type": "string", "minLength": 1, "maxLength": 100},
+                            "data_scope_id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 128,
+                                "description": "当前教学空间；省略时仅能自动使用唯一可导入范围",
+                            },
+                            "title": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100,
+                                "description": "省略时默认使用文件名，上传后可修改",
+                            },
                             "course": {"type": "string", "minLength": 1, "maxLength": 100},
                             "assessment_date": {"type": "string", "format": "date"},
                             "revision_of_batch_id": {"type": "string", "maxLength": 128},
@@ -209,7 +222,14 @@ async def _upload(request: Request) -> tuple[bytes, ImportMetadata]:
     },
 )
 async def preview(request: Request, actor: Actor, backend: Backend) -> ImportView:
-    data, metadata = await _upload(request)
+    data, uploaded = await _upload(request)
+    metadata = await run_in_threadpool(
+        resolve_upload_metadata,
+        backend.database,
+        actor,
+        uploaded,
+        now=stamp(backend.clock()),
+    )
     try:
         return await run_in_threadpool(backend.create_import, actor, data, metadata)
     except ImportFileError as exc:

@@ -59,11 +59,13 @@
 
 请求为 `multipart/form-data`，字段如下。元数据与文件一起作为表单字段上传，不混用 JSON 请求体。
 
+V1 入口为「上传测评文件」，不预选模板；当前仅处理已有验证的五维 XLSX。默认值、权限范围及未支持格式见 [V1_FILE_INTAKE.md](V1_FILE_INTAKE.md)。
+
 | 字段 | 类型 | 必填 | 约束 |
 | --- | --- | --- | --- |
 | `file` | binary | 是 | 当前固定模板 `.xlsx`，检查实际内容而非仅扩展名 |
-| `data_scope_id` | string | 是 | 当前教师有导入权限的受控来源范围 |
-| `title` | string | 是 | 去除首尾空白后 1～100 字符 |
+| `data_scope_id` | string | 否 | 当前教学空间；省略时仅自动使用唯一可导入范围，修订可继承本人拥有的目标范围；歧义为409 IMPORT_SCOPE_REQUIRED |
+| `title` | string | 否 | 显式提供时去除首尾空白后1～100字符；省略时取安全处理后的文件名，预览后可PATCH |
 | `course` | string | 否 | 未传视为 `null`；若传入，1～100 字符 |
 | `assessment_date` | date | 否 | 未传视为 `null`，不从上传日期推断 |
 | `revision_of_batch_id` | string | 否 | 修正版指向同范围、可访问且可修订的原批次；未传为 `null` |
