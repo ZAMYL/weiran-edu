@@ -16,7 +16,7 @@ import {
   type ApiRubric,
   type ApiStatistics,
 } from '../../services/edu-api/types';
-import { dimensionName } from '../../services/edu-api/view-model';
+import { dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
 
 register([
   RadarChart,
@@ -53,7 +53,7 @@ export function ServerAbilityChart({
               enabled: true,
               label: {
                 description: statistics.dimensions
-                  .map((d) => `${dimensionName(d.dimension_code)}均值${d.mean.display}`)
+                  .map((d) => `${dimensionName(d.dimension_code)}均值${scoreDisplay(d.mean.value)}`)
                   .join('，'),
               },
             },
@@ -62,7 +62,7 @@ export function ServerAbilityChart({
               center: ['50%', '53%'],
               radius: element.clientWidth < 450 ? '46%' : '64%',
               indicator: ordered.map((d) => ({
-                name: `${dimensionName(d.dimension_code)}\n${d.mean.display}`,
+                name: `${dimensionName(d.dimension_code)}\n${scoreDisplay(d.mean.value)}`,
                 min: 0,
                 max: rubric.score_policy.maximum,
               })),
@@ -87,7 +87,7 @@ export function ServerAbilityChart({
               enabled: true,
               label: {
                 description: statistics.dimensions
-                  .map((d) => `${dimensionName(d.dimension_code)}均值${d.mean.display}`)
+                  .map((d) => `${dimensionName(d.dimension_code)}均值${scoreDisplay(d.mean.value)}`)
                   .join('，'),
               },
             },
@@ -158,7 +158,7 @@ export function ServerAbilityChart({
       ref={ref}
       role="img"
       aria-label={statistics.dimensions
-        .map((d) => `${dimensionName(d.dimension_code)}均值${d.mean.display}`)
+        .map((d) => `${dimensionName(d.dimension_code)}均值${scoreDisplay(d.mean.value)}`)
         .join('，')}
     />
   );
@@ -214,7 +214,7 @@ export function SparseMatrix({
       aria: {
         enabled: true,
         label: {
-          description: `服务端稀疏矩阵，${matrix.cells.length} 个实际评分组合，配对人数 ${matrix.paired_count}`,
+          description: `实际评分组合，${matrix.cells.length} 个实际评分组合，配对人数 ${matrix.paired_count}`,
         },
       },
       tooltip: {
@@ -292,7 +292,7 @@ export function SparseMatrix({
         ref={ref}
         className="sparse-matrix"
         role="img"
-        aria-label={`服务端稀疏矩阵，${statistics.matrix?.cells.length ?? 0} 个实际评分组合，配对人数 ${statistics.matrix?.paired_count ?? 0}`}
+        aria-label={`实际评分组合，${statistics.matrix?.cells.length ?? 0} 个实际评分组合，配对人数 ${statistics.matrix?.paired_count ?? 0}`}
       />
       <p className="muted small">
         每个色块为实际评分组合，保留小数；不扩展为完整网格。点击色块精确筛选。

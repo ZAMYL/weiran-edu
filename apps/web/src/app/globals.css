@@ -59,8 +59,31 @@
   height: auto;
 }
 .live-insights .insights-right > .panel {
-  max-height: 750px;
-  overflow-y: auto;
+  overflow: visible;
+}
+.live-insights .live-metrics .ant-btn {
+  min-height: 76px;
+}
+.live-insights .live-candidate {
+  margin-bottom: 0;
+}
+.live-insights .live-quality {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.live-insights .live-frequency {
+  grid-template-columns: 1fr;
+}
+.live-insights .insight-score-picker {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.live-insights .insight-comment-note {
+  margin: 0;
 }
 .live-insights .ability-chart {
   height: 400px;
@@ -386,7 +409,7 @@ p {
   background: #e8f0ff;
 }
 .workspace {
-  max-width: 1800px;
+  max-width: 1384px;
   margin: auto;
   padding: 26px 32px 10px;
 }
@@ -402,6 +425,70 @@ p {
   display: flex;
   gap: 20px;
   align-items: center;
+}
+.page-heading .page-title-group {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.assessment-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: -4px 0 24px;
+}
+.assessment-toolbar .batch-select {
+  margin-right: auto;
+  width: 360px;
+}
+.assessment-toolbar > .live-batch-picker {
+  flex: 0 1 360px;
+  width: 360px;
+}
+.assessment-toolbar > .fullscreen-button {
+  margin-left: auto;
+}
+.discovery-card .batch-actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+.discovery-card .ant-checkbox-wrapper {
+  white-space: nowrap;
+}
+.internal-demo-notice {
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  background: #fff7e6;
+  border: 1px solid #ffe0a3;
+  border-radius: 8px;
+}
+.exploration-reference {
+  margin-top: 16px;
+}
+.exploration-reference > summary {
+  cursor: pointer;
+  color: var(--primary);
+}
+@media (max-width: 640px) {
+  .assessment-toolbar {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .assessment-toolbar .batch-select {
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .assessment-toolbar > .live-batch-picker {
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .assessment-toolbar > .ant-btn {
+    padding-inline: 12px;
+  }
+  .page-heading .page-title-group p {
+    font-size: 12px;
+  }
 }
 h1 {
   font-size: 32px;
@@ -1481,6 +1568,215 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr);
   gap: var(--gap);
+}
+.live-data .data-top-grid {
+  display: block;
+}
+.live-data .upload-panel {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.import-preview .preview-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.compact-import {
+  display: flex;
+  flex-direction: column;
+}
+.compact-import .quality-report {
+  order: -1;
+}
+.issue-groups {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.issue-group {
+  border: 1px solid #e4eaf5;
+  border-left: 3px solid #e5b349;
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #fffdf8;
+}
+.issue-group h3 {
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+.issue-group details,
+.all-issues,
+.technical-details {
+  margin-top: 12px;
+}
+.issue-example {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  font-size: 13px;
+}
+.original-records-section > summary {
+  font-size: 16px;
+  font-weight: 650;
+}
+.original-records-section[open] > summary {
+  margin-bottom: 16px;
+}
+.account-status {
+  font-size: 13px;
+  color: #61708b;
+  white-space: nowrap;
+}
+.section-heading {
+  font-size: 19px;
+  font-weight: 650;
+  margin-bottom: -8px;
+}
+.discovery-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.discovery-toolbar .ant-select {
+  min-width: 180px;
+}
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.live-insights .discovery-card {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px solid #dce7f8;
+  border-radius: 12px;
+  background: #fafcff;
+  color: var(--text);
+}
+.discovery-card h3 {
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 650;
+  margin: 10px 0 8px;
+}
+.discovery-type-group {
+  border-top: 1px solid #e8eef8;
+  padding: 14px 0;
+}
+.discovery-type-group > summary {
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.technical-details > summary,
+.original-records-section > summary,
+.all-issues > summary,
+.issue-group summary {
+  cursor: pointer;
+}
+.discovery-card > p {
+  color: #536480;
+  line-height: 1.75;
+}
+.discovery-card {
+  padding: 18px 20px;
+  border: 1px solid #dce7f8;
+  border-radius: 12px;
+  background: #fafcff;
+}
+.discovery-coverage {
+  font-size: 13px;
+  color: #47628a;
+  margin: 8px 0 12px;
+}
+.discovery-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.discovery-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e8eef8;
+}
+.discovery-row > div:first-child {
+  min-width: 0;
+  flex: 1 1 400px;
+}
+.discovery-row h3 {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.all-discoveries-panel > summary {
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 650;
+}
+.all-discoveries-panel[open] > summary {
+  margin-bottom: 16px;
+}
+.discovery-card .ant-checkbox-wrapper {
+  font-size: 12px;
+}
+.discovery-card > .ant-btn-link {
+  padding-left: 0;
+}
+.reports-page {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.report-surface {
+  display: grid;
+  gap: 16px;
+}
+.report-surface .panel {
+  box-shadow: none;
+}
+.report-surface .source-details {
+  overflow-wrap: anywhere;
+}
+.reports-page ul {
+  padding-left: 20px;
+  line-height: 1.9;
+}
+.text-link {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+}
+@media (max-width: 640px) {
+  .discovery-grid {
+    grid-template-columns: 1fr;
+  }
+  .live-insights .discovery-card {
+    padding: 16px;
+  }
+  .import-preview .preview-stats {
+    gap: 8px;
+  }
+  .import-preview .preview-stat {
+    padding: 12px;
+  }
+  .import-preview .preview-stat strong {
+    font-size: 24px;
+  }
+  .discovery-toolbar .ant-select {
+    width: 100%;
+  }
+  .account-status {
+    font-size: 12px;
+  }
 }
 .quality-report .panel-heading {
   align-items: center;

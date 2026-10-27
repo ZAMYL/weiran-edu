@@ -16,7 +16,7 @@ export async function teacherAnalysisFlow({
 }) {
   const checks = [];
   const base = `/batches/${batch.batch_id}/analysis-results`;
-  const drawer = () => page.getByRole('dialog', { name: '分析核验', exact: true });
+  const drawer = () => page.getByRole('region', { name: '分析核验', exact: true });
   const exportDialog = () => page.getByRole('dialog', { name: '导出测评报告', exact: true });
   const downloads = [];
   const onDownload = (download) => downloads.push(download);
@@ -53,27 +53,28 @@ export async function teacherAnalysisFlow({
           (label) => label.font === 12 && label.line >= label.font && label.height >= label.line,
         ),
     );
-    const createdHTTP = page.waitForResponse(
-      (r) => r.url().endsWith('/analysis-results') && r.request().method() === 'POST',
-    );
-    await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
-    await page.getByLabel('分析名称', { exact: true }).fill('合成教师闭环分析');
-    await page.getByLabel('分析备注（可选）', { exact: true }).fill('合成分析备注');
-    await page.getByRole('button', { name: '保存分析', exact: true }).click();
-    const createdResponse = await createdHTTP;
-    assert.equal(createdResponse.status(), 201);
-    assert.deepEqual(createdResponse.request().postDataJSON(), {
-      ...spec,
-      title: '合成教师闭环分析',
-      note: '合成分析备注',
+    const created = await request(base, {
+      method: 'POST',
+      body: JSON.stringify({ ...spec, title: '合成教师闭环分析', note: '合成分析备注' }),
     });
-    const created = await createdResponse.json();
+    await page.getByRole('button', { name: '已保存分析', exact: true }).click();
+    await page.getByRole('button', { name: '查看与核验', exact: true }).first().click();
     assert.equal(created.analysis.matched_count, 12);
     assert.equal(created.version, 1);
     await drawer().locator('.review-finding').first().waitFor();
     assert.equal(await drawer().locator('.review-finding').count(), created.findings.length);
-    await drawer().locator('.review-finding').nth(0).getByText('确认', { exact: true }).click();
-    await drawer().locator('.review-finding').nth(1).getByText('否决', { exact: true }).click();
+    await drawer()
+      .locator('.review-finding')
+      .nth(0)
+      .getByRole('radio', { name: '已确认', exact: true })
+      .locator('..')
+      .click();
+    await drawer()
+      .locator('.review-finding')
+      .nth(1)
+      .getByRole('radio', { name: '不采纳', exact: true })
+      .locator('..')
+      .click();
     await drawer().locator('.review-finding').nth(0).locator('textarea').fill('合成核验备注');
     assert.equal(
       await drawer().getByRole('button', { name: '导出测评报告', exact: true }).isDisabled(),
@@ -161,6 +162,11 @@ export async function teacherAnalysisFlow({
     await mutate(2, '合成并发修改');
     await drawer().getByLabel('分析备注', { exact: true }).fill('合成本地未保存修改');
     await drawer().getByRole('button', { name: '保存核验结果', exact: true }).click();
+    await drawer()
+      .locator('details')
+      .filter({ hasText: '错误码：ANALYSIS_RESULT_VERSION_MISMATCH' })
+      .locator('summary')
+      .click();
     await drawer().getByText('错误码：ANALYSIS_RESULT_VERSION_MISMATCH', { exact: true }).waitFor();
     assert.equal(
       await drawer().getByLabel('分析备注', { exact: true }).inputValue(),
@@ -174,6 +180,11 @@ export async function teacherAnalysisFlow({
     await mutate(3, '合成预检后并发修改');
     const beforeConflict = downloads.length;
     await exportDialog().getByRole('button', { name: '下载 XLSX', exact: true }).click();
+    await exportDialog()
+      .locator('details')
+      .filter({ hasText: '错误码：ANALYSIS_RESULT_VERSION_MISMATCH' })
+      .locator('summary')
+      .click();
     await exportDialog()
       .getByText('错误码：ANALYSIS_RESULT_VERSION_MISMATCH', { exact: true })
       .waitFor();
@@ -202,10 +213,10 @@ export async function teacherAnalysisFlow({
     admin('batch-grant-read', '--teacher-id', reader, '--batch-id', batch.batch_id);
     const readerToken = admin('token-issue', '--teacher-id', reader, '--hours', '1').access_token;
     await switchSession(readerToken);
-    await navigation('学情洞察');
+    await navigation('学情诊断');
     await page.getByRole('button', { name: '已保存分析', exact: true }).waitFor();
     assert.equal(
-      await page.getByRole('button', { name: '保存本次分析', exact: true }).isDisabled(),
+      await page.getByRole('button', { name: '准备分析报告', exact: true }).isDisabled(),
       true,
     );
     await page.getByRole('button', { name: '已保存分析', exact: true }).click();
@@ -227,7 +238,7 @@ export async function teacherAnalysisFlow({
       'authorized reader can list/read/export saved results but cannot save or edit judgments',
     );
     await switchSession(ownerToken);
-    await navigation('学情洞察');
+    await navigation('学情诊断');
     // Pagination comes from the server; each item is a real saved aggregate.
     for (let index = 0; index < 10; index++)
       await request(base, {
@@ -241,7 +252,7 @@ export async function teacherAnalysisFlow({
         r.url().includes('/analysis-results?') &&
         new URL(r.url()).searchParams.get('offset') === '10',
     );
-    await page.locator('.ant-drawer-open .ant-pagination').getByTitle('2', { exact: true }).click();
+    await page.locator('.report-surface .ant-pagination').getByTitle('2', { exact: true }).click();
     const secondPage = await (await secondPageHTTP).json();
     assert.equal(secondPage.page.returned, 1);
     await page.waitForFunction(
@@ -258,7 +269,7 @@ export async function teacherAnalysisFlow({
     );
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForFunction(() => {
-      const panel = document.querySelector('.ant-drawer-open .ant-drawer-section');
+      const panel = document.querySelector('.report-surface');
       const bounds = panel?.getBoundingClientRect();
       return (
         bounds &&
@@ -272,13 +283,13 @@ export async function teacherAnalysisFlow({
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
     );
-    await drawer().locator('.ant-drawer-close').click();
+    await drawer().getByRole('button', { name: '关闭结果', exact: true }).click();
     await page.setViewportSize({ width: 1440, height: 1000 });
     checks.push('saved analysis server pagination and 390px review drawer');
     await navigation('画像探索');
     await page.getByRole('button', { name: '添加条件', exact: true }).click();
     assert.equal(
-      await page.getByRole('button', { name: '保存本次分析', exact: true }).isDisabled(),
+      await page.getByRole('button', { name: '准备分析报告', exact: true }).isDisabled(),
       true,
     );
     await page.getByRole('combobox', { name: '正式条件1比较' }).click();
@@ -287,7 +298,7 @@ export async function teacherAnalysisFlow({
     await page.getByRole('textbox', { name: '正式条件2评分' }).fill('3.25');
     await page.getByRole('button', { name: '应用筛选', exact: true }).click();
     await page.locator('.match-summary').filter({ hasText: '12 / 23' }).waitFor();
-    await navigation('学情洞察');
+    await navigation('学情诊断');
     checks.push('explorer blocks saving unapplied filter drafts');
   } finally {
     page.off('download', onDownload);
@@ -299,6 +310,8 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
   const createdHTTP = page.waitForResponse(
     (r) => r.url().endsWith('/analysis-results') && r.request().method() === 'POST',
   );
+  if (!new URL(page.url()).pathname.startsWith('/reports'))
+    await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
   await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
   await page.getByLabel('分析名称', { exact: true }).fill(title);
   await page.getByRole('button', { name: '保存分析', exact: true }).click();
@@ -306,7 +319,7 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
   assert.equal(response.status(), 201);
   const result = await response.json();
   assert.equal(result.analysis.matched_count, expectedMatched);
-  const drawer = page.getByRole('dialog', { name: '分析核验', exact: true });
+  const drawer = page.getByRole('region', { name: '分析核验', exact: true });
   await drawer.locator('.saved-version').waitFor();
   if (expectedNoFindings) {
     assert.equal(result.findings.length, 0);
@@ -327,5 +340,5 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
     );
     await dialog.locator('.ant-modal-close').click();
   }
-  await drawer.locator('.ant-drawer-close').click();
+  await drawer.getByRole('button', { name: '关闭结果', exact: true }).click();
 }

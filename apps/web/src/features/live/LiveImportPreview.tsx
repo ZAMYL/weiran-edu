@@ -1,5 +1,6 @@
 'use client';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Alert, App, Button, Checkbox, Input, Pagination, Steps, Table, Tag } from 'antd';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
@@ -16,6 +17,9 @@ export default function LiveImportPreview({
   initial: ApiImport;
   onCancel: () => void;
 }) {
+  const router = useRouter();
+  const [recordsOpen, setRecordsOpen] = useState(false);
+  const [issuesOpen, setIssuesOpen] = useState(false);
   const { client, batchChanged } = useDataMode();
   const { message } = App.useApp();
   const [rowOffset, setRowOffset] = useState(0),
@@ -51,7 +55,14 @@ export default function LiveImportPreview({
     !edited &&
     !busy,
   );
+  useEffect(() => {
+    if (located && resource.data)
+      document
+        .querySelector('.located-row')
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [located, resource.data]);
   function locate(issue: ApiIssue) {
+    setRecordsOpen(true);
     if (issue.row_offset !== null) {
       setRowOffset(Math.floor(issue.row_offset / 10) * 10);
       setLocated(issue.row_key);
@@ -65,7 +76,7 @@ export default function LiveImportPreview({
     try {
       await client.patchImport(importId, info.preview_version, title.trim());
       resource.retry();
-      message.success('测评名称已更新，请基于新版本确认。');
+      message.success('测评名称已更新，请重新确认本次检查结果。');
     } catch (e) {
       if (e instanceof ApiError) setActionError(e);
     } finally {
@@ -84,11 +95,12 @@ export default function LiveImportPreview({
       );
       const batch = await client.batch(result.batch_id);
       batchChanged(batch);
+      router.replace('/insights');
       message.success(
         result.result === 'created'
-          ? '服务端已确认入库，独立批次已创建。'
+          ? '测评已确认导入。'
           : result.result === 'duplicate'
-            ? '已关联至同内容的既有批次，未重复创建。'
+            ? '已打开相同内容的已有测评，未重复导入。'
             : '该预览已确认，已返回既有批次。',
       );
     } catch (e) {
@@ -105,12 +117,13 @@ export default function LiveImportPreview({
           <p className="muted">文件已自动检查，确认后导入。</p>
         </div>
         <Button onClick={onCancel} disabled={busy}>
-          返回测评数据
+          重新选择文件
         </Button>
       </div>
       <Panel>
         <Steps
           current={1}
+          responsive={false}
           items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
         />
       </Panel>
@@ -121,10 +134,9 @@ export default function LiveImportPreview({
         <>
           <div className="preview-stats">
             {[
-              ['检测到的学生块', view.summary.detected_student_count, '人'],
-              ['五维完整合法', view.summary.complete_student_count, '人'],
-              ['解析评分行', view.summary.parsed_evaluation_count, '条'],
-              ['错误 / 警告', `${view.summary.error_count} / ${view.summary.warning_count}`, '项'],
+              ['有效评分', quality.summary.valid_score_count, '条'],
+              ['缺失评分', quality.summary.missing_score_count, '条'],
+              ['无效评分', quality.summary.invalid_score_count, '条'],
             ].map(([label, value, unit]) => (
               <Panel className="preview-stat" key={label}>
                 <p>{label}</p>
@@ -133,11 +145,14 @@ export default function LiveImportPreview({
               </Panel>
             ))}
           </div>
-          <div className="import-preview-grid">
-            <Panel
-              title="服务端解析预览"
-              subtitle="已识别行包括非法评分行；被扣留的非空原文不作为空评语显示。"
+          <div className="import-preview-grid compact-import">
+            <details
+              className="panel original-records-section"
+              open={recordsOpen}
+              onToggle={(event) => setRecordsOpen(event.currentTarget.open)}
             >
+              <summary>查看原始记录</summary>
+              <p className="muted small">评语仅在审核后展示，未审核原文不会在此显示。</p>
               <Table
                 rowKey="row_key"
                 size="small"
@@ -157,15 +172,6 @@ export default function LiveImportPreview({
                       value ?? (row.score_state === 'invalid' ? '非法值（不展示原文）' : '缺失'),
                   },
                   {
-                    title: '评语状态',
-                    dataIndex: 'comment_status',
-                    render: (status) => (
-                      <Tag color={status === 'withheld' ? 'blue' : 'default'}>
-                        {status === 'withheld' ? '非空 · 待审核' : '空评语'}
-                      </Tag>
-                    ),
-                  },
-                  {
                     title: '来源',
                     key: 'source',
                     render: (_, row) =>
@@ -181,19 +187,23 @@ export default function LiveImportPreview({
                 onChange={(page) => setRowOffset((page - 1) * 10)}
                 showTotal={(total) => `共 ${total} 条评分行`}
               />
-              <dl className="source-details">
-                <dt>预览版本</dt>
-                <dd>{info.preview_version}</dd>
-                <dt>解析器 / 评价标准版本</dt>
-                <dd>
-                  {info.parser_version} / {info.rubric_version ?? '尚未确定'}
-                </dd>
-                <dt>到期时间</dt>
-                <dd>{new Date(info.expires_at).toLocaleString('zh-CN')}</dd>
-              </dl>
-            </Panel>
+              <details className="technical-details">
+                <summary>技术详情</summary>
+                <dl className="source-details">
+                  <dt>预览版本</dt>
+                  <dd>{info.preview_version}</dd>
+                  <dt>解析器 / 评价标准版本</dt>
+                  <dd>
+                    {info.parser_version} / {info.rubric_version ?? '尚未确定'}
+                  </dd>
+                  <dt>到期时间</dt>
+                  <dd>{new Date(info.expires_at).toLocaleString('zh-CN')}</dd>
+                </dl>
+              </details>
+            </details>
             <Panel
-              title="服务端数据质量报告"
+              className="quality-report"
+              title="文件检查结果"
               action={
                 <Tag
                   color={
@@ -207,47 +217,99 @@ export default function LiveImportPreview({
                   {quality.status === 'blocked'
                     ? '存在阻断错误'
                     : quality.status === 'warning'
-                      ? '需确认警告'
+                      ? '需要注意的问题'
                       : '校验通过'}
                 </Tag>
               }
             >
               <p>
-                合法数值评分 {quality.summary.valid_score_count} 条 · 缺失{' '}
+                有效评分 {quality.summary.valid_score_count} 条 · 缺失{' '}
                 {quality.summary.missing_score_count} 条 · 非法{' '}
                 {quality.summary.invalid_score_count} 条
               </p>
               <p className="muted small">完整报告汇总全部记录，不因当前预览页变化。</p>
-              <div className="issue-list">
-                {view.issues?.map((issue) => (
-                  <article className={`issue-card ${issue.severity}`} key={issue.issue_id}>
-                    <div>
-                      <h3>
-                        {issue.severity === 'error' ? '错误' : '警告'} · {issue.code}
-                      </h3>
-                      {issue.row_offset !== null && (
-                        <Button type="link" size="small" onClick={() => locate(issue)}>
-                          定位记录
-                        </Button>
-                      )}
-                    </div>
-                    <p>{issue.message}</p>
-                    <p>
-                      {issue.sheet_name} · 第 {issue.row_number} 行 · {issue.cell}
-                      {issue.display_label ? ` · ${issue.display_label}` : ''}
+              <div className="issue-groups">
+                {quality.issue_groups.map((group) => (
+                  <section className="issue-group" key={group.code}>
+                    <h3>{group.code === 'COMMENT_REPEATED' ? '部分评语重复' : group.message}</h3>
+                    <p className="muted small">
+                      影响 {group.affected_student_count} 人 · {group.occurrence_count} 项
+                      {group.severity === 'error' ? '错误' : '提醒'}
                     </p>
-                  </article>
+                    <p className="muted small">
+                      {group.code === 'COMMENT_REPEATED'
+                        ? '建议核对评语是否逐人填写；评分可正常导入，原文仍按审核权限展示。'
+                        : group.severity === 'error'
+                          ? '请修正涉及记录后重新上传。'
+                          : '请核查涉及记录，确认后可继续导入。'}
+                    </p>
+                    <details>
+                      <summary>查看涉及的记录</summary>
+                      {group.examples.map((issue) => (
+                        <div className="issue-example" key={issue.issue_id}>
+                          <span>
+                            {issue.sheet_name} · 第 {issue.row_number} 行 · {issue.cell}
+                          </span>
+                          {issue.row_offset !== null && (
+                            <Button size="small" type="link" onClick={() => locate(issue)}>
+                              定位记录
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <p className="muted small">
+                        以上为检查结果提供的位置示例；完整问题可在下方分页查看。
+                      </p>
+                    </details>
+                  </section>
                 ))}
               </div>
-              <Pagination
-                size="small"
-                current={Math.floor(issueOffset / 10) + 1}
-                total={view.summary.error_count + view.summary.warning_count}
-                pageSize={10}
-                hideOnSinglePage
-                showSizeChanger={false}
-                onChange={(page) => setIssueOffset((page - 1) * 10)}
-              />
+              {view.summary.error_count + view.summary.warning_count > 0 && (
+                <details
+                  className="all-issues"
+                  open={issuesOpen}
+                  onToggle={(event) => setIssuesOpen(event.currentTarget.open)}
+                >
+                  <summary>查看完整问题列表</summary>
+                  <Table
+                    rowKey="issue_id"
+                    size="small"
+                    pagination={false}
+                    dataSource={view.issues ?? []}
+                    scroll={{ x: 520 }}
+                    columns={[
+                      {
+                        title: '类型',
+                        render: (_, issue) => (issue.severity === 'error' ? '错误' : '提醒'),
+                      },
+                      { title: '问题', dataIndex: 'message' },
+                      {
+                        title: '位置',
+                        render: (_, issue) =>
+                          `${issue.sheet_name} · 第 ${issue.row_number} 行 · ${issue.cell}`,
+                      },
+                      {
+                        title: '操作',
+                        render: (_, issue) =>
+                          issue.row_offset !== null ? (
+                            <Button type="link" size="small" onClick={() => locate(issue)}>
+                              定位记录
+                            </Button>
+                          ) : null,
+                      },
+                    ]}
+                  />
+                  <Pagination
+                    size="small"
+                    current={Math.floor(issueOffset / 10) + 1}
+                    total={view.summary.error_count + view.summary.warning_count}
+                    pageSize={10}
+                    hideOnSinglePage
+                    showSizeChanger={false}
+                    onChange={(page) => setIssueOffset((page - 1) * 10)}
+                  />
+                </details>
+              )}
               {!!view.summary.error_count && (
                 <Alert
                   type="error"
@@ -263,7 +325,7 @@ export default function LiveImportPreview({
                   disabled={busy}
                   onChange={(e) => setAck(e.target.checked ? info.preview_version : null)}
                 >
-                  我已查看本预览版本的全部质量警告，确认继续导入
+                  我已查看以上提醒，确认继续导入
                 </Checkbox>
               )}
               <div className="batch-name-field">
@@ -277,7 +339,7 @@ export default function LiveImportPreview({
                 />
                 {edited && (
                   <Button onClick={saveTitle} loading={busy} disabled={!title.trim()}>
-                    保存名称并更新预览版本
+                    保存测评名称
                   </Button>
                 )}
               </div>
@@ -291,7 +353,7 @@ export default function LiveImportPreview({
         </Button>
         <div>
           <span className="muted">
-            {edited ? '先保存测评名称，再确认新版本' : '确认以服务端校验与最新预览版本为准'}
+            {edited ? '先保存测评名称，再确认导入' : '确认后即可查看学情诊断'}
           </span>
           <Button
             type="primary"

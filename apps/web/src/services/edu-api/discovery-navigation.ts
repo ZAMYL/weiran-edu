@@ -1,4 +1,4 @@
-import type { DiscoverySpec } from './discovery-types';
+import type { DiscoveryDetail, DiscoverySpec } from './discovery-types';
 import { parseThreshold } from './view-model';
 import { conditionDto } from './types';
 export interface DiscoveryOrigin {
@@ -54,4 +54,31 @@ export function readDiscoveryOrigin(search: string): DiscoveryOrigin | null {
   } catch {
     return null;
   }
+}
+
+export function originForDiscovery(
+  detail: DiscoveryDetail,
+  spec: DiscoverySpec,
+): DiscoveryOrigin | null {
+  const metric_key = {
+    dimension_relation: 'paired_scores',
+    group_difference: 'target_members',
+    rare_combination: 'rare_members',
+    boundary_sensitivity: 'inclusive_members',
+  }[detail.type];
+  if (
+    !detail.controlled_queries.some(
+      (query) => query.metric_key === metric_key && query.discovery_id === detail.discovery_id,
+    )
+  )
+    return null;
+  return {
+    batch_id: detail.batch_id,
+    discovery_id: detail.discovery_id,
+    metric_key,
+    spec: {
+      ...spec,
+      scope_conditions: spec.scope_conditions.map((condition) => ({ ...condition })),
+    },
+  };
 }

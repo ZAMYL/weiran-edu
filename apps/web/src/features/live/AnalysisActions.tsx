@@ -1,5 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import type { DrawerProps } from 'antd';
 import {
   Alert,
   Button,
@@ -33,6 +35,30 @@ import { useRemote } from './useRemote';
 import { DiscoveryDetailDrawer } from './LiveDiscoveries';
 import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 
+function AnalysisSurface({ inline, ...props }: DrawerProps & { inline?: boolean }) {
+  return inline ? (
+    <section
+      role="region"
+      aria-label={typeof props.title === 'string' ? props.title : '报告结果'}
+      className="report-surface"
+    >
+      <Panel
+        title={props.title}
+        action={
+          props.onClose ? (
+            <Button disabled={props.closable === false} onClick={props.onClose}>
+              关闭结果
+            </Button>
+          ) : undefined
+        }
+      >
+        {props.children}
+      </Panel>
+    </section>
+  ) : (
+    <Drawer {...props} />
+  );
+}
 // Mutations are cancelled with the containing batch/session UI, including streamed downloads.
 function useOperation() {
   const pending = useRef<AbortController | null>(null);
@@ -65,15 +91,37 @@ export default function AnalysisActions({
   spec,
   blocked,
   discovery,
+  discoveryNames,
 }: {
   batch: ApiBatch;
   spec: InsightSpec;
   blocked?: string;
   discovery?: DiscoverySelection;
+  discoveryNames?: { id: string; title: string }[];
 }) {
-  const { client } = useDataMode();
+  const session = useDataMode();
+  const { client } = session;
+  const router = useRouter();
+  const reportPage = usePathname() === '/reports';
+  const prepare = (showSaved = false) => {
+    session.setReportDraft({
+      key: `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(spec.conditions)}`,
+      spec,
+      discovery,
+      names:
+        discoveryNames ??
+        (session.reportDraft?.key ===
+        `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(spec.conditions)}`
+          ? session.reportDraft.names
+          : []),
+      showSaved,
+    });
+    router.push('/reports');
+  };
   const [save, setSave] = useState(false);
-  const [history, setHistory] = useState<{ resultId: string | null } | null>(null);
+  const [history, setHistory] = useState<{ resultId: string | null } | null>(() =>
+    reportPage && session.reportDraft?.showSaved ? { resultId: null } : null,
+  );
   const load = useCallback(
     (signal: AbortSignal) => client.capabilities(batch, signal),
     [client, batch],
@@ -84,35 +132,45 @@ export default function AnalysisActions({
   );
   return (
     <>
-      <section className="panel analysis-actions">
-        <div>
-          <h2>保存与核验</h2>
-          <p className="muted">保存当前已应用范围；勾选正式发现后，可一并保存、逐卡核验和导出。</p>
-        </div>
-        <div className="batch-actions">
-          <Button
-            type="primary"
-            disabled={Boolean(blocked) || !allowed(permissions.data, 'save_analysis')}
-            onClick={() => setSave(true)}
-          >
-            保存本次分析
-          </Button>
-          <Button onClick={() => setHistory({ resultId: null })}>已保存分析</Button>
-        </div>
-        {blocked && <p className="muted small">{blocked}</p>}
-        {permissions.error && <RequestError error={permissions.error} retry={permissions.retry} />}
-        {permissions.data && !allowed(permissions.data, 'save_analysis') && (
-          <p className="muted small">当前权限可查看已保存分析；保存和核验需批次所有者权限。</p>
-        )}
-      </section>
+      {(!reportPage || !history) && (
+        <section className="panel analysis-actions">
+          <div>
+            <h2>保存与核验</h2>
+            <p className="muted">
+              保存当前已应用范围；勾选正式发现后，可一并保存、逐卡核验和导出。
+            </p>
+          </div>
+          <div className="batch-actions">
+            <Button
+              type="primary"
+              disabled={Boolean(blocked) || !allowed(permissions.data, 'save_analysis')}
+              onClick={() => (reportPage ? setSave(true) : prepare())}
+            >
+              {reportPage ? '保存本次分析' : '准备分析报告'}
+            </Button>
+            <Button onClick={() => (reportPage ? setHistory({ resultId: null }) : prepare(true))}>
+              已保存分析
+            </Button>
+          </div>
+          {blocked && <p className="muted small">{blocked}</p>}
+          {permissions.error && (
+            <RequestError error={permissions.error} retry={permissions.retry} />
+          )}
+          {permissions.data && !allowed(permissions.data, 'save_analysis') && (
+            <p className="muted small">当前权限可查看已保存分析；保存和核验需批次所有者权限。</p>
+          )}
+        </section>
+      )}
       {save && (
         <SaveAnalysis
           batch={batch}
           spec={spec}
           discovery={discovery}
+          scopeOnly={reportPage && !discovery}
           onClose={() => setSave(false)}
           onSaved={(result) => {
             setSave(false);
+            session.setReportDraft(null);
             setHistory({ resultId: result.result_id });
           }}
         />
@@ -121,6 +179,7 @@ export default function AnalysisActions({
         <SavedAnalyses
           batch={batch}
           initialResultId={history.resultId}
+          inline={reportPage}
           onClose={() => setHistory(null)}
         />
       )}
@@ -132,12 +191,14 @@ function SaveAnalysis({
   batch,
   spec,
   discovery,
+  scopeOnly = false,
   onClose,
   onSaved,
 }: {
   batch: ApiBatch;
   spec: InsightSpec;
   discovery?: DiscoverySelection;
+  scopeOnly?: boolean;
   onClose: () => void;
   onSaved: (result: AnalysisResult) => void;
 }) {
@@ -162,6 +223,7 @@ function SaveAnalysis({
             batch,
             {
               ...spec,
+              ...(scopeOnly ? { candidate_ids: [] } : {}),
               ...(discovery ? { include_dimensions: false, discovery } : {}),
               title: title.trim(),
               note,
@@ -175,11 +237,9 @@ function SaveAnalysis({
       <p>分析范围：{conditionText(spec.conditions)}</p>
       <p className="muted small">
         {discovery
-          ? `已选择 ${discovery.discovery_ids.length} 项正式发现；未选择时仅保存范围概况`
-          : spec.include_dimensions
-            ? '包含五维评分统计候选'
-            : '不包含维度候选'}
-        ；完整统计和候选由服务端重新计算并保存，不受当前分页影响。
+          ? `已选择 ${discovery.discovery_ids.length} 项发现；未选择时仅保存范围概况`
+          : '仅保存测评概况，不自动加入未选择的发现'}
+        ；完整统计与所选内容将在保存时核验，不受当前分页影响。
       </p>
       <div className="analysis-fields">
         <label htmlFor="save-analysis-title">分析名称</label>
@@ -206,10 +266,12 @@ function SaveAnalysis({
 
 function SavedAnalyses({
   batch,
+  inline = false,
   initialResultId,
   onClose,
 }: {
   batch: ApiBatch;
+  inline?: boolean;
   initialResultId: string | null;
   onClose: () => void;
 }) {
@@ -227,6 +289,7 @@ function SavedAnalyses({
   if (resultId)
     return (
       <AnalysisDetail
+        inline={inline}
         batch={batch}
         resultId={resultId}
         onClose={onClose}
@@ -237,14 +300,20 @@ function SavedAnalyses({
       />
     );
   return (
-    <Drawer title="已保存分析" open onClose={onClose} size="min(760px, 100vw)">
-      <p className="muted">当前批次：{batch.title} · 当前快照</p>
+    <AnalysisSurface
+      inline={inline}
+      title="已保存分析"
+      open
+      onClose={onClose}
+      size="min(760px, 100vw)"
+    >
+      <p className="muted">当前测评：{batch.title}</p>
       <Button onClick={list.retry}>刷新分析列表</Button>
       {list.loading && <LoadingPanel />}
       {list.error && <RequestError error={list.error} retry={list.retry} />}
       {list.data && (
         <>
-          {!list.data.items.length && <Empty description="当前快照还没有保存的分析。" />}
+          {!list.data.items.length && <Empty description="本次测评还没有保存的分析。" />}
           <div className="saved-analysis-list">
             {list.data.items.map((item) => (
               <Panel
@@ -268,17 +337,19 @@ function SavedAnalyses({
           />
         </>
       )}
-    </Drawer>
+    </AnalysisSurface>
   );
 }
 
 function AnalysisDetail({
   batch,
+  inline = false,
   resultId,
   onClose,
   onBack,
 }: {
   batch: ApiBatch;
+  inline?: boolean;
   resultId: string;
   onClose: () => void;
   onBack: () => void;
@@ -301,6 +372,7 @@ function AnalysisDetail({
   if (resource.data)
     return (
       <AnalysisEditor
+        inline={inline}
         key={`${resultId}:${resource.data.result.version}`}
         batch={batch}
         initial={resource.data.result}
@@ -311,16 +383,23 @@ function AnalysisDetail({
       />
     );
   return (
-    <Drawer title="已保存分析" open onClose={onClose} size="min(900px, 100vw)">
+    <AnalysisSurface
+      inline={inline}
+      title="已保存分析"
+      open
+      onClose={onClose}
+      size="min(900px, 100vw)"
+    >
       <Button onClick={onBack}>返回分析列表</Button>
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
-    </Drawer>
+    </AnalysisSurface>
   );
 }
 
 function AnalysisEditor({
   batch,
+  inline = false,
   initial,
   editable,
   reload,
@@ -328,6 +407,7 @@ function AnalysisEditor({
   onBack,
 }: {
   batch: ApiBatch;
+  inline?: boolean;
   initial: AnalysisResult;
   editable: boolean;
   reload: () => void;
@@ -342,7 +422,7 @@ function AnalysisEditor({
     ...initial.findings.map(({ candidate, teacher_review }) => ({
       id: candidate.candidate_id,
       title: candidate.title,
-      summary: candidate.summary,
+      summary: discoverySummaryText(candidate.summary),
       denominator: candidate.denominator,
       limitations: candidate.limitations,
       teacher_review,
@@ -395,7 +475,8 @@ function AnalysisEditor({
     );
   }
   return (
-    <Drawer
+    <AnalysisSurface
+      inline={inline}
       title="分析核验"
       open
       onClose={() => leave(onClose)}
@@ -420,15 +501,19 @@ function AnalysisEditor({
           导出测评报告
         </Button>
       </div>
-      <p className="saved-version">
-        已保存版本 {initial.version} · 快照 <code>{initial.snapshot_id}</code>
-      </p>
+      <p className="saved-version">已保存版本 {initial.version}</p>
       <p>保存的分析范围：{conditionText(initial.analysis.query.conditions)}</p>
       <p>
         群体人数 {initial.analysis.matched_count} / {initial.analysis.total_count} ·{' '}
         {initial.analysis.ratio.display}
       </p>
-      <p className="muted small">{initial.notice}</p>
+      <details className="technical-details">
+        <summary>保存信息与技术详情</summary>
+        <p>
+          测评快照：<code>{initial.snapshot_id}</code>
+        </p>
+        <p className="muted small">{initial.notice}</p>
+      </details>
       {!editable && (
         <Alert type="info" title="当前为只读权限，可查看核验结果和导出测评报告。" showIcon />
       )}
@@ -467,7 +552,7 @@ function AnalysisEditor({
                       : 'gold'
                 }
               >
-                教师{decisionLabels[decision.status]}
+                {decisionLabels[decision.status]}
               </Tag>
               <small>统计范围 {item.denominator} 人</small>
             </div>
@@ -581,7 +666,7 @@ function AnalysisEditor({
         selection={selection}
         onClose={() => setSelection(null)}
       />
-    </Drawer>
+    </AnalysisSurface>
   );
 }
 

@@ -16,10 +16,11 @@ import {
   dimensionName,
   operatorLabels,
   parseThreshold,
+  scoreDisplay,
 } from '../../services/edu-api/view-model';
 import { useRemote } from './useRemote';
 import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
-import { SparseMatrix } from './ServerCharts';
+import { SparseMatrix, ServerAbilityChart } from './ServerCharts';
 import { LiveScoreDrawer, LiveStudentDrawer, LiveStudentTable } from './LiveStudents';
 import AnalysisActions from './AnalysisActions';
 import { DiscoveryChart, scoreText } from './DiscoveryChart';
@@ -112,6 +113,14 @@ function Explorer({ batch }: { batch: ApiBatch }) {
   const group = useRemote(
     `group:${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}:${JSON.stringify(origin)}:${offset}`,
     loadGroup,
+  );
+  const loadRubric = useCallback(
+    (signal: AbortSignal) => client.rubric(batch, signal),
+    [client, batch],
+  );
+  const rubric = useRemote(
+    !origin && conditions.length ? `explorer-rubric:${batch.batch_id}:${batch.snapshot_id}` : null,
+    loadRubric,
   );
   function apply() {
     const next: ApiCondition[] = [];
@@ -263,7 +272,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
           占参评人数{' '}
           <b>{group.data?.ratio != null ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}</b>
         </span>
-        <Tag>服务端完整结果，分页不改变人数</Tag>
+        <Tag>显示完整群体人数，列表分页查看</Tag>
         <p>
           {origin
             ? `原发现条件：${originalConditions || '由受控指标参与记录确定'}；分析范围：${conditionText(conditions)}`
@@ -272,6 +281,11 @@ function Explorer({ batch }: { batch: ApiBatch }) {
       </div>
       <AnalysisActions
         batch={batch}
+        discoveryNames={
+          origin && group.data?.detail
+            ? [{ id: origin.discovery_id, title: group.data.detail.title }]
+            : undefined
+        }
         spec={{ snapshot_id: batch.snapshot_id, conditions, include_dimensions: true }}
         discovery={
           origin && group.data?.detail
@@ -287,37 +301,85 @@ function Explorer({ batch }: { batch: ApiBatch }) {
         }
       />
       <div className="explorer-grid">
-        <Panel title="能力组合分布" subtitle="本次测评的实际评分组合">
-          {!origin && (
-            <div className="axis-controls">
-              <Select
-                aria-label="正式热力图横轴"
-                value={axes.x}
-                options={DIMENSIONS.map((d) => ({ value: d.code, label: `横轴 · ${d.name}` }))}
-                onChange={(x) => setAxes({ x, y: x === axes.y ? axes.x : axes.y })}
-              />
-              <Select
-                aria-label="正式热力图纵轴"
-                value={axes.y}
-                options={DIMENSIONS.filter((d) => d.code !== axes.x).map((d) => ({
-                  value: d.code,
-                  label: `纵轴 · ${d.name}`,
-                }))}
-                onChange={(y) => setAxes({ ...axes, y })}
-              />
-            </div>
-          )}
-          {stats.loading && <LoadingPanel />}
-          {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
+        <Panel
+          title={conditions.length && !origin ? '当前群体评分分布' : '能力组合分布'}
+          subtitle="调整条件后，分布、人数与成员同步核对"
+        >
           {origin && group.data?.detail && <DiscoveryChart data={group.data.detail} />}
-          {!origin && stats.data && (
-            <SparseMatrix statistics={stats.data} conditions={conditions} onCell={selectCell} />
+          {rubric.loading && <LoadingPanel />}
+          {rubric.error && <RequestError error={rubric.error} retry={rubric.retry} />}
+          {!origin && conditions.length > 0 && group.data?.statistics && rubric.data && (
+            <ServerAbilityChart
+              statistics={group.data.statistics}
+              rubric={rubric.data}
+              mode="distribution"
+            />
+          )}
+          {!origin && conditions.length === 0 && (
+            <>
+              {
+                <div className="axis-controls">
+                  <Select
+                    aria-label="正式热力图横轴"
+                    value={axes.x}
+                    options={DIMENSIONS.map((d) => ({ value: d.code, label: `横轴 · ${d.name}` }))}
+                    onChange={(x) => setAxes({ x, y: x === axes.y ? axes.x : axes.y })}
+                  />
+                  <Select
+                    aria-label="正式热力图纵轴"
+                    value={axes.y}
+                    options={DIMENSIONS.filter((d) => d.code !== axes.x).map((d) => ({
+                      value: d.code,
+                      label: `纵轴 · ${d.name}`,
+                    }))}
+                    onChange={(y) => setAxes({ ...axes, y })}
+                  />
+                </div>
+              }
+              {stats.loading && <LoadingPanel />}
+              {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
+              {stats.data && (
+                <SparseMatrix statistics={stats.data} conditions={conditions} onCell={selectCell} />
+              )}
+            </>
+          )}
+          {!origin && conditions.length > 0 && (
+            <details className="exploration-reference">
+              <summary>从全部测评评分组合中重新选择条件</summary>
+              <p className="muted small">
+                下图以本次测评全部参评者为参考；点击组合后重新应用条件。上方分布与右侧人数均为当前筛选结果。
+              </p>
+              {
+                <div className="axis-controls">
+                  <Select
+                    aria-label="正式热力图横轴"
+                    value={axes.x}
+                    options={DIMENSIONS.map((d) => ({ value: d.code, label: `横轴 · ${d.name}` }))}
+                    onChange={(x) => setAxes({ x, y: x === axes.y ? axes.x : axes.y })}
+                  />
+                  <Select
+                    aria-label="正式热力图纵轴"
+                    value={axes.y}
+                    options={DIMENSIONS.filter((d) => d.code !== axes.x).map((d) => ({
+                      value: d.code,
+                      label: `纵轴 · ${d.name}`,
+                    }))}
+                    onChange={(y) => setAxes({ ...axes, y })}
+                  />
+                </div>
+              }
+              {stats.loading && <LoadingPanel />}
+              {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
+              {stats.data && (
+                <SparseMatrix statistics={stats.data} conditions={conditions} onCell={selectCell} />
+              )}
+            </details>
           )}
         </Panel>
         <section className="finding-card group-summary-card">
           <div className="finding-top">
             <Tag>当前正式群体</Tag>
-            <small>服务端统计</small>
+            <small>匹配群体统计</small>
           </div>
           <h2>
             {origin
@@ -355,7 +417,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
               distribution.dimensions.map((d) => (
                 <div className="server-mean-row" key={d.dimension_code}>
                   <span>{dimensionName(d.dimension_code)}</span>
-                  <b>{d.mean.display}</b>
+                  <b>{scoreDisplay(d.mean.value)}</b>
                   <span className="muted small">有效 {d.valid_count} 人</span>
                 </div>
               ))
@@ -364,7 +426,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                 {group.loading ? '正在读取群体统计…' : '当前群体暂无可显示的统计。'}
               </p>
             )}
-            <p className="muted small">均值取自服务端全体匹配记录，空值不补成 0。</p>
+            <p className="muted small">均值按全部匹配记录计算，缺失评分不记为 0。</p>
           </div>
         </section>
       </div>

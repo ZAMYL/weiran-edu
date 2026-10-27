@@ -1,6 +1,9 @@
 import { expect, it } from 'vitest';
 import { discoverySummaryText } from './discovery-view';
 it('formats score fractions and coefficients without changing count denominators', () => {
+  expect(discoverySummaryText('有效53/53条；均值16917/5300，中位数331/100')).toBe(
+    '有效评分53条（共53条）；均值3.19，中位数3.31',
+  );
   expect(discoverySummaryText('均值差为-31/10分；目标10人，余组43人')).toBe(
     '均值差为-3.10分；目标10人，余组43人',
   );

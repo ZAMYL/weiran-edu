@@ -10,6 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { teacherLayoutFlow } from './teacher-layout-flow.mjs';
 import { teacherProductFlow, credentialRelayFlow } from './teacher-product-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
@@ -41,6 +42,7 @@ const env = {
   WEIRAN_EDU_ENV: 'test',
   WEIRAN_EDU_DATABASE: database,
   NEXT_TELEMETRY_DISABLED: '1',
+  EDU_ENABLE_DEMO: '1',
 };
 const admin = (...args) =>
   JSON.parse(
@@ -167,12 +169,11 @@ try {
   });
   const shot = (name) =>
     page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage: true });
-  const navigation = (name) => page.getByRole('link', { name, exact: true }).click();
-  const panel = () =>
-    page
-      .locator('.panel')
-      .filter({ has: page.getByRole('heading', { name: '主动学情发现', exact: true }) })
-      .first();
+  const navigation = (name) =>
+    name === '测评数据'
+      ? page.getByRole('button', { name: '上传新测评', exact: true }).click()
+      : page.getByRole('link', { name, exact: true }).click();
+  const panel = () => page.locator('.all-discoveries-panel');
   const waitResponse = (predicate) => {
     const pending = page.waitForResponse(predicate);
     // Keep failure observed while an associated locator action is still waiting;
@@ -210,6 +211,8 @@ try {
     await drawers().last().locator('.ant-drawer-close').click();
     await sleep(350);
   };
+  const clientBatch = (id) =>
+    page.evaluate(async (id) => (await fetch(`/api/edu/batches/${id}`)).json(), id);
   async function importThroughPage(kind, title) {
     await navigation('测评数据');
     const previewReady = waitResponse(
@@ -221,16 +224,42 @@ try {
     const preview = await (await previewReady).json();
     assert.equal(preview.summary.error_count, 0);
     await page.getByRole('heading', { name: '导入预览' }).waitFor();
-    await page.locator('.source-details').filter({ hasText: '预览版本' }).waitFor();
-    const ack = page.getByRole('checkbox', { name: /我已查看本预览版本/ });
+    await page
+      .locator('.source-details')
+      .filter({ hasText: '预览版本' })
+      .waitFor({ state: 'attached' });
+    const ack = page.getByRole('checkbox', { name: /我已查看以上提醒/ });
+    if (process.env.EDU_LAYOUT_FLOW === '1') {
+      await page.getByRole('heading', { name: '文件检查结果', exact: true }).waitFor();
+      assert.ok((await page.locator('.issue-group').count()) < 8);
+      assert.equal(await page.locator('.all-issues[open]').count(), 0);
+      assert.equal(await page.locator('.original-records-section[open]').count(), 0);
+      if (kind === 'contrast105')
+        await page
+          .locator('.issue-group')
+          .filter({ hasText: '部分评语重复' })
+          .filter({ hasText: '影响 105 人' })
+          .waitFor();
+      await teacherLayoutFlow.capture(page, artifacts, `preview-${kind}`);
+    }
     if (await ack.count()) await ack.check();
     const committed = waitResponse((r) => r.url().endsWith('/commit') && r.status() === 201);
     await page.getByRole('button', { name: '确认导入', exact: true }).click();
     const batchId = (await (await committed).json()).batch_id;
-    await page.getByRole('heading', { name: '上传测评' }).waitFor();
-    const list = nextResponse('/discoveries/query');
-    await navigation('学情洞察');
-    return { batchId, data: await (await list).json() };
+    await page.locator('.discoveries-panel').waitFor();
+    const batch = await clientBatch(batchId);
+    return {
+      batchId,
+      data: (
+        await post(`/batches/${batchId}/discoveries/query`, {
+          snapshot_id: batch.snapshot_id,
+          profile: 'edu.discovery.profile.v1',
+          scope_conditions: [],
+          offset: 0,
+          limit: 10,
+        })
+      ).body,
+    };
   }
   async function selectBatch(title) {
     const pending = nextResponse('/discoveries/query');
@@ -241,7 +270,11 @@ try {
   async function openCard(index = 0) {
     const detail = nextResponse('/query'),
       chart = nextResponse('/chart/query');
-    await panel().getByRole('button', { name: '查看发现与依据', exact: true }).nth(index).click();
+    await page
+      .locator('.discoveries-panel')
+      .getByRole('button', { name: '查看发现与依据', exact: true })
+      .nth(index)
+      .click();
     await detail;
     const full = await (await chart).json();
     await page.getByTestId('discovery-chart').locator('svg').waitFor();
@@ -254,7 +287,20 @@ try {
     await page.getByTestId('discovery-record-count').waitFor();
     return result;
   }
-  if (process.env.EDU_AUTH_RELAY_ONLY === '1') {
+  if (process.env.EDU_LAYOUT_FLOW === '1') {
+    checks.push(
+      ...(await teacherLayoutFlow({
+        page,
+        origin,
+        artifacts,
+        navigation,
+        importThroughPage,
+        panel,
+        selectBatch,
+        closeTop,
+      })),
+    );
+  } else if (process.env.EDU_AUTH_RELAY_ONLY === '1') {
     checks.push(...(await credentialRelayFlow({ page, origin, api, admin, setToken, token })));
   } else if (process.env.EDU_PRODUCT_FLOW === '1') {
     checks.push(
@@ -288,6 +334,9 @@ try {
     assert.equal(await page.locator('#teacher-access-token').count(), 0);
     checkpoint = 'Excel upload, preview, commit and discovery list';
     const wide = await importThroughPage('wide', '合成发现五维测评');
+    await panel().locator(':scope > summary').click();
+    for (const summary of await panel().locator('.discovery-type-group > summary').all())
+      await summary.click();
     const spec = {
       snapshot_id: wide.data.scope.snapshot_id,
       profile: 'edu.discovery.profile.v1',
@@ -404,7 +453,7 @@ try {
     await page.getByLabel('正式条件1评分', { exact: true }).fill('3');
     await page.getByRole('button', { name: '应用筛选', exact: true }).click();
     const scopedResponse = nextResponse('/discoveries/query');
-    await navigation('学情洞察');
+    await navigation('学情诊断');
     const scoped = await (await scopedResponse).json();
     assert.equal(scoped.scope.scope_record_count, 40);
     assert.equal(scoped.scope.scope_conditions.length, 1);
@@ -474,7 +523,8 @@ try {
     const denied = nextResponse('/discoveries/query', 404);
     await page.getByRole('button', { name: '刷新发现', exact: true }).click();
     await denied;
-    await panel()
+    await page
+      .locator('.discoveries-panel')
       .getByText('记录不存在或当前教师无权查看，请刷新批次。', { exact: true })
       .waitFor();
     assert.equal(await page.getByTestId('discovery-card').count(), 0);
@@ -486,12 +536,12 @@ try {
     const expired = nextResponse('/discoveries/query', 401);
     await page.getByRole('button', { name: '刷新发现', exact: true }).click();
     await expired;
-    await page.getByRole('heading', { name: '连接测试数据', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '正在连接数据', exact: true }).waitFor();
     assert.equal(await page.locator('.live-workspace').count(), 0);
     checks.push('actual token revocation 401 clears the entire formal workspace');
     checkpoint = 'mobile and credential isolation';
     await setToken(token);
-    await page.getByRole('button', { name: '重新连接测试数据', exact: true }).click();
+    await page.getByRole('button', { name: '重新连接', exact: true }).click();
     await page.locator('.live-workspace').waitFor();
     await selectBatch('合成发现五维测评');
     await page.setViewportSize({ width: 390, height: 844 });
@@ -560,7 +610,7 @@ try {
       .screenshot({ path: path.join(artifacts, 'failure.png'), fullPage: true })
       .catch(() => {});
   console.error(`Discovery integration failed at: ${checkpoint}`);
-  console.error(error.message);
+  console.error(error.stack ?? error.message);
   process.exitCode = 1;
 } finally {
   await browser?.close();

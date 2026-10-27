@@ -2,8 +2,8 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { App, Button, Modal, Select, Tag } from 'antd';
+import { usePathname, useRouter } from 'next/navigation';
+import { App, Button, Modal, Select } from 'antd';
 import {
   BookOutlined,
   ExpandOutlined,
@@ -11,16 +11,17 @@ import {
   QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { useBatch, useWorkspace } from './store';
-import { LiveBatchSelect, ModeBadge, ModeControls, useDataMode } from './data-mode';
+import { LiveBatchSelect, useDataMode } from './data-mode';
 import { WorkspaceLayoutContext } from './WorkspaceLayoutContext';
 
 const pages = [
-  { to: '/insights', label: '学情洞察', subtitle: '从测评中看见差异，从证据中形成判断' },
-  { to: '/explorer', label: '画像探索', subtitle: '按能力组合找到值得进一步了解的学生' },
-  { to: '/data', label: '测评数据', nav: '测评数据', subtitle: '上传、检查并管理每一次测评' },
+  { to: '/insights', label: '学情诊断', subtitle: '发现值得关注的现象，结合依据核查' },
+  { to: '/explorer', label: '画像探索', subtitle: '应用条件，核对原始群体与评分依据' },
+  { to: '/reports', label: '分析报告', subtitle: '整理发现、保存核验并导出报告' },
 ];
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const dataMode = useDataMode();
   const batch = useBatch();
   const { batches, setBatch } = useWorkspace();
@@ -29,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { message } = App.useApp();
   const page = pages.find((p) => pathname.startsWith(p.to)) ?? pages[0]!;
   useEffect(() => {
-    document.title = `未然 EDU · ${page.label}`;
+    document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台。';
   }, [page]);
   useEffect(() => {
     const sync = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -82,15 +83,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className={`app-shell ${fullscreen ? 'is-fullscreen' : ''}`}>
       <header className="topbar">
-        <Link className="brand" href="/insights" aria-label="未然 EDU 首页">
+        <Link className="brand" href="/" aria-label="未然 EDU 首页">
           未然 <span>EDU</span>
         </Link>
         {fullscreen ? (
           <>
-            <div className="fullscreen-title">
-              {page.label}
-              <ModeBadge />
-            </div>
+            <div className="fullscreen-title">{page.label}</div>
             <div className="topbar-actions">
               {batchSelect}
               {fullButton}
@@ -103,15 +101,32 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   href={p.to}
                   key={p.to}
+                  onClick={() => dataMode.openAssessments(null)}
                   className={pathname === p.to ? 'active' : undefined}
                   aria-current={pathname === p.to ? 'page' : undefined}
                 >
-                  {p.nav ?? p.label}
+                  {p.label}
                 </Link>
               ))}
             </nav>
             <div className="topbar-actions">
-              <ModeControls />
+              {dataMode.connected ? (
+                <span className="account-status">教师账户</span>
+              ) : (
+                <Button
+                  type="text"
+                  onClick={() =>
+                    dataMode.testMode ? void dataMode.connect(null) : dataMode.openLogin(true)
+                  }
+                >
+                  连接账户
+                </Button>
+              )}
+              {dataMode.connected && (
+                <Button type="text" onClick={dataMode.disconnect}>
+                  结束会话
+                </Button>
+              )}
               <Button type="text" icon={<QuestionCircleOutlined />} onClick={() => setHelp(true)}>
                 帮助
               </Button>
@@ -120,38 +135,62 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </header>
       <main className="workspace">
+        {dataMode.mode === 'demo' && (
+          <p className="internal-demo-notice" role="status">
+            内部 Demo · 当前全部数据均为合成样例，不用于正式分析。
+          </p>
+        )}
         {!fullscreen && (
           <div className="page-heading">
             <div className="page-title-group">
               <h1>{page.label}</h1>
               <div>
-                <ModeBadge />
-                <p>{page.subtitle}</p>
+                <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</p>
               </div>
             </div>
-            <div className="page-actions">
-              {batchSelect}
-              {fullButton}
-            </div>
           </div>
+        )}
+        {!fullscreen && (
+          <section className="assessment-toolbar" aria-label="当前测评工作台">
+            {batchSelect}
+            <Button
+              type="primary"
+              onClick={() => {
+                dataMode.openAssessments('upload');
+                router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+              }}
+            >
+              上传新测评
+            </Button>
+            <Button
+              onClick={() => {
+                dataMode.openAssessments('history');
+                router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+              }}
+            >
+              查看历史测评
+            </Button>
+            {dataMode.assessmentPanel && dataMode.batch && (
+              <Button
+                type="link"
+                onClick={() => {
+                  dataMode.openAssessments(null);
+                  router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                }}
+              >
+                返回当前诊断
+              </Button>
+            )}
+            {fullButton}
+          </section>
         )}
         <WorkspaceLayoutContext.Provider value={{ fullscreen }}>
           {children}
         </WorkspaceLayoutContext.Provider>
       </main>
       <footer className="app-footer">
-        <span>未然 EDU · 让每一次评价成为教学的起点</span>
-        <span>
-          {dataMode.mode === 'live'
-            ? dataMode.testMode
-              ? '本机联调测试 · 数据来自真实 API'
-              : '正式数据仅来自当前授权接口；教师凭证不持久化'
-            : batch.demo
-              ? '当前为合成演示数据，来源引用为示例'
-              : '当前文件在本地解析，批次仅保留至刷新前'}
-          <span className="footer-dot">·</span>
-          {dataMode.mode === 'live' ? '正式数据模式' : 'Demo · 合成演示'}
-        </span>
+        <span>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</span>
+        <span>评分与发现供授权教师核查使用</span>
       </footer>
       <Modal
         open={help}
@@ -165,21 +204,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="help-content">
           <p>
-            <b>学情洞察</b> 查看能力概况、群体条件和可追溯的评分依据。
+            <b>学情诊断</b> 查看能力概况、群体条件和可追溯的评分依据。
           </p>
           <p>
             <b>画像探索</b> 设置条件并应用，人数、分布和学生列表同步更新。
           </p>
           <p>
-            <b>测评数据</b> 正式模式上传原始双 Sheet 五维
-            Excel，查看服务端质量报告，再确认入库。Demo 使用独立的合成长表。
+            <b>上传新测评</b> 选择 Excel 文件，检查数据后确认导入。
           </p>
-          <Tag color="blue">数据模式边界</Tag>
           <p>
-            {dataMode.testMode
-              ? '本机联调已自动连接测试教师，刷新后会自动恢复连接。'
-              : '正式模式的批次来自后端数据库，刷新后需重新输入教师凭证再读取。'}
-            Demo 仅在浏览器内存演示，刷新清除新增批次。正式模式未接入 AI 或未审核评语展示。
+            <b>分析报告</b> 保存本次范围及选定发现，核验后导出报告。教师确认不等于因果证明。
           </p>
         </div>
       </Modal>

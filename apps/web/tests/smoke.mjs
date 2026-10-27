@@ -49,13 +49,14 @@ try {
   assert.equal(home.status, 200);
   const html = await home.text();
   assert.match(html, /lang="zh-CN"/);
-  assert.match(html, /未然 EDU — 学情分析平台/);
-  assert.match(html, /学情洞察/);
-  assert.match(html, /连接教师会话，查看正式测评数据/);
+  assert.match(html, /未然 EDU｜AI 时代的编程能力与学习成效诊断平台。/);
+  assert.match(html, /学情诊断/);
+  assert.match(html, /连接账户，查看测评/);
 
   for (const [route, title] of [
     ['explorer', '画像探索'],
-    ['data', '测评数据'],
+    ['data', '学情诊断'],
+    ['reports', '分析报告'],
   ]) {
     const response = await fetch(`${url}/${route}`, { signal: AbortSignal.timeout(5000) });
     assert.equal(response.status, 200);

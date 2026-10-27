@@ -52,7 +52,7 @@ async function main() {
   try {
     const response = await page.goto(process.env.APP_URL || 'http://127.0.0.1:3000/');
     assert.equal(response.status(), 200);
-    await page.getByText('Demo', { exact: true }).click();
+    await page.goto(new URL('/dev/demo', process.env.APP_URL || 'http://127.0.0.1:3000/').href);
     await page.getByRole('heading', { name: '本次测评概况' }).waitFor();
     assert.match(await page.locator('.stat-grid').innerText(), /参评人数/);
     assert.doesNotMatch(
@@ -102,7 +102,7 @@ async function main() {
     assert.match(await page.locator('.match-summary').innerText(), /105/);
     await shot('explorer-desktop');
     checks.push('筛选、空结果、重置和学生前后切换通过');
-    await page.getByRole('link', { name: '测评数据', exact: true }).click();
+    await page.getByRole('button', { name: '上传新测评', exact: true }).click();
     await page.getByRole('heading', { name: '上传新测评' }).waitFor();
     await noOverflow();
     await uploadContained();
@@ -155,7 +155,7 @@ async function main() {
     await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     await page.getByText('这份文件已在当前会话中导入，重命名文件也不会创建重复批次。').waitFor();
     checks.push('有效文件确认追加批次，重命名重复文件仍被识别');
-    await page.getByRole('link', { name: '学情洞察', exact: true }).click();
+    await page.getByRole('link', { name: '学情诊断', exact: true }).click();
     assert.match(await page.locator('.stat-grid').innerText(), /2/);
     await page.getByRole('button', { name: /全屏$/ }).click();
     await page.waitForFunction(() => Boolean(document.fullscreenElement));
@@ -166,7 +166,7 @@ async function main() {
     await page.getByRole('navigation', { name: '主导航' }).waitFor();
     checks.push('全屏隐藏主导航，Esc 退出并保留批次');
     await page.reload();
-    await page.getByText('Demo', { exact: true }).click();
+    await page.goto(new URL('/dev/demo', process.env.APP_URL || 'http://127.0.0.1:3000/').href);
     await page.getByRole('heading', { name: '本次测评概况' }).waitFor();
     await page.setViewportSize({ width: 390, height: 844 });
     await noOverflow();
@@ -175,7 +175,7 @@ async function main() {
     await page.getByRole('heading', { name: '能力组合分布' }).waitFor();
     await noOverflow();
     await shot('explorer-mobile');
-    await page.getByRole('link', { name: '测评数据', exact: true }).click();
+    await page.getByRole('button', { name: '上传新测评', exact: true }).click();
     await page.getByRole('heading', { name: '上传新测评' }).waitFor();
     await noOverflow();
     await uploadContained();

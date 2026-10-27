@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Alert, App, Button, Input, Modal, Pagination, Segmented, Select, Tag } from 'antd';
 import { ApiError, createEduClient, type EduClient } from '../services/edu-api/client';
-import type { ApiBatch, ApiCondition, ApiScope } from '../services/edu-api/types';
+import type { ApiBatch, ApiCondition, ApiScope, InsightSpec } from '../services/edu-api/types';
 import { Panel } from '../components/ui';
 import { useRemote } from '../features/live/useRemote';
 
@@ -12,9 +12,21 @@ import {
   type DiscoveryOrigin,
 } from '../services/edu-api/discovery-navigation';
 
+import type { DiscoverySelection } from '../services/edu-api/analysis-types';
+export interface ReportDraft {
+  key: string;
+  spec: InsightSpec;
+  discovery?: DiscoverySelection;
+  names: { id: string; title: string }[];
+  showSaved?: boolean;
+}
 type Mode = 'live' | 'demo';
 interface SessionState {
   mode: Mode;
+  assessmentPanel: 'upload' | 'history' | null;
+  assessmentRevision: number;
+  ready: boolean;
+  reportDraft: ReportDraft | null;
   testMode: boolean;
   connected: boolean;
   teacherId: string | null;
@@ -28,6 +40,10 @@ interface SessionState {
 }
 const initial: SessionState = {
   mode: 'live',
+  assessmentPanel: null,
+  assessmentRevision: 0,
+  ready: false,
+  reportDraft: null,
   testMode: false,
   connected: false,
   teacherId: null,
@@ -41,6 +57,8 @@ const initial: SessionState = {
 };
 interface DataMode extends SessionState {
   client: EduClient;
+  setReportDraft: (draft: ReportDraft | null) => void;
+  openAssessments: (panel: 'upload' | 'history' | null) => void;
   setMode: (mode: Mode) => void;
   connect: (token: string | null) => Promise<void>;
   disconnect: () => void;
@@ -67,24 +85,35 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       connecting.next();
       setState((s) => ({
         ...initial,
+        ready: true,
         mode: s.mode,
         testMode: s.testMode,
         revision: s.revision + 1,
-        notice: s.testMode
-          ? '测试数据连接已失效，请重新连接测试数据。'
-          : '教师凭证已失效或被撤销，正式数据已清除，请重新连接。',
+        notice: s.testMode ? '连接已失效，请重新连接。' : '账户权限已失效或被撤销，请重新连接。',
       }));
     }),
   );
   function disconnect() {
     connecting.next();
     client.clear();
-    setState((s) => ({ ...initial, mode: s.mode, testMode: s.testMode, revision: s.revision + 1 }));
+    setState((s) => ({
+      ...initial,
+      ready: true,
+      mode: s.mode,
+      testMode: s.testMode,
+      revision: s.revision + 1,
+    }));
   }
   function setMode(mode: Mode) {
     connecting.next();
     client.clear();
-    setState((s) => ({ ...initial, mode, testMode: s.testMode, revision: s.revision + 1 }));
+    setState((s) => ({
+      ...initial,
+      ready: mode === 'demo',
+      mode,
+      testMode: s.testMode,
+      revision: s.revision + 1,
+    }));
   }
   const connect = useCallback(
     async (token: string | null) => {
@@ -100,6 +129,21 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
         if (!connecting.isCurrent(sequence)) return;
         const origin = readDiscoveryOrigin(window.location.search);
         let selected = batches.items[0] ?? null;
+        if (!origin) {
+          let pointer: string | null = null;
+          try {
+            pointer = localStorage.getItem(`weiran.edu.current-batch.${me.teacher_id}`);
+          } catch {
+            /* A pointer is optional, never cached analysis or authorization. */
+          }
+          if (pointer && /^[a-zA-Z0-9_-]{1,100}$/.test(pointer)) {
+            try {
+              selected = await client.batch(pointer);
+            } catch (error) {
+              if (!(error instanceof ApiError) || ![403, 404].includes(error.status)) throw error;
+            }
+          }
+        }
         let notice: string | null = null;
         if (origin) {
           try {
@@ -113,7 +157,10 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
         if (!connecting.isCurrent(sequence)) return;
         setState((s) => ({
           ...s,
+          ready: true,
           connected: true,
+          reportDraft: null,
+          assessmentPanel: null,
           teacherId: me.teacher_id,
           scopes: scopes.items,
           batch: selected,
@@ -129,7 +176,7 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           if (token === null)
             setState((s) => ({
               ...s,
-              notice: '测试数据连接未完成，请重试；如仍失败请检查本机服务。',
+              notice: '数据连接未完成，请重试。',
             }));
         }
         throw error;
@@ -161,7 +208,9 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           await connect(null);
         }
       } catch {
-        // Connection failures remain visible through the test-mode gate; never use Demo as fallback.
+        // Never replace inaccessible teacher data with demonstration records.
+      } finally {
+        if (active) setState((s) => ({ ...s, ready: true }));
       }
     })();
     return () => {
@@ -171,6 +220,14 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       client.clear();
     };
   }, [state.mode, connect, client, connecting]);
+  useEffect(() => {
+    if (!state.connected || !state.teacherId || !state.batch) return;
+    try {
+      localStorage.setItem(`weiran.edu.current-batch.${state.teacherId}`, state.batch.batch_id);
+    } catch {
+      /* Backend recovery still works when storage is unavailable. */
+    }
+  }, [state.connected, state.teacherId, state.batch]);
   function clearPointer() {
     if (window.location.search) window.history.replaceState(null, '', window.location.pathname);
   }
@@ -179,6 +236,8 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
     setState((s) => ({
       ...s,
       batch,
+      assessmentPanel: null,
+      reportDraft: null,
       discoveryOrigin: null,
       conditions: [],
       revision: s.revision + 1,
@@ -189,6 +248,13 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       value={{
         ...state,
         client,
+        openAssessments: (assessmentPanel) =>
+          setState((s) => ({
+            ...s,
+            assessmentPanel,
+            assessmentRevision: s.assessmentRevision + 1,
+          })),
+        setReportDraft: (reportDraft) => setState((s) => ({ ...s, reportDraft })),
         connect,
         disconnect,
         setMode,
@@ -207,6 +273,7 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           setState((s) => ({
             ...s,
             discoveryOrigin: null,
+            reportDraft: null,
             conditions: conditions.map((c) => ({ ...c })),
           }));
         },
@@ -245,7 +312,7 @@ function SessionDialog() {
   };
   return (
     <Modal
-      title="连接正式数据 · 教师试点会话"
+      title="连接账户"
       open={session.loginOpen}
       onCancel={close}
       destroyOnHidden
@@ -255,9 +322,9 @@ function SessionDialog() {
         </Button>
       }
     >
-      <p>使用后端管理员签发的教师临时凭证。凭证仅在内存中使用，刷新或结束会话后需重新输入。</p>
+      <p>使用教师访问凭据连接有权查看的测评。</p>
       <label htmlFor="teacher-access-token" className="session-token-label">
-        教师临时凭证
+        访问凭据
       </label>
       <Input.Password
         id="teacher-access-token"
@@ -266,13 +333,11 @@ function SessionDialog() {
         onPressEnter={submit}
         autoComplete="off"
         maxLength={200}
-        placeholder="粘贴教师 access_token"
+        placeholder="输入教师访问凭据"
         disabled={busy}
       />
       {error && <Alert className="session-notice" type="error" showIcon title={error} />}
-      <p className="muted small session-notice">
-        此入口使用教师权限；不提供管理员操作，不将凭证存入浏览器长期存储。
-      </p>
+      <p className="muted small session-notice">访问凭据仅在当前会话使用。</p>
     </Modal>
   );
 }
@@ -323,8 +388,8 @@ export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
   if (session.mode === 'demo') return demo;
   if (!session.connected && session.testMode)
     return (
-      <Panel className="session-gate" title="连接测试数据">
-        <p>正在连接本机测试数据。</p>
+      <Panel className="session-gate" title="正在连接数据">
+        <p>正在读取有权查看的测评。</p>
         {session.notice && <Alert showIcon type="warning" title={session.notice} />}
         <Button
           type="primary"
@@ -332,19 +397,18 @@ export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
             void session.connect(null).catch(() => {});
           }}
         >
-          重新连接测试数据
+          重新连接
         </Button>
       </Panel>
     );
   if (!session.connected)
     return (
-      <Panel className="session-gate" title="连接教师会话，查看正式测评数据">
-        <p>正式模式从服务端读取授权批次、统计和评分证据。请先连接教师临时凭证。</p>
+      <Panel className="session-gate" title="连接账户，查看测评">
+        <p>连接后可查看有权访问的测评、评分和分析报告。</p>
         {session.notice && <Alert showIcon type="warning" title={session.notice} />}
         <Button type="primary" onClick={() => session.openLogin(true)}>
-          连接教师会话
+          连接账户
         </Button>
-        <p className="muted small">固定演示可从顶部显式切换到 Demo，两种模式的数据不会混用。</p>
       </Panel>
     );
   return (

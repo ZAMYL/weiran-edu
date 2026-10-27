@@ -1,9 +1,9 @@
 'use client';
-import { useCallback, useMemo, useState } from 'react';
-import { Checkbox, Button, Drawer, Empty, Pagination, Table, Tag } from 'antd';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { Checkbox, Button, Drawer, Empty, Pagination, Select, Table, Tag } from 'antd';
 import { useRouter } from 'next/navigation';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
-import { discoveryUrl } from '../../services/edu-api/discovery-navigation';
+import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discovery-navigation';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
@@ -59,15 +59,33 @@ function metricsText(d: DiscoveryDetail) {
       return `低于边界 ${d.metrics.strict_count} 人，包含边界 ${d.metrics.inclusive_count} 人，新增 ${d.metrics.added_count} 人；分析范围 ${d.metrics.student_denominator} 人。`;
   }
 }
+function coverage(detail: DiscoveryDetail) {
+  switch (detail.type) {
+    case 'dimension_relation':
+      return `参与配对 ${detail.metrics.paired_count} 人 / 分析范围 ${detail.metrics.student_denominator} 人`;
+    case 'group_difference':
+      return `选定群体 ${detail.metrics.target_count} 人 · 其余群体 ${detail.metrics.remainder_count} 人`;
+    case 'rare_combination':
+      return `少见组合 ${detail.metrics.match_count} 人 / 配对参考 ${detail.metrics.pair_count} 人`;
+    case 'boundary_sensitivity':
+      return `边界新增 ${detail.metrics.added_count} 人 · ${detail.metrics.strict_count} 人 → ${detail.metrics.inclusive_count} 人`;
+  }
+}
 export default function LiveDiscoveries({
   batch,
   onSelection,
+  children,
 }: {
   batch: ApiBatch;
-  onSelection?: (selection: DiscoverySelection) => void;
+  onSelection?: (selection: DiscoverySelection, names?: { id: string; title: string }[]) => void;
+  children?: ReactNode;
 }) {
-  const [checked, setChecked] = useState<string[]>([]);
-  const { client, conditions } = useDataMode();
+  const { client, conditions, reportDraft, exploreDiscovery } = useDataMode();
+  const router = useRouter();
+  const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
+  const checked =
+    reportDraft?.key === contextKey ? (reportDraft.discovery?.discovery_ids ?? []) : [];
+  const [view, setView] = useState('all');
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const spec: DiscoverySpec = useMemo(
@@ -86,86 +104,237 @@ export default function LiveDiscoveries({
     `discoveries:${batch.batch_id}:${JSON.stringify(spec)}:${offset}`,
     load,
   );
-  return (
-    <Panel
-      title="主动学情发现"
-      subtitle="从当前测评评分中探索值得教师核查的现象。"
-      action={<Button onClick={resource.retry}>刷新发现</Button>}
-    >
-      <p>分析范围：{conditionText(spec.scope_conditions)}</p>
-      {resource.loading && <LoadingPanel />}
-      {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
-      {resource.data && (
-        <>
-          <p data-testid="discovery-scope">
-            当前范围 {resource.data.scope.scope_record_count} 人 · 本次测评{' '}
-            {resource.data.scope.batch_record_count} 人
-          </p>
-          {onSelection && (
-            <p>
-              已选择 {checked.length} 项正式发现（最多三项）。
+  const items = resource.data?.items ?? [];
+  const focus = useMemo(
+    () =>
+      (resource.data?.items ?? [])
+        .filter((card, index, all) => all.findIndex((other) => other.type === card.type) === index)
+        .slice(0, 3),
+    [resource.data],
+  );
+  const visible = useMemo(
+    () => (resource.data?.items ?? []).filter((card) => view === 'all' || card.type === view),
+    [resource.data, view],
+  );
+  const needed = focus;
+  const loadDetails = useCallback(
+    async (signal: AbortSignal) => {
+      const result: Record<string, DiscoveryDetail> = {};
+      // Sequential, bounded reads retain the backend's eligibility and concurrency checks.
+      for (const card of needed)
+        result[card.discovery_id] = await client.discoveryDetail(
+          batch,
+          card.discovery_id,
+          spec,
+          signal,
+        );
+      return result;
+    },
+    [client, batch, spec, needed],
+  );
+  const details = useRemote(
+    needed.length && selected === null ? `discovery-card-details:${contextKey}:${offset}` : null,
+    loadDetails,
+  );
+  const choose = (ids: string[]) => {
+    if (!resource.data || !onSelection) return;
+    const names = [
+      ...new Map(
+        [
+          ...(reportDraft?.key === contextKey ? reportDraft.names : []),
+          ...items.map((card) => ({ id: card.discovery_id, title: card.title })),
+        ]
+          .filter((item) => ids.includes(item.id))
+          .map((item) => [item.id, item]),
+      ).values(),
+    ];
+    onSelection({ input_key: resource.data.scope.input_key, discovery_ids: ids }, names);
+  };
+  const renderCards = (cards: typeof items) => (
+    <div className="discovery-grid">
+      {cards.map((card) => {
+        const detail = details.data?.[card.discovery_id];
+        const origin = detail ? originForDiscovery(detail, spec) : null;
+        return (
+          <section
+            className="discovery-card"
+            key={card.discovery_id}
+            data-testid="discovery-card"
+            data-discovery-id={card.discovery_id}
+          >
+            <div className="finding-top">
+              <Tag color="blue">{typeNames[card.type]}</Tag>
+              {card.status !== 'displayable' && <Tag>需谨慎解释</Tag>}
+            </div>
+            <h3>{card.title}</h3>
+            <p>{discoverySummaryText(card.summary)}</p>
+            <p className="discovery-coverage">
+              {detail
+                ? coverage(detail)
+                : details.error
+                  ? '涉及人数暂不可用，请重试核查'
+                  : '正在核查涉及人数…'}
+            </p>
+            <div className="batch-actions">
+              <Button onClick={() => setSelected(card.discovery_id)}>查看发现与依据</Button>
               <Button
+                disabled={!origin}
                 onClick={() => {
-                  setChecked([]);
-                  onSelection({ input_key: resource.data!.scope.input_key, discovery_ids: [] });
+                  if (origin) {
+                    exploreDiscovery(origin);
+                    router.push(discoveryUrl(origin));
+                  }
                 }}
               >
-                仅保存本次范围概况
+                进一步探索
               </Button>
-            </p>
-          )}
-          {resource.data.items.length ? (
-            resource.data.items.map((card) => (
-              <section
-                className="panel live-candidate"
-                key={card.discovery_id}
-                data-testid="discovery-card"
-              >
-                {onSelection && (
-                  <Checkbox
-                    aria-label={`保存发现 ${card.title}`}
-                    checked={checked.includes(card.discovery_id)}
-                    disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
-                    onChange={(e) => {
-                      const ids = e.target.checked
+              {onSelection && (
+                <Checkbox
+                  aria-label={`加入报告 ${card.title}`}
+                  checked={checked.includes(card.discovery_id)}
+                  disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
+                  onChange={(e) =>
+                    choose(
+                      e.target.checked
                         ? [...checked, card.discovery_id]
-                        : checked.filter((id) => id !== card.discovery_id);
-                      setChecked(ids);
-                      onSelection({
-                        input_key: resource.data!.scope.input_key,
-                        discovery_ids: ids,
-                      });
-                    }}
-                  >
-                    纳入保存分析
-                  </Checkbox>
-                )}
-                <Tag color="blue">{typeNames[card.type]}</Tag>
-                {card.status !== 'displayable' && <Tag>需谨慎解释</Tag>}
-                <h3>{card.title}</h3>
-                <p>{discoverySummaryText(card.summary)}</p>
-                <Button onClick={() => setSelected(card.discovery_id)}>查看发现与依据</Button>
-              </section>
-            ))
-          ) : (
-            <Empty description="当前范围没有符合条件的发现，可调整筛选后重试。" />
-          )}
-          {resource.data.truncated && (
-            <p className="muted small">
-              符合条件的发现较多，本次展示排序靠前的 {resource.data.retained_count} 项。
+                        : checked.filter((id) => id !== card.discovery_id),
+                    )
+                  }
+                >
+                  {checked.includes(card.discovery_id) ? '已加入待保存' : '加入报告'}
+                </Checkbox>
+              )}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+  const renderRows = (cards: typeof items) => (
+    <ul className="discovery-list">
+      {cards.map((card) => (
+        <li
+          className="discovery-row"
+          key={card.discovery_id}
+          data-testid="discovery-card"
+          data-discovery-id={card.discovery_id}
+        >
+          <div>
+            <h3>{card.title}</h3>
+            <p className="muted small">{discoverySummaryText(card.summary)}</p>
+          </div>
+          <div className="batch-actions">
+            <Button onClick={() => setSelected(card.discovery_id)}>查看发现与依据</Button>
+            {onSelection && (
+              <Checkbox
+                aria-label={`加入报告 ${card.title}`}
+                checked={checked.includes(card.discovery_id)}
+                disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
+                onChange={(event) =>
+                  choose(
+                    event.target.checked
+                      ? [...checked, card.discovery_id]
+                      : checked.filter((id) => id !== card.discovery_id),
+                  )
+                }
+              >
+                {checked.includes(card.discovery_id) ? '已加入待保存' : '加入报告'}
+              </Checkbox>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+  const status = (
+    <>
+      {resource.loading && <LoadingPanel />}
+      {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
+      {details.error && <RequestError error={details.error} retry={details.retry} />}
+    </>
+  );
+  return (
+    <>
+      <Panel
+        className="discoveries-panel"
+        title="最值得核查的学情发现"
+        subtitle="在当前返回结果中按不同类型选取最多三项，供教师优先核查。"
+        action={<Button onClick={resource.retry}>刷新发现</Button>}
+      >
+        <p className="muted small">这是当前页的代表性发现，不代表已对全部结果完成价值排序。</p>
+        {status}
+        {resource.data && (
+          <>
+            <p data-testid="discovery-scope">
+              当前范围 {resource.data.scope.scope_record_count} 人 · 本次测评{' '}
+              {resource.data.scope.batch_record_count} 人
             </p>
-          )}
-          <Pagination
-            current={offset / 10 + 1}
-            total={resource.data.retained_count}
-            pageSize={10}
-            showSizeChanger={false}
-            hideOnSinglePage
-            onChange={(p) => setOffset((p - 1) * 10)}
-            showTotal={(n) => `共 ${n} 项发现`}
+            {focus.length ? (
+              renderCards(focus)
+            ) : (
+              <Empty description="当前范围没有符合条件的发现，可调整筛选后重试。" />
+            )}
+          </>
+        )}
+        {onSelection && (
+          <p className="muted small">
+            已加入待保存 {checked.length} 项（最多三项）。
+            <Button type="link" onClick={() => choose([])}>
+              仅保存本次范围概况
+            </Button>
+          </p>
+        )}
+      </Panel>
+      {children}
+      <details className="panel all-discoveries-panel">
+        <summary>全部发现和统计详情</summary>
+        <div className="discovery-toolbar">
+          <p>分析范围：{conditionText(spec.scope_conditions)}</p>
+          <Select
+            aria-label="查看发现类型"
+            value={view}
+            options={[
+              { value: 'all', label: '全部发现' },
+              ...Object.entries(typeNames).map(([value, label]) => ({ value, label })),
+            ]}
+            onChange={setView}
           />
-        </>
-      )}
+        </div>
+        {resource.data && (
+          <>
+            {view === 'all' ? (
+              Object.entries(typeNames)
+                .filter(([type]) => items.some((card) => card.type === type))
+                .map(([type, label]) => (
+                  <details className="discovery-type-group" key={type}>
+                    <summary>
+                      {label} · 当前页 {items.filter((card) => card.type === type).length} 项
+                    </summary>
+                    {renderRows(items.filter((card) => card.type === type))}
+                  </details>
+                ))
+            ) : visible.length ? (
+              renderRows(visible)
+            ) : (
+              <p>当前页暂无此类型发现，可查看其他页。</p>
+            )}
+            {resource.data.truncated && (
+              <p className="muted small">
+                本次保留 {resource.data.retained_count} 项结果，并非全部可能的发现。
+              </p>
+            )}
+            <Pagination
+              current={offset / 10 + 1}
+              total={resource.data.retained_count}
+              pageSize={10}
+              showSizeChanger={false}
+              hideOnSinglePage
+              onChange={(p) => setOffset((p - 1) * 10)}
+              showTotal={(n) => `共 ${n} 项发现`}
+            />
+          </>
+        )}
+      </details>
       {selected && resource.data && (
         <DiscoveryDetailDrawer
           key={selected}
@@ -175,7 +344,7 @@ export default function LiveDiscoveries({
           onClose={() => setSelected(null)}
         />
       )}
-    </Panel>
+    </>
   );
 }
 export function DiscoveryDetailDrawer({
@@ -216,7 +385,7 @@ export function DiscoveryDetailDrawer({
   const d = resource.data?.detail;
   return (
     <>
-      <Drawer title="学情发现详情" open onClose={onClose} size={820}>
+      <Drawer title="发现详情" open onClose={onClose} size="min(720px, 100vw)">
         {resource.loading && <LoadingPanel />}
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
         {d && resource.data && (
@@ -259,19 +428,8 @@ export function DiscoveryDetailDrawer({
               type="primary"
               disabled={!allowExplore}
               onClick={() => {
-                const metric_key = {
-                  dimension_relation: 'paired_scores',
-                  group_difference: 'target_members',
-                  rare_combination: 'rare_members',
-                  boundary_sensitivity: 'inclusive_members',
-                }[d.type];
-                if (!d.controlled_queries.some((q) => q.metric_key === metric_key)) return;
-                const origin = {
-                  batch_id: batch.batch_id,
-                  discovery_id: discoveryId,
-                  metric_key,
-                  spec,
-                };
+                const origin = originForDiscovery(d, spec);
+                if (!origin) return;
                 exploreDiscovery(origin);
                 onClose();
                 router.push(discoveryUrl(origin));
@@ -342,7 +500,7 @@ function DiscoveryRecordsDrawer({
   const result = resource.data;
   return (
     <>
-      <Drawer title="发现群体与评分证据" open onClose={onClose} size={800}>
+      <Drawer title="发现群体与评分证据" open onClose={onClose} size="min(720px, 100vw)">
         <p>{sourceName(metric)}</p>
         {resource.loading && <LoadingPanel />}
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}

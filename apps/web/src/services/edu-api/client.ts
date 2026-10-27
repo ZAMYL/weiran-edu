@@ -50,6 +50,17 @@ const STATUS_MESSAGES: Record<number, string> = {
   503: '数据服务暂不可用或繁忙，请稍后重试。',
   504: '请求超时，请检查连接后重试。',
 };
+const FILE_MESSAGES: Record<string, string> = {
+  IMPORT_FILE_INVALID:
+    '当前无法识别此工作簿的结构，或文件触及解析限制。请保留原文件并核对检查要求。',
+  IMPORT_FILE_TOO_LARGE: '上传文件超过当前大小限制，请检查文件后重试。',
+  IMPORT_PROCESSING_UNAVAILABLE: '文件检查服务暂时繁忙或不可用，请稍后重试。',
+  INVALID_PRINTER_SETTINGS_PACKAGE:
+    '文件中的打印设置部件或引用不一致，无法安全读取；原文件未被修改。',
+  UNSUPPORTED_PRINTER_SETTINGS_FORMAT: '文件中的打印设置格式暂不受支持；原文件未被修改。',
+  PRINTER_SETTINGS_SIZE_LIMIT: '文件中的打印设置超过安全大小或数量限制；原文件未被修改。',
+  INVALID_WORKBOOK_RELATIONSHIP: '工作簿内部引用异常，无法确定安全来源；原文件未被修改。',
+};
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -57,16 +68,17 @@ export class ApiError extends Error {
     readonly requestId: string | null = null,
   ) {
     super(
-      code === 'SNAPSHOT_MISMATCH'
-        ? '批次快照已变化，请刷新批次后重新查询。'
-        : code === 'ANALYSIS_RESULT_VERSION_MISMATCH'
-          ? '分析的核验版本已更新，请加载最新结果后重新操作。'
-          : code === 'INVALID_REPORT_FILE'
-            ? '报告响应格式异常，已停止下载，请重试或联系维护人员。'
-            : (STATUS_MESSAGES[status] ??
-              (status === 0
-                ? '无法连接数据服务，请检查本机服务和网络后重试。'
-                : '请求未完成，请重试。')),
+      FILE_MESSAGES[code] ??
+        (code === 'SNAPSHOT_MISMATCH'
+          ? '批次快照已变化，请刷新批次后重新查询。'
+          : code === 'ANALYSIS_RESULT_VERSION_MISMATCH'
+            ? '分析的核验版本已更新，请加载最新结果后重新操作。'
+            : code === 'INVALID_REPORT_FILE'
+              ? '报告响应格式异常，已停止下载，请重试或联系维护人员。'
+              : (STATUS_MESSAGES[status] ??
+                (status === 0
+                  ? '无法连接数据服务，请检查本机服务和网络后重试。'
+                  : '请求未完成，请重试。'))),
     );
   }
 }

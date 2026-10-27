@@ -165,6 +165,7 @@ export const analysisListDto = checked(
     ),
 );
 export interface AnalysisCreate extends InsightSpec {
+  candidate_ids?: string[];
   discovery?: DiscoverySelection;
   title: string;
   note: string;
@@ -242,7 +243,7 @@ export const exportCheckDto = object({
 });
 export type ExportCheck = Decoded<typeof exportCheckDto>;
 export const decisionLabels: Record<DecisionStatus, string> = {
-  pending: '待定',
-  confirmed: '确认',
-  dismissed: '否决',
+  pending: '待教师确认',
+  confirmed: '已确认',
+  dismissed: '不采纳',
 };

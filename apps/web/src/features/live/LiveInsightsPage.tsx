@@ -1,41 +1,61 @@
 'use client';
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Checkbox, Empty, Pagination, Segmented, Tag } from 'antd';
+import { Button, Checkbox, Empty, Pagination, Segmented, Select, Tag } from 'antd';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
-import { type ApiBatch, type InsightCard, type InsightSpec } from '../../services/edu-api/types';
-import { conditionText, metricDisplay } from '../../services/edu-api/view-model';
+import {
+  DIMENSIONS,
+  type ApiBatch,
+  type InsightCard,
+  type InsightMetric,
+  type InsightSpec,
+} from '../../services/edu-api/types';
+import { conditionText, dimensionName, metricDisplay } from '../../services/edu-api/view-model';
 import { useRemote } from './useRemote';
-import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
+import { LoadingPanel, RequestError } from './LiveStatus';
 import { ServerAbilityChart } from './ServerCharts';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
+import LiveDataPage from './LiveDataPage';
 import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
-  const { batch } = useDataMode();
-  return batch ? <Insights batch={batch} /> : <NoBatch />;
+  const { batch, assessmentPanel, assessmentRevision } = useDataMode();
+  return assessmentPanel || !batch ? (
+    <LiveDataPage
+      key={`${assessmentPanel}:${assessmentRevision}`}
+      view={assessmentPanel ?? 'upload'}
+    />
+  ) : (
+    <Insights key={`${batch.batch_id}:${batch.snapshot_id}`} batch={batch} />
+  );
 }
 function Insights({ batch }: { batch: ApiBatch }) {
-  const { client, conditions } = useDataMode();
+  const { client, conditions, reportDraft, setReportDraft } = useDataMode();
   const router = useRouter();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
-  const [savedSelection, setSavedSelection] = useState<{
-    key: string;
-    selection: DiscoverySelection;
-  } | null>(null);
-  const discovery = savedSelection?.key === contextKey ? savedSelection.selection : undefined;
+  const discovery = reportDraft?.key === contextKey ? reportDraft.discovery : undefined;
   const onSelection = useCallback(
-    (selection: DiscoverySelection) => setSavedSelection({ key: contextKey, selection }),
-    [contextKey],
+    (selection: DiscoverySelection, names: { id: string; title: string }[] = []) =>
+      setReportDraft({
+        key: contextKey,
+        spec: {
+          snapshot_id: batch.snapshot_id,
+          conditions: conditions.map((c) => ({ ...c })),
+          include_dimensions: false,
+        },
+        discovery: selection,
+        names,
+      }),
+    [contextKey, batch.snapshot_id, conditions, setReportDraft],
   );
   const [mode, setMode] = useState<'radar' | 'distribution'>('radar');
   const [includeDimensions, setIncludeDimensions] = useState(true);
   const [offset, setOffset] = useState(0);
   const [selection, setSelection] = useState<MetricSelection | null>(null);
-  const [expandedCards, setExpandedCards] = useState<string[]>([]);
+  const [aspect, setAspect] = useState(conditions.length ? 'group' : 'algorithm_data_structure');
   const spec: InsightSpec = useMemo(
     () => ({
       snapshot_id: batch.snapshot_id,
@@ -70,13 +90,20 @@ function Insights({ batch }: { batch: ApiBatch }) {
       title: card.title,
       spec: { ...spec, conditions: spec.conditions.map((c) => ({ ...c })) },
     });
+  const cards = [...(insights.data?.items ?? [])].sort(
+    (left, right) =>
+      DIMENSIONS.findIndex((dimension) => dimension.code === left.dimension_code) -
+      DIMENSIONS.findIndex((dimension) => dimension.code === right.dimension_code),
+  );
+  const card =
+    cards.find((candidate) => (candidate.dimension_code ?? 'group') === aspect) ?? cards[0];
   return (
     <div className="page-stack live-insights">
-      <AnalysisActions batch={batch} spec={spec} discovery={discovery} />
+      <h2 className="section-heading">当前测评概况</h2>
       <div className="stat-grid">
         {[
           ['参评人数', stats.data?.statistics.scope.record_count ?? null, '人'],
-          ['评价记录', batch.evaluation_count, '条'],
+          ['评分记录', batch.evaluation_count, '条'],
           ['能力维度', stats.data?.statistics.dimensions.length ?? null, '个'],
         ].map(([label, value, unit]) => (
           <Panel className="live-stat" key={label}>
@@ -86,163 +113,108 @@ function Insights({ batch }: { batch: ApiBatch }) {
           </Panel>
         ))}
       </div>
-      <div className="insights-grid">
-        <Panel
-          title="本次测评概况"
-          subtitle="测评平均分 · 基于各维度有效评分"
-          action={
-            <Segmented
-              options={[
-                { label: '能力画像', value: 'radar' },
-                { label: '评分分布', value: 'distribution' },
-              ]}
-              value={mode}
-              onChange={(value) => setMode(value as 'radar' | 'distribution')}
-            />
-          }
-          className="radar-panel"
-        >
-          {stats.loading && <LoadingPanel />}
-          {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
-          {stats.data && (
-            <>
-              <ServerAbilityChart
-                statistics={stats.data.statistics}
-                rubric={stats.data.rubric}
-                mode={mode}
-              />
-              <div className="chart-caption">按本次测评的有效评分计算，保留原始小数精度。</div>
-              <Button type="link" onClick={() => router.push('/explorer')}>
-                进入画像探索 →
-              </Button>
-            </>
-          )}
-        </Panel>
-        <div className="insights-right">
-          <LiveDiscoveries
-            key={`${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`}
-            batch={batch}
-            onSelection={onSelection}
-          />
+      <LiveDiscoveries key={contextKey} batch={batch} onSelection={onSelection}>
+        <h2 className="section-heading">评分画像与图表</h2>
+        <div className="insights-grid">
           <Panel
-            title="评分统计依据"
-            subtitle="维度评分统计，供教师查看计算依据。"
-            action={<Button onClick={insights.retry}>刷新洞察</Button>}
+            title="评分画像"
+            subtitle="测评平均分 · 基于各维度有效评分"
+            action={
+              <Segmented
+                options={[
+                  { label: '能力画像', value: 'radar' },
+                  { label: '评分分布', value: 'distribution' },
+                ]}
+                value={mode}
+                onChange={(value) => setMode(value as 'radar' | 'distribution')}
+              />
+            }
+            className="radar-panel"
           >
-            <div className="live-insight-controls">
-              <Checkbox
-                checked={includeDimensions}
-                onChange={(e) => {
-                  setIncludeDimensions(e.target.checked);
-                  setOffset(0);
-                }}
-              >
-                包含各维度洞察
-              </Checkbox>
-              <p className="muted small">当前查询：{conditionText(conditions)}</p>
-            </div>
-            {insights.loading && <LoadingPanel />}
-            {insights.error && <RequestError error={insights.error} retry={insights.retry} />}
-            {insights.data && (
+            {stats.loading && <LoadingPanel />}
+            {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
+            {stats.data && (
               <>
-                {insights.data.items.length ? (
-                  insights.data.items.map((card, index) => (
-                    <section
-                      className={
-                        index === 0 ? 'finding-card live-candidate' : 'panel live-candidate'
-                      }
-                      key={card.candidate_id}
-                    >
-                      <div className="finding-top">
-                        <Tag color="blue">
-                          {card.status === 'observed' ? '评分观察' : '数据不足'}
-                        </Tag>
-                        <small>统计范围 {card.denominator} 人</small>
-                      </div>
-                      <h2>{card.title}</h2>
-                      <p>{card.summary}</p>
-                      <div className="live-metrics">
-                        {(expandedCards.includes(card.candidate_id)
-                          ? card.metrics
-                          : card.metrics.slice(0, 8)
-                        ).map((metric) => (
-                          <Button
-                            key={metric.key}
-                            onClick={() => openMetric(card, metric.key)}
-                            aria-label={`${card.title} ${metric.key} 查看评分证据`}
-                          >
-                            <span>
-                              {metric.key.startsWith('frequency:')
-                                ? `${metric.at_score?.display ?? ''} 分人数`
-                                : ((
-                                    {
-                                      mean: '测评平均分',
-                                      median: '中位数',
-                                      minimum: '最低分',
-                                      maximum: '最高分',
-                                      matched_count: '匹配人数',
-                                      matched_ratio: '匹配比例',
-                                      valid_count: '有效人数',
-                                      missing_count: '缺失人数',
-                                      invalid_count: '无效人数',
-                                    } as Record<string, string>
-                                  )[metric.key] ?? metric.key)}
-                            </span>
-                            <b>{metricDisplay(metric)}</b>
-                            <small>查看评分证据 →</small>
-                          </Button>
-                        ))}
-                      </div>
-                      {card.metrics.length > 8 && (
-                        <Button
-                          type="link"
-                          onClick={() =>
-                            setExpandedCards((current) =>
-                              current.includes(card.candidate_id)
-                                ? current.filter((id) => id !== card.candidate_id)
-                                : [...current, card.candidate_id],
-                            )
-                          }
-                        >
-                          {expandedCards.includes(card.candidate_id)
-                            ? '收起评分指标'
-                            : `查看全部 ${card.metrics.length} 项评分指标`}
-                        </Button>
-                      )}
-                      <p className="small">{card.suggested_next_action}</p>
-                      <details>
-                        <summary>解释边界与使用限制</summary>
-                        {card.limitations.map((item) => (
-                          <p key={item} className="small">
-                            {item}
-                          </p>
-                        ))}
-                      </details>
-                    </section>
-                  ))
-                ) : (
-                  <Empty description="当前查询没有可展示的评分洞察候选。" />
-                )}
-                <Pagination
-                  current={Math.floor(offset / 10) + 1}
-                  total={insights.data.total_count}
-                  pageSize={10}
-                  hideOnSinglePage
-                  showSizeChanger={false}
-                  onChange={(page) => setOffset((page - 1) * 10)}
-                  showTotal={(total) => `共 ${total} 张候选卡`}
+                <ServerAbilityChart
+                  statistics={stats.data.statistics}
+                  rubric={stats.data.rubric}
+                  mode={mode}
                 />
+                <div className="chart-caption">按本次测评的有效评分计算，保留原始小数精度。</div>
+                <Button type="link" onClick={() => router.push('/explorer')}>
+                  进入画像探索 →
+                </Button>
               </>
             )}
           </Panel>
-          <Alert
-            showIcon
-            type="info"
-            title="评语分析暂不可用"
-            description="当前未提供评语分析。待审核的非空评语不等于空评语。"
-          />
+          <div className="insights-right">
+            <Panel
+              title="评分统计依据"
+              subtitle="维度评分统计，供教师查看计算依据。"
+              action={<Button onClick={insights.retry}>刷新洞察</Button>}
+            >
+              <div className="live-insight-controls">
+                <label htmlFor="insight-aspect">查看方面</label>
+                <Select
+                  id="insight-aspect"
+                  aria-label="查看洞察方面"
+                  value={card ? (card.dimension_code ?? 'group') : undefined}
+                  placeholder="暂无可查看的方面"
+                  disabled={!cards.length || insights.loading}
+                  options={cards.map((candidate) => ({
+                    value: candidate.dimension_code ?? 'group',
+                    label: candidate.dimension_code
+                      ? dimensionName(candidate.dimension_code)
+                      : '当前筛选群体',
+                  }))}
+                  onChange={(value) => {
+                    setAspect(value);
+                    setSelection(null);
+                  }}
+                />
+                <Checkbox
+                  checked={includeDimensions}
+                  onChange={(e) => {
+                    setIncludeDimensions(e.target.checked);
+                    setOffset(0);
+                  }}
+                >
+                  包含各维度洞察
+                </Checkbox>
+                <p className="muted small">当前查询：{conditionText(conditions)}</p>
+              </div>
+              {insights.loading && <LoadingPanel />}
+              {insights.error && <RequestError error={insights.error} retry={insights.retry} />}
+              {insights.data && (
+                <>
+                  {card ? (
+                    <CandidateView
+                      key={card.candidate_id}
+                      card={card}
+                      onMetric={(key) => openMetric(card, key)}
+                    />
+                  ) : (
+                    <Empty description="当前查询没有可展示的评分洞察候选。" />
+                  )}
+                  <Pagination
+                    current={Math.floor(offset / 10) + 1}
+                    total={insights.data.total_count}
+                    pageSize={10}
+                    hideOnSinglePage
+                    showSizeChanger={false}
+                    onChange={(page) => setOffset((page - 1) * 10)}
+                    showTotal={(total) => `共 ${total} 张候选卡`}
+                  />
+                </>
+              )}
+            </Panel>
+            <p className="muted small insight-comment-note">
+              评语分析暂不可用。待审核的非空评语不等于空评语。
+            </p>
+          </div>
         </div>
-      </div>
+      </LiveDiscoveries>
+      <AnalysisActions batch={batch} spec={spec} discovery={discovery} />
       <MetricEvidenceDrawer
         key={`${selection?.candidateId}:${selection?.metricKey}`}
         batch={batch}
@@ -250,5 +222,130 @@ function Insights({ batch }: { batch: ApiBatch }) {
         onClose={() => setSelection(null)}
       />
     </div>
+  );
+}
+
+const qualityKeys = new Set(['valid_count', 'missing_count', 'invalid_count']);
+const metricLabels: Record<string, string> = {
+  mean: '测评平均分',
+  median: '中位数',
+  minimum: '最低分',
+  maximum: '最高分',
+  matched_count: '匹配人数',
+  matched_ratio: '匹配比例',
+  eligible_count: '可判定人数',
+  unevaluable_count: '不可判定人数',
+  valid_count: '有效人数',
+  missing_count: '缺失人数',
+  invalid_count: '无效人数',
+};
+function metricLabel(metric: InsightMetric) {
+  return metric.key.startsWith('frequency:')
+    ? `${metric.at_score?.display ?? ''} 分人数`
+    : (metricLabels[metric.key] ?? metric.key);
+}
+function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: string) => void }) {
+  const [content, setContent] = useState('summary');
+  const [scoreKey, setScoreKey] = useState('');
+  const frequencies = card.metrics.filter((metric) => metric.key.startsWith('frequency:'));
+  const frequency = frequencies.find((metric) => metric.key === scoreKey) ?? frequencies[0];
+  const summary = card.metrics.filter(
+    (metric) => !metric.key.startsWith('frequency:') && !qualityKeys.has(metric.key),
+  );
+  const quality = card.metrics.filter((metric) => qualityKeys.has(metric.key));
+  return (
+    <section className="finding-card live-candidate">
+      <div className="finding-top">
+        <Tag color="blue">{card.status === 'observed' ? '评分观察' : '数据不足'}</Tag>
+        <small>统计范围 {card.denominator} 人</small>
+      </div>
+      <h2>
+        {card.dimension_code ? `${dimensionName(card.dimension_code)}评分分布` : '当前筛选群体概况'}
+      </h2>
+      {frequencies.length > 0 && (
+        <Segmented
+          aria-label="洞察内容"
+          options={[
+            { label: '统计概况', value: 'summary' },
+            { label: '评分分布', value: 'frequency' },
+          ]}
+          value={content}
+          onChange={setContent}
+        />
+      )}
+      {content === 'frequency' && frequency ? (
+        <>
+          <div className="insight-score-picker">
+            <label htmlFor="insight-score">选择评分</label>
+            <Select
+              id="insight-score"
+              aria-label="查看评分人数"
+              showSearch={{ optionFilterProp: 'label' }}
+              value={frequency.key}
+              options={frequencies.map((metric) => ({
+                value: metric.key,
+                label: `${metric.at_score?.display ?? ''} 分`,
+              }))}
+              onChange={setScoreKey}
+            />
+          </div>
+          <div className="live-metrics live-frequency">
+            <MetricTile card={card} metric={frequency} onMetric={onMetric} />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="live-metrics">
+            {summary.map((metric) => (
+              <MetricTile key={metric.key} card={card} metric={metric} onMetric={onMetric} />
+            ))}
+          </div>
+          {quality.length > 0 && (
+            <div className="live-quality">
+              {quality.map((metric) => (
+                <Button
+                  key={metric.key}
+                  size="small"
+                  aria-label={`${card.title} ${metric.key} 查看评分证据`}
+                  onClick={() => onMetric(metric.key)}
+                >
+                  {metricLabels[metric.key]} {metric.value.value ?? '—'}
+                </Button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      <details>
+        <summary>计算说明与使用限制</summary>
+        <p className="small">{card.summary}</p>
+        <p className="small">{card.suggested_next_action}</p>
+        {card.limitations.map((item) => (
+          <p key={item} className="small">
+            {item}
+          </p>
+        ))}
+      </details>
+    </section>
+  );
+}
+function MetricTile({
+  card,
+  metric,
+  onMetric,
+}: {
+  card: InsightCard;
+  metric: InsightMetric;
+  onMetric: (key: string) => void;
+}) {
+  return (
+    <Button
+      onClick={() => onMetric(metric.key)}
+      aria-label={`${card.title} ${metric.key} 查看评分证据`}
+    >
+      <span>{metricLabel(metric)}</span>
+      <b>{metricDisplay(metric)}</b>
+      <small>查看评分证据 →</small>
+    </Button>
   );
 }

@@ -7,10 +7,18 @@ export const conditionText = (conditions: ApiCondition[]) =>
   conditions
     .map((c) => `${dimensionName(c.dimension_code)} ${operatorLabels[c.operator]} ${c.value}`)
     .join(' 且 ') || '全部参评者';
-export const metricDisplay = (metric: InsightMetric) =>
-  metric.unit === 'ratio' && metric.value.value !== null
-    ? `${(metric.value.value * 100).toFixed(2)}%`
-    : metric.value.display;
+export const scoreDisplay = (value: number | null) =>
+  value === null ? '—' : new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(value);
+export const countDisplay = (value: number | null) =>
+  value === null ? '—' : Number.isSafeInteger(value) ? String(value) : scoreDisplay(value);
+export const metricDisplay = (metric: Pick<InsightMetric, 'unit' | 'value'>) =>
+  metric.value.value === null
+    ? '—'
+    : metric.unit === 'ratio'
+      ? `${(metric.value.value * 100).toFixed(2)}%`
+      : metric.unit === 'records'
+        ? countDisplay(metric.value.value)
+        : scoreDisplay(metric.value.value);
 export const commentStatusText = (status: ApiEvidence['comment_status']) =>
   status === 'published'
     ? '已审核展示文本 · 仅限授权教师'

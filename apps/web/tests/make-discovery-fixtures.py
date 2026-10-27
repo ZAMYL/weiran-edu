@@ -16,11 +16,11 @@ def make(destination: Path, kind: str) -> None:
         rubric.merge_cells(spec.rubric_range)
         rubric[spec.rubric_range.split(':')[0]] = '合成私密依据，仅供测试'
     sheet.append([])
-    size = {'wide': 53, 'rare': 17, 'empty': 1, 'contrast': 53, 'constant': 17}[kind]
+    size = {'wide': 53, 'rare': 17, 'empty': 1, 'contrast': 53, 'constant': 17, 'contrast105': 105}[kind]
     for index in range(size):
         values = [(2, 2.75, 3, 4)[index % 4]] * 5
-        if kind == 'contrast':
-            values = [1, 5, 2.75, 3, 4] if index < 26 else [5, 1, 2.75, 3, 2]
+        if kind in ('contrast', 'contrast105'):
+            values = [1, 5, 2.75, 3, 4] if index < size // 2 else [5, 1, 2.75, 3, 2]
         if kind == 'constant':
             values = [3, 3, 3, 3, 3]
         if kind == 'rare':
@@ -36,5 +36,5 @@ if __name__ == '__main__':
     parser.add_argument('output', type=Path)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    for variant in ('wide', 'rare', 'empty', 'contrast', 'constant'):
+    for variant in ('wide', 'rare', 'empty', 'contrast', 'constant', 'contrast105'):
         make(args.output, variant)
