@@ -4,6 +4,8 @@ import { writeFile } from 'node:fs/promises';
 const sizes = [
   [1440, 900],
   [1920, 1080],
+  [1024, 768],
+  [960, 900],
   [390, 844],
 ];
 const capture = async (page, artifacts, name) => {
@@ -16,6 +18,48 @@ const capture = async (page, artifacts, name) => {
       false,
       `${name}: no document horizontal overflow at ${width}px`,
     );
+    if (name === 'diagnosis' || name === 'statistics') {
+      const regions = await page.evaluate(() => {
+        const box = (selector) => {
+          const rect = document.querySelector(selector).getBoundingClientRect();
+          return {
+            x: rect.x,
+            right: rect.right,
+            y: rect.y,
+            bottom: rect.bottom,
+            width: rect.width,
+          };
+        };
+        return {
+          intro: box('.workspace-intro'),
+          title: box('.page-title-group'),
+          toolbar: box('.assessment-toolbar'),
+          summary: box('.workspace-summary'),
+          radar: box('.radar-panel'),
+          analysis: box('.insights-right'),
+        };
+      });
+      const { intro, title, toolbar, summary, radar, analysis } = regions;
+      assert.ok(
+        title.y >= intro.y && toolbar.y >= title.bottom && toolbar.bottom <= intro.bottom + 1,
+      );
+      assert.ok(toolbar.x >= intro.x && toolbar.right <= intro.right + 1);
+      if (width > 960) {
+        assert.ok(
+          Math.abs(intro.x - radar.x) <= 1 &&
+            Math.abs(intro.width - radar.width) <= 1 &&
+            Math.abs(summary.x - analysis.x) <= 1 &&
+            Math.abs(summary.width - analysis.width) <= 1 &&
+            Math.abs(intro.y - summary.y) <= 1,
+          `${name}: header regions align with their cards at ${width}px: ${JSON.stringify(regions)}`,
+        );
+      } else {
+        assert.ok(
+          summary.y >= intro.bottom && Math.abs(summary.width - intro.width) <= 1,
+          `${name}: title and assessment actions stay together before overview at ${width}px`,
+        );
+      }
+    }
     await page.screenshot({
       path: path.join(artifacts, `after-${name}-${width}x${height}.png`),
       fullPage: false,
@@ -208,7 +252,7 @@ export async function teacherLayoutFlow({
     'No-data home uploads directly; confirmation opens diagnosis; second upload switches to 17-student zero findings',
     '105-student real findings/charts/owned evidence, controlled further exploration, memory-only report draft across navigation; batch change clears draft',
     'Current authorized batch survives reload and reopening even after a newer batch exists; history remains a secondary workspace entry',
-    'Actual 1920x1080 / 1440x900 / 390x844 screenshots; no public development jargon or nested card scrolling',
+    'Actual desktop, 1024/960 breakpoint and mobile screenshots; grouped title/actions and overview align with cards or stack in order without overflow',
   ];
 }
 

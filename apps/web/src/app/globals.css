@@ -71,8 +71,11 @@
   margin-top: auto;
 }
 .workspace-summary {
-  margin-left: auto;
-  flex: none;
+  display: flex;
+  grid-column: -2 / -1;
+  justify-content: flex-end;
+  align-items: flex-start;
+  min-width: 0;
 }
 .workspace-summary:empty {
   display: none;
@@ -517,12 +520,23 @@ p {
   padding: 26px 32px 10px;
 }
 .page-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap);
   margin-bottom: 24px;
   min-height: 58px;
+}
+.page-heading:has(> .workspace-summary:not(:empty)) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.workspace-intro {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  min-width: 0;
+}
+.workspace-intro:empty {
+  display: none;
 }
 .page-title-group {
   display: flex;
@@ -539,18 +553,19 @@ p {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin: -4px 0 24px;
+  margin: 0;
 }
 .assessment-toolbar .batch-select {
-  margin-right: auto;
-  width: 360px;
+  width: 100%;
+  min-width: 0;
 }
+.assessment-toolbar > .batch-select,
 .assessment-toolbar > .live-batch-picker {
-  flex: 0 1 360px;
-  width: 360px;
+  flex: 1 1 200px;
+  min-width: 0;
 }
-.assessment-toolbar > .fullscreen-button {
-  margin-left: auto;
+.assessment-toolbar > .ant-btn {
+  flex: none;
 }
 .discovery-card .batch-actions {
   flex-wrap: wrap;
@@ -576,7 +591,6 @@ p {
 @media (max-width: 640px) {
   .assessment-toolbar {
     gap: 8px;
-    margin-bottom: 16px;
   }
   .assessment-toolbar .batch-select {
     width: 100%;
@@ -2216,7 +2230,14 @@ h1 {
     font-size: 23px;
   }
   .page-heading {
-    align-items: flex-start;
+    align-items: start;
+  }
+  .page-heading:has(> .workspace-summary:not(:empty)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .workspace-summary .assessment-overview {
+    width: 100%;
+    justify-content: space-between;
   }
   .page-title-group {
     align-items: flex-start;
@@ -2368,7 +2389,6 @@ h1 {
     display: none;
   }
   .page-heading {
-    flex-direction: column;
     gap: 16px;
     margin-bottom: 16px;
   }

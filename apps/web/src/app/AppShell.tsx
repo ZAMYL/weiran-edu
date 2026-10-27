@@ -143,49 +143,51 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
         )}
         <div className="page-heading">
-          {!fullscreen && (
-            <div className="page-title-group">
-              <h1>{page.label}</h1>
-              <div>
-                <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</p>
+          <div className="workspace-intro">
+            {!fullscreen && (
+              <div className="page-title-group">
+                <h1>{page.label}</h1>
+                <div>
+                  <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+            {!fullscreen && (
+              <section className="assessment-toolbar" aria-label="当前测评工作台">
+                {batchSelect}
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    dataMode.openAssessments('upload');
+                    router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                  }}
+                >
+                  上传新测评
+                </Button>
+                <Button
+                  onClick={() => {
+                    dataMode.openAssessments('history');
+                    router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                  }}
+                >
+                  查看历史测评
+                </Button>
+                {dataMode.assessmentPanel && dataMode.batch && (
+                  <Button
+                    type="link"
+                    onClick={() => {
+                      dataMode.openAssessments(null);
+                      router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                    }}
+                  >
+                    返回当前诊断
+                  </Button>
+                )}
+              </section>
+            )}
+          </div>
           <div className="workspace-summary" ref={setSummaryHost} />
         </div>
-        {!fullscreen && (
-          <section className="assessment-toolbar" aria-label="当前测评工作台">
-            {batchSelect}
-            <Button
-              type="primary"
-              onClick={() => {
-                dataMode.openAssessments('upload');
-                router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
-              }}
-            >
-              上传新测评
-            </Button>
-            <Button
-              onClick={() => {
-                dataMode.openAssessments('history');
-                router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
-              }}
-            >
-              查看历史测评
-            </Button>
-            {dataMode.assessmentPanel && dataMode.batch && (
-              <Button
-                type="link"
-                onClick={() => {
-                  dataMode.openAssessments(null);
-                  router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
-                }}
-              >
-                返回当前诊断
-              </Button>
-            )}
-          </section>
-        )}
         <WorkspaceLayoutContext.Provider value={{ fullscreen, summaryHost }}>
           {children}
         </WorkspaceLayoutContext.Provider>
