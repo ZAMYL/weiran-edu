@@ -86,7 +86,7 @@ pnpm start --port 3000
 结束后在两个服务终端Ctrl+C；需要立即撤销本次合成权限时，停止服务后执行：
 
 ```powershell
-Set-Location $repo
+Set-Location (Join-Path $repo 'apps/api')
 & $py -m app.edu --database $cfg.database token-revoke --teacher-id $cfg.teacher_id
 ```
 
