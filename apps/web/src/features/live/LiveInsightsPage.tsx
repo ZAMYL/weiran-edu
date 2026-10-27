@@ -10,6 +10,9 @@ import { useRemote } from './useRemote';
 import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
 import { ServerAbilityChart } from './ServerCharts';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
+import LiveDiscoveries from './LiveDiscoveries';
+import AnalysisActions from './AnalysisActions';
+import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
   const { batch } = useDataMode();
@@ -18,6 +21,16 @@ export default function LiveInsightsPage() {
 function Insights({ batch }: { batch: ApiBatch }) {
   const { client, conditions } = useDataMode();
   const router = useRouter();
+  const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
+  const [savedSelection, setSavedSelection] = useState<{
+    key: string;
+    selection: DiscoverySelection;
+  } | null>(null);
+  const discovery = savedSelection?.key === contextKey ? savedSelection.selection : undefined;
+  const onSelection = useCallback(
+    (selection: DiscoverySelection) => setSavedSelection({ key: contextKey, selection }),
+    [contextKey],
+  );
   const [mode, setMode] = useState<'radar' | 'distribution'>('radar');
   const [includeDimensions, setIncludeDimensions] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -59,9 +72,10 @@ function Insights({ batch }: { batch: ApiBatch }) {
     });
   return (
     <div className="page-stack live-insights">
+      <AnalysisActions batch={batch} spec={spec} discovery={discovery} />
       <div className="stat-grid">
         {[
-          ['参与学生', stats.data?.statistics.scope.record_count ?? null, '人'],
+          ['参评人数', stats.data?.statistics.scope.record_count ?? null, '人'],
           ['评价记录', batch.evaluation_count, '条'],
           ['能力维度', stats.data?.statistics.dimensions.length ?? null, '个'],
         ].map(([label, value, unit]) => (
@@ -74,8 +88,8 @@ function Insights({ batch }: { batch: ApiBatch }) {
       </div>
       <div className="insights-grid">
         <Panel
-          title="五维能力概况"
-          subtitle="服务端全批次统计 · 以原始小数评分计算"
+          title="本次测评概况"
+          subtitle="测评平均分 · 基于各维度有效评分"
           action={
             <Segmented
               options={[
@@ -97,9 +111,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
                 rubric={stats.data.rubric}
                 mode={mode}
               />
-              <div className="chart-caption">
-                均值依据本批次全部有效评分计算，图形保留原始小数精度。
-              </div>
+              <div className="chart-caption">按本次测评的有效评分计算，保留原始小数精度。</div>
               <Button type="link" onClick={() => router.push('/explorer')}>
                 进入画像探索 →
               </Button>
@@ -107,9 +119,14 @@ function Insights({ batch }: { batch: ApiBatch }) {
           )}
         </Panel>
         <div className="insights-right">
+          <LiveDiscoveries
+            key={`${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`}
+            batch={batch}
+            onSelection={onSelection}
+          />
           <Panel
-            title="服务端评分洞察"
-            subtitle="系统根据当前快照生成的候选；仅供获授权教师查看。"
+            title="评分统计依据"
+            subtitle="维度评分统计，供教师查看计算依据。"
             action={<Button onClick={insights.retry}>刷新洞察</Button>}
           >
             <div className="live-insight-controls">
@@ -159,7 +176,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
                                 ? `${metric.at_score?.display ?? ''} 分人数`
                                 : ((
                                     {
-                                      mean: '均值',
+                                      mean: '测评平均分',
                                       median: '中位数',
                                       minimum: '最低分',
                                       maximum: '最高分',
@@ -213,7 +230,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
                   hideOnSinglePage
                   showSizeChanger={false}
                   onChange={(page) => setOffset((page - 1) * 10)}
-                  showTotal={(total) => `共 ${total} 张候选卡（非学生人数）`}
+                  showTotal={(total) => `共 ${total} 张候选卡`}
                 />
               </>
             )}
@@ -222,7 +239,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
             showIcon
             type="info"
             title="评语分析暂不可用"
-            description="未接入已审核的评语提供器；原文被扣留不等于空评语，也不代表零异常。正式模式不生成演示教学报告。"
+            description="当前未提供评语分析。待审核的非空评语不等于空评语。"
           />
         </div>
       </div>

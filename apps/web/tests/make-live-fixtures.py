@@ -1,4 +1,8 @@
-"""Generate only synthetic dual-Sheet workbooks in the test's temporary directory."""
+"""Synthetic competition assessments, with no shared classroom or course metadata.
+
+Files stay in the test's temporary directory. Scoring cases also exercise the
+generic assessment flow for future coursework and stage-test sources.
+"""
 import argparse
 from pathlib import Path
 

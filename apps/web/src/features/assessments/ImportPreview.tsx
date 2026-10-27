@@ -12,14 +12,16 @@ import { Panel } from '../../components/ui';
 
 export function ImportPreview({
   preview,
+  initialName,
   onCancel,
   onConfirm,
 }: {
   preview: Preview;
+  initialName: string;
   onCancel: () => void;
   onConfirm: (name: string) => void;
 }) {
-  const [name, setName] = useState(preview.filename.replace(/\.xlsx$/i, ''));
+  const [name, setName] = useState(initialName);
   const [page, setPage] = useState(1);
   const [located, setLocated] = useState<string>();
   const errors = new Set(preview.issues.flatMap((issue) => (issue.rowKey ? [issue.rowKey] : [])));
@@ -47,13 +49,13 @@ export function ImportPreview({
           </p>
         </div>
         <Button type="link" icon={<ArrowLeftOutlined />} onClick={onCancel}>
-          返回测评数据中心
+          返回测评数据
         </Button>
       </div>
       <Panel>
         <Steps
           current={1}
-          items={[{ title: '上传文件' }, { title: '预览校验' }, { title: '确认导入' }]}
+          items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
         />
       </Panel>
       <div className="preview-stats">
@@ -157,7 +159,7 @@ export function ImportPreview({
             />
           )}
           <div className="batch-name-field">
-            <label htmlFor="batch-name">新测评名称</label>
+            <label htmlFor="batch-name">测评名称</label>
             <Input
               id="batch-name"
               value={name}

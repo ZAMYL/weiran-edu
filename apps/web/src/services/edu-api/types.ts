@@ -29,7 +29,7 @@ export const conditionDto = object({
 });
 export type ApiCondition = Decoded<typeof conditionDto>;
 export const pageDto = object({ offset: count, limit: count, returned: count, has_more: flag });
-const statValueDto = object({
+export const statValueDto = object({
   value: nullable(numeric),
   exact: nullable(object({ numerator: numeric, denominator: count })),
   display: text,
@@ -93,7 +93,7 @@ export const scoreDto = object({
   score: numeric,
   evidence_id: text,
 });
-const studentDto = object({ student_id: text, display_label: text, scores: list(scoreDto) });
+export const studentDto = object({ student_id: text, display_label: text, scores: list(scoreDto) });
 export type ApiStudent = Decoded<typeof studentDto>;
 export const studentListDto = object({
   batch_id: text,
@@ -192,7 +192,7 @@ const metricDto = object({
   at_score: nullable(statValueDto),
   source_record_count: count,
 });
-const cardDto = object({
+export const cardDto = object({
   candidate_id: text,
   batch_id: text,
   snapshot_id: text,
