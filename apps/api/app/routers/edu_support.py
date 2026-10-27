@@ -2,9 +2,11 @@
 
 from fastapi import APIRouter, Request
 from starlette.concurrency import run_in_threadpool
+from starlette.requests import ClientDisconnect
 
 from app.core.errors import APIError
 from app.edu.auth import deny, require_teacher
+from app.edu.discovery_disconnect import cancellation
 from app.edu.exports import ResultExporter
 from app.edu.query import read_query
 from app.edu.service import stamp
@@ -27,9 +29,19 @@ router = APIRouter(prefix="/api/v1/edu", tags=["EDU support"])
 async def export_check(
     batch_id: str, result_id: str, request: Request, actor: Actor, backend: Backend
 ) -> ExportCheck:
-    body = await read_query(request, ExportCheckRequest)
+    try:
+        body = await read_query(request, ExportCheckRequest)
+    except ClientDisconnect:
+        raise APIError(499, "DISCOVERY_CANCELLED", "请求已断开，导出预检已取消") from None
     exporter = ResultExporter(backend.database, clock=backend.clock)
-    return await run_in_threadpool(exporter.check, actor, batch_id, result_id, **body.model_dump())
+    return await run_in_threadpool(
+        exporter.check,
+        actor,
+        batch_id,
+        result_id,
+        **body.model_dump(),
+        cancelled=cancellation(request),
+    )
 
 
 @router.get("/diagnostics/requests/{request_id}", response_model=RequestTrace, responses=ERRORS)

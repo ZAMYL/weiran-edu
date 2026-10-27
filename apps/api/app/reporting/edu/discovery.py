@@ -15,6 +15,47 @@ from app.edu.discovery_models import (
 from .models import ReportInput
 from .validation import require, source
 
+LIMITATIONS = frozenset(
+    {
+        "探索结果不是因果结论或教学效果证明；排序分数不是统计置信度。",
+        "多重探索与评分/缺失偏差未经统计检验校正，需教师核查。",
+        "仅限获授权内部使用；小样本不宜公开展示，内部引用不是权限凭证。",
+        "并列评分使用平均秩；删组检查受规范学生顺序影响。",
+        "余组排除条件不可判定者；筛选维度差异属于条件定义，不作为新发现。",
+        "差值围栏是探索启发式，不同维度分差不等价于能力差。",
+        "IQR 为零时最小分差约束仍生效。",
+        "边界变化是筛选定义的机械结果，不是新增教学诊断。",
+    }
+)
+
+
+def evidence_notes(finding: DiscoveryDetail) -> tuple[str, tuple[str, ...]]:
+    """Keep system evidence separate from teacher judgment; only reviewed fixed prose."""
+    require(
+        all(text in LIMITATIONS for text in finding.limitations), "unsupported_discovery_limitation"
+    )
+    status = {
+        "displayable": "按当前规则可展示",
+        "interpret_cautiously": "需谨慎解释",
+        "insufficient_evidence": "证据不足",
+    }[finding.status]
+    notes = []
+    if finding.ranking.support_count < finding.parameters.support_target:
+        notes.append("样本支持有限，请结合评分证据复核。")
+    stability = finding.ranking.robustness
+    if stability.method == "three_fixed_deletions":
+        if stability.evaluated < stability.planned:
+            notes.append(
+                f"稳定性检查未完成：已完成 {stability.evaluated}/{stability.planned} 次；"
+                "教师确认不代表稳定性已经验证。"
+            )
+        elif stability.passed < stability.evaluated:
+            notes.append(
+                f"稳定性检查未全部通过：{stability.passed}/{stability.evaluated} 次通过；"
+                "结果需谨慎解释。"
+            )
+    return status, (*notes, *finding.limitations)
+
 
 def exact(value: DiscoveryExact | None) -> Fraction | None:
     return Fraction(value.numerator, value.denominator) if value is not None else None
@@ -33,6 +74,7 @@ def validate_discoveries(report: ReportInput) -> None:
     scope_count = report.groups[0].matched_count if report.groups else report.record_count
     for finding in report.discoveries:
         require(type(finding) is DiscoveryDetail, "typed_discovery_required")
+        evidence_notes(finding)
         source(type(report.source)(finding.batch_id, finding.snapshot_id), report.source)
         require(
             finding == DiscoveryDetail.model_validate_json(finding.model_dump_json()),

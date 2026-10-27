@@ -13,6 +13,7 @@ from app.reporting.edu import ExportLimits, ReportError, generate_report
 
 from .analysis import DIMENSION_MAP
 from .auth import Principal
+from .discovery_disconnect import CancelCheck, check_cancelled
 from .discovery_results import DiscoveryResultService
 from .report_exports import report_input
 from .results import ResultService
@@ -70,12 +71,15 @@ class ResultExporter(ResultService):
         snapshot_id: str,
         expected_version: int,
         format: ExportFormat,
+        *,
+        cancelled: CancelCheck | None = None,
     ) -> tuple[AnalysisResult, dict, bytes, bytes | None]:
         try:
             with self.database.transaction() as connection:
                 result, payload, content = self._prepare(
                     connection, principal, batch_id, result_id, snapshot_id, expected_version
                 )
+                check_cancelled(cancelled)
                 report = None
                 if format in REPORT_FORMATS:
                     batch = self._batch(connection, principal, batch_id, snapshot_id)
@@ -86,15 +90,19 @@ class ResultExporter(ResultService):
                 # No SQLite read lock while the bounded worker recomputes selected facts.
                 asyncio.run(
                     DiscoveryResultService(self.database, clock=self.clock).verify_saved(
-                        principal, result
+                        principal, result, cancelled=cancelled
                     )
                 )
             report_content = None
+            check_cancelled(cancelled)
             if report is not None:
                 # Build once, completely in memory. Both preflight/download use these guards.
                 files = generate_report(
-                    report, limits=ExportLimits(max_file_bytes=MAX_REPORT_BYTES)
+                    report,
+                    limits=ExportLimits(max_file_bytes=MAX_REPORT_BYTES),
+                    checkpoint=lambda: check_cancelled(cancelled),
                 )
+                check_cancelled(cancelled)
                 report_content = files.xlsx if format == "xlsx" else files.markdown.encode("utf-8")
                 if len(report_content) > MAX_REPORT_BYTES:
                     raise APIError(413, "EXPORT_TOO_LARGE", "报告超过当前同步导出限制")
@@ -118,6 +126,7 @@ class ResultExporter(ResultService):
                             snapshot_id,
                             expected_version,
                         )
+            check_cancelled(cancelled)
             return result, payload, content, report_content
         except ReportError as error:
             if str(error) in {
@@ -239,9 +248,16 @@ class ResultExporter(ResultService):
         snapshot_id: str,
         expected_version: int,
         format: ExportFormat,
+        cancelled: CancelCheck | None = None,
     ) -> ExportCheck:
         result, payload, content, report_content = self._download_input(
-            principal, batch_id, result_id, snapshot_id, expected_version, format
+            principal,
+            batch_id,
+            result_id,
+            snapshot_id,
+            expected_version,
+            format,
+            cancelled=cancelled,
         )
         warnings = []
         for code, count, message in (
@@ -302,9 +318,16 @@ class ResultExporter(ResultService):
         snapshot_id: str,
         expected_version: int,
         format: ExportFormat,
+        cancelled: CancelCheck | None = None,
     ) -> tuple[bytes, str, str]:
         result, payload, content, report_content = self._download_input(
-            principal, batch_id, result_id, snapshot_id, expected_version, format
+            principal,
+            batch_id,
+            result_id,
+            snapshot_id,
+            expected_version,
+            format,
+            cancelled=cancelled,
         )
         evidence = payload["evidence"]
         filename = f"weiran-analysis-{result.result_id}-v{result.version}"
@@ -322,6 +345,7 @@ class ResultExporter(ResultService):
             ]
         ]
         for member in result.analysis.members:
+            check_cancelled(cancelled)
             scores = {score.dimension_code: score for score in member.scores}
             students.append(
                 [
@@ -347,6 +371,7 @@ class ResultExporter(ResultService):
             ]
         ]
         for scope in (result.analysis.statistics, result.analysis.group_statistics):
+            check_cancelled(cancelled)
             if scope is None:
                 continue
             for dimension in scope.dimensions:
@@ -433,6 +458,7 @@ class ResultExporter(ResultService):
         )
         output = io.BytesIO()
         with ZipFile(output, "w", ZIP_DEFLATED) as archive:
+            check_cancelled(cancelled)
             archive.writestr("analysis.json", content)
             for name, rows in (
                 ("students.csv", students),
@@ -440,6 +466,7 @@ class ResultExporter(ResultService):
                 ("confirmed-findings.csv", findings),
                 ("evidence.csv", proof_rows),
             ):
+                check_cancelled(cancelled)
                 archive.writestr(name, csv_bytes(rows))
             archive.writestr(
                 "README.txt",
@@ -452,4 +479,5 @@ class ResultExporter(ResultService):
                     "CSV 对公式起始字符增加单引号，避免作为电子表格公式执行。\n"
                 ).encode(),
             )
+        check_cancelled(cancelled)
         return output.getvalue(), "application/zip", filename + ".zip"

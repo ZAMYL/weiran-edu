@@ -13,6 +13,7 @@ from .analysis import stat
 from .auth import Principal, deny
 from .discoveries import DiscoveryReader, project
 from .discovery_bridge import DiscoveryInput
+from .discovery_disconnect import CancelCheck, cancellation, check_cancelled
 from .discovery_models import DiscoveryDetail, DiscoverySpec
 from .insight_models import InsightSpec
 from .results import ResultService
@@ -27,6 +28,8 @@ def checked_findings(
     data: DiscoveryInput,
     result: DiscoveryResult,
     ids: tuple[str, ...],
+    *,
+    cancelled: CancelCheck | None = None,
 ) -> tuple[DiscoveryDetail, ...]:
     available = {f.discovery_id: f for f in result.findings}
     if any(identifier not in available for identifier in ids):
@@ -34,7 +37,9 @@ def checked_findings(
     checked = set()
     findings = tuple(available[identifier] for identifier in ids)
     for finding in findings:
+        check_cancelled(cancelled)
         for metric in finding.sources:
+            check_cancelled(cancelled)
             resolved = sources(finding, metric.metric_key)
             if any(
                 len(evidence) != len(metric.dimensions)
@@ -54,15 +59,20 @@ def checked_findings(
                     limit=1,
                 )
                 checked.add(key)
+    check_cancelled(cancelled)
     return tuple(project(f, data) for f in findings)
 
 
 class DiscoveryResultService(ResultService):
-    async def verify_saved(self, principal: Principal, saved: AnalysisResult) -> None:
+    async def verify_saved(
+        self, principal: Principal, saved: AnalysisResult, *, cancelled: CancelCheck | None = None
+    ) -> None:
         original = saved.analysis.discovery
         assert original is not None
         reader = DiscoveryReader(self.database, clock=self.clock)
-        async with reader.calculation(principal, saved.batch_id, original.spec) as (data, result):
+        async with reader.calculation(
+            principal, saved.batch_id, original.spec, cancelled=cancelled
+        ) as (data, result):
             if any(
                 f.discovery_id not in {r.discovery_id for r in result.findings}
                 for f in original.findings
@@ -75,6 +85,7 @@ class DiscoveryResultService(ResultService):
                 data,
                 result,
                 tuple(f.discovery_id for f in original.findings),
+                cancelled=cancelled,
             )
             if data.scope != original.scope or projected != original.findings:
                 fail("DATA_INTEGRITY_ERROR", 503)
@@ -89,6 +100,7 @@ class DiscoveryResultService(ResultService):
     ) -> AnalysisResult:
         selection = body.discovery
         assert selection is not None
+        cancelled = cancellation(request)
 
         def authorize():
             with self.database.transaction() as connection:
@@ -99,13 +111,15 @@ class DiscoveryResultService(ResultService):
         await run_in_threadpool(authorize)
         reader = DiscoveryReader(self.database, clock=self.clock)
         spec = DiscoverySpec(snapshot_id=body.snapshot_id, scope_conditions=body.conditions)
-        async with reader.calculation(principal, batch_id, spec, request=request) as (data, result):
+        async with reader.calculation(
+            principal, batch_id, spec, request=request, cancelled=cancelled
+        ) as (data, result):
             if selection.input_key != data.scope.input_key:
                 raise APIError(409, "DISCOVERY_INPUT_MISMATCH", "分析范围已变化，请重新获取发现")
 
             def prepare() -> AnalysisSnapshot:
                 findings = checked_findings(
-                    reader, principal, data, result, selection.discovery_ids
+                    reader, principal, data, result, selection.discovery_ids, cancelled=cancelled
                 )
                 ids = set(data.student_ids)
                 members = tuple(s for s in data.students if s.student_id in ids)
@@ -138,5 +152,11 @@ class DiscoveryResultService(ResultService):
             snapshot = await run_in_threadpool(prepare)
         # Exit the shared bounded snapshot (including revoke/corruption checks) BEFORE write.
         return await run_in_threadpool(
-            self._save, principal, batch_id, body, snapshot, expected_input=data
+            self._save,
+            principal,
+            batch_id,
+            body,
+            snapshot,
+            expected_input=data,
+            cancelled=cancelled,
         )

@@ -16,6 +16,7 @@ from app.importing.edu.preview import validate_page
 from .analysis import DIMENSION_MAP, OPERATOR_MAP, stat
 from .auth import Principal, deny
 from .discovery_bridge import DiscoveryInput, DiscoveryInputReader
+from .discovery_disconnect import CancelCheck, check_cancelled
 from .insight_models import InsightSpec
 from .insights import InsightReader, card_view
 from .privacy import checked_text
@@ -208,7 +209,9 @@ class ResultService(BatchReader):
         snapshot: AnalysisSnapshot,
         *,
         expected_input: DiscoveryInput | None = None,
+        cancelled: CancelCheck | None = None,
     ) -> AnalysisResult:
+        check_cancelled(cancelled)
         payload = snapshot.model_dump_json()
         if len(payload.encode()) > MAX_SNAPSHOT_BYTES:
             raise APIError(413, "ANALYSIS_RESULT_TOO_LARGE", "分析结果超过保存限制")
@@ -224,6 +227,7 @@ class ResultService(BatchReader):
                     fail("DATA_INTEGRITY_ERROR", 503)
             title = checked_text(connection, batch["data_scope_id"], body.title)
             note = checked_text(connection, batch["data_scope_id"], body.note)
+            check_cancelled(cancelled)
             result_id, now = str(uuid4()), stamp(self.clock())
             connection.execute(
                 "INSERT INTO analysis_results VALUES (?,?,?,?,?,?,?)",
@@ -287,6 +291,19 @@ class ResultService(BatchReader):
     def patch(
         self, principal: Principal, batch_id: str, result_id: str, body: AnalysisPatch
     ) -> AnalysisResult:
+        # Reject inaccessible/missing results without competing for the SQLite writer.
+        # All authorization and version checks still run again under the write lock.
+        with self.database.transaction() as connection:
+            batch = self._batch(connection, principal, batch_id, body.snapshot_id)
+            require_owner(batch, principal)
+            if (
+                connection.execute(
+                    "SELECT 1 FROM analysis_results WHERE batch_id=? AND result_id=?",
+                    (batch_id, result_id),
+                ).fetchone()
+                is None
+            ):
+                deny(404)
         with self.database.transaction(write=True) as connection:
             batch = self._batch(connection, principal, batch_id, body.snapshot_id)
             require_owner(batch, principal)

@@ -20,6 +20,7 @@ from . import discovery_worker as worker
 from .analysis import CODE_MAP, DIMENSION_MAP, OPERATOR_MAP
 from .auth import Principal, deny
 from .discovery_bridge import DiscoveryInput, DiscoveryInputReader
+from .discovery_disconnect import CancelCheck, check_cancelled
 from .discovery_models import (
     DiscoveryChart,
     DiscoveryDetail,
@@ -116,11 +117,14 @@ class DiscoveryReader(DiscoveryInputReader):
         query: DiscoverySpec,
         *,
         request: Request | None = None,
+        cancelled: CancelCheck | None = None,
     ):
         started = perf_counter()
         disconnect = getattr(request.state, "edu_discovery_disconnect", None) if request else None
 
         async def disconnected() -> bool:
+            if cancelled is not None and cancelled():
+                return True
             if disconnect is not None:
                 return disconnect.is_set()
             return await request.is_disconnected() if request else False
@@ -138,7 +142,9 @@ class DiscoveryReader(DiscoveryInputReader):
                     disconnected=disconnected,
                 )
                 self.check_result(data, result)
+                check_cancelled(cancelled)
                 yield data, result
+                check_cancelled(cancelled)
             except (AnalysisInputError, ValidationError, KeyError, TypeError, ValueError):
                 fail("DATA_INTEGRITY_ERROR", 503)
 
@@ -154,8 +160,11 @@ class DiscoveryReader(DiscoveryInputReader):
     ) -> DiscoveryList | DiscoveryDetail | DiscoveryChart | DiscoveryRecords:
         if discovery_id is not None and not re.fullmatch(r"[0-9a-f]{24}", discovery_id):
             # Preserve authorization precedence for unknown IDs.
-            with self.database.transaction() as connection:
-                self._batch(connection, actor, batch_id, query.snapshot_id)
+            def authorize() -> None:
+                with self.database.transaction() as connection:
+                    self._batch(connection, actor, batch_id, query.snapshot_id)
+
+            await run_in_threadpool(authorize)
             deny(404)
         async with self.calculation(actor, batch_id, query, request=request) as (data, result):
             return await run_in_threadpool(

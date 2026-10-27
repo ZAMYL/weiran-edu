@@ -4,7 +4,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Request, Response
 from starlette.concurrency import run_in_threadpool
+from starlette.requests import ClientDisconnect
 
+from app.core.errors import APIError
+from app.edu.discovery_disconnect import cancellation
 from app.edu.discovery_results import DiscoveryResultService
 from app.edu.exports import REPORT_FORMATS, ResultExporter
 from app.edu.query import read_query, request_schema
@@ -84,7 +87,10 @@ async def create_result(
     actor: Actor,
     backend: Backend,
 ) -> AnalysisResult:
-    body = await read_query(request, AnalysisCreate)
+    try:
+        body = await read_query(request, AnalysisCreate)
+    except ClientDisconnect:
+        raise APIError(499, "DISCOVERY_CANCELLED", "请求已断开，保存已取消") from None
     if body.discovery is not None:
         return await DiscoveryResultService(backend.database, clock=backend.clock).create_discovery(
             actor, batch_id, body, request=request
@@ -158,6 +164,7 @@ async def patch_result(
 def export_result(
     batch_id: str,
     result_id: str,
+    request: Request,
     actor: Actor,
     backend: Backend,
     snapshot_id: Annotated[str, Query(min_length=1, max_length=128)],
@@ -171,6 +178,7 @@ def export_result(
         snapshot_id=snapshot_id,
         expected_version=expected_version,
         format=format,
+        cancelled=cancellation(request),
     )
     return Response(
         content,

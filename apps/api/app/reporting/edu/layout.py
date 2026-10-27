@@ -1,5 +1,6 @@
 """Presentation only: teacher sections first, exact values and provenance last."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC
 from fractions import Fraction
@@ -128,7 +129,12 @@ class Sheet:
     rows: list[Row]
 
 
-def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tuple[Sheet, ...]:
+def plan(
+    report: ReportInput,
+    include_details: bool,
+    limits: ExportLimits,
+    checkpoint: Callable[[], None] | None = None,
+) -> tuple[Sheet, ...]:
     info = Sheet("测评概况", (30, 86), [])
     stats = Sheet("维度统计", (30, 18, 18, 18, 18, 18), [])
     groups = Sheet("选定群体", (30, 62, 38), []) if report.groups else None
@@ -142,6 +148,8 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
 
     def add(sheet, *values, header=False, section=False, formats=None):
         nonlocal used
+        if checkpoint is not None:
+            checkpoint()
         formats = formats or {}
         used += len(values)
         require(
@@ -292,11 +300,15 @@ def plan(report: ReportInput, include_details: bool, limits: ExportLimits) -> tu
                 )
 
     if report.discoveries:
-        from .discovery import exact, rows
+        from .discovery import evidence_notes, exact, rows
 
         for index, finding in enumerate(report.discoveries, len(findings) + 1):
             title, metrics = rows(finding, label)
             add(facts, f"发现 {index}：{title}（教师已确认）", section=True)
+            evidence_status, notes = evidence_notes(finding)
+            add(facts, "系统证据状态", evidence_status, "与教师核验判断分别保留")
+            for note in notes:
+                add(facts, "解释限制", note)
             if finding.conditions:
                 text = "，且".join(
                     f"{label(c.dimension_code)}{OPS[c.operator]} "
