@@ -17,6 +17,7 @@ import {
   operatorLabels,
   parseThreshold,
   scoreDisplay,
+  ratioDisplay,
 } from '../../services/edu-api/view-model';
 import { useRemote } from './useRemote';
 import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
@@ -269,8 +270,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
       <div className="match-summary">
         <span>
           当前匹配 <strong>{group.data?.matched ?? '—'}</strong> / {group.data?.total ?? '—'} 人 ·
-          占参评人数{' '}
-          <b>{group.data?.ratio != null ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}</b>
+          占参评人数 <b>{ratioDisplay(group.data?.ratio ?? null)}</b>
         </span>
         <Tag>显示完整群体人数，列表分页查看</Tag>
         <p>
@@ -398,9 +398,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
               {group.data?.matched ?? '—'}
               <small> / {group.data?.total ?? '—'} 人</small>
             </strong>
-            <strong>
-              {group.data?.ratio != null ? `${(group.data.ratio * 100).toFixed(2)}%` : '—'}
-            </strong>
+            <strong>{ratioDisplay(group.data?.ratio ?? null)}</strong>
           </div>
           {group.error && <RequestError error={group.error} retry={group.retry} />}
           <div className="group-distribution">

@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
-import { metricDisplay } from './view-model';
+import { metricDisplay, scoreDisplay, ratioDisplay } from './view-model';
+import { commitDto } from './types';
 
 it('shows integer headcounts even when the server presentation has decimal places', () => {
   expect(
@@ -8,6 +9,25 @@ it('shows integer headcounts even when the server presentation has decimal place
       value: { value: 105, exact: { numerator: 105, denominator: 1 }, display: '105.00' },
     }),
   ).toBe('105');
+});
+it('uses concise numbers and never displays negative zero', () => {
+  expect(scoreDisplay(-0.0001)).toBe('0');
+  expect(scoreDisplay(3)).toBe('3');
+  expect(scoreDisplay(3.125)).toBe('3.13');
+  expect(ratioDisplay(1)).toBe('100%');
+  expect(ratioDisplay(null)).toBe('—');
+});
+it('keeps the commit snapshot reference and rejects malformed handoff values', () => {
+  const receipt = {
+    import_id: 'import',
+    batch_id: 'batch',
+    snapshot_id: 'snapshot',
+    result: 'created',
+  };
+  expect(commitDto(receipt).snapshot_id).toBe('snapshot');
+  expect(() => commitDto({ ...receipt, snapshot_id: 123 })).toThrow();
+  const legacy = { import_id: 'import', batch_id: 'batch', result: 'created' };
+  expect(commitDto(legacy).snapshot_id).toBeUndefined();
 });
 it('formats score fractions and ratios without changing the original evidence values', () => {
   const value = {

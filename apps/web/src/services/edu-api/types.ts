@@ -6,6 +6,7 @@ import {
   list,
   literal,
   nullable,
+  optional,
   numeric,
   object,
   text,
@@ -307,6 +308,19 @@ export const importDto = object({
     committed_batch_id: nullable(text),
   }),
   preview_available: flag,
+  recognized_items: optional(
+    nullable(
+      list(
+        object({
+          item_id: text,
+          display_name: text,
+          kind: text,
+          scale: object({ minimum: numeric, maximum: numeric, step: numeric }),
+          score_row_count: count,
+        }),
+      ),
+    ),
+  ),
   summary: summaryDto,
   student_samples: nullable(
     list(
@@ -375,8 +389,10 @@ export type ApiQuality = Decoded<typeof qualityDto>;
 export const commitDto = object({
   import_id: text,
   batch_id: text,
+  snapshot_id: optional(text),
   result: literal('created', 'duplicate', 'replayed'),
 });
+export type ApiCommit = Decoded<typeof commitDto>;
 export const meDto = object({ teacher_id: text });
 export const scopesDto = object({
   items: list(object({ data_scope_id: text, label: text, can_import: flag })),

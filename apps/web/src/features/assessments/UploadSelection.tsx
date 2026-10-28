@@ -9,6 +9,7 @@ export function UploadSelection({
   onClear,
   busy,
   disabled = false,
+  allowDefaultName = false,
 }: {
   filename: string;
   name: string;
@@ -17,6 +18,7 @@ export function UploadSelection({
   onClear: () => void;
   busy: boolean;
   disabled?: boolean;
+  allowDefaultName?: boolean;
 }) {
   return (
     <div className="upload-selection">
@@ -29,13 +31,24 @@ export function UploadSelection({
         value={name}
         maxLength={100}
         disabled={busy}
-        status={!name.trim() ? 'error' : undefined}
+        status={!name.trim() && !allowDefaultName ? 'error' : undefined}
         onChange={(event) => onNameChange(event.target.value)}
       />
       <p className="muted small">默认使用文件名，可直接继续或修改名称。</p>
-      {!name.trim() && <p role="alert">测评名称不能为空，可保留默认文件名。</p>}
+      {!name.trim() && (
+        <p role={allowDefaultName ? 'status' : 'alert'}>
+          {allowDefaultName
+            ? '未填写名称时，将使用文件名。'
+            : '测评名称不能为空，可保留默认文件名。'}
+        </p>
+      )}
       <div className="batch-actions">
-        <Button type="primary" loading={busy} disabled={disabled || !name.trim()} onClick={onNext}>
+        <Button
+          type="primary"
+          loading={busy}
+          disabled={disabled || (!allowDefaultName && !name.trim())}
+          onClick={onNext}
+        >
           下一步：预览校验
         </Button>
         <Button disabled={busy} onClick={onClear}>

@@ -8,14 +8,20 @@ export const conditionText = (conditions: ApiCondition[]) =>
     .map((c) => `${dimensionName(c.dimension_code)} ${operatorLabels[c.operator]} ${c.value}`)
     .join(' 且 ') || '全部参评者';
 export const scoreDisplay = (value: number | null) =>
-  value === null ? '—' : new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(value);
+  value === null || !Number.isFinite(value)
+    ? '—'
+    : new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(
+        Math.abs(value) < 0.005 ? 0 : value,
+      );
+export const ratioDisplay = (value: number | null) =>
+  value === null ? '—' : `${scoreDisplay(value * 100)}%`;
 export const countDisplay = (value: number | null) =>
   value === null ? '—' : Number.isSafeInteger(value) ? String(value) : scoreDisplay(value);
 export const metricDisplay = (metric: Pick<InsightMetric, 'unit' | 'value'>) =>
   metric.value.value === null
     ? '—'
     : metric.unit === 'ratio'
-      ? `${(metric.value.value * 100).toFixed(2)}%`
+      ? ratioDisplay(metric.value.value)
       : metric.unit === 'records'
         ? countDisplay(metric.value.value)
         : scoreDisplay(metric.value.value);

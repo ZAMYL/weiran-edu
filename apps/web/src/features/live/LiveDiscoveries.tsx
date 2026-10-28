@@ -10,7 +10,13 @@ import { ApiError } from '../../services/edu-api/client';
 import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 import type { DiscoveryDetail, DiscoverySpec } from '../../services/edu-api/discovery-types';
 import type { ApiBatch, ApiStudent } from '../../services/edu-api/types';
-import { conditionText, dimensionName, operatorLabels } from '../../services/edu-api/view-model';
+import {
+  conditionText,
+  dimensionName,
+  operatorLabels,
+  scoreDisplay,
+  ratioDisplay,
+} from '../../services/edu-api/view-model';
 import { DiscoveryChart, exactValue, scoreText } from './DiscoveryChart';
 import { LiveScoreDrawer } from './LiveStudents';
 import { LoadingPanel, RequestError } from './LiveStatus';
@@ -50,11 +56,11 @@ function sourceName(key: string) {
 function metricsText(d: DiscoveryDetail) {
   switch (d.type) {
     case 'dimension_relation':
-      return `配对学生 ${d.metrics.paired_count} 人；分析范围 ${d.metrics.student_denominator} 人；关联系数 ${d.metrics.rho?.value.toFixed(2) ?? '无法计算'}。`;
+      return `配对学生 ${d.metrics.paired_count} 人；分析范围 ${d.metrics.student_denominator} 人；关联系数 ${d.metrics.rho ? scoreDisplay(d.metrics.rho.value) : '无法计算'}。`;
     case 'group_difference':
       return `选定群体 ${d.metrics.target_count} 人，其余学生 ${d.metrics.remainder_count} 人；分析范围 ${d.metrics.student_denominator} 人。比较指标：${dimensionName(d.metrics.outcome_dimension)}。`;
     case 'rare_combination':
-      return `找到 ${d.metrics.match_count} 名学生；完整配对参考范围 ${d.metrics.pair_count} 人，占比 ${(exactValue(d.metrics.share_pairs) * 100).toFixed(1)}%。`;
+      return `找到 ${d.metrics.match_count} 名学生；完整配对参考范围 ${d.metrics.pair_count} 人，占比 ${ratioDisplay(exactValue(d.metrics.share_pairs))}。`;
     case 'boundary_sensitivity':
       return `低于边界 ${d.metrics.strict_count} 人，包含边界 ${d.metrics.inclusive_count} 人，新增 ${d.metrics.added_count} 人；分析范围 ${d.metrics.student_denominator} 人。`;
   }
@@ -88,6 +94,7 @@ export default function LiveDiscoveries({
   const checked =
     reportDraft?.key === contextKey ? (reportDraft.discovery?.discovery_ids ?? []) : [];
   const [view, setView] = useState('all');
+  const [focusId, setFocusId] = useState('');
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const spec: DiscoverySpec = useMemo(
@@ -118,6 +125,7 @@ export default function LiveDiscoveries({
     () => (resource.data?.items ?? []).filter((card) => view === 'all' || card.type === view),
     [resource.data, view],
   );
+  const focused = focus.find((item) => item.discovery_id === focusId) ?? focus[0];
   const needed = focus;
   const loadDetails = useCallback(
     async (signal: AbortSignal) => {
@@ -262,33 +270,61 @@ export default function LiveDiscoveries({
       subtitle="查看值得核查的发现及其评分依据。"
       action={focusAction ?? <Button onClick={resource.retry}>刷新发现</Button>}
     >
-      <p className="muted small">当前页按类型呈现最多三项代表性发现，不代表全量价值排序。</p>
-      {focusAction && (
-        <Button size="small" onClick={resource.retry}>
-          刷新发现
-        </Button>
-      )}
       {status}
-      {resource.data && (
-        <>
+      <div className="discovery-focus-toolbar">
+        {resource.data && (
           <p data-testid="discovery-scope">
             当前范围 {resource.data.scope.scope_record_count} 人 · 本次测评{' '}
             {resource.data.scope.batch_record_count} 人
           </p>
-          {focus.length ? (
-            renderCards(focus)
+        )}
+        {focusAction && (
+          <Button size="small" onClick={resource.retry}>
+            刷新发现
+          </Button>
+        )}
+      </div>
+      {resource.data && (
+        <>
+          <p className="muted small">
+            从当前返回页选取不同类型的最多三项发现，不代表全量价值排序。
+          </p>
+          {focus.length > 1 && (
+            <div className="discovery-focus-picker">
+              <label htmlFor="focus-discovery">查看重点发现</label>
+              <Select
+                id="focus-discovery"
+                aria-label="查看重点发现"
+                value={focused?.discovery_id}
+                onChange={setFocusId}
+                options={focus.map((item) => ({
+                  value: item.discovery_id,
+                  label: `${typeNames[item.type]} · ${item.title}`,
+                }))}
+              />
+            </div>
+          )}
+          {focused ? (
+            renderCards([focused])
           ) : (
             <Empty description="当前范围没有符合条件的发现，可调整筛选后重试。" />
           )}
         </>
       )}
       {onSelection && (
-        <p className="muted small">
-          已加入待保存 {checked.length} 项（最多三项）。
-          <Button type="link" onClick={() => choose([])}>
-            仅保存本次范围概况
-          </Button>
-        </p>
+        <div className="discovery-report-actions">
+          <span className="muted small">已加入待保存 {checked.length} 项（最多三项）。</span>
+          {checked.length > 0 && (
+            <>
+              <Button type="link" onClick={() => choose([])}>
+                清空已选
+              </Button>
+              <Button type="primary" onClick={() => router.push('/reports')}>
+                前往报告
+              </Button>
+            </>
+          )}
+        </div>
       )}
     </Panel>
   );
@@ -535,7 +571,7 @@ function DiscoveryRecordsDrawer({
                         onClick={() => setEvidence(score.evidence_id)}
                         aria-label={`${student.display_label} ${dimensionName(dimension)} 评分证据`}
                       >
-                        {score.score.toFixed(2)} 分
+                        {scoreDisplay(score.score)} 分
                       </Button>
                     ) : (
                       '—'

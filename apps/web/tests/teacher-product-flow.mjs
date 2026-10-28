@@ -178,6 +178,7 @@ export async function teacherProductFlow(h) {
   assert.equal(created.discovery_findings[0].discovery.discovery_id, chosen.discovery_id);
   assert.equal(created.discovery_findings[0].teacher_review.status, 'pending');
   assert.deepEqual(created.analysis.discovery.spec, spec);
+  assert.equal(await page.getByRole('heading', { name: '本次报告内容', exact: true }).count(), 0);
   await review()
     .locator('.review-finding')
     .getByRole('radio', { name: '已确认', exact: true })
@@ -190,6 +191,25 @@ export async function teacherProductFlow(h) {
   const reviewed = await (await updated).json();
   assert.equal(reviewed.version, 2);
   assert.equal(reviewed.discovery_findings[0].teacher_review.status, 'confirmed');
+  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  await navigation('学情诊断');
+  await navigation('分析报告');
+  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  assert.equal(
+    await review().getByRole('radio', { name: '已确认', exact: true }).isChecked(),
+    true,
+  );
+  await navigation('学情诊断');
+  await page.locator('.discoveries-panel').getByRole('checkbox').first().check();
+  await page.getByRole('button', { name: '前往报告', exact: true }).click();
+  await page.getByRole('heading', { name: '本次报告内容', exact: true }).waitFor();
+  await page
+    .getByRole('button', { name: /^移除 / })
+    .first()
+    .click();
+  assert.equal(await page.locator('.report-draft-list li').count(), 0);
+  await page.getByRole('button', { name: '已保存分析', exact: true }).click();
+  await page.getByRole('button', { name: '查看与核验', exact: true }).first().click();
   await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
   await shot('03-reviewed-discovery');
   const md = await download('md');
@@ -254,7 +274,6 @@ export async function teacherProductFlow(h) {
   assert.equal(constant.data.scope.scope_record_count, 17);
   assert.deepEqual(constant.data.items, []);
   await page.getByText('当前范围没有符合条件的发现，可调整筛选后重试。').waitFor();
-  await page.getByRole('button', { name: '仅保存本次范围概况', exact: true }).click();
   const empty = await save('合成零发现报告');
   assert.equal(empty.analysis.matched_count, 17);
   assert.equal(empty.discovery_findings?.length ?? 0, 0);
@@ -313,6 +332,8 @@ export async function teacherProductFlow(h) {
     '17 constant: zero qualified discoveries, valid empty report and manual exploration; batch switch clears origin; reader/revoked access enforced',
   );
   // Expire only this harness's synthetic credential in its disposable database.
+  await page.getByRole('button', { name: '刷新发现', exact: true }).waitFor();
+  await page.waitForLoadState('networkidle');
   execFileSync(
     python,
     [
@@ -335,8 +356,12 @@ export async function teacherProductFlow(h) {
     path.join(artifacts, 'product-result.json'),
     JSON.stringify(
       {
-        frontendBaseline: '5218af4',
-        backendRevision: '0b6eeded5ac0de174f09b015c139eb3ae2444a97',
+        frontendBaseline: execFileSync('git', ['rev-parse', 'HEAD'], {
+          encoding: 'utf8',
+          windowsHide: true,
+        }).trim(),
+        backendRevision:
+          process.env.EDU_TEST_BACKEND_REVISION ?? 'EDU_TEST_API_ROOT (local checkout)',
         backendDependency: 61,
         checks,
         chosenDiscovery: detail,

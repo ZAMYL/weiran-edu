@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, App, Button, Checkbox, Input, Pagination, Steps, Table, Tag } from 'antd';
 import { useDataMode } from '../../app/data-mode';
@@ -20,7 +20,10 @@ export default function LiveImportPreview({
   const router = useRouter();
   const [recordsOpen, setRecordsOpen] = useState(false);
   const [issuesOpen, setIssuesOpen] = useState(false);
-  const { client, batchChanged } = useDataMode();
+  const { client, batchChanged, uploadDraft, setUploadDraft } = useDataMode();
+  const committed = uploadDraft?.committed;
+  const pending = useRef<AbortController | null>(null);
+  useEffect(() => () => pending.current?.abort(), []);
   const { message } = App.useApp();
   const [rowOffset, setRowOffset] = useState(0),
     [issueOffset, setIssueOffset] = useState(0);
@@ -69,31 +72,54 @@ export default function LiveImportPreview({
     }
   }
   async function saveTitle() {
-    if (!info || !title.trim()) return;
+    if (!info || !title.trim() || pending.current) return;
+    const controller = new AbortController();
+    pending.current = controller;
     setBusy(true);
     setActionError(null);
     setAck(null);
     try {
-      await client.patchImport(importId, info.preview_version, title.trim());
+      const updated = await client.patchImport(
+        importId,
+        info.preview_version,
+        title.trim(),
+        controller.signal,
+      );
+      if (controller.signal.aborted) return;
+      if (uploadDraft)
+        setUploadDraft({ ...uploadDraft, preview: updated, title: updated.import.title });
       resource.retry();
       message.success('测评名称已更新，请重新确认本次检查结果。');
     } catch (e) {
-      if (e instanceof ApiError) setActionError(e);
+      if (!controller.signal.aborted && e instanceof ApiError) setActionError(e);
     } finally {
-      setBusy(false);
+      if (!controller.signal.aborted) {
+        setBusy(false);
+        pending.current = null;
+      }
     }
   }
   async function confirm() {
-    if (!canCommit || !info) return;
+    if ((!committed && (!canCommit || !info)) || pending.current) return;
+    const controller = new AbortController();
+    pending.current = controller;
     setBusy(true);
     setActionError(null);
     try {
-      const result = await client.commit(
-        importId,
-        info.preview_version,
-        ack === info.preview_version,
-      );
-      const batch = await client.batch(result.batch_id);
+      const result =
+        committed ??
+        (await client.commit(
+          importId,
+          info!.preview_version,
+          ack === info!.preview_version,
+          controller.signal,
+        ));
+      if (controller.signal.aborted) return;
+      if (uploadDraft) setUploadDraft({ ...uploadDraft, committed: result });
+      const batch = await client.batch(result.batch_id, controller.signal);
+      if (controller.signal.aborted) return;
+      if (result.snapshot_id && result.snapshot_id !== batch.snapshot_id)
+        throw new ApiError(409, 'SNAPSHOT_MISMATCH');
       batchChanged(batch);
       router.replace('/insights');
       message.success(
@@ -104,9 +130,12 @@ export default function LiveImportPreview({
             : '该预览已确认，已返回既有批次。',
       );
     } catch (e) {
-      if (e instanceof ApiError) setActionError(e);
+      if (!controller.signal.aborted && e instanceof ApiError) setActionError(e);
     } finally {
-      setBusy(false);
+      if (!controller.signal.aborted) {
+        setBusy(false);
+        pending.current = null;
+      }
     }
   }
   return (
@@ -114,7 +143,7 @@ export default function LiveImportPreview({
       <div className="preview-heading">
         <div>
           <h2>导入预览</h2>
-          <p className="muted">文件已自动检查，确认后导入。</p>
+          <p className="muted">{title} · 文件已检查，确认后直接进入诊断。</p>
         </div>
         <Button onClick={onCancel} disabled={busy}>
           重新选择文件
@@ -122,7 +151,7 @@ export default function LiveImportPreview({
       </div>
       <Panel>
         <Steps
-          current={1}
+          current={2}
           responsive={false}
           items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
         />
@@ -130,21 +159,35 @@ export default function LiveImportPreview({
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {actionError && <RequestError error={actionError} retry={resource.retry} />}
+      {committed && (
+        <Alert
+          type="success"
+          showIcon
+          title="文件已确认导入"
+          description="正在打开测评诊断。如加载失败，可直接重试打开，无需重新上传或再次导入。"
+        />
+      )}
       {view && info && quality && (
         <>
-          <div className="preview-stats">
-            {[
-              ['有效评分', quality.summary.valid_score_count, '条'],
-              ['缺失评分', quality.summary.missing_score_count, '条'],
-              ['无效评分', quality.summary.invalid_score_count, '条'],
-            ].map(([label, value, unit]) => (
-              <Panel className="preview-stat" key={label}>
-                <p>{label}</p>
-                <strong>{value}</strong>
-                <span>{unit}</span>
-              </Panel>
-            ))}
-          </div>
+          <section className="panel import-recognition">
+            <h3>已识别内容</h3>
+            <p>
+              参评记录 {view.summary.detected_student_count} 条 · 评分记录{' '}
+              {view.summary.parsed_evaluation_count} 条
+            </p>
+            <p className="muted small">
+              以上为文件记录数，包含需要修正的记录；正式参评人数以导入后的诊断为准。
+            </p>
+            {!!view.recognized_items?.length && (
+              <div className="recognized-items">
+                {view.recognized_items.map((item) => (
+                  <Tag key={item.item_id}>
+                    {item.display_name} · {item.scale.minimum}–{item.scale.maximum} 分
+                  </Tag>
+                ))}
+              </div>
+            )}
+          </section>
           <div className="import-preview-grid compact-import">
             <details
               className="panel original-records-section"
@@ -322,7 +365,7 @@ export default function LiveImportPreview({
                 <Checkbox
                   className="warning-ack"
                   checked={ack === info.preview_version}
-                  disabled={busy}
+                  disabled={busy || Boolean(committed)}
                   onChange={(e) => setAck(e.target.checked ? info.preview_version : null)}
                 >
                   我已查看以上提醒，确认继续导入
@@ -337,7 +380,7 @@ export default function LiveImportPreview({
                   onChange={(e) => setTitle(e.target.value)}
                   disabled={busy}
                 />
-                {edited && (
+                {edited && !committed && (
                   <Button onClick={saveTitle} loading={busy} disabled={!title.trim()}>
                     保存测评名称
                   </Button>
@@ -357,12 +400,12 @@ export default function LiveImportPreview({
           </span>
           <Button
             type="primary"
-            aria-label="确认导入"
-            disabled={!canCommit}
+            aria-label={committed ? '重新打开诊断' : '确认导入'}
+            disabled={busy || (!committed && !canCommit)}
             loading={busy}
             onClick={confirm}
           >
-            确认导入
+            {committed ? '重新打开诊断' : '确认导入'}
           </Button>
         </div>
       </section>

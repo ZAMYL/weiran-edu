@@ -3,7 +3,14 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Alert, App, Button, Input, Modal, Pagination, Segmented, Select, Tag } from 'antd';
 import { ApiError, createEduClient, type EduClient } from '../services/edu-api/client';
-import type { ApiBatch, ApiCondition, ApiScope, InsightSpec } from '../services/edu-api/types';
+import type {
+  ApiBatch,
+  ApiCommit,
+  ApiCondition,
+  ApiImport,
+  ApiScope,
+  InsightSpec,
+} from '../services/edu-api/types';
 import { Panel } from '../components/ui';
 import { useRemote } from '../features/live/useRemote';
 
@@ -21,7 +28,18 @@ export interface ReportDraft {
   showSaved?: boolean;
 }
 type Mode = 'live' | 'demo';
+export interface UploadDraft {
+  file: File | null;
+  title: string;
+  course: string;
+  date: string;
+  scope: string;
+  preview: ApiImport | null;
+  committed: ApiCommit | null;
+}
 interface SessionState {
+  activeReport: { batchId: string; snapshotId: string; resultId: string } | null;
+  uploadDraft: UploadDraft | null;
   mode: Mode;
   assessmentPanel: 'upload' | 'history' | null;
   assessmentRevision: number;
@@ -39,6 +57,8 @@ interface SessionState {
   loginOpen: boolean;
 }
 const initial: SessionState = {
+  activeReport: null,
+  uploadDraft: null,
   mode: 'live',
   assessmentPanel: null,
   assessmentRevision: 0,
@@ -56,6 +76,8 @@ const initial: SessionState = {
   loginOpen: false,
 };
 interface DataMode extends SessionState {
+  setActiveReport: (report: SessionState['activeReport']) => void;
+  setUploadDraft: (draft: UploadDraft | null) => void;
   client: EduClient;
   setReportDraft: (draft: ReportDraft | null) => void;
   openAssessments: (panel: 'upload' | 'history' | null) => void;
@@ -160,6 +182,8 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           ready: true,
           connected: true,
           reportDraft: null,
+          activeReport: null,
+          uploadDraft: null,
           assessmentPanel: null,
           teacherId: me.teacher_id,
           scopes: scopes.items,
@@ -238,6 +262,7 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       batch,
       assessmentPanel: null,
       reportDraft: null,
+      activeReport: null,
       discoveryOrigin: null,
       conditions: [],
       revision: s.revision + 1,
@@ -254,13 +279,23 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
             assessmentPanel,
             assessmentRevision: s.assessmentRevision + 1,
           })),
-        setReportDraft: (reportDraft) => setState((s) => ({ ...s, reportDraft })),
+        setReportDraft: (reportDraft) =>
+          setState((s) => ({
+            ...s,
+            reportDraft,
+            activeReport: reportDraft ? null : s.activeReport,
+          })),
+        setActiveReport: (activeReport) => setState((s) => ({ ...s, activeReport })),
+        setUploadDraft: (uploadDraft) => setState((s) => ({ ...s, uploadDraft })),
         connect,
         disconnect,
         setMode,
         openLogin: (loginOpen) => setState((s) => ({ ...s, loginOpen })),
         selectBatch,
-        batchChanged: selectBatch,
+        batchChanged: (batch) => {
+          selectBatch(batch);
+          setState((s) => ({ ...s, uploadDraft: null }));
+        },
         exploreDiscovery: (discoveryOrigin) =>
           setState((s) => ({
             ...s,

@@ -13,7 +13,7 @@ import type {
   DiscoveryChart as ChartData,
   DiscoveryExact,
 } from '../../services/edu-api/discovery-types';
-import { dimensionName } from '../../services/edu-api/view-model';
+import { dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
 
 register([
   BarChart,
@@ -26,7 +26,7 @@ register([
 ]);
 export const exactValue = (value: DiscoveryExact) => value.numerator / value.denominator;
 export const scoreText = (value: DiscoveryExact | null) =>
-  value === null ? '—' : exactValue(value).toFixed(2);
+  value === null ? '—' : scoreDisplay(exactValue(value));
 
 export function DiscoveryChart({ data }: { data: ChartData }) {
   const element = useRef<HTMLDivElement>(null);
@@ -37,7 +37,7 @@ export function DiscoveryChart({ data }: { data: ChartData }) {
       aria: { enabled: true },
       tooltip: {
         trigger: 'axis',
-        valueFormatter: (v: unknown) => (typeof v === 'number' ? v.toFixed(2) : String(v)),
+        valueFormatter: (v: unknown) => (typeof v === 'number' ? scoreDisplay(v) : String(v)),
       },
       grid: { left: 55, right: 30, top: 45, bottom: 85 },
       legend: { top: 0 },
@@ -66,7 +66,7 @@ export function DiscoveryChart({ data }: { data: ChartData }) {
               tooltip: {
                 formatter: (p: unknown) => {
                   const v = (p as { value: number[] }).value;
-                  return `${dimensionName(data.metrics.left)} ${v[0]?.toFixed(2)} 分<br/>${dimensionName(data.metrics.right)} ${v[1]?.toFixed(2)} 分<br/>${v[2]} 人`;
+                  return `${dimensionName(data.metrics.left)} ${scoreDisplay(v[0] ?? null)} 分<br/>${dimensionName(data.metrics.right)} ${scoreDisplay(v[1] ?? null)} 分<br/>${v[2]} 人`;
                 },
               },
             },

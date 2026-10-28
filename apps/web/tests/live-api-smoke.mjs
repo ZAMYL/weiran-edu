@@ -236,7 +236,7 @@ try {
       await page.getByLabel('测评名称', { exact: true }).fill('');
       assert.equal(
         await page.getByRole('button', { name: '下一步：预览校验', exact: true }).isDisabled(),
-        true,
+        false,
       );
       await page.getByLabel('测评名称', { exact: true }).fill(title);
     }
@@ -727,7 +727,7 @@ try {
     .getByText('评分分布', { exact: true })
     .click();
   await page.getByRole('combobox', { name: '查看评分人数', exact: true }).fill('5.00');
-  await page.locator('.ant-select-dropdown:visible').getByText('5.00 分', { exact: true }).click();
+  await page.locator('.ant-select-dropdown:visible').getByText('5 分', { exact: true }).click();
   assert.equal(await page.locator('.live-metrics button').count(), 1);
   const frequencyEvidence = page.waitForResponse((r) => r.url().includes('/records/query'));
   await page.locator('.live-metrics button').click();

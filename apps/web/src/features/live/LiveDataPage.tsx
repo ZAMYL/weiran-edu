@@ -15,15 +15,29 @@ import { assessmentNameFromFilename } from '../../services/assessment-name';
 import { UploadSelection } from '../assessments/UploadSelection';
 
 export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'history' }) {
-  const { client, scopes, batch, selectBatch, revision } = useDataMode();
+  const { client, scopes, batch, selectBatch, revision, uploadDraft, setUploadDraft } =
+    useDataMode();
   const router = useRouter();
-  const [course, setCourse] = useState('');
-  const [date, setDate] = useState('');
-  const [scope, setScope] = useState(scopes.find((s) => s.can_import)?.data_scope_id ?? '');
+  const importScopes = scopes.filter((s) => s.can_import);
+  const draft = uploadDraft ?? {
+    course: '',
+    date: '',
+    scope:
+      importScopes.find((scope) => scope.data_scope_id === batch?.data_scope_id)?.data_scope_id ??
+      (importScopes.length === 1 ? importScopes[0]!.data_scope_id : ''),
+    preview: null,
+    file: null,
+    title: '',
+    committed: null,
+  };
+  const { course, date, scope, preview, file: selectedFile, title } = draft;
+  const setCourse = (course: string) => setUploadDraft({ ...draft, course });
+  const setDate = (date: string) => setUploadDraft({ ...draft, date });
+  const setScope = (scope: string) => setUploadDraft({ ...draft, scope });
+  const setTitle = (title: string) => setUploadDraft({ ...draft, title });
+  const setPreview = (preview: ApiImport | null) =>
+    setUploadDraft({ ...draft, preview, committed: null });
   const [offset, setOffset] = useState(0);
-  const [preview, setPreview] = useState<ApiImport | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -40,7 +54,6 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     if (busy) return Upload.LIST_IGNORE;
     setError(null);
     setLocalError(null);
-    setSelectedFile(null);
     if (!allowed) {
       setLocalError('请选择当前有导入权的数据来源。');
       return Upload.LIST_IGNORE;
@@ -49,12 +62,17 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
       setLocalError('请选择不超过 10 MiB 的.xlsx 文件。');
       return Upload.LIST_IGNORE;
     }
-    setSelectedFile(file);
-    setTitle(assessmentNameFromFilename(file.name));
+    setUploadDraft({
+      ...draft,
+      file,
+      title: assessmentNameFromFilename(file.name),
+      preview: null,
+      committed: null,
+    });
     return Upload.LIST_IGNORE;
   }
   async function next() {
-    if (busy || !selectedFile || !title.trim() || !allowed) return;
+    if (busy || !selectedFile || !allowed) return;
     uploadController.current?.abort();
     const controller = new AbortController();
     uploadController.current = controller;
@@ -64,7 +82,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     const form = new FormData();
     form.append('file', selectedFile);
     form.append('data_scope_id', scope);
-    form.append('title', title.trim());
+    if (title.trim()) form.append('title', title.trim());
     if (course.trim()) form.append('course', course.trim());
     if (date) form.append('assessment_date', date);
     try {
@@ -80,14 +98,15 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     selectBatch(target);
     router.push('/insights');
   };
-  if (preview) return <LiveImportPreview initial={preview} onCancel={() => setPreview(null)} />;
+  if (view === 'upload' && preview)
+    return <LiveImportPreview initial={preview} onCancel={() => setPreview(null)} />;
   return (
     <div className="page-stack data-page live-data">
       {view === 'upload' && (
         <div className="data-top-grid">
           <Panel title="上传测评" className="upload-panel">
             <Steps
-              current={0}
+              current={busy ? 1 : 0}
               size="small"
               responsive={false}
               items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
@@ -152,7 +171,13 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
               <div className="upload-symbol">
                 <CloudUploadOutlined />
               </div>
-              <h3>{busy ? '正在检查文件…' : '拖拽文件至此，或选择文件'}</h3>
+              <h3>
+                {busy
+                  ? '正在检查文件…'
+                  : selectedFile
+                    ? '文件已选择，可重新选择替换'
+                    : '拖拽文件至此，或选择文件'}
+              </h3>
               <Button type="primary" tabIndex={-1} loading={busy} disabled={!allowed}>
                 选择 Excel
               </Button>
@@ -166,12 +191,12 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
                 onNameChange={setTitle}
                 onNext={next}
                 onClear={() => {
-                  setSelectedFile(null);
-                  setTitle('');
+                  setUploadDraft(null);
                   setError(null);
                   setLocalError(null);
                 }}
                 busy={busy}
+                allowDefaultName
                 disabled={!allowed}
               />
             )}

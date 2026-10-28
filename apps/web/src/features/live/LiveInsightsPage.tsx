@@ -13,7 +13,14 @@ import {
   type InsightMetric,
   type InsightSpec,
 } from '../../services/edu-api/types';
-import { conditionText, dimensionName, metricDisplay } from '../../services/edu-api/view-model';
+import {
+  conditionText,
+  dimensionName,
+  metricDisplay,
+  parseThreshold,
+  scoreDisplay,
+} from '../../services/edu-api/view-model';
+import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { ServerAbilityChart } from './ServerCharts';
@@ -281,7 +288,7 @@ const metricLabels: Record<string, string> = {
 };
 function metricLabel(metric: InsightMetric) {
   return metric.key.startsWith('frequency:')
-    ? `${metric.at_score?.display ?? ''} 分人数`
+    ? `${scoreDisplay(metric.at_score?.value ?? null)} 分人数`
     : (metricLabels[metric.key] ?? metric.key);
 }
 function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: string) => void }) {
@@ -320,11 +327,19 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
             <Select
               id="insight-score"
               aria-label="查看评分人数"
-              showSearch={{ optionFilterProp: 'label' }}
+              showSearch={{
+                filterOption: (input, option) => {
+                  const score = parseThreshold(input.trim().replace(/\s*分$/, ''));
+                  return Boolean(
+                    option?.label.includes(input) ||
+                    (score !== null && option?.label === `${scoreDisplay(score)} 分`),
+                  );
+                },
+              }}
               value={frequency.key}
               options={frequencies.map((metric) => ({
                 value: metric.key,
-                label: `${metric.at_score?.display ?? ''} 分`,
+                label: `${scoreDisplay(metric.at_score?.value ?? null)} 分`,
               }))}
               onChange={setScoreKey}
             />
@@ -349,7 +364,7 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
                   aria-label={`${card.title} ${metric.key} 查看评分证据`}
                   onClick={() => onMetric(metric.key)}
                 >
-                  {metricLabels[metric.key]} {metric.value.value ?? '—'}
+                  {metricLabels[metric.key]} {metricDisplay(metric)}
                 </Button>
               ))}
             </div>
@@ -358,7 +373,7 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
       )}
       <details>
         <summary>计算说明与使用限制</summary>
-        <p className="small">{card.summary}</p>
+        <p className="small">{discoverySummaryText(card.summary)}</p>
         <p className="small">{card.suggested_next_action}</p>
         {card.limitations.map((item) => (
           <p key={item} className="small">

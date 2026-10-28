@@ -51,6 +51,8 @@ const STATUS_MESSAGES: Record<number, string> = {
   504: '请求超时，请检查连接后重试。',
 };
 const FILE_MESSAGES: Record<string, string> = {
+  IMPORT_FORMAT_UNSUPPORTED: '当前暂不支持此文件结构，未创建测评批次。请核对文件结构后重新选择。',
+  IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
   IMPORT_FILE_INVALID:
     '当前无法识别此工作簿的结构，或文件触及解析限制。请保留原文件并核对检查要求。',
   IMPORT_FILE_TOO_LARGE: '上传文件超过当前大小限制，请检查文件后重试。',

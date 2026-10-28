@@ -103,7 +103,7 @@ export async function teacherLayoutFlow({
   assert.equal(imported.data.scope.batch_record_count, 105);
   await ready();
   assert.equal(await page.locator('.stat-grid strong').first().innerText(), '105');
-  assert.ok((await focus().getByTestId('discovery-card').count()) <= 3);
+  assert.equal(await focus().getByTestId('discovery-card').count(), 1);
   assert.equal(await page.locator('input[type=file]').count(), 0);
   await clean();
   await capture(page, artifacts, 'diagnosis');
@@ -165,6 +165,18 @@ export async function teacherLayoutFlow({
   const pane = (value) => page.getByRole('radio', { name: value, exact: true }).locator('..');
   assert.equal(await page.getByRole('radio', { name: '重点关注', exact: true }).isChecked(), true);
   await focus().getByRole('checkbox').first().check();
+  const chosen = await focus().getByTestId('discovery-card').getAttribute('data-discovery-id');
+  const picker = page.getByRole('combobox', { name: '查看重点发现', exact: true });
+  await picker.click();
+  await page.locator('.ant-select-dropdown:visible .ant-select-item-option').nth(1).click();
+  assert.notEqual(
+    await focus().getByTestId('discovery-card').getAttribute('data-discovery-id'),
+    chosen,
+  );
+  assert.equal(await focus().getByRole('checkbox').isChecked(), false);
+  await picker.click();
+  await page.locator('.ant-select-dropdown:visible .ant-select-item-option').first().click();
+  assert.equal(await focus().getByRole('checkbox').isChecked(), true);
   await pane('评分统计').click();
   await page.getByRole('combobox', { name: '查看洞察方面', exact: true }).waitFor();
   assert.equal(await focus().isVisible(), false);
@@ -249,6 +261,8 @@ export async function teacherLayoutFlow({
     ),
   );
   return [
+    'File/name and preview survive navigation; recognized items use real response; injected post-commit read failure recovers without a second commit',
+    'One focused finding at a time; switching finding and statistics preserves report selection',
     'No-data home uploads directly; confirmation opens diagnosis; second upload switches to 17-student zero findings',
     '105-student real findings/charts/owned evidence, controlled further exploration, memory-only report draft across navigation; batch change clears draft',
     'Current authorized batch survives reload and reopening even after a newer batch exists; history remains a secondary workspace entry',

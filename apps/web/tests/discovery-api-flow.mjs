@@ -219,7 +219,20 @@ try {
       (r) => r.url().includes('/imports/preview') && r.status() === 201,
     );
     await page.locator('input[type=file]').setInputFiles(path.join(temporary, `${kind}.xlsx`));
+    if (process.env.EDU_LAYOUT_FLOW === '1') {
+      await page.getByLabel('测评名称', { exact: true }).fill('');
+      assert.equal(
+        await page.getByRole('button', { name: '下一步：预览校验', exact: true }).isEnabled(),
+        true,
+      );
+    }
     await page.getByLabel('测评名称', { exact: true }).fill(title);
+    if (process.env.EDU_LAYOUT_FLOW === '1') {
+      await navigation('画像探索');
+      await navigation('测评数据');
+      assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), title);
+      await page.getByText(`已选择文件：`, { exact: false }).waitFor();
+    }
     await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     const preview = await (await previewReady).json();
     assert.equal(preview.summary.error_count, 0);
@@ -230,6 +243,13 @@ try {
       .waitFor({ state: 'attached' });
     const ack = page.getByRole('checkbox', { name: /我已查看以上提醒/ });
     if (process.env.EDU_LAYOUT_FLOW === '1') {
+      assert.ok(preview.recognized_items.length > 0);
+      const resume = waitResponse(
+        (r) => r.url().includes(`/imports/${preview.import.import_id}?`) && r.status() === 200,
+      );
+      await navigation('画像探索');
+      await navigation('测评数据');
+      assert.equal((await (await resume).json()).import.import_id, preview.import.import_id);
       await page.getByRole('heading', { name: '文件检查结果', exact: true }).waitFor();
       assert.ok((await page.locator('.issue-group').count()) < 8);
       assert.equal(await page.locator('.all-issues[open]').count(), 0);
@@ -243,11 +263,56 @@ try {
       await teacherLayoutFlow.capture(page, artifacts, `preview-${kind}`);
     }
     if (await ack.count()) await ack.check();
+    // Fault injection only: the commit still reaches real FastAPI and SQLite.
+    const recoveryCheck = process.env.EDU_LAYOUT_FLOW === '1' && kind === 'contrast105';
+    let failBatchRead = recoveryCheck;
+    let commitCalls = 0;
+    const countCommit = (request) => {
+      if (
+        request.method() === 'POST' &&
+        request.url().endsWith(`/imports/${preview.import.import_id}/commit`)
+      )
+        commitCalls++;
+    };
+    const batchRead = async (route) => {
+      if (
+        failBatchRead &&
+        route.request().method() === 'GET' &&
+        /\/batches\/[^/]+$/.test(new URL(route.request().url()).pathname)
+      ) {
+        failBatchRead = false;
+        return route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { code: 'SERVICE_UNAVAILABLE' } }),
+        });
+      }
+      return route.continue();
+    };
+    if (recoveryCheck) {
+      page.on('request', countCommit);
+      await page.route('**/api/edu/batches/*', batchRead);
+    }
     const committed = waitResponse((r) => r.url().endsWith('/commit') && r.status() === 201);
     await page.getByRole('button', { name: '确认导入', exact: true }).click();
-    const batchId = (await (await committed).json()).batch_id;
+    const receipt = await (await committed).json();
+    const batchId = receipt.batch_id;
+    if (recoveryCheck) {
+      await page.getByText('文件已确认导入', { exact: true }).waitFor();
+      await page.getByRole('button', { name: '重新打开诊断', exact: true }).click();
+    }
     await page.locator('.discoveries-panel').waitFor();
+    if (recoveryCheck) {
+      assert.equal(
+        commitCalls,
+        1,
+        'Opening a committed batch retries only the read, never another import',
+      );
+      page.off('request', countCommit);
+      await page.unroute('**/api/edu/batches/*', batchRead);
+    }
     const batch = await clientBatch(batchId);
+    if (process.env.EDU_LAYOUT_FLOW === '1') assert.equal(receipt.snapshot_id, batch.snapshot_id);
     return {
       batchId,
       data: (
