@@ -2,6 +2,14 @@
 
 更新时间：2026-10-30。交接对象：接手前端工作的 Agent / 工程师。
 
+## 2026-10-30 教师发现表达与重点发现修正
+
+继续原 #40 分支，不改三页布局、导航或后端算法。AppShell 介绍、页脚及浏览器 title / description 的定位文案删除末尾句号。`services/edu-api/discovery-presentation.ts` 集中将真实发现详情转成教师表达；主标题不再使用后端的技术标题，分组依据可直接看到，三项指标使用原始组人数、有效均值及后端差值。两组使用“符合条件的学生 / 其他可判定学生”，不翻转条件或差值方向；原始批次、快照、群体、分母和查询始终保留。说明只补充方法与限制，不再重复卡片人数和均分。
+
+普通卡片移除“待核查 / 需谨慎解释”黄色徽标；报告三态核验状态不受影响。重点区按服务端 `minimum_samples`、支持样本、关键评分可用性和明确的 `insufficient_evidence` 状态排除证据不足结果；其他结果仍可在完整列表查看，后端 qualified/retained 数量与排序不改。依据详情默认显示实际支持人数、缺失或无法分组人数、稳定性计划/完成/符合规则次数；部分检查不完整或未符合规则时明确提示稳定性有限，不把排序值当统计置信度。继续探索操作改名“继续探索这组学生”，仍只进入真实画像探索，不增加 Agent、AI 自主调查按钮或工具轨迹。
+
+新增 8 项表达层单测，总数 160。`tests/teacher-discovery-copy-e2e.mjs` 使用独立临时数据库、合成双 Sheet Excel 和真实 API 验证 53 人、15/38 分组、3.69/3.00/+0.69、真实分组条件、报告选择和原群体/快照联动；截图在忽略目录 `artifacts/teacher-copy/teacher-discovery-53-{1920,1440,390}.png`。小样本和 17 人零发现不伪造卡片，单个学生的少见组合不进入重点区。缺失评分的 Excel 按当前后端能力阻断导入；缺失均值及有效评分人数不等于组人数的显示由 DTO 单测覆盖，不能宣称正式接口已接受缺失评分测评。本轮继续交组长产品验收。
+
 ## 2026-10-30 正式上传三步：最终实现
 
 本节覆盖所有旧上传方案。用户先审查 imagegen 设计图，最终确认左侧竖向三步、右侧操作区、与其他工作台同宽；第一步蓝色虚框铺满右侧，不再是正方形，也不显示框下提示。`UploadWorkflow.tsx` 共用一个 Grid 外框和固定底部操作区，同一视口切换选择、检查、确认时宽高完全不变；展开问题和评分记录只滚动右侧内容，不扩大卡片。桌面内容最大宽度 1320px，外框高度随视口在固定范围内适配；移动端保留窄的左侧竖向步骤，不改全站导航和 9px 圆角。
@@ -187,7 +195,7 @@
 | 检查                                 | 本轮状态                                                                                            |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | lint、format:check、typecheck、build | 已通过                                                                                              |
-| `pnpm test`                          | 152 项单测及生产 smoke 已通过                                                                       |
+| `pnpm test`                          | 160 项单测及生产 smoke 已通过                                                                       |
 | `teacher-layout-e2e.mjs`             | 已通过；105/17 人、预览续接、commit 后读取恢复、发现选择、五档尺寸截图                              |
 | `teacher-product-e2e.mjs`            | 已通过；53 人原群体、报告续接/新草稿/移除、核验、真实 XLSX/Markdown、401/403/404/409                |
 | `live-api-smoke.mjs` 自动测试会话    | 本轮 23 项检查通过；包含警告版本、真实重复/重放、等价小数搜索、分页、迟到响应、撤权及失败导出无下载 |
@@ -215,6 +223,7 @@ $env:EDU_TEST_PYTHON='D:\.Dev\stu_grow\project\.local\api-venv\Scripts\python.ex
 $env:EDU_TEST_BACKEND_REVISION='27212f6 + 24c442c upload delta'
 node tests/teacher-layout-e2e.mjs
 node tests/teacher-product-e2e.mjs
+node tests/teacher-discovery-copy-e2e.mjs
 $env:EDU_BROWSER_TEST_SESSION='1'
 node tests/live-api-smoke.mjs
 ```

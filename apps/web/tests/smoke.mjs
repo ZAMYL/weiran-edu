@@ -49,7 +49,8 @@ try {
   assert.equal(home.status, 200);
   const html = await home.text();
   assert.match(html, /lang="zh-CN"/);
-  assert.match(html, /未然 EDU｜AI 时代的编程能力与学习成效诊断平台。/);
+  assert.match(html, /<title>未然 EDU｜AI 时代的编程能力与学习成效诊断平台<\/title>/);
+  assert.doesNotMatch(html, /诊断平台。/);
   assert.match(html, /学情诊断/);
   assert.match(html, /连接账户，查看测评/);
 

@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { Checkbox, Button, Drawer, Empty, Pagination, Select, Table, Tag } from 'antd';
+import { Checkbox, Button, Drawer, Empty, Pagination, Select, Table } from 'antd';
 import { useRouter } from 'next/navigation';
 import { ReloadOutlined } from '@ant-design/icons';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
@@ -8,13 +8,17 @@ import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discove
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
-import { discoverySummaryText } from '../../services/edu-api/discovery-view';
+import {
+  discoveryConditionsText,
+  discoveryEvidenceNotes,
+  discoveryPresentation,
+  eligibleForFocus,
+} from '../../services/edu-api/discovery-presentation';
 import type { DiscoveryDetail, DiscoverySpec } from '../../services/edu-api/discovery-types';
 import type { ApiBatch, ApiStudent } from '../../services/edu-api/types';
 import {
   conditionText,
   dimensionName,
-  operatorLabels,
   scoreDisplay,
   ratioDisplay,
 } from '../../services/edu-api/view-model';
@@ -31,8 +35,8 @@ const typeNames = {
 };
 const metricNames: Record<string, string> = {
   paired_scores: '配对评分学生',
-  target_members: '选定群体',
-  remainder_members: '其余学生',
+  target_members: '符合条件的学生',
+  remainder_members: '其他可判定学生',
   unevaluable_members: '无法判定的学生',
   rare_members: '少见组合学生',
   pair_reference: '完整配对参考学生',
@@ -51,7 +55,7 @@ function sourceName(key: string) {
     STRATEGY: 'solution_strategy',
   };
   return dim && codes[dim]
-    ? `${side === 'target' ? '选定群体' : '其余学生'} · ${dimensionName(codes[dim])}`
+    ? `${side === 'target' ? '符合条件的学生' : '其他可判定学生'} · ${dimensionName(codes[dim])}`
     : '查看该指标评分依据';
 }
 function metricsText(d: DiscoveryDetail) {
@@ -59,111 +63,39 @@ function metricsText(d: DiscoveryDetail) {
     case 'dimension_relation':
       return `配对学生 ${d.metrics.paired_count} 人；分析范围 ${d.metrics.student_denominator} 人；关联系数 ${d.metrics.rho ? scoreDisplay(d.metrics.rho.value) : '无法计算'}。`;
     case 'group_difference':
-      return `选定群体 ${d.metrics.target_count} 人，其余学生 ${d.metrics.remainder_count} 人；分析范围 ${d.metrics.student_denominator} 人。比较指标：${dimensionName(d.metrics.outcome_dimension)}。`;
+      return `符合条件的学生 ${d.metrics.target_count} 人，其他可判定学生 ${d.metrics.remainder_count} 人；分析范围 ${d.metrics.student_denominator} 人。比较指标：${dimensionName(d.metrics.outcome_dimension)}。`;
     case 'rare_combination':
       return `找到 ${d.metrics.match_count} 名学生；完整配对参考范围 ${d.metrics.pair_count} 人，占比 ${ratioDisplay(exactValue(d.metrics.share_pairs))}。`;
     case 'boundary_sensitivity':
       return `低于边界 ${d.metrics.strict_count} 人，包含边界 ${d.metrics.inclusive_count} 人，新增 ${d.metrics.added_count} 人；分析范围 ${d.metrics.student_denominator} 人。`;
   }
 }
-function coverage(detail: DiscoveryDetail) {
-  switch (detail.type) {
-    case 'dimension_relation':
-      return `参与配对 ${detail.metrics.paired_count} 人 / 分析范围 ${detail.metrics.student_denominator} 人`;
-    case 'group_difference':
-      return `选定群体 ${detail.metrics.target_count} 人 · 其余群体 ${detail.metrics.remainder_count} 人`;
-    case 'rare_combination':
-      return `少见组合 ${detail.metrics.match_count} 人 / 配对参考 ${detail.metrics.pair_count} 人`;
-    case 'boundary_sensitivity':
-      return `边界新增 ${detail.metrics.added_count} 人 · ${detail.metrics.strict_count} 人 → ${detail.metrics.inclusive_count} 人`;
-  }
-}
 function FocusMetrics({ detail }: { detail: DiscoveryDetail }) {
-  let metrics: { label: string; value: string; unit?: string; note?: string }[];
-  switch (detail.type) {
-    case 'group_difference': {
-      const row = detail.chart.find(
-        (item) => item.dimension_code === detail.metrics.outcome_dimension,
-      );
-      const difference = row?.difference ?? null;
-      metrics = [
-        {
-          label: `选定群体 · ${detail.metrics.target_count} 人`,
-          value: scoreText(row?.target.mean ?? null),
-          unit: '分',
-          note:
-            row && row.target.valid_count !== detail.metrics.target_count
-              ? `有效评分 ${row.target.valid_count} 人`
-              : undefined,
-        },
-        {
-          label: `其余群体 · ${detail.metrics.remainder_count} 人`,
-          value: scoreText(row?.remainder.mean ?? null),
-          unit: '分',
-          note:
-            row && row.remainder.valid_count !== detail.metrics.remainder_count
-              ? `有效评分 ${row.remainder.valid_count} 人`
-              : undefined,
-        },
-        {
-          label: '均分差',
-          value: `${difference && exactValue(difference) > 0 ? '+' : ''}${scoreText(difference)}`,
-          unit: '分',
-          note: '选定减其余',
-        },
-      ];
-      break;
-    }
-    case 'dimension_relation':
-      metrics = [
-        {
-          label: '评分关联系数',
-          value: detail.metrics.rho ? scoreDisplay(detail.metrics.rho.value) : '—',
-        },
-        { label: '参与配对', value: String(detail.metrics.paired_count), unit: '人' },
-        { label: '未配对', value: String(detail.metrics.excluded_count), unit: '人' },
-      ];
-      break;
-    case 'rare_combination':
-      metrics = [
-        { label: '少见组合', value: String(detail.metrics.match_count), unit: '人' },
-        { label: '配对参考', value: String(detail.metrics.pair_count), unit: '人' },
-        { label: '占配对参考', value: ratioDisplay(exactValue(detail.metrics.share_pairs)) },
-      ];
-      break;
-    case 'boundary_sensitivity':
-      metrics = [
-        { label: '低于边界', value: String(detail.metrics.strict_count), unit: '人' },
-        { label: '包含边界', value: String(detail.metrics.inclusive_count), unit: '人' },
-        { label: '边界新增', value: String(detail.metrics.added_count), unit: '人' },
-      ];
-      break;
-  }
-  const primary =
-    detail.type === 'dimension_relation' || detail.type === 'rare_combination' ? 0 : 2;
+  const presentation = discoveryPresentation(detail);
   return (
-    <>
-      <dl className="focus-metrics" aria-label="发现关键指标">
-        {metrics.map((metric, index) => (
-          <div
-            key={metric.label}
-            className={index === primary ? 'focus-metric-primary' : undefined}
-          >
-            <dt>{metric.label}</dt>
-            <dd>
-              <strong>{metric.value}</strong>
-              {metric.unit && <span>{metric.unit}</span>}
-            </dd>
-            {metric.note && <p>{metric.note}</p>}
-          </div>
-        ))}
-      </dl>
-      {detail.type === 'dimension_relation' && (
-        <p className="focus-interpretation">相关不代表因果</p>
-      )}
-    </>
+    <dl className="focus-metrics" aria-label="发现关键指标">
+      {presentation.metrics.map((metric, index) => (
+        <div
+          key={metric.label}
+          className={index === presentation.primary ? 'focus-metric-primary' : undefined}
+        >
+          <dt>{metric.label}</dt>
+          <dd>
+            <strong>{metric.value}</strong>
+            {metric.unit && <span>{metric.unit}</span>}
+          </dd>
+          {metric.note && <p>{metric.note}</p>}
+        </div>
+      ))}
+    </dl>
   );
 }
+const fallbackTitles = {
+  dimension_relation: '查看两项评分的关联',
+  group_difference: '查看两组学生的评分比较',
+  rare_combination: '查看少见的评分组合',
+  boundary_sensitivity: '查看筛选边界的人数变化',
+};
 export default function LiveDiscoveries({
   batch,
   onSelection,
@@ -202,46 +134,58 @@ export default function LiveDiscoveries({
     `discoveries:${batch.batch_id}:${JSON.stringify(spec)}:${offset}`,
     load,
   );
-  const items = resource.data?.items ?? [];
-  const focus = useMemo(
-    () =>
-      (resource.data?.items ?? [])
-        .filter((card, index, all) => all.findIndex((other) => other.type === card.type) === index)
-        .slice(0, 3),
-    [resource.data],
+  const items = useMemo(() => resource.data?.items ?? [], [resource.data]);
+  const needed = useMemo(
+    () => items.filter((card) => card.status !== 'insufficient_evidence'),
+    [items],
   );
   const visible = useMemo(
-    () => (resource.data?.items ?? []).filter((card) => view === 'all' || card.type === view),
-    [resource.data, view],
+    () => items.filter((card) => view === 'all' || card.type === view),
+    [items, view],
   );
-  const focused = focus.find((item) => item.discovery_id === focusId) ?? focus[0];
-  const needed = focus;
   const loadDetails = useCallback(
     async (signal: AbortSignal) => {
       const result: Record<string, DiscoveryDetail> = {};
       // Sequential, bounded reads retain the backend's eligibility and concurrency checks.
-      for (const card of needed)
-        result[card.discovery_id] = await client.discoveryDetail(
-          batch,
-          card.discovery_id,
-          spec,
-          signal,
-        );
+      const represented = new Set<DiscoveryDetail['type']>();
+      for (const card of needed) {
+        if (represented.has(card.type)) continue;
+        const detail = await client.discoveryDetail(batch, card.discovery_id, spec, signal);
+        result[card.discovery_id] = detail;
+        if (eligibleForFocus(detail)) represented.add(detail.type);
+        if (represented.size >= 3) break;
+      }
       return result;
     },
     [client, batch, spec, needed],
   );
   const details = useRemote(
-    needed.length && selected === null ? `discovery-card-details:${contextKey}:${offset}` : null,
+    needed.length ? `discovery-card-details:${contextKey}:${offset}` : null,
     loadDetails,
   );
+  const focus = useMemo(
+    () =>
+      items
+        .filter((card) => {
+          const detail = details.data?.[card.discovery_id];
+          return detail && eligibleForFocus(detail);
+        })
+        .filter((card, index, all) => all.findIndex((other) => other.type === card.type) === index)
+        .slice(0, 3),
+    [items, details.data],
+  );
+  const focused = focus.find((item) => item.discovery_id === focusId) ?? focus[0];
+  const titleFor = (card: (typeof items)[number]) => {
+    const detail = details.data?.[card.discovery_id];
+    return detail ? discoveryPresentation(detail).title : fallbackTitles[card.type];
+  };
   const choose = (ids: string[]) => {
     if (!resource.data || !onSelection) return;
     const names = [
       ...new Map(
         [
           ...(reportDraft?.key === contextKey ? reportDraft.names : []),
-          ...items.map((card) => ({ id: card.discovery_id, title: card.title })),
+          ...items.map((card) => ({ id: card.discovery_id, title: titleFor(card) })),
         ]
           .filter((item) => ids.includes(item.id))
           .map((item) => [item.id, item]),
@@ -262,9 +206,14 @@ export default function LiveDiscoveries({
             data-discovery-id={card.discovery_id}
           >
             <div className="finding-top">
-              <h3>{card.title}</h3>
-              <Tag color="gold">{card.status === 'displayable' ? '待核查' : '需谨慎解释'}</Tag>
+              <h3>{titleFor(card)}</h3>
             </div>
+            {detail && <p className="focus-grouping">{discoveryPresentation(detail).grouping}</p>}
+            {detail?.type === 'group_difference' && detail.metrics.unevaluable_count > 0 && (
+              <p className="focus-group-exclusions">
+                另有 {detail.metrics.unevaluable_count} 人无法判定分组条件，未进入比较
+              </p>
+            )}
             {detail ? (
               <FocusMetrics detail={detail} />
             ) : (
@@ -274,8 +223,7 @@ export default function LiveDiscoveries({
             )}
             <details className="focus-explanation">
               <summary>发现说明</summary>
-              {detail && <p>{coverage(detail)}</p>}
-              <p>{discoverySummaryText(card.summary)}</p>
+              {detail && <p>{discoveryPresentation(detail).explanation}</p>}
             </details>
             <div className="batch-actions focus-card-actions">
               <Button type="primary" onClick={() => setSelected(card.discovery_id)}>
@@ -290,11 +238,11 @@ export default function LiveDiscoveries({
                   }
                 }}
               >
-                进一步探索
+                继续探索这组学生
               </Button>
               {onSelection && (
                 <Checkbox
-                  aria-label={`加入报告 ${card.title}`}
+                  aria-label={`加入报告 ${titleFor(card)}`}
                   checked={checked.includes(card.discovery_id)}
                   disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
                   onChange={(e) =>
@@ -324,14 +272,23 @@ export default function LiveDiscoveries({
           data-discovery-id={card.discovery_id}
         >
           <div>
-            <h3>{card.title}</h3>
-            <p className="muted small">{discoverySummaryText(card.summary)}</p>
+            <h3>{titleFor(card)}</h3>
+            {details.data?.[card.discovery_id] && (
+              <p className="muted small">
+                {discoveryPresentation(details.data[card.discovery_id]!).grouping}
+              </p>
+            )}
+            {(card.status === 'insufficient_evidence' ||
+              (details.data?.[card.discovery_id] &&
+                !eligibleForFocus(details.data[card.discovery_id]!))) && (
+              <p className="muted small">样本或评分依据不足，仅供查看</p>
+            )}
           </div>
           <div className="batch-actions">
             <Button onClick={() => setSelected(card.discovery_id)}>查看发现与依据</Button>
             {onSelection && (
               <Checkbox
-                aria-label={`加入报告 ${card.title}`}
+                aria-label={`加入报告 ${titleFor(card)}`}
                 checked={checked.includes(card.discovery_id)}
                 disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
                 onChange={(event) =>
@@ -401,19 +358,29 @@ export default function LiveDiscoveries({
               />
             </div>
           )}
-          {focused ? (
+          {details.loading && needed.length ? (
+            <p role="status">正在读取发现依据…</p>
+          ) : focused ? (
             renderCards([focused])
           ) : (
-            <div className="discovery-empty">
-              <Empty description="当前范围没有符合条件的发现" />
-              <p className="muted small">
-                未发现符合当前规则的现象，不代表没有学习问题。可先查看评分分布，再探索具体群体。
-              </p>
-              <div className="batch-actions">
-                {onShowStatistics && <Button onClick={onShowStatistics}>查看评分统计</Button>}
-                <Button onClick={() => router.push('/explorer')}>进入画像探索</Button>
+            !details.error && (
+              <div className="discovery-empty">
+                <Empty
+                  description={
+                    items.length ? '当前发现的依据不足以重点展示' : '当前范围没有符合条件的发现'
+                  }
+                />
+                <p className="muted small">
+                  {items.length
+                    ? '可在下方全部发现中核查样本和评分依据。'
+                    : '未发现符合当前规则的现象，不代表没有学习问题。可先查看评分分布，再探索具体群体。'}
+                </p>
+                <div className="batch-actions">
+                  {onShowStatistics && <Button onClick={onShowStatistics}>查看评分统计</Button>}
+                  <Button onClick={() => router.push('/explorer')}>进入画像探索</Button>
+                </div>
               </div>
-            </div>
+            )
           )}
           {focused && <p className="discovery-selection-note">当前页代表发现，非全量排序。</p>}
         </>
@@ -558,18 +525,10 @@ export function DiscoveryDetailDrawer({
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
         {d && resource.data && (
           <>
-            <h2>{d.title}</h2>
+            <h2>{discoveryPresentation(d).title}</h2>
             <p>分析范围：{conditionText(spec.scope_conditions)}</p>
             {d.conditions.length > 0 && (
-              <p>
-                发现条件：
-                {d.conditions
-                  .map(
-                    (c) =>
-                      `${dimensionName(c.dimension_code)} ${operatorLabels[c.operator]} ${scoreText(c.threshold)}`,
-                  )
-                  .join(' 且 ')}
-              </p>
+              <p>分组或筛选条件：{discoveryConditionsText(d.conditions)}</p>
             )}
             <p data-testid="discovery-metrics">{metricsText(d)}</p>
             {reportSelection && (
@@ -602,8 +561,11 @@ export function DiscoveryDetailDrawer({
                     render: (_, row) =>
                       `${dimensionName(row.dimension_code)}${row.condition_defined ? '（筛选维度）' : ''}`,
                   },
-                  { title: '群体均值', render: (_, row) => scoreText(row.target.mean) },
-                  { title: '其余学生均值', render: (_, row) => scoreText(row.remainder.mean) },
+                  { title: '符合条件学生均值', render: (_, row) => scoreText(row.target.mean) },
+                  {
+                    title: '其他可判定学生均值',
+                    render: (_, row) => scoreText(row.remainder.mean),
+                  },
                   { title: '均值差', render: (_, row) => scoreText(row.difference) },
                 ]}
               />
@@ -619,7 +581,7 @@ export function DiscoveryDetailDrawer({
                 router.push(discoveryUrl(origin));
               }}
             >
-              在画像探索查看原群体
+              继续探索这组学生
             </Button>
             <h3>查看学生与评分依据</h3>
             <div className="live-metrics">
@@ -629,17 +591,12 @@ export function DiscoveryDetailDrawer({
                 </Button>
               ))}
             </div>
-            {d.limitations.length > 0 && (
-              <details>
-                <summary>解释与使用边界</summary>
-                {d.limitations.map((v) => (
-                  <p key={v}>{v}</p>
-                ))}
-              </details>
-            )}
-            <p className="muted small">
-              发现是评分现象，需结合教学情境核查。可在画像探索中调整分析范围。
-            </p>
+            <section className="discovery-evidence-notes" aria-label="样本与使用限制">
+              <h3>样本与使用限制</h3>
+              {discoveryEvidenceNotes(d).map((note) => (
+                <p key={note}>{note}</p>
+              ))}
+            </section>
           </>
         )}
       </Drawer>

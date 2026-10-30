@@ -85,14 +85,14 @@ export function DiscoveryChart({ data }: { data: ChartData }) {
           series: [
             {
               type: 'bar',
-              name: '选定群体',
+              name: '符合条件的学生',
               data: data.chart.map((p) =>
                 p.target.mean === null ? null : exactValue(p.target.mean),
               ),
             },
             {
               type: 'bar',
-              name: '其余学生',
+              name: '其他可判定学生',
               data: data.chart.map((p) =>
                 p.remainder.mean === null ? null : exactValue(p.remainder.mean),
               ),

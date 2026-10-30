@@ -144,7 +144,10 @@ export async function teacherProductFlow(h) {
   await page.getByTestId('discovery-chart').locator('svg').waitFor();
   await shot('01-discovery-desktop');
   const membersResponse = wait((r) => r.url().endsWith('/records/query') && r.status() === 200);
-  await page.getByRole('button', { name: '在画像探索查看原群体', exact: true }).click();
+  await page
+    .getByRole('dialog', { name: '发现详情', exact: true })
+    .getByRole('button', { name: '继续探索这组学生', exact: true })
+    .click();
   const original = await (await membersResponse).json();
   assert.equal(original.total_count, detail.metrics.target_count);
   await page

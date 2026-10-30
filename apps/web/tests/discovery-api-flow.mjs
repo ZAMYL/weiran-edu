@@ -13,6 +13,7 @@ import { chromium } from 'playwright';
 import { teacherLayoutFlow } from './teacher-layout-flow.mjs';
 import { teacherProductFlow, credentialRelayFlow } from './teacher-product-flow.mjs';
 import { renameImport } from './upload-workflow-utils.mjs';
+import { teacherDiscoveryCopyFlow } from './teacher-discovery-copy-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..');
@@ -34,7 +35,9 @@ const artifacts = path.join(
     ? 'artifacts/auth-relay'
     : process.env.EDU_PRODUCT_FLOW === '1'
       ? 'artifacts/teacher-product'
-      : 'artifacts/discovery-flow',
+      : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
+        ? 'artifacts/teacher-copy'
+        : 'artifacts/discovery-flow',
 );
 await mkdir(artifacts, { recursive: true });
 const env = {
@@ -367,7 +370,20 @@ try {
     await page.getByTestId('discovery-record-count').waitFor();
     return result;
   }
-  if (process.env.EDU_LAYOUT_FLOW === '1') {
+  if (process.env.EDU_DISCOVERY_COPY_FLOW === '1') {
+    checks.push(
+      ...(await teacherDiscoveryCopyFlow({
+        page,
+        origin,
+        artifacts,
+        temporary,
+        navigation,
+        importThroughPage,
+        post,
+        closeTop,
+      })),
+    );
+  } else if (process.env.EDU_LAYOUT_FLOW === '1') {
     checks.push(
       ...(await teacherLayoutFlow({
         page,
@@ -446,7 +462,7 @@ try {
     checkpoint = 'detail, full chart and original group';
     const full = await openCard();
     assert.equal(full.metrics.student_denominator, 53);
-    const sourceButton = full.type === 'group_difference' ? '选定群体' : '配对评分学生';
+    const sourceButton = full.type === 'group_difference' ? '符合条件的学生' : '配对评分学生';
     const participants = await records(sourceButton);
     const count = participants.total_count;
     assert.ok(count > 10);
@@ -504,7 +520,7 @@ try {
         groupChart.metrics.unevaluable_count,
       53,
     );
-    assert.equal((await records('选定群体')).total_count, groupChart.metrics.target_count);
+    assert.equal((await records('符合条件的学生')).total_count, groupChart.metrics.target_count);
     await closeTop();
     await shot('group-chart');
     await closeTop();

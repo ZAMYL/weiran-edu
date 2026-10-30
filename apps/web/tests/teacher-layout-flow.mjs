@@ -264,7 +264,7 @@ export async function teacherLayoutFlow({
   await closeTop();
   await closeTop();
   await closeTop();
-  await focus().getByRole('button', { name: '进一步探索', exact: true }).first().click();
+  await focus().getByRole('button', { name: '继续探索这组学生', exact: true }).first().click();
   await page.locator('.match-summary').filter({ hasText: '105 / 105' }).waitFor();
   assert.ok(new URL(page.url()).searchParams.has('discovery'));
   const portraitReply = page

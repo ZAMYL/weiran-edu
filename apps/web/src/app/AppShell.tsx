@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     (dataMode.assessmentPanel === 'upload' ||
       (dataMode.connected && !dataMode.batch && dataMode.assessmentPanel !== 'history'));
   useEffect(() => {
-    document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台。';
+    document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
   }, [page]);
   useEffect(() => {
     const sync = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -160,7 +160,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <h1>{uploadWorkspace ? '上传测评' : page.label}</h1>
                 {!uploadWorkspace && (
                   <div>
-                    <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</p>
+                    <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台</p>
                   </div>
                 )}
               </div>
@@ -221,7 +221,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </WorkspaceLayoutContext.Provider>
       </main>
       <footer className="app-footer">
-        <span>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</span>
+        <span>未然 EDU｜AI 时代的编程能力与学习成效诊断平台</span>
         <span>评分与发现供授权教师核查使用</span>
       </footer>
       <Modal
