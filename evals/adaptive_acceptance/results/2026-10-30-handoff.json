@@ -1,0 +1,2671 @@
+{
+  "execution_baseline": "34bb0d081889848ef282e4bc52b1c56ac19302fb",
+  "kind": "handoff_gap_reproduction_v1",
+  "paid_api_calls": 0,
+  "real_qwen": "not_run",
+  "all_negative_proposals_are_explicit_fault_injections": true,
+  "A": {
+    "prior": {
+      "status": "completed",
+      "reason": "completed",
+      "source_fingerprint": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "run_id": "run-8455af9bf3ac4333",
+      "model_requests": 0,
+      "policy_decisions": 4,
+      "tool_attempts": 3,
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-8455af9bf3ac4333-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-8455af9bf3ac4333-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-8455af9bf3ac4333-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcomes": [
+              "I02"
+            ]
+          }
+        }
+      ],
+      "model_proposals": [],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-8455af9bf3ac4333-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-8455af9bf3ac4333-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-8455af9bf3ac4333-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-8455af9bf3ac4333-f002",
+            "run-8455af9bf3ac4333-f003"
+          ],
+          "error": null
+        }
+      ],
+      "issued_fact_ids": [
+        "run-8455af9bf3ac4333-f001",
+        "run-8455af9bf3ac4333-f002",
+        "run-8455af9bf3ac4333-f003"
+      ],
+      "selected_ids": [
+        "run-8455af9bf3ac4333-f002",
+        "run-8455af9bf3ac4333-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-8455af9bf3ac4333-f002",
+          "discovery_id": "b345d6425588b66889a97ea7",
+          "type": "item_relation"
+        },
+        {
+          "fact_id": "run-8455af9bf3ac4333-f003",
+          "discovery_id": "7e35fe77213b3b2aac7278c9",
+          "type": "item_group_difference"
+        }
+      ],
+      "grade": {
+        "status": "completed",
+        "reason": "completed",
+        "executed": true,
+        "coverage": {
+          "count": 1,
+          "denominator": 1
+        },
+        "computed_coverage": {
+          "count": 1,
+          "denominator": 1
+        },
+        "missed_targets": [],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 0,
+        "data_accuracy": {
+          "count": 3,
+          "denominator": 3
+        },
+        "source_accuracy": {
+          "count": 3,
+          "denominator": 3
+        },
+        "illegal_tool_proposals": 0,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 1,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": null,
+        "model_requests": 0,
+        "tool_attempts": 3,
+        "elapsed_seconds": 1.5243011999409646,
+        "operation_counts": {
+          "agent.py:_verify": 2,
+          "analysis.py:group": 3,
+          "agent.py:derive": 6,
+          "agent.py:_gate": 7,
+          "analysis.py:_pair": 12,
+          "analysis.py:statistics": 29
+        },
+        "fact_checks": [
+          {
+            "fact_id": "run-8455af9bf3ac4333-f001",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "91bd3f47688b1c05bc0954198f3a2bf0ec6e22c68f2da5f661896931bc01ec8f"
+          },
+          {
+            "fact_id": "run-8455af9bf3ac4333-f002",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "712112fd346adbb71f9ba5fd8fdc58f6954bcad6d0ee83f16345d081aa480eef",
+            "errors": [],
+            "source_digest": "3b3a976b9a20f9c465f0140dcd81a10e96728cdd36566e72b39ae59ae6fd7e8d"
+          },
+          {
+            "fact_id": "run-8455af9bf3ac4333-f003",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a",
+            "errors": [],
+            "source_digest": "03f21d2c5a76bea7bca2b9b661d5140db1133e9b14c7afc7abbd0f9db44822bf"
+          }
+        ],
+        "passed": true
+      },
+      "elapsed_seconds": 1.5243011999409646,
+      "budget": null,
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "fresh_without_handoff": {
+      "status": "completed",
+      "reason": "completed",
+      "source_fingerprint": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "run_id": "run-5bdbb768833941a7",
+      "model_requests": 5,
+      "policy_decisions": 5,
+      "tool_attempts": 4,
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcomes": [
+              "I02"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-5bdbb768833941a7-f003"
+          }
+        }
+      ],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "get_dimension_statistics",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 2,
+          "decision": {
+            "name": "query_dimension_relation",
+            "arguments": {
+              "left": "I01",
+              "right": "I02"
+            },
+            "basis_fact_ids": [
+              "run-5bdbb768833941a7-f001"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 3,
+          "decision": {
+            "name": "compare_student_groups",
+            "arguments": {
+              "conditions": [
+                {
+                  "item_id": "I01",
+                  "operator": "<=",
+                  "threshold": "1"
+                }
+              ],
+              "outcomes": [
+                "I02"
+              ]
+            },
+            "basis_fact_ids": [
+              "run-5bdbb768833941a7-f002"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 4,
+          "decision": {
+            "name": "inspect_discovery_support",
+            "arguments": {
+              "fact_id": "run-5bdbb768833941a7-f003"
+            },
+            "basis_fact_ids": [
+              "run-5bdbb768833941a7-f003"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 5,
+          "decision": {
+            "name": "finish",
+            "arguments": {
+              "selected_fact_ids": [
+                "run-5bdbb768833941a7-f002",
+                "run-5bdbb768833941a7-f003"
+              ],
+              "reason": "completed"
+            },
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-5bdbb768833941a7-f002",
+            "run-5bdbb768833941a7-f003"
+          ],
+          "error": null
+        }
+      ],
+      "issued_fact_ids": [
+        "run-5bdbb768833941a7-f001",
+        "run-5bdbb768833941a7-f002",
+        "run-5bdbb768833941a7-f003",
+        "run-5bdbb768833941a7-f004"
+      ],
+      "selected_ids": [
+        "run-5bdbb768833941a7-f002",
+        "run-5bdbb768833941a7-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-5bdbb768833941a7-f002",
+          "discovery_id": "b345d6425588b66889a97ea7",
+          "type": "item_relation"
+        },
+        {
+          "fact_id": "run-5bdbb768833941a7-f003",
+          "discovery_id": "7e35fe77213b3b2aac7278c9",
+          "type": "item_group_difference"
+        }
+      ],
+      "grade": {
+        "status": "completed",
+        "reason": "completed",
+        "executed": true,
+        "coverage": {
+          "count": 1,
+          "denominator": 1
+        },
+        "computed_coverage": {
+          "count": 1,
+          "denominator": 1
+        },
+        "missed_targets": [],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 0,
+        "data_accuracy": {
+          "count": 4,
+          "denominator": 4
+        },
+        "source_accuracy": {
+          "count": 4,
+          "denominator": 4
+        },
+        "illegal_tool_proposals": 0,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 1,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": {
+          "request_count": 5,
+          "charged_tokens": 6500,
+          "charged_cny_upper_bound": "0.00580"
+        },
+        "model_requests": 5,
+        "tool_attempts": 4,
+        "elapsed_seconds": 8.962663099868223,
+        "operation_counts": {
+          "agent.py:_verify": 13,
+          "analysis.py:group": 6,
+          "agent.py:derive": 12,
+          "agent.py:_gate": 7,
+          "analysis.py:_pair": 24,
+          "analysis.py:statistics": 53
+        },
+        "fact_checks": [
+          {
+            "fact_id": "run-5bdbb768833941a7-f001",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "91bd3f47688b1c05bc0954198f3a2bf0ec6e22c68f2da5f661896931bc01ec8f"
+          },
+          {
+            "fact_id": "run-5bdbb768833941a7-f002",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "712112fd346adbb71f9ba5fd8fdc58f6954bcad6d0ee83f16345d081aa480eef",
+            "errors": [],
+            "source_digest": "3b3a976b9a20f9c465f0140dcd81a10e96728cdd36566e72b39ae59ae6fd7e8d"
+          },
+          {
+            "fact_id": "run-5bdbb768833941a7-f003",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a",
+            "errors": [],
+            "source_digest": "03f21d2c5a76bea7bca2b9b661d5140db1133e9b14c7afc7abbd0f9db44822bf"
+          },
+          {
+            "fact_id": "run-5bdbb768833941a7-f004",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "03f21d2c5a76bea7bca2b9b661d5140db1133e9b14c7afc7abbd0f9db44822bf"
+          }
+        ],
+        "passed": true
+      },
+      "elapsed_seconds": 8.962663099868223,
+      "budget": {
+        "origin": "http_mock",
+        "max_requests": 6,
+        "request_count": 5,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "blocked": null
+      },
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "untrusted_previous_id_attempt": {
+      "status": "failed",
+      "reason": "unknown_fact_id",
+      "source_fingerprint": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "run_id": "run-b2b5de02b56d4258",
+      "model_requests": 1,
+      "policy_decisions": 1,
+      "tool_attempts": 0,
+      "tool_ledger": [],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "finish",
+            "arguments": {
+              "selected_fact_ids": [
+                "run-8455af9bf3ac4333-f002",
+                "run-8455af9bf3ac4333-f003"
+              ],
+              "reason": "completed"
+            },
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": false
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "validation",
+          "status": "rejected",
+          "tool": null,
+          "fact_ids": [],
+          "error": "unknown_fact_id"
+        }
+      ],
+      "issued_fact_ids": [],
+      "selected_ids": [],
+      "cards": [],
+      "grade": {
+        "status": "failed",
+        "reason": "unknown_fact_id",
+        "executed": true,
+        "coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "computed_coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "missed_targets": [
+          "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a"
+        ],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 2,
+        "data_accuracy": {
+          "count": 0,
+          "denominator": 0
+        },
+        "source_accuracy": {
+          "count": 0,
+          "denominator": 0
+        },
+        "illegal_tool_proposals": 1,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 0,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": {
+          "request_count": 1,
+          "charged_tokens": 1100,
+          "charged_cny_upper_bound": "0.001"
+        },
+        "model_requests": 1,
+        "tool_attempts": 0,
+        "elapsed_seconds": 0.93122319993563,
+        "operation_counts": {},
+        "fact_checks": [],
+        "passed": false
+      },
+      "elapsed_seconds": 0.93122319993563,
+      "budget": {
+        "origin": "http_mock",
+        "max_requests": 6,
+        "request_count": 1,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "charged_tokens": 1100,
+        "charged_cny_upper_bound": "0.001",
+        "blocked": null
+      },
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "comparison": {
+      "prior_correct_findings": 2,
+      "retained_semantics": 2,
+      "retained_original_fact_ids": 0,
+      "new_verified_findings": 0,
+      "omitted_prior_findings": 0,
+      "cross_run_republished_semantics": 2
+    },
+    "recomputed_same_tool_queries": 3,
+    "original_ledger_unchanged": true,
+    "safe_handoff_supported": false,
+    "goal_status": "not_met_no_admission_mechanism"
+  },
+  "B": {
+    "prior": {
+      "status": "completed",
+      "reason": "completed",
+      "source_fingerprint": "11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+      "snapshot_id": "11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+      "run_id": "run-617f193e0791403d",
+      "model_requests": 0,
+      "policy_decisions": 4,
+      "tool_attempts": 3,
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-617f193e0791403d-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-617f193e0791403d-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "Q01",
+            "right": "Q02"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-617f193e0791403d-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          }
+        }
+      ],
+      "model_proposals": [],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-617f193e0791403d-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-617f193e0791403d-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-617f193e0791403d-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-617f193e0791403d-f002",
+            "run-617f193e0791403d-f003"
+          ],
+          "error": null
+        }
+      ],
+      "issued_fact_ids": [
+        "run-617f193e0791403d-f001",
+        "run-617f193e0791403d-f002",
+        "run-617f193e0791403d-f003"
+      ],
+      "selected_ids": [
+        "run-617f193e0791403d-f002",
+        "run-617f193e0791403d-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-617f193e0791403d-f002",
+          "discovery_id": "1a0860cad0f8652b0af37167",
+          "type": "item_relation"
+        },
+        {
+          "fact_id": "run-617f193e0791403d-f003",
+          "discovery_id": "d6634274ac15fd2c8fa370ee",
+          "type": "item_group_difference"
+        }
+      ],
+      "grade": {
+        "status": "completed",
+        "reason": "completed",
+        "executed": true,
+        "coverage": {
+          "count": 2,
+          "denominator": 3
+        },
+        "computed_coverage": {
+          "count": 2,
+          "denominator": 3
+        },
+        "missed_targets": [
+          "8a2c0ddd3c199be63e09b6980c4574a3e842b7a99dcbad978ea21d542dcd9522"
+        ],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 0,
+        "data_accuracy": {
+          "count": 3,
+          "denominator": 3
+        },
+        "source_accuracy": {
+          "count": 3,
+          "denominator": 3
+        },
+        "illegal_tool_proposals": 0,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 0,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": null,
+        "model_requests": 0,
+        "tool_attempts": 3,
+        "elapsed_seconds": 2.2723216000013053,
+        "operation_counts": {
+          "agent.py:_verify": 2,
+          "analysis.py:group": 3,
+          "agent.py:derive": 6,
+          "agent.py:_gate": 15,
+          "analysis.py:_pair": 12,
+          "analysis.py:statistics": 37
+        },
+        "fact_checks": [
+          {
+            "fact_id": "run-617f193e0791403d-f001",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "2d9648a4d95ebbe9d1735d5abf768bc46dc11476c878fa2cf3f471b74d459138"
+          },
+          {
+            "fact_id": "run-617f193e0791403d-f002",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "3550a347b769ce1bfd5f6b4e34a059c1b0d6cff3b474e80fe25e7134ad80393a",
+            "errors": [],
+            "source_digest": "ff783323a34379f5be8dbb95ecce700b9daf6ee940c4402a55ad054e66dffb93"
+          },
+          {
+            "fact_id": "run-617f193e0791403d-f003",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "2fce716c1b80454d920ce9597c7244d6349bc5581473104de085f26c9c140612",
+            "errors": [],
+            "source_digest": "73cbc89c2eaa0168521c4c56cc47b4ea316bdad4c286a2cc7c1b4ddd2fb33b3e"
+          }
+        ],
+        "passed": false
+      },
+      "elapsed_seconds": 2.2723216000013053,
+      "budget": null,
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "fresh_investigation": {
+      "status": "completed",
+      "reason": "completed",
+      "source_fingerprint": "11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+      "snapshot_id": "11307eca94480917d6221f77ef12a02c9057b841e48ac08c58a08bd2c692b2c5",
+      "run_id": "run-c01b4bb4f4c84eb2",
+      "model_requests": 5,
+      "policy_decisions": 5,
+      "tool_attempts": 4,
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "inspect_item_quality",
+          "status": "accepted",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "item_id": "Q13"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "Q01",
+                "operator": "<=",
+                "threshold": "20"
+              }
+            ],
+            "outcomes": [
+              "Q02"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-c01b4bb4f4c84eb2-f003"
+          }
+        }
+      ],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "get_dimension_statistics",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 2,
+          "decision": {
+            "name": "inspect_item_quality",
+            "arguments": {
+              "item_id": "Q13"
+            },
+            "basis_fact_ids": [
+              "run-c01b4bb4f4c84eb2-f001"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 3,
+          "decision": {
+            "name": "compare_student_groups",
+            "arguments": {
+              "conditions": [
+                {
+                  "item_id": "Q01",
+                  "operator": "<=",
+                  "threshold": "20"
+                }
+              ],
+              "outcomes": [
+                "Q02"
+              ]
+            },
+            "basis_fact_ids": [
+              "run-c01b4bb4f4c84eb2-f002"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 4,
+          "decision": {
+            "name": "inspect_discovery_support",
+            "arguments": {
+              "fact_id": "run-c01b4bb4f4c84eb2-f003"
+            },
+            "basis_fact_ids": [
+              "run-c01b4bb4f4c84eb2-f003"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 5,
+          "decision": {
+            "name": "finish",
+            "arguments": {
+              "selected_fact_ids": [
+                "run-c01b4bb4f4c84eb2-f002",
+                "run-c01b4bb4f4c84eb2-f003"
+              ],
+              "reason": "completed"
+            },
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_item_quality",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_item_quality",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-c01b4bb4f4c84eb2-f002",
+            "run-c01b4bb4f4c84eb2-f003"
+          ],
+          "error": null
+        }
+      ],
+      "issued_fact_ids": [
+        "run-c01b4bb4f4c84eb2-f001",
+        "run-c01b4bb4f4c84eb2-f002",
+        "run-c01b4bb4f4c84eb2-f003",
+        "run-c01b4bb4f4c84eb2-f004"
+      ],
+      "selected_ids": [
+        "run-c01b4bb4f4c84eb2-f002",
+        "run-c01b4bb4f4c84eb2-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-c01b4bb4f4c84eb2-f002",
+          "discovery_id": "35a4e658ae586124d4d44c4f",
+          "type": "item_quality_review"
+        },
+        {
+          "fact_id": "run-c01b4bb4f4c84eb2-f003",
+          "discovery_id": "d6634274ac15fd2c8fa370ee",
+          "type": "item_group_difference"
+        }
+      ],
+      "grade": {
+        "status": "completed",
+        "reason": "completed",
+        "executed": true,
+        "coverage": {
+          "count": 2,
+          "denominator": 3
+        },
+        "computed_coverage": {
+          "count": 2,
+          "denominator": 3
+        },
+        "missed_targets": [
+          "3550a347b769ce1bfd5f6b4e34a059c1b0d6cff3b474e80fe25e7134ad80393a"
+        ],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 0,
+        "data_accuracy": {
+          "count": 4,
+          "denominator": 4
+        },
+        "source_accuracy": {
+          "count": 4,
+          "denominator": 4
+        },
+        "illegal_tool_proposals": 0,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 0,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": {
+          "request_count": 5,
+          "charged_tokens": 6500,
+          "charged_cny_upper_bound": "0.00580"
+        },
+        "model_requests": 5,
+        "tool_attempts": 4,
+        "elapsed_seconds": 13.151225500041619,
+        "operation_counts": {
+          "agent.py:_verify": 13,
+          "analysis.py:group": 6,
+          "agent.py:derive": 12,
+          "agent.py:_gate": 15,
+          "analysis.py:quality": 6,
+          "analysis.py:statistics": 67
+        },
+        "fact_checks": [
+          {
+            "fact_id": "run-c01b4bb4f4c84eb2-f001",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "2d9648a4d95ebbe9d1735d5abf768bc46dc11476c878fa2cf3f471b74d459138"
+          },
+          {
+            "fact_id": "run-c01b4bb4f4c84eb2-f002",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "8a2c0ddd3c199be63e09b6980c4574a3e842b7a99dcbad978ea21d542dcd9522",
+            "errors": [],
+            "source_digest": "c887e2f3214d8a4e4883a9d91b518b9e6ce611cd30006a66165e6c4703d84c99"
+          },
+          {
+            "fact_id": "run-c01b4bb4f4c84eb2-f003",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "2fce716c1b80454d920ce9597c7244d6349bc5581473104de085f26c9c140612",
+            "errors": [],
+            "source_digest": "73cbc89c2eaa0168521c4c56cc47b4ea316bdad4c286a2cc7c1b4ddd2fb33b3e"
+          },
+          {
+            "fact_id": "run-c01b4bb4f4c84eb2-f004",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "73cbc89c2eaa0168521c4c56cc47b4ea316bdad4c286a2cc7c1b4ddd2fb33b3e"
+          }
+        ],
+        "passed": false
+      },
+      "elapsed_seconds": 13.151225500041619,
+      "budget": {
+        "origin": "http_mock",
+        "max_requests": 6,
+        "request_count": 5,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "blocked": null
+      },
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "comparison": {
+      "prior_correct_findings": 2,
+      "retained_semantics": 1,
+      "retained_original_fact_ids": 0,
+      "new_verified_findings": 1,
+      "omitted_prior_findings": 1,
+      "cross_run_republished_semantics": 1
+    },
+    "unspent_tool_attempts": 1,
+    "unspent_model_decisions": 1,
+    "goal_status": "correct_new_quality_fact_but_prior_relation_omitted",
+    "safe_continuation": "not_run_no_admission_mechanism"
+  },
+  "C": {
+    "empty_gap": {
+      "status": "completed",
+      "reason": "insufficient_data",
+      "source_fingerprint": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "run_id": "run-5c3fc83ac1aa4c3b",
+      "model_requests": 3,
+      "policy_decisions": 3,
+      "tool_attempts": 2,
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-5c3fc83ac1aa4c3b-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-5c3fc83ac1aa4c3b-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          }
+        }
+      ],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "get_dimension_statistics",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 2,
+          "decision": {
+            "name": "query_dimension_relation",
+            "arguments": {
+              "left": "I01",
+              "right": "I02"
+            },
+            "basis_fact_ids": [
+              "run-5c3fc83ac1aa4c3b-f001"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 3,
+          "decision": {
+            "name": "finish",
+            "arguments": {
+              "selected_fact_ids": [],
+              "reason": "insufficient_data"
+            },
+            "basis_fact_ids": [
+              "run-5c3fc83ac1aa4c3b-f002"
+            ]
+          },
+          "legal_domain_request": true
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-5c3fc83ac1aa4c3b-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-5c3fc83ac1aa4c3b-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-5c3fc83ac1aa4c3b-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-5c3fc83ac1aa4c3b-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        }
+      ],
+      "issued_fact_ids": [
+        "run-5c3fc83ac1aa4c3b-f001",
+        "run-5c3fc83ac1aa4c3b-f002"
+      ],
+      "selected_ids": [],
+      "cards": [],
+      "grade": {
+        "status": "completed",
+        "reason": "insufficient_data",
+        "executed": true,
+        "coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "computed_coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "missed_targets": [
+          "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a"
+        ],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 0,
+        "data_accuracy": {
+          "count": 2,
+          "denominator": 2
+        },
+        "source_accuracy": {
+          "count": 2,
+          "denominator": 2
+        },
+        "illegal_tool_proposals": 0,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 0,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": {
+          "request_count": 3,
+          "charged_tokens": 3600,
+          "charged_cny_upper_bound": "0.00324"
+        },
+        "model_requests": 3,
+        "tool_attempts": 2,
+        "elapsed_seconds": 3.9014427000656724,
+        "operation_counts": {
+          "agent.py:_verify": 3,
+          "agent.py:derive": 3,
+          "agent.py:_gate": 6,
+          "analysis.py:_pair": 12,
+          "analysis.py:statistics": 5
+        },
+        "fact_checks": [
+          {
+            "fact_id": "run-5c3fc83ac1aa4c3b-f001",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "91bd3f47688b1c05bc0954198f3a2bf0ec6e22c68f2da5f661896931bc01ec8f"
+          },
+          {
+            "fact_id": "run-5c3fc83ac1aa4c3b-f002",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "712112fd346adbb71f9ba5fd8fdc58f6954bcad6d0ee83f16345d081aa480eef",
+            "errors": [],
+            "source_digest": "3b3a976b9a20f9c465f0140dcd81a10e96728cdd36566e72b39ae59ae6fd7e8d"
+          }
+        ],
+        "passed": false
+      },
+      "elapsed_seconds": 3.9014427000656724,
+      "budget": {
+        "origin": "http_mock",
+        "max_requests": 6,
+        "request_count": 3,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "charged_tokens": 3600,
+        "charged_cny_upper_bound": "0.00324",
+        "blocked": null
+      },
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "keep_and_gap": {
+      "status": "failed",
+      "reason": "inconsistent_stop_reason",
+      "source_fingerprint": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "run_id": "run-f623ad08e1f24ec0",
+      "model_requests": 3,
+      "policy_decisions": 3,
+      "tool_attempts": 2,
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-f623ad08e1f24ec0-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-f623ad08e1f24ec0-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          }
+        }
+      ],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "get_dimension_statistics",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 2,
+          "decision": {
+            "name": "query_dimension_relation",
+            "arguments": {
+              "left": "I01",
+              "right": "I02"
+            },
+            "basis_fact_ids": [
+              "run-f623ad08e1f24ec0-f001"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 3,
+          "decision": {
+            "name": "finish",
+            "arguments": {
+              "selected_fact_ids": [
+                "run-f623ad08e1f24ec0-f002"
+              ],
+              "reason": "insufficient_data"
+            },
+            "basis_fact_ids": [
+              "run-f623ad08e1f24ec0-f002"
+            ]
+          },
+          "legal_domain_request": true
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-f623ad08e1f24ec0-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-f623ad08e1f24ec0-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-f623ad08e1f24ec0-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-f623ad08e1f24ec0-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "validation",
+          "status": "rejected",
+          "tool": null,
+          "fact_ids": [],
+          "error": "inconsistent_stop_reason"
+        }
+      ],
+      "issued_fact_ids": [
+        "run-f623ad08e1f24ec0-f001",
+        "run-f623ad08e1f24ec0-f002"
+      ],
+      "selected_ids": [],
+      "cards": [],
+      "grade": {
+        "status": "failed",
+        "reason": "inconsistent_stop_reason",
+        "executed": true,
+        "coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "computed_coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "missed_targets": [
+          "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a"
+        ],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 0,
+        "data_accuracy": {
+          "count": 2,
+          "denominator": 2
+        },
+        "source_accuracy": {
+          "count": 2,
+          "denominator": 2
+        },
+        "illegal_tool_proposals": 0,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 0,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": {
+          "request_count": 3,
+          "charged_tokens": 3600,
+          "charged_cny_upper_bound": "0.00324"
+        },
+        "model_requests": 3,
+        "tool_attempts": 2,
+        "elapsed_seconds": 4.460982499876991,
+        "operation_counts": {
+          "agent.py:_verify": 4,
+          "agent.py:derive": 4,
+          "agent.py:_gate": 6,
+          "analysis.py:_pair": 16,
+          "analysis.py:statistics": 5
+        },
+        "fact_checks": [
+          {
+            "fact_id": "run-f623ad08e1f24ec0-f001",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "91bd3f47688b1c05bc0954198f3a2bf0ec6e22c68f2da5f661896931bc01ec8f"
+          },
+          {
+            "fact_id": "run-f623ad08e1f24ec0-f002",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "712112fd346adbb71f9ba5fd8fdc58f6954bcad6d0ee83f16345d081aa480eef",
+            "errors": [],
+            "source_digest": "3b3a976b9a20f9c465f0140dcd81a10e96728cdd36566e72b39ae59ae6fd7e8d"
+          }
+        ],
+        "passed": false
+      },
+      "elapsed_seconds": 4.460982499876991,
+      "budget": {
+        "origin": "http_mock",
+        "max_requests": 6,
+        "request_count": 3,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "charged_tokens": 3600,
+        "charged_cny_upper_bound": "0.00324",
+        "blocked": null
+      },
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "unavailable_rubric": {
+      "status": "failed",
+      "reason": "invalid_model_response",
+      "source_fingerprint": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "run_id": "run-6d37612b717e49a1",
+      "model_requests": 3,
+      "policy_decisions": 3,
+      "tool_attempts": 2,
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-6d37612b717e49a1-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-6d37612b717e49a1-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          }
+        }
+      ],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "get_dimension_statistics",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 2,
+          "decision": {
+            "name": "query_dimension_relation",
+            "arguments": {
+              "left": "I01",
+              "right": "I02"
+            },
+            "basis_fact_ids": [
+              "run-6d37612b717e49a1-f001"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 3,
+          "decision": {
+            "name": "get_rubric_criteria",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": false
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-6d37612b717e49a1-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-6d37612b717e49a1-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-6d37612b717e49a1-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "validation",
+          "status": "rejected",
+          "tool": null,
+          "fact_ids": [],
+          "error": "invalid_model_response"
+        }
+      ],
+      "issued_fact_ids": [
+        "run-6d37612b717e49a1-f001",
+        "run-6d37612b717e49a1-f002"
+      ],
+      "selected_ids": [],
+      "cards": [],
+      "grade": {
+        "status": "failed",
+        "reason": "invalid_model_response",
+        "executed": true,
+        "coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "computed_coverage": {
+          "count": 0,
+          "denominator": 1
+        },
+        "missed_targets": [
+          "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a"
+        ],
+        "false_discoveries": 0,
+        "duplicate_discoveries": 0,
+        "card_projection_errors": [],
+        "duplicate_final_proposals": 0,
+        "wrong_final_proposals": 0,
+        "data_accuracy": {
+          "count": 2,
+          "denominator": 2
+        },
+        "source_accuracy": {
+          "count": 2,
+          "denominator": 2
+        },
+        "illegal_tool_proposals": 1,
+        "disclosure_errors": [],
+        "zero_finding_correct": null,
+        "verified_extra_selected": 0,
+        "actual_tokens": null,
+        "actual_cost_cny": null,
+        "http_usage_fixture": {
+          "request_count": 3,
+          "charged_tokens": 3600,
+          "charged_cny_upper_bound": "0.00324"
+        },
+        "model_requests": 3,
+        "tool_attempts": 2,
+        "elapsed_seconds": 4.034964699996635,
+        "operation_counts": {
+          "agent.py:_verify": 3,
+          "agent.py:derive": 3,
+          "agent.py:_gate": 6,
+          "analysis.py:_pair": 12,
+          "analysis.py:statistics": 5
+        },
+        "fact_checks": [
+          {
+            "fact_id": "run-6d37612b717e49a1-f001",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": false,
+            "signature": null,
+            "errors": [],
+            "source_digest": "91bd3f47688b1c05bc0954198f3a2bf0ec6e22c68f2da5f661896931bc01ec8f"
+          },
+          {
+            "fact_id": "run-6d37612b717e49a1-f002",
+            "data_correct": true,
+            "sources_correct": true,
+            "qualified": true,
+            "signature": "712112fd346adbb71f9ba5fd8fdc58f6954bcad6d0ee83f16345d081aa480eef",
+            "errors": [],
+            "source_digest": "3b3a976b9a20f9c465f0140dcd81a10e96728cdd36566e72b39ae59ae6fd7e8d"
+          }
+        ],
+        "passed": false
+      },
+      "elapsed_seconds": 4.034964699996635,
+      "budget": {
+        "origin": "http_mock",
+        "max_requests": 6,
+        "request_count": 3,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "charged_tokens": 3600,
+        "charged_cny_upper_bound": "0.00324",
+        "blocked": null
+      },
+      "usage_cost_origin": "fixture_only_not_real_tokens_or_invoice",
+      "real_qwen": "not_run"
+    },
+    "probe_kind": "scripted_negative_protocol_probes_not_autonomous_decisions",
+    "rubric_tool_in_adaptive_whitelist": false,
+    "goal_status": "not_met_no_preserve_and_evidence_gap_outcome"
+  },
+  "go_no_go": "do_not_expand_or_run_paid_effectiveness_test_until_handoff_contract_review",
+  "full_native_protocol_reproducible_with": "python -m evals.adaptive_acceptance.handoff_probe --output NEW.json"
+}
