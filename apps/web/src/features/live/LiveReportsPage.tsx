@@ -1,6 +1,6 @@
 'use client';
 import { useDataMode } from '../../app/data-mode';
-import { Button, Tag } from 'antd';
+import { Button } from 'antd';
 import { Panel } from '../../components/ui';
 import { NoBatch } from './LiveStatus';
 import { conditionText } from '../../services/edu-api/view-model';
@@ -34,7 +34,6 @@ export default function LiveReportsPage() {
                     .map((item) => (
                       <li key={item.id}>
                         <span>{item.title}</span>
-                        <Tag color="gold">已加入待保存</Tag>
                         <Button
                           size="small"
                           type="text"

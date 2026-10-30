@@ -123,7 +123,6 @@ export default function InsightsPage() {
                 <em>占参评人数</em>
               </strong>
             </div>
-            <p>{students.length} 名学生同时符合上述两项评分条件。</p>
             <div className="finding-actions">
               <Button onClick={() => setPanel('evidence')}>查看 {students.length} 人依据</Button>
               <Button type="text" onClick={openExplorer}>
@@ -133,7 +132,6 @@ export default function InsightsPage() {
           </section>
           <Panel
             title="评语主题与原始依据"
-            subtitle="从原始评语中检索线索，结合记录理解群体表现。"
             action={
               <Button type="link" onClick={() => setPanel('evidence')}>
                 查看依据 <ArrowRightOutlined />

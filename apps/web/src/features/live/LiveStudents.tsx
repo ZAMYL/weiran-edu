@@ -27,6 +27,7 @@ export function LiveStudentTable({
   onPage,
   onStudent,
   onEvidence,
+  onProfile,
 }: {
   items: ApiStudent[];
   total: number;
@@ -34,6 +35,7 @@ export function LiveStudentTable({
   onPage: (offset: number) => void;
   onStudent: (student: ApiStudent) => void;
   onEvidence?: (evidenceId: string) => void;
+  onProfile?: (student: ApiStudent) => void;
 }) {
   return (
     <Table<ApiStudent>
@@ -80,13 +82,24 @@ export function LiveStudentTable({
           title: '操作',
           key: 'detail',
           render: (_, student) => (
-            <Button
-              type="link"
-              onClick={() => onStudent(student)}
-              aria-label={`查看 ${student.display_label} 正式详情`}
-            >
-              详情 →
-            </Button>
+            <div className="student-row-actions">
+              {onProfile && (
+                <Button
+                  type="link"
+                  aria-label={`查看 ${student.display_label} 能力画像`}
+                  onClick={() => onProfile(student)}
+                >
+                  能力画像
+                </Button>
+              )}
+              <Button
+                type="link"
+                onClick={() => onStudent(student)}
+                aria-label={`查看 ${student.display_label} 正式详情`}
+              >
+                详情 →
+              </Button>
+            </div>
           ),
         },
       ]}
@@ -116,9 +129,11 @@ function EvidenceContent({ evidence }: { evidence: ApiEvidence }) {
         <dd>
           {evidence.source.dimension_cell} / {evidence.source.comment_cell}
         </dd>
-        <dt>文件摘要</dt>
-        <dd>{evidence.source.file_sha256}</dd>
       </dl>
+      <details className="technical-details">
+        <summary>文件校验信息</summary>
+        <p className="small">{evidence.source.file_sha256}</p>
+      </details>
     </Panel>
   );
 }
@@ -175,7 +190,10 @@ export function LiveScoreDrawer({
                 {criterion.source.sheet_name} · {criterion.source.range}
               </p>
             )}
-            <p className="muted small">标准版本：{resource.data.rubric.rubric_version}</p>
+            <details className="technical-details">
+              <summary>标准版本</summary>
+              <p className="muted small">{resource.data.rubric.rubric_version}</p>
+            </details>
           </Panel>
         </>
       )}

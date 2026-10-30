@@ -12,6 +12,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { teacherLayoutFlow } from './teacher-layout-flow.mjs';
 import { teacherProductFlow, credentialRelayFlow } from './teacher-product-flow.mjs';
+import { renameImport } from './upload-workflow-utils.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..');
@@ -169,10 +170,19 @@ try {
   });
   const shot = (name) =>
     page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage: true });
-  const navigation = (name) =>
-    name === '测评数据'
-      ? page.getByRole('button', { name: '上传新测评', exact: true }).click()
-      : page.getByRole('link', { name, exact: true }).click();
+  const navigation = async (name) => {
+    if (name !== '测评数据') {
+      await page.getByRole('link', { name, exact: true }).click();
+      await page.getByRole('heading', { name, exact: true, level: 1 }).waitFor();
+      return;
+    }
+    if (await page.locator('.upload-workspace-heading').count()) {
+      const reselect = page.getByRole('button', { name: '更换文件', exact: true });
+      if (await reselect.count()) await reselect.click();
+      return;
+    }
+    await page.getByRole('button', { name: '上传新测评', exact: true }).click();
+  };
   const panel = () => page.locator('.all-discoveries-panel');
   const waitResponse = (predicate) => {
     const pending = page.waitForResponse(predicate);
@@ -219,24 +229,19 @@ try {
       (r) => r.url().includes('/imports/preview') && r.status() === 201,
     );
     await page.locator('input[type=file]').setInputFiles(path.join(temporary, `${kind}.xlsx`));
-    if (process.env.EDU_LAYOUT_FLOW === '1') {
-      await page.getByLabel('测评名称', { exact: true }).fill('');
-      assert.equal(
-        await page.getByRole('button', { name: '下一步：预览校验', exact: true }).isEnabled(),
-        true,
-      );
-    }
-    await page.getByLabel('测评名称', { exact: true }).fill(title);
+    const preview = await (await previewReady).json();
+    assert.equal(preview.summary.error_count, 0);
+    await page.getByRole('heading', { name: '文件检查结果', exact: true }).waitFor();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), kind);
+    await renameImport(page, title);
     if (process.env.EDU_LAYOUT_FLOW === '1') {
       await navigation('画像探索');
       await navigation('测评数据');
       assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), title);
-      await page.getByText(`已选择文件：`, { exact: false }).waitFor();
+      await page.getByRole('heading', { name: `${kind}.xlsx`, exact: true }).waitFor();
+      if (kind === 'contrast105')
+        await teacherLayoutFlow.capture(page, artifacts, 'upload-selected');
     }
-    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
-    const preview = await (await previewReady).json();
-    assert.equal(preview.summary.error_count, 0);
-    await page.getByRole('heading', { name: '导入预览' }).waitFor();
     await page
       .locator('.source-details')
       .filter({ hasText: '预览版本' })
@@ -244,12 +249,13 @@ try {
     const ack = page.getByRole('checkbox', { name: /我已查看以上提醒/ });
     if (process.env.EDU_LAYOUT_FLOW === '1') {
       assert.ok(preview.recognized_items.length > 0);
+      await navigation('画像探索');
+      await page.waitForLoadState('networkidle');
       const resume = waitResponse(
         (r) => r.url().includes(`/imports/${preview.import.import_id}?`) && r.status() === 200,
-      );
-      await navigation('画像探索');
+      ).then((response) => response.json());
       await navigation('测评数据');
-      assert.equal((await (await resume).json()).import.import_id, preview.import.import_id);
+      assert.equal((await resume).import.import_id, preview.import.import_id);
       await page.getByRole('heading', { name: '文件检查结果', exact: true }).waitFor();
       assert.ok((await page.locator('.issue-group').count()) < 8);
       assert.equal(await page.locator('.all-issues[open]').count(), 0);
@@ -292,6 +298,15 @@ try {
     if (recoveryCheck) {
       page.on('request', countCommit);
       await page.route('**/api/edu/batches/*', batchRead);
+    }
+    await page.getByRole('button', { name: '下一步：确认导入', exact: true }).click();
+    if (recoveryCheck) {
+      assert.equal(commitCalls, 0, 'Entering confirmation must not import the file');
+      await teacherLayoutFlow.capture(page, artifacts, 'upload-confirm');
+      await page.getByRole('button', { name: '返回检查', exact: true }).click();
+      assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), title);
+      await page.getByRole('button', { name: '下一步：确认导入', exact: true }).click();
+      assert.equal(commitCalls, 0, 'Reviewing earlier steps must not commit');
     }
     const committed = waitResponse((r) => r.url().endsWith('/commit') && r.status() === 201);
     await page.getByRole('button', { name: '确认导入', exact: true }).click();
@@ -572,7 +587,7 @@ try {
     checkpoint = 'empty findings';
     const empty = await importThroughPage('empty', '合成空发现测评');
     assert.deepEqual(empty.data.items, []);
-    await page.getByText('当前范围没有符合条件的发现，可调整筛选后重试。').waitFor();
+    await page.getByText('当前范围没有符合条件的发现', { exact: true }).waitFor();
     checks.push('empty findings displayed as valid empty state');
     checkpoint = 'read-only grant and revocation';
     admin('batch-grant-read', '--teacher-id', reader, '--batch-id', wide.batchId);

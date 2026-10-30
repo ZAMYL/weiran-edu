@@ -2,6 +2,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Checkbox, Button, Drawer, Empty, Pagination, Select, Table, Tag } from 'antd';
 import { useRouter } from 'next/navigation';
+import { ReloadOutlined } from '@ant-design/icons';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discovery-navigation';
 import { useDataMode } from '../../app/data-mode';
@@ -77,16 +78,104 @@ function coverage(detail: DiscoveryDetail) {
       return `边界新增 ${detail.metrics.added_count} 人 · ${detail.metrics.strict_count} 人 → ${detail.metrics.inclusive_count} 人`;
   }
 }
+function FocusMetrics({ detail }: { detail: DiscoveryDetail }) {
+  let metrics: { label: string; value: string; unit?: string; note?: string }[];
+  switch (detail.type) {
+    case 'group_difference': {
+      const row = detail.chart.find(
+        (item) => item.dimension_code === detail.metrics.outcome_dimension,
+      );
+      const difference = row?.difference ?? null;
+      metrics = [
+        {
+          label: `选定群体 · ${detail.metrics.target_count} 人`,
+          value: scoreText(row?.target.mean ?? null),
+          unit: '分',
+          note:
+            row && row.target.valid_count !== detail.metrics.target_count
+              ? `有效评分 ${row.target.valid_count} 人`
+              : undefined,
+        },
+        {
+          label: `其余群体 · ${detail.metrics.remainder_count} 人`,
+          value: scoreText(row?.remainder.mean ?? null),
+          unit: '分',
+          note:
+            row && row.remainder.valid_count !== detail.metrics.remainder_count
+              ? `有效评分 ${row.remainder.valid_count} 人`
+              : undefined,
+        },
+        {
+          label: '均分差',
+          value: `${difference && exactValue(difference) > 0 ? '+' : ''}${scoreText(difference)}`,
+          unit: '分',
+          note: '选定减其余',
+        },
+      ];
+      break;
+    }
+    case 'dimension_relation':
+      metrics = [
+        {
+          label: '评分关联系数',
+          value: detail.metrics.rho ? scoreDisplay(detail.metrics.rho.value) : '—',
+        },
+        { label: '参与配对', value: String(detail.metrics.paired_count), unit: '人' },
+        { label: '未配对', value: String(detail.metrics.excluded_count), unit: '人' },
+      ];
+      break;
+    case 'rare_combination':
+      metrics = [
+        { label: '少见组合', value: String(detail.metrics.match_count), unit: '人' },
+        { label: '配对参考', value: String(detail.metrics.pair_count), unit: '人' },
+        { label: '占配对参考', value: ratioDisplay(exactValue(detail.metrics.share_pairs)) },
+      ];
+      break;
+    case 'boundary_sensitivity':
+      metrics = [
+        { label: '低于边界', value: String(detail.metrics.strict_count), unit: '人' },
+        { label: '包含边界', value: String(detail.metrics.inclusive_count), unit: '人' },
+        { label: '边界新增', value: String(detail.metrics.added_count), unit: '人' },
+      ];
+      break;
+  }
+  const primary =
+    detail.type === 'dimension_relation' || detail.type === 'rare_combination' ? 0 : 2;
+  return (
+    <>
+      <dl className="focus-metrics" aria-label="发现关键指标">
+        {metrics.map((metric, index) => (
+          <div
+            key={metric.label}
+            className={index === primary ? 'focus-metric-primary' : undefined}
+          >
+            <dt>{metric.label}</dt>
+            <dd>
+              <strong>{metric.value}</strong>
+              {metric.unit && <span>{metric.unit}</span>}
+            </dd>
+            {metric.note && <p>{metric.note}</p>}
+          </div>
+        ))}
+      </dl>
+      {detail.type === 'dimension_relation' && (
+        <p className="focus-interpretation">相关不代表因果</p>
+      )}
+    </>
+  );
+}
 export default function LiveDiscoveries({
   batch,
   onSelection,
   children,
   focusAction,
+  onShowStatistics,
 }: {
   batch: ApiBatch;
   onSelection?: (selection: DiscoverySelection, names?: { id: string; title: string }[]) => void;
   children: (focus: ReactNode) => ReactNode;
   focusAction?: ReactNode;
+  onShowStatistics?: () => void;
 }) {
   const { client, conditions, reportDraft, exploreDiscovery } = useDataMode();
   const router = useRouter();
@@ -173,20 +262,25 @@ export default function LiveDiscoveries({
             data-discovery-id={card.discovery_id}
           >
             <div className="finding-top">
-              <Tag color="blue">{typeNames[card.type]}</Tag>
-              {card.status !== 'displayable' && <Tag>需谨慎解释</Tag>}
+              <h3>{card.title}</h3>
+              <Tag color="gold">{card.status === 'displayable' ? '待核查' : '需谨慎解释'}</Tag>
             </div>
-            <h3>{card.title}</h3>
-            <p>{discoverySummaryText(card.summary)}</p>
-            <p className="discovery-coverage">
-              {detail
-                ? coverage(detail)
-                : details.error
-                  ? '涉及人数暂不可用，请重试核查'
-                  : '正在核查涉及人数…'}
-            </p>
-            <div className="batch-actions">
-              <Button onClick={() => setSelected(card.discovery_id)}>查看发现与依据</Button>
+            {detail ? (
+              <FocusMetrics detail={detail} />
+            ) : (
+              <p role="status" className="discovery-coverage">
+                {details.error ? '涉及人数暂不可用，请重试核查' : '正在核查涉及人数…'}
+              </p>
+            )}
+            <details className="focus-explanation">
+              <summary>发现说明</summary>
+              {detail && <p>{coverage(detail)}</p>}
+              <p>{discoverySummaryText(card.summary)}</p>
+            </details>
+            <div className="batch-actions focus-card-actions">
+              <Button type="primary" onClick={() => setSelected(card.discovery_id)}>
+                查看发现与依据
+              </Button>
               <Button
                 disabled={!origin}
                 onClick={() => {
@@ -267,31 +361,34 @@ export default function LiveDiscoveries({
     <Panel
       className="discoveries-panel"
       title="学情分析"
-      subtitle="查看值得核查的发现及其评分依据。"
       action={focusAction ?? <Button onClick={resource.retry}>刷新发现</Button>}
     >
       {status}
       <div className="discovery-focus-toolbar">
         {resource.data && (
           <p data-testid="discovery-scope">
-            当前范围 {resource.data.scope.scope_record_count} 人 · 本次测评{' '}
-            {resource.data.scope.batch_record_count} 人
+            {resource.data.scope.scope_record_count === resource.data.scope.batch_record_count ? (
+              <>
+                本次测评 <strong>{resource.data.scope.batch_record_count}</strong> 人
+              </>
+            ) : (
+              <>
+                当前范围 <strong>{resource.data.scope.scope_record_count}</strong> / 本次测评{' '}
+                {resource.data.scope.batch_record_count} 人
+              </>
+            )}
           </p>
         )}
         {focusAction && (
-          <Button size="small" onClick={resource.retry}>
+          <Button type="text" icon={<ReloadOutlined aria-hidden="true" />} onClick={resource.retry}>
             刷新发现
           </Button>
         )}
       </div>
       {resource.data && (
         <>
-          <p className="muted small">
-            从当前返回页选取不同类型的最多三项发现，不代表全量价值排序。
-          </p>
           {focus.length > 1 && (
             <div className="discovery-focus-picker">
-              <label htmlFor="focus-discovery">查看重点发现</label>
               <Select
                 id="focus-discovery"
                 aria-label="查看重点发现"
@@ -299,7 +396,7 @@ export default function LiveDiscoveries({
                 onChange={setFocusId}
                 options={focus.map((item) => ({
                   value: item.discovery_id,
-                  label: `${typeNames[item.type]} · ${item.title}`,
+                  label: typeNames[item.type],
                 }))}
               />
             </div>
@@ -307,23 +404,31 @@ export default function LiveDiscoveries({
           {focused ? (
             renderCards([focused])
           ) : (
-            <Empty description="当前范围没有符合条件的发现，可调整筛选后重试。" />
+            <div className="discovery-empty">
+              <Empty description="当前范围没有符合条件的发现" />
+              <p className="muted small">
+                未发现符合当前规则的现象，不代表没有学习问题。可先查看评分分布，再探索具体群体。
+              </p>
+              <div className="batch-actions">
+                {onShowStatistics && <Button onClick={onShowStatistics}>查看评分统计</Button>}
+                <Button onClick={() => router.push('/explorer')}>进入画像探索</Button>
+              </div>
+            </div>
           )}
+          {focused && <p className="discovery-selection-note">当前页代表发现，非全量排序。</p>}
         </>
       )}
-      {onSelection && (
-        <div className="discovery-report-actions">
-          <span className="muted small">已加入待保存 {checked.length} 项（最多三项）。</span>
-          {checked.length > 0 && (
-            <>
-              <Button type="link" onClick={() => choose([])}>
-                清空已选
-              </Button>
-              <Button type="primary" onClick={() => router.push('/reports')}>
-                前往报告
-              </Button>
-            </>
-          )}
+      {onSelection && checked.length > 0 && (
+        <div className="discovery-report-actions has-selection" aria-label="待保存发现">
+          <span className="small" role="status">
+            已加入待保存 {checked.length} 项
+          </span>
+          <Button type="link" onClick={() => choose([])}>
+            清空已选
+          </Button>
+          <Button type="primary" onClick={() => router.push('/reports')}>
+            前往报告
+          </Button>
         </div>
       )}
     </Panel>
@@ -387,6 +492,18 @@ export default function LiveDiscoveries({
           spec={spec}
           discoveryId={selected}
           onClose={() => setSelected(null)}
+          reportSelection={
+            onSelection
+              ? {
+                  checked: checked.includes(selected),
+                  disabled: !checked.includes(selected) && checked.length >= 3,
+                  onChange: (include) =>
+                    choose(
+                      include ? [...checked, selected] : checked.filter((id) => id !== selected),
+                    ),
+                }
+              : undefined
+          }
         />
       )}
     </>
@@ -398,12 +515,18 @@ export function DiscoveryDetailDrawer({
   discoveryId,
   onClose,
   allowExplore = true,
+  reportSelection,
 }: {
   batch: ApiBatch;
   spec: DiscoverySpec;
   discoveryId: string;
   onClose: () => void;
   allowExplore?: boolean;
+  reportSelection?: {
+    checked: boolean;
+    disabled: boolean;
+    onChange: (include: boolean) => void;
+  };
 }) {
   const { client, exploreDiscovery } = useDataMode();
   const router = useRouter();
@@ -449,6 +572,22 @@ export function DiscoveryDetailDrawer({
               </p>
             )}
             <p data-testid="discovery-metrics">{metricsText(d)}</p>
+            {reportSelection && (
+              <div className="discovery-detail-selection">
+                <Checkbox
+                  checked={reportSelection.checked}
+                  disabled={reportSelection.disabled}
+                  onChange={(event) => reportSelection.onChange(event.target.checked)}
+                >
+                  {reportSelection.checked ? '已加入待保存' : '加入报告'}
+                </Checkbox>
+                <span className="muted small">
+                  {reportSelection.disabled
+                    ? '已选满三项，可返回调整选择。'
+                    : '加入后仍需在分析报告中保存和核验，不会自动确认为结论。'}
+                </span>
+              </div>
+            )}
             <DiscoveryChart data={resource.data.chart} />
             {d.type === 'group_difference' && (
               <Table

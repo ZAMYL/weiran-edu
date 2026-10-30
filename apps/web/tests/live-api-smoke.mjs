@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { teacherAnalysisFlow, saveEmptyAnalysis } from './teacher-analysis-flow.mjs';
+import { renameImport } from './upload-workflow-utils.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..'),
@@ -172,9 +173,12 @@ try {
       'No document overflow',
     );
   const navigation = async (name) => {
-    if (name === '测评数据')
-      await page.getByRole('button', { name: '上传新测评', exact: true }).click();
-    else {
+    if (name === '测评数据') {
+      if (await page.locator('.upload-workspace-heading').count()) {
+        const reselect = page.getByRole('button', { name: '更换文件', exact: true });
+        if (await reselect.count()) await reselect.click();
+      } else await page.getByRole('button', { name: '上传新测评', exact: true }).click();
+    } else {
       await page.getByRole('link', { name, exact: true }).click();
       if (name === '学情诊断')
         await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
@@ -198,53 +202,23 @@ try {
     await page.getByRole('button', { name: '结束会话', exact: true }).waitFor();
     await page.locator('#teacher-access-token').waitFor({ state: 'detached' });
   }
-  async function upload(kind, title, filename = title, metadata = null) {
+  async function upload(kind, title, filename = title) {
     await navigation('测评数据');
     assert.equal(
-      await page.getByRole('button', { name: '选择 Excel', exact: true }).isEnabled(),
+      await page.getByRole('button', { name: '选择文件', exact: true }).isEnabled(),
       true,
     );
-    const previewCalls = [];
-    const capture = (request) => {
-      if (request.url().endsWith('/imports/preview')) previewCalls.push(request);
-    };
-    page.on('request', capture);
+    const previewHTTP = page.waitForResponse((r) => r.url().endsWith('/imports/preview'));
     await page.locator('input[type=file]').setInputFiles({
       name: `${filename}.xlsx`,
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       buffer: await readFile(path.join(temporary, `${kind}.xlsx`)),
     });
-    await page.getByLabel('测评名称', { exact: true }).waitFor();
-    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), filename);
-    assert.equal(
-      await page.getByRole('heading', { name: '上传测评', exact: true }).isVisible(),
-      true,
-    );
-    assert.equal(await page.getByRole('heading', { name: '导入预览', exact: true }).count(), 0);
-    assert.equal(
-      previewCalls.length,
-      0,
-      'Selecting a file must not start upload or advance the step',
-    );
-    page.off('request', capture);
-    if (metadata) {
-      await page.getByText('补充信息（可选）', { exact: true }).click();
-      await page.getByLabel('课程（可选）', { exact: true }).fill(metadata.course);
-      await page.getByLabel('测评日期（可选）', { exact: true }).fill(metadata.date);
-    }
-    if (title !== filename) {
-      await page.getByLabel('测评名称', { exact: true }).fill('');
-      assert.equal(
-        await page.getByRole('button', { name: '下一步：预览校验', exact: true }).isDisabled(),
-        false,
-      );
-      await page.getByLabel('测评名称', { exact: true }).fill(title);
-    }
-    const previewHTTP = page.waitForResponse((r) => r.url().endsWith('/imports/preview'));
-    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     const uploaded = await previewHTTP;
-    assert.equal((await uploaded.json()).import.title, title);
-    await page.getByRole('heading', { name: '导入预览' }).waitFor();
+    assert.equal((await uploaded.json()).import.title, filename);
+    await page.getByRole('heading', { name: '文件检查结果', exact: true }).waitFor();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), filename);
+    await renameImport(page, title);
     await page
       .locator('.source-details')
       .filter({ hasText: '预览版本' })
@@ -252,6 +226,8 @@ try {
     assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), title);
   }
   async function commit() {
+    const next = page.getByRole('button', { name: '下一步：确认导入', exact: true });
+    if (await next.count()) await next.click();
     const pending = page.waitForResponse(
       (r) => r.url().endsWith('/commit') && [200, 201].includes(r.status()),
     );
@@ -286,46 +262,54 @@ try {
   await login();
   await navigation('测评数据');
   assert.equal(await page.getByLabel('测评名称', { exact: true }).count(), 0);
-  checkpoint = 'upload selection stays in first step';
+  checkpoint = 'automatic file check and rename';
   const selectedBytes = await readFile(path.join(temporary, 'normal.xlsx'));
-  let earlyUploads = 0;
-  const trackEarlyUploads = (request) => {
-    if (request.url().endsWith('/imports/preview')) earlyUploads++;
+  let autoChecks = 0;
+  let earlyCommits = 0;
+  const trackChecks = (request) => {
+    if (request.url().endsWith('/imports/preview')) autoChecks++;
+    if (request.url().endsWith('/commit')) earlyCommits++;
   };
-  page.on('request', trackEarlyUploads);
+  page.on('request', trackChecks);
   for (const filename of ['合成首次选择.xlsx', '合成再次选择.XLSX']) {
+    const checked = page.waitForResponse((r) => r.url().endsWith('/imports/preview'));
     await page.locator('input[type=file]').setInputFiles({
       name: filename,
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       buffer: selectedBytes,
     });
+    assert.equal((await checked).status(), 201);
     await page.getByLabel('测评名称', { exact: true }).waitFor();
     assert.equal(
       await page.getByLabel('测评名称', { exact: true }).inputValue(),
       filename.replace(/\.xlsx$/i, ''),
     );
-    await page.getByLabel('测评名称', { exact: true }).fill('合成手动改名');
+    await page.getByLabel('测评名称', { exact: true }).fill('');
+    await page.getByLabel('测评名称', { exact: true }).press('Tab');
+    assert.equal(
+      await page.getByLabel('测评名称', { exact: true }).inputValue(),
+      filename.replace(/\.xlsx$/i, ''),
+    );
+    await renameImport(page, '合成手动改名');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await noOverflow();
+    await shot('upload-name-mobile');
+    await page.getByRole('button', { name: '更换文件', exact: true }).click();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).count(), 0);
   }
-  await page.setViewportSize({ width: 390, height: 844 });
-  await noOverflow();
-  await shot('upload-name-mobile');
-  await page.getByRole('button', { name: '取消选择', exact: true }).click();
-  assert.equal(await page.getByLabel('测评名称', { exact: true }).count(), 0);
-  assert.equal(
-    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).count(),
-    0,
-  );
-  assert.equal(earlyUploads, 0);
-  page.off('request', trackEarlyUploads);
+  assert.equal(autoChecks, 2, 'each selected file starts one automatic check');
+  assert.equal(earlyCommits, 0, 'checking and renaming never import a file');
+  page.off('request', trackChecks);
   await page.setViewportSize({ width: 1440, height: 1000 });
   checks.push(
-    'file selection stays at step one; rename/reselect/cancel cause no upload; explicit Next submits the chosen name',
+    'selecting a file checks once automatically; name defaults to filename, edits save on blur; changing files never commits',
   );
   checkpoint = 'blocked preview';
   await upload('blocked', '合成阻断测评');
+  const blockedFrame = await page.locator('.upload-workflow').boundingBox();
   await page.getByText('存在阻断错误，无法确认入库', { exact: true }).waitFor();
   assert.equal(
-    await page.getByRole('button', { name: '确认导入', exact: true }).isDisabled(),
+    await page.getByRole('button', { name: '下一步：确认导入', exact: true }).isDisabled(),
     true,
   );
   await page.locator('.issue-group details > summary').first().click();
@@ -339,15 +323,23 @@ try {
   await page.locator('.all-issues > summary').click();
   await page.locator('.all-issues').getByTitle('2', { exact: true }).click();
   await page.locator('.all-issues .ant-table-row').first().waitFor();
+  const expandedFrame = await page.locator('.upload-workflow').boundingBox();
+  assert.ok(
+    Math.abs(blockedFrame.height - expandedFrame.height) <= 1,
+    'expanded issues do not resize the upload frame',
+  );
+  assert.ok(
+    await page
+      .locator('.upload-workflow-body')
+      .evaluate((element) => element.scrollHeight > element.clientHeight),
+    'details scroll inside the single content region',
+  );
   await shot('blocked-preview');
-  await page.getByRole('button', { name: '返回上传', exact: true }).click();
+  await page.getByRole('button', { name: '更换文件', exact: true }).click();
   checks.push('blocked dual-Sheet upload, full quality report, issue pagination and row location');
   checkpoint = 'warning version';
-  await upload('warning', '合成警告测评', '合成警告原文件名', {
-    course: '合成课程作业',
-    date: '2026-01-15',
-  });
-  const confirm = page.getByRole('button', { name: '确认导入', exact: true });
+  await upload('warning', '合成警告测评', '合成警告原文件名');
+  const confirm = page.getByRole('button', { name: '下一步：确认导入', exact: true });
   assert.equal(await confirm.isDisabled(), true);
   await page.getByRole('checkbox', { name: /我已查看以上提醒/ }).check();
   await page.getByLabel('测评名称', { exact: true }).fill('合成警告测评已确认');
@@ -361,7 +353,7 @@ try {
   await page.route('**/api/edu/imports/*', patchRoute);
   const patchStarted = page.waitForRequest((r) => r.method() === 'PATCH');
   const patched = page.waitForResponse((r) => r.request().method() === 'PATCH');
-  await page.getByRole('button', { name: '保存测评名称' }).click();
+  await page.getByLabel('测评名称', { exact: true }).press('Tab');
   await patchStarted;
   try {
     assert.equal(await confirm.isDisabled(), true);
@@ -370,7 +362,9 @@ try {
   }
   assert.equal((await patched).status(), 200);
   await page.unroute('**/api/edu/imports/*', patchRoute);
-  await page.getByRole('button', { name: '保存测评名称' }).waitFor({ state: 'detached' });
+  await page.waitForFunction(
+    () => document.querySelector('.upload-workflow')?.getAttribute('aria-busy') === 'false',
+  );
   assert.equal(await page.getByRole('checkbox', { name: /我已查看以上提醒/ }).isChecked(), false);
   assert.equal(await confirm.isDisabled(), true);
   await page.getByRole('checkbox', { name: /我已查看以上提醒/ }).check();
@@ -382,8 +376,10 @@ try {
     .filter({ hasText: '合成警告测评已确认' })
     .getByRole('button', { name: '评分概况', exact: true })
     .click();
-  await page.getByText('课程：合成课程作业', { exact: true }).waitFor();
-  await page.getByText('测评日期：2026-01-15', { exact: true }).waitFor();
+  assert.doesNotMatch(
+    await page.locator('.ant-drawer-open').innerText(),
+    /合成课程作业|2026-01-15/,
+  );
   await page.locator('.ant-drawer-open .ant-drawer-close').click();
   const replay = await request(`/imports/${warningCommit.import_id}/commit`, {
     method: 'POST',
@@ -566,7 +562,7 @@ try {
   );
   assert.doesNotMatch(await page.locator('.workspace').innerText(), /班级|全班|课堂成绩|算法比赛/);
   checks.push(
-    'synthetic competition assessment uses neutral labels without class/course assumptions; supplied course/date metadata appears only when present',
+    'synthetic competition assessment uses neutral labels without class/course assumptions or invented course/date metadata',
   );
   checkpoint = 'metric query replay';
   await page.getByRole('button', { name: '查看这组评分洞察' }).click();
@@ -797,7 +793,6 @@ try {
   checkpoint = 'real permission revocation';
   admin('member-set', '--teacher-id', teacher, '--scope-id', scope); // Cached UI cannot override server-side import revocation.
   await page.locator('input[type=file]').setInputFiles(path.join(temporary, 'normal.xlsx'));
-  await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
   await page.getByText('当前教师没有执行此操作的权限。', { exact: true }).waitFor();
   admin('token-revoke', '--teacher-id', teacher);
   const workspaceExpiredHTTP = page.waitForResponse(

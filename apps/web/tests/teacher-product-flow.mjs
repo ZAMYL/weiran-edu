@@ -4,6 +4,13 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
+async function reportAction(region, name) {
+  const button = region.getByRole('button', { name, exact: true });
+  if (!(await button.isVisible()))
+    await region.locator('.report-editor-info > details > summary').click();
+  await button.click();
+}
+
 export async function teacherProductFlow(h) {
   const {
     page,
@@ -182,7 +189,7 @@ export async function teacherProductFlow(h) {
   await review()
     .locator('.review-finding')
     .getByRole('radio', { name: '已确认', exact: true })
-    .locator('..')
+    .locator('xpath=ancestor::label[1]')
     .click();
   const updated = wait(
     (r) => r.url().endsWith('/' + created.result_id) && r.request().method() === 'PATCH',
@@ -261,10 +268,10 @@ export async function teacherProductFlow(h) {
     .locator('summary')
     .click();
   await review().getByText('错误码：ANALYSIS_RESULT_VERSION_MISMATCH', { exact: true }).waitFor();
-  await review().getByRole('button', { name: '加载最新版本', exact: true }).click();
+  await reportAction(review(), '加载最新版本');
   await page.getByRole('button', { name: '放弃修改', exact: true }).click();
   await review().locator('.saved-version').filter({ hasText: '已保存版本 3' }).waitFor();
-  await review().getByRole('button', { name: '关闭结果', exact: true }).click();
+  await reportAction(review(), '返回草稿');
   checks.push(
     'save stores full outer scope and selected formal discovery; confirmed persists; MD/XLSX reopened; actual 409 preserves edits',
   );
@@ -273,13 +280,13 @@ export async function teacherProductFlow(h) {
   const constant = await importThroughPage('constant', '合成同分17人');
   assert.equal(constant.data.scope.scope_record_count, 17);
   assert.deepEqual(constant.data.items, []);
-  await page.getByText('当前范围没有符合条件的发现，可调整筛选后重试。').waitFor();
+  await page.getByText('当前范围没有符合条件的发现', { exact: true }).waitFor();
   const empty = await save('合成零发现报告');
   assert.equal(empty.analysis.matched_count, 17);
   assert.equal(empty.discovery_findings?.length ?? 0, 0);
   const emptyMd = await download('md');
   assert.equal(emptyMd.preflight.confirmed_finding_count, 0);
-  await review().getByRole('button', { name: '关闭结果', exact: true }).click();
+  await reportAction(review(), '返回草稿');
   await navigation('画像探索');
   await page.getByRole('button', { name: '添加条件', exact: true }).click();
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
@@ -318,7 +325,7 @@ export async function teacherProductFlow(h) {
   });
   assert.equal(forbiddenSave.status, 403);
   assert.equal(forbiddenSave.body.error.code, 'FORBIDDEN');
-  await review().getByRole('button', { name: '关闭结果', exact: true }).click();
+  await reportAction(review(), '返回草稿');
   await navigation('学情诊断');
   admin('batch-revoke-read', '--teacher-id', reader, '--batch-id', batch.batch_id);
   const denied = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 404);

@@ -191,22 +191,25 @@ export default function DataPage() {
             </Button>
           </div>
         </Panel>
-        <Panel title="数据准备" className="preparation-panel">
-          <div className="preparation-list">
-            {[
-              ['学生标识、五项评分与原始评语', '每名学生每个维度一条记录，表头请参照模板。'],
-              ['评分范围与缺失检查', '按所选标准检查范围、步长、缺失与重复记录。'],
-              ['重复文件检查', '通过文件内容指纹识别本会话内已导入文件。'],
-            ].map(([title, detail]) => (
-              <div className="preparation-item" key={title}>
-                <CheckCircleFilled />
-                <div>
-                  <h3>{title}</h3>
-                  <p>{detail}</p>
+        <Panel title="上传说明" className="preparation-panel">
+          <details>
+            <summary>文件要求与处理方式</summary>
+            <div className="preparation-list">
+              {[
+                ['学生标识、五项评分与原始评语', '每名学生每个维度一条记录，表头请参照模板。'],
+                ['评分范围与缺失检查', '按所选标准检查范围、步长、缺失与重复记录。'],
+                ['重复文件检查', '通过文件内容指纹识别本会话内已导入文件。'],
+              ].map(([title, detail]) => (
+                <div className="preparation-item" key={title}>
+                  <CheckCircleFilled />
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{detail}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </details>
           <Alert
             type="info"
             showIcon
@@ -284,11 +287,7 @@ export default function DataPage() {
         />
       </Panel>
       {fullscreen && (
-        <Panel
-          title="当前批次数据概览"
-          subtitle="各维度评分完整情况"
-          className="completeness-panel"
-        >
+        <Panel title="当前批次数据概览" className="completeness-panel">
           <Completeness batch={batch} />
         </Panel>
       )}

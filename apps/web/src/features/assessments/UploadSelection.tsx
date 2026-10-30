@@ -1,5 +1,6 @@
 'use client';
 import { Button, Input } from 'antd';
+import type { ReactNode } from 'react';
 
 export function UploadSelection({
   filename,
@@ -10,6 +11,8 @@ export function UploadSelection({
   busy,
   disabled = false,
   allowDefaultName = false,
+  children,
+  showFilename = true,
 }: {
   filename: string;
   name: string;
@@ -19,12 +22,16 @@ export function UploadSelection({
   busy: boolean;
   disabled?: boolean;
   allowDefaultName?: boolean;
+  children?: ReactNode;
+  showFilename?: boolean;
 }) {
   return (
     <div className="upload-selection">
-      <p>
-        已选择文件：<strong>{filename}</strong>
-      </p>
+      {showFilename && (
+        <p>
+          已选择文件：<strong>{filename}</strong>
+        </p>
+      )}
       <label htmlFor="selected-assessment-name">测评名称</label>
       <Input
         id="selected-assessment-name"
@@ -34,7 +41,6 @@ export function UploadSelection({
         status={!name.trim() && !allowDefaultName ? 'error' : undefined}
         onChange={(event) => onNameChange(event.target.value)}
       />
-      <p className="muted small">默认使用文件名，可直接继续或修改名称。</p>
       {!name.trim() && (
         <p role={allowDefaultName ? 'status' : 'alert'}>
           {allowDefaultName
@@ -42,6 +48,7 @@ export function UploadSelection({
             : '测评名称不能为空，可保留默认文件名。'}
         </p>
       )}
+      {children}
       <div className="batch-actions">
         <Button
           type="primary"

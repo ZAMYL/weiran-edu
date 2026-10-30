@@ -9,6 +9,10 @@ import {
   ExpandOutlined,
   CompressOutlined,
   QuestionCircleOutlined,
+  UploadOutlined,
+  HistoryOutlined,
+  FileTextOutlined,
+  LeftOutlined,
 } from '@ant-design/icons';
 import { useBatch, useWorkspace } from './store';
 import { LiveBatchSelect, useDataMode } from './data-mode';
@@ -30,6 +34,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [help, setHelp] = useState(false);
   const { message } = App.useApp();
   const page = pages.find((p) => pathname.startsWith(p.to)) ?? pages[0]!;
+  const uploadWorkspace =
+    dataMode.mode === 'live' &&
+    pathname === '/insights' &&
+    (dataMode.assessmentPanel === 'upload' ||
+      (dataMode.connected && !dataMode.batch && dataMode.assessmentPanel !== 'history'));
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台。';
   }, [page]);
@@ -82,7 +91,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     </Button>
   );
   return (
-    <div className={`app-shell ${fullscreen ? 'is-fullscreen' : ''}`}>
+    <div
+      className={`app-shell ${fullscreen ? 'is-fullscreen' : ''} ${pathname === '/reports' ? 'is-report-page' : ''} ${pathname === '/explorer' ? 'is-explorer-page' : ''}`}
+    >
       <header className="topbar">
         <Link className="brand" href="/" aria-label="未然 EDU 首页">
           未然 <span>EDU</span>
@@ -136,51 +147,68 @@ export function AppShell({ children }: { children: ReactNode }) {
           </>
         )}
       </header>
-      <main className="workspace">
+      <main className={`workspace${uploadWorkspace ? ' upload-workspace' : ''}`}>
         {dataMode.mode === 'demo' && (
           <p className="internal-demo-notice" role="status">
             内部 Demo · 当前全部数据均为合成样例，不用于正式分析。
           </p>
         )}
-        <div className="page-heading">
+        <div className={`page-heading${uploadWorkspace ? ' upload-workspace-heading' : ''}`}>
           <div className="workspace-intro">
             {!fullscreen && (
               <div className="page-title-group">
-                <h1>{page.label}</h1>
-                <div>
-                  <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</p>
-                </div>
+                <h1>{uploadWorkspace ? '上传测评' : page.label}</h1>
+                {!uploadWorkspace && (
+                  <div>
+                    <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台。</p>
+                  </div>
+                )}
               </div>
             )}
             {!fullscreen && (
               <section className="assessment-toolbar" aria-label="当前测评工作台">
-                {batchSelect}
+                {!uploadWorkspace && batchSelect}
+                {!uploadWorkspace && (
+                  <Button
+                    className="assessment-upload-action"
+                    type="primary"
+                    icon={<UploadOutlined aria-hidden="true" />}
+                    onClick={() => {
+                      dataMode.openAssessments('upload');
+                      router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                    }}
+                  >
+                    上传新测评
+                  </Button>
+                )}
                 <Button
-                  type="primary"
-                  onClick={() => {
-                    dataMode.openAssessments('upload');
-                    router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
-                  }}
-                >
-                  上传新测评
-                </Button>
-                <Button
+                  className="assessment-history-action"
+                  icon={
+                    uploadWorkspace ? (
+                      <FileTextOutlined aria-hidden="true" />
+                    ) : (
+                      <HistoryOutlined aria-hidden="true" />
+                    )
+                  }
+                  aria-label="查看历史测评"
                   onClick={() => {
                     dataMode.openAssessments('history');
                     router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
                   }}
                 >
-                  查看历史测评
+                  {uploadWorkspace ? '历史测评' : '查看历史测评'}
                 </Button>
                 {dataMode.assessmentPanel && dataMode.batch && (
                   <Button
                     type="link"
+                    icon={uploadWorkspace ? <LeftOutlined aria-hidden="true" /> : undefined}
+                    aria-label="返回当前诊断"
                     onClick={() => {
                       dataMode.openAssessments(null);
                       router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
                     }}
                   >
-                    返回当前诊断
+                    {uploadWorkspace ? '返回诊断' : '返回当前诊断'}
                   </Button>
                 )}
               </section>

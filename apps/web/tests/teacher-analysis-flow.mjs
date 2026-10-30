@@ -2,6 +2,49 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
+async function reportAction(region, name) {
+  const button = region.getByRole('button', { name, exact: true });
+  if (!(await button.isVisible()))
+    await region.locator('.report-editor-info > details > summary').click();
+  await button.click();
+}
+
+async function checkDecisionAlignment(region) {
+  await region
+    .locator('.report-decision-options')
+    .first()
+    .locator('.ant-radio-button-wrapper')
+    .first()
+    .scrollIntoViewIfNeeded();
+  const boxes = await region
+    .locator('.report-decision-options')
+    .first()
+    .locator('.ant-radio-button-wrapper')
+    .evaluateAll((elements) =>
+      elements.map((element) => {
+        const box = element.getBoundingClientRect();
+        return {
+          y: box.y,
+          width: box.width,
+          height: box.height,
+          margin: getComputedStyle(element).marginTop,
+        };
+      }),
+    );
+  assert.equal(boxes.length, 3);
+  assert.ok(
+    boxes.every(
+      (box) =>
+        Math.abs(box.y - boxes[0].y) < 1 &&
+        // Radio borders and fractional grid widths can differ by one CSS pixel.
+        Math.abs(box.width - boxes[0].width) <= 1 &&
+        Math.abs(box.height - 44) < 1 &&
+        box.margin === '0px',
+    ),
+    JSON.stringify(boxes),
+  );
+}
+
 export async function teacherAnalysisFlow({
   page,
   batch,
@@ -39,7 +82,7 @@ export async function teacherAnalysisFlow({
   const closeExport = () => exportDialog().locator('.ant-modal-close').click();
   try {
     const labels = await page
-      .locator('.live-candidate .finding-top > .ant-tag')
+      .locator('.live-candidate .finding-top > :is(.ant-tag, small)')
       .evaluateAll((elements) =>
         elements.map((element) => ({
           font: parseFloat(getComputedStyle(element).fontSize),
@@ -62,18 +105,20 @@ export async function teacherAnalysisFlow({
     assert.equal(created.analysis.matched_count, 12);
     assert.equal(created.version, 1);
     await drawer().locator('.review-finding').first().waitFor();
+    await checkDecisionAlignment(drawer());
     assert.equal(await drawer().locator('.review-finding').count(), created.findings.length);
     await drawer()
       .locator('.review-finding')
       .nth(0)
       .getByRole('radio', { name: '已确认', exact: true })
-      .locator('..')
+      .locator('xpath=ancestor::label[1]')
       .click();
+    await drawer().locator('.review-finding').nth(1).locator('summary').first().click();
     await drawer()
       .locator('.review-finding')
       .nth(1)
       .getByRole('radio', { name: '不采纳', exact: true })
-      .locator('..')
+      .locator('xpath=ancestor::label[1]')
       .click();
     await drawer().locator('.review-finding').nth(0).locator('textarea').fill('合成核验备注');
     assert.equal(
@@ -172,7 +217,7 @@ export async function teacherAnalysisFlow({
       await drawer().getByLabel('分析备注', { exact: true }).inputValue(),
       '合成本地未保存修改',
     );
-    await drawer().getByRole('button', { name: '加载最新版本', exact: true }).click();
+    await reportAction(drawer(), '加载最新版本');
     await page.getByRole('button', { name: '放弃修改', exact: true }).click();
     await drawer().locator('.saved-version').filter({ hasText: '已保存版本 3' }).waitFor();
     await openExport();
@@ -228,7 +273,7 @@ export async function teacherAnalysisFlow({
       await drawer().getByRole('button', { name: '保存核验结果', exact: true }).count(),
       0,
     );
-    assert.equal(await drawer().getByLabel('已保存分析名称', { exact: true }).isDisabled(), true);
+    assert.equal(await drawer().getByLabel('报告名称', { exact: true }).isDisabled(), true);
     await openExport();
     await acknowledge();
     const readerDownload = page.waitForEvent('download');
@@ -264,7 +309,7 @@ export async function teacherAnalysisFlow({
       .filter({ hasText: `已保存版本 ${secondPage.items[0].version}` })
       .waitFor();
     assert.equal(
-      await drawer().getByLabel('已保存分析名称', { exact: true }).inputValue(),
+      await drawer().getByLabel('报告名称', { exact: true }).inputValue(),
       secondPage.items[0].title,
     );
     await page.setViewportSize({ width: 390, height: 844 });
@@ -278,12 +323,13 @@ export async function teacherAnalysisFlow({
         panel.scrollWidth <= panel.clientWidth + 1
       );
     });
+    await checkDecisionAlignment(drawer());
     await shot('analysis-review-mobile');
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
     );
-    await drawer().getByRole('button', { name: '关闭结果', exact: true }).click();
+    await reportAction(drawer(), '返回草稿');
     await page.setViewportSize({ width: 1440, height: 1000 });
     checks.push('saved analysis server pagination and 390px review drawer');
     await navigation('画像探索');
@@ -340,5 +386,5 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
     );
     await dialog.locator('.ant-modal-close').click();
   }
-  await drawer.getByRole('button', { name: '关闭结果', exact: true }).click();
+  await reportAction(drawer, '返回草稿');
 }

@@ -262,7 +262,6 @@ function ExplorerContent({
                 匹配学生列表 <small>共 {students.length} 人</small>
               </>
             }
-            subtitle="保留当前条件，查看具体评分与原始记录"
             className="fullscreen-table"
           >
             <StudentTable

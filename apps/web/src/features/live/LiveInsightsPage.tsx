@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
 import { useRouter } from 'next/navigation';
 import { Button, Checkbox, Empty, Pagination, Segmented, Select, Tag } from 'antd';
+import { TeamOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import {
@@ -125,12 +126,32 @@ function Insights({ batch }: { batch: ApiBatch }) {
         createPortal(
           <dl className="stat-grid assessment-overview" aria-label="当前测评概况">
             {[
-              ['参评人数', stats.data?.statistics.scope.record_count ?? null, '人'],
-              ['评分记录', batch.evaluation_count, '条'],
-              ['能力维度', stats.data?.statistics.dimensions.length ?? null, '个'],
-            ].map(([label, value, unit]) => (
+              {
+                label: '参评人数',
+                value: stats.data?.statistics.scope.record_count ?? null,
+                unit: '人',
+                icon: <TeamOutlined />,
+              },
+              {
+                label: '评分记录',
+                value: batch.evaluation_count,
+                unit: '条',
+                icon: <FileTextOutlined />,
+              },
+              {
+                label: '能力维度',
+                value: stats.data?.statistics.dimensions.length ?? null,
+                unit: '个',
+                icon: <BarChartOutlined />,
+              },
+            ].map(({ label, value, unit, icon }) => (
               <div className="live-stat" key={label}>
-                <dt>{label}</dt>
+                <dt>
+                  <span className="overview-icon" aria-hidden="true">
+                    {icon}
+                  </span>
+                  {label}
+                </dt>
                 <dd>
                   <strong>{value ?? '—'}</strong>
                   <span>{unit}</span>
@@ -145,14 +166,14 @@ function Insights({ batch }: { batch: ApiBatch }) {
         batch={batch}
         onSelection={onSelection}
         focusAction={analysisSwitch}
+        onShowStatistics={() => setRightView('statistics')}
       >
         {(focusPanel) => (
           <>
-            <h2 className="section-heading">评分画像与学情发现</h2>
             <div className="insights-grid">
               <Panel
                 title="评分画像"
-                subtitle="测评平均分 · 基于各维度有效评分"
+                subtitle="全部参评者 · 有效评分均值"
                 action={
                   <Segmented
                     options={[
@@ -174,9 +195,12 @@ function Insights({ batch }: { batch: ApiBatch }) {
                       rubric={stats.data.rubric}
                       mode={mode}
                     />
-                    <div className="chart-caption">
-                      按本次测评的有效评分计算，保留原始小数精度。
-                    </div>
+                    <details className="chart-reading-note">
+                      <summary>评分说明</summary>
+                      <p>
+                        按各维度有效评分计算，原始精度不变；各维度有效人数可能不同。评分现象不直接解释学习成因。
+                      </p>
+                    </details>
                     <Button type="link" onClick={() => router.push('/explorer')}>
                       进入画像探索 →
                     </Button>
@@ -189,14 +213,15 @@ function Insights({ batch }: { batch: ApiBatch }) {
                   <Panel
                     title="学情分析"
                     className="insights-statistics-panel"
-                    subtitle="维度评分统计，供教师查看计算依据。"
                     action={analysisSwitch}
                   >
-                    <Button size="small" onClick={insights.retry}>
-                      刷新洞察
-                    </Button>
+                    <div className="discovery-focus-toolbar">
+                      <p className="muted small">{conditionText(conditions)}</p>
+                      <Button size="small" onClick={insights.retry}>
+                        刷新统计
+                      </Button>
+                    </div>
                     <div className="live-insight-controls">
-                      <label htmlFor="insight-aspect">查看方面</label>
                       <Select
                         id="insight-aspect"
                         aria-label="查看洞察方面"
@@ -223,7 +248,6 @@ function Insights({ batch }: { batch: ApiBatch }) {
                       >
                         包含各维度洞察
                       </Checkbox>
-                      <p className="muted small">当前查询：{conditionText(conditions)}</p>
                     </div>
                     {insights.loading && <LoadingPanel />}
                     {insights.error && (
@@ -251,9 +275,10 @@ function Insights({ batch }: { batch: ApiBatch }) {
                         />
                       </>
                     )}
-                    <p className="muted small insight-comment-note">
-                      评语分析暂不可用。待审核的非空评语不等于空评语。
-                    </p>
+                    <details className="muted small insight-comment-note">
+                      <summary>评语分析说明</summary>
+                      <p>评语分析暂不可用。待审核的非空评语不等于空评语。</p>
+                    </details>
                   </Panel>
                 </div>
               </div>
@@ -300,10 +325,13 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
     (metric) => !metric.key.startsWith('frequency:') && !qualityKeys.has(metric.key),
   );
   const quality = card.metrics.filter((metric) => qualityKeys.has(metric.key));
+  const primaryKeys = new Set(['mean', 'median', 'matched_count', 'matched_ratio']);
+  const primary = summary.filter((metric) => primaryKeys.has(metric.key));
+  const secondary = summary.filter((metric) => !primaryKeys.has(metric.key));
   return (
-    <section className="finding-card live-candidate">
+    <section className="live-candidate">
       <div className="finding-top">
-        <Tag color="blue">{card.status === 'observed' ? '评分观察' : '数据不足'}</Tag>
+        {card.status !== 'observed' && <Tag color="gold">数据不足</Tag>}
         <small>统计范围 {card.denominator} 人</small>
       </div>
       <h2>
@@ -351,7 +379,7 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
       ) : (
         <>
           <div className="live-metrics">
-            {summary.map((metric) => (
+            {primary.map((metric) => (
               <MetricTile key={metric.key} card={card} metric={metric} onMetric={onMetric} />
             ))}
           </div>
@@ -368,6 +396,16 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
                 </Button>
               ))}
             </div>
+          )}
+          {secondary.length > 0 && (
+            <details className="secondary-metrics">
+              <summary>更多统计指标 · {secondary.length} 项</summary>
+              <div className="live-metrics">
+                {secondary.map((metric) => (
+                  <MetricTile key={metric.key} card={card} metric={metric} onMetric={onMetric} />
+                ))}
+              </div>
+            </details>
           )}
         </>
       )}
