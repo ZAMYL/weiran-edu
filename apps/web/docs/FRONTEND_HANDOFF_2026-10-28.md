@@ -2,6 +2,14 @@
 
 更新时间：2026-10-30。交接对象：接手前端工作的 Agent / 工程师。
 
+## 2026-10-30 PR #40 后端反馈确认
+
+用户已授权确认 #40 中全部待前端确认的事项。接受后端 [6444393283](https://github.com/ZAMYL/weiran-edu/pull/40#issuecomment-6444393283) / [6445034020](https://github.com/ZAMYL/weiran-edu/pull/40#issuecomment-6445034020) 的契约、固定隔离后端 #61 `27212f6`＋#65 `24c442c` 以及三项测试助手修正：忽略同 URL 已取消的响应、缓存完整真实 JSON；用显式 `EDU_TEST_FRONTEND_REVISION` / `EDU_TEST_BACKEND_REVISION` / `EDU_TEST_UPLOAD_REVISION` 记录实际验收版本（未提供为 null，不猜测）；递归删除前检查临时目录位于系统 tmp 且具有本测试专属前缀。保留全部业务断言、原超时及真实成功链路，不更改 UI、业务 API 或后端。
+
+上传沿用 preview → 可选 PATCH → commit 的真实名称、项目、质量计数、预览版本和警告确认，created/duplicate/replayed 均按实际 batch_id/snapshot_id 打开诊断。发现保存绑定原外层 scope_conditions、input_key、最多三项 discovery_ids 与 include_dimensions=false；分别读取 analysis.discovery / discovery_findings，核验保留 expected_version；报告仍 POST 预检、GET 下载并校验文件。后端旧浏览器验收只覆盖 `fb3029f`，不得作为当前前端 head 的验收。所有新验收仅用独立临时数据库和合成测评，不覆盖用户正在使用的数据。
+
+此确认是前端契约及接入认可，不替代组长产品验收，也不批准合并其他后端 PR、部署或启用真实模型。PR #40 继续保留当前分支、不自动合并。最新运行结果在 PR 确认评论中绑定实际提交 SHA。
+
 ## 2026-10-30 教师发现表达与重点发现修正
 
 继续原 #40 分支，不改三页布局、导航或后端算法。AppShell 介绍、页脚及浏览器 title / description 的定位文案删除末尾句号。`services/edu-api/discovery-presentation.ts` 集中将真实发现详情转成教师表达；主标题不再使用后端的技术标题，分组依据可直接看到，三项指标使用原始组人数、有效均值及后端差值。两组使用“符合条件的学生 / 其他可判定学生”，不翻转条件或差值方向；原始批次、快照、群体、分母和查询始终保留。说明只补充方法与限制，不再重复卡片人数和均分。

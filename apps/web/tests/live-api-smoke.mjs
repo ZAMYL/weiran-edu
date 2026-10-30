@@ -871,5 +871,10 @@ try {
       await exited;
     }
   }
-  await rm(temporary, { recursive: true, force: true });
+  const resolved = path.resolve(temporary);
+  assert.ok(
+    resolved.startsWith(path.resolve(tmpdir()) + path.sep) &&
+      path.basename(resolved).startsWith('weiran-edu-browser-'),
+  );
+  await rm(resolved, { recursive: true, force: true });
 }

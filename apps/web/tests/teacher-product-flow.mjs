@@ -34,7 +34,15 @@ export async function teacherProductFlow(h) {
   } = h;
   const checks = [];
   const wait = (test) => {
-    const promise = page.waitForResponse(test);
+    const promise = page.waitForResponse(async (response) => {
+      if (!(await test(response))) return false;
+      // Ignore canceled same-URL background requests and keep the complete real
+      // JSON before navigation can discard the response body.
+      if ((await response.finished()) !== null) return false;
+      const data = await response.json();
+      response.json = async () => data;
+      return true;
+    });
     promise.catch(() => {});
     return promise;
   };
@@ -370,8 +378,9 @@ export async function teacherProductFlow(h) {
           encoding: 'utf8',
           windowsHide: true,
         }).trim(),
-        backendRevision:
-          process.env.EDU_TEST_BACKEND_REVISION ?? 'EDU_TEST_API_ROOT (local checkout)',
+        frontendRevision: process.env.EDU_TEST_FRONTEND_REVISION || null,
+        backendRevision: process.env.EDU_TEST_BACKEND_REVISION || null,
+        backendUploadRevision: process.env.EDU_TEST_UPLOAD_REVISION || null,
         backendDependency: 61,
         checks,
         chosenDiscovery: detail,
