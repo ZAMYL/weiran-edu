@@ -14,6 +14,7 @@ import { teacherLayoutFlow } from './teacher-layout-flow.mjs';
 import { teacherProductFlow, credentialRelayFlow } from './teacher-product-flow.mjs';
 import { renameImport } from './upload-workflow-utils.mjs';
 import { teacherDiscoveryCopyFlow } from './teacher-discovery-copy-flow.mjs';
+import { teacherIntegerFlow } from './teacher-integer-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..');
@@ -35,9 +36,11 @@ const artifacts = path.join(
     ? 'artifacts/auth-relay'
     : process.env.EDU_PRODUCT_FLOW === '1'
       ? 'artifacts/teacher-product'
-      : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
-        ? 'artifacts/teacher-copy'
-        : 'artifacts/discovery-flow',
+      : process.env.EDU_INTEGER_FLOW === '1'
+        ? 'artifacts/integer-browser'
+        : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
+          ? 'artifacts/teacher-copy'
+          : 'artifacts/discovery-flow',
 );
 await mkdir(artifacts, { recursive: true });
 const env = {
@@ -370,7 +373,21 @@ try {
     await page.getByTestId('discovery-record-count').waitFor();
     return result;
   }
-  if (process.env.EDU_DISCOVERY_COPY_FLOW === '1') {
+  if (process.env.EDU_INTEGER_FLOW === '1') {
+    checks.push(
+      ...(await teacherIntegerFlow({
+        page,
+        origin,
+        artifacts,
+        navigation,
+        importThroughPage,
+        post,
+        closeTop,
+        python,
+        env,
+      })),
+    );
+  } else if (process.env.EDU_DISCOVERY_COPY_FLOW === '1') {
     checks.push(
       ...(await teacherDiscoveryCopyFlow({
         page,
