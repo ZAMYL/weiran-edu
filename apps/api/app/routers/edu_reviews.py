@@ -7,6 +7,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.requests import ClientDisconnect
 
 from app.core.errors import APIError
+from app.core.exact_json import ExactJSONResponse
 from app.edu.discovery_disconnect import cancellation
 from app.edu.discovery_results import DiscoveryResultService
 from app.edu.exports import REPORT_FORMATS, ResultExporter
@@ -28,7 +29,11 @@ from app.schemas.common import ErrorResponse
 
 from .edu import Actor, Backend, Limit, Offset
 
-router = APIRouter(prefix="/api/v1/edu/batches/{batch_id}", tags=["EDU reviews and results"])
+router = APIRouter(
+    prefix="/api/v1/edu/batches/{batch_id}",
+    tags=["EDU reviews and results"],
+    default_response_class=ExactJSONResponse,
+)
 ERRORS = {code: {"model": ErrorResponse} for code in (401, 403, 404, 409, 413, 415, 422, 499, 503)}
 
 

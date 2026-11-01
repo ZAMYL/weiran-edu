@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, field_validator, model_validator
 
+from app.core.exact_json import DiscoveryDisplay, ExactDenominator, ExactNumerator
 from app.importing.edu.preview import Page
 
 from .analysis_models import Comparison, DimensionCode, FilterCondition, Statistics
@@ -87,9 +88,9 @@ class DiscoveryParticipants(Model):
 
 
 class DiscoveryExact(Model):
-    numerator: int
-    denominator: Annotated[int, Field(gt=0)]
-    display: str
+    numerator: ExactNumerator
+    denominator: Annotated[ExactDenominator, Field(gt=0)]
+    display: DiscoveryDisplay
 
 
 class DiscoveryApproximate(Model):

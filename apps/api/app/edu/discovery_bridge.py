@@ -13,6 +13,7 @@ from time import perf_counter
 from app.analysis.edu import select_students
 from app.analysis.edu.models import Condition, Dataset, Dimension, EvidenceKind, RecordRef
 from app.core.errors import APIError
+from app.core.exact_json import exact_json_bytes
 from app.importing.edu.preview import validate_page
 from app.importing.edu.types import ParseLimits
 
@@ -131,7 +132,7 @@ class DiscoveryInputReader(AnalysisReader):
 
     @staticmethod
     def bounded[T: Model](value: T) -> T:
-        if len(value.model_dump_json().encode()) > MAX_RESPONSE_BYTES:
+        if len(exact_json_bytes(value.model_dump(mode="json"))) > MAX_RESPONSE_BYTES:
             raise APIError(413, "DISCOVERY_RESPONSE_TOO_LARGE", "发现结果超过响应预算")
         return value
 
