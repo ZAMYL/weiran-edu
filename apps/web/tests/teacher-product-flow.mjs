@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { verifyReportArtifact } from './report-artifact-utils.mjs';
 
 async function reportAction(region, name) {
   const button = region.getByRole('button', { name, exact: true });
@@ -237,24 +238,46 @@ export async function teacherProductFlow(h) {
   assert.ok(text.includes(batch.batch_id) && text.includes(batch.snapshot_id));
   assert.ok(text.includes(chosen.discovery_id));
   assert.doesNotMatch(text, /合成私密姓名|未审核合成私密评语|合成私密依据/);
+  const reportReference = {
+    batchId: batch.batch_id,
+    snapshotId: batch.snapshot_id,
+    resultId: created.result_id,
+    version: reviewed.version,
+    studentCount: 53,
+    discoveryIds: [chosen.discovery_id],
+  };
+  verifyReportArtifact({ ...md, format: 'md', python, env, reference: reportReference });
+  assert.throws(
+    () =>
+      verifyReportArtifact({
+        ...md,
+        format: 'md',
+        python,
+        env,
+        reference: { ...reportReference, version: reviewed.version + 1 },
+      }),
+    /mismatched 教师核验版本/,
+  );
   const xlsx = await download('xlsx');
   assert.equal(xlsx.preflight.confirmed_finding_count, 1);
-  const reopened = JSON.parse(
-    execFileSync(
-      python,
-      [
-        '-c',
-        "import json,sys; from openpyxl import load_workbook; w=load_workbook(sys.argv[1]); print(json.dumps({'sheets':w.sheetnames,'values':[str(c.value) for s in w for row in s for c in row if c.value is not None]},ensure_ascii=False))",
-        xlsx.destination,
-      ],
-      { cwd: apiRoot, env, encoding: 'utf8', windowsHide: true },
-    ),
+  const reopened = verifyReportArtifact({
+    ...xlsx,
+    format: 'xlsx',
+    python,
+    env,
+    reference: reportReference,
+  });
+  assert.throws(
+    () =>
+      verifyReportArtifact({
+        ...xlsx,
+        format: 'xlsx',
+        python,
+        env,
+        reference: { ...reportReference, snapshotId: 'synthetic-wrong-snapshot' },
+      }),
+    /mismatched 数据快照引用/,
   );
-  assert.ok(reopened.sheets.length >= 4);
-  const cells = reopened.values.join('\n');
-  assert.ok(cells.includes(chosen.discovery_id));
-  assert.ok(cells.includes(batch.batch_id) && cells.includes(batch.snapshot_id));
-  assert.doesNotMatch(cells, /合成私密姓名|未审核合成私密评语|合成私密依据/);
   await shot('04-report-after-review');
   const savedRoute = `${base}/analysis-results/${created.result_id}`;
   assert.equal(

@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { verifyReportArtifact } from './report-artifact-utils.mjs';
 
 export async function teacherIntegerFlow(h) {
   const { page, origin, artifacts, navigation, importThroughPage, post, closeTop, python, env } = h;
+  const control = process.env.EDU_INTEGER_CONTROL === '1';
+  assert.ok(
+    !control || process.env.EDU_EXPECT_INTEGER_REJECTION !== '1',
+    'Control cannot stand in for the precision rejection case',
+  );
+  const fixture = control ? 'contrast105' : 'precision105';
   const wait = (predicate) =>
     page.waitForResponse(async (response) => {
       if (!predicate(response) || (await response.finished())) return false;
@@ -14,7 +20,10 @@ export async function teacherIntegerFlow(h) {
     });
   await page.goto(origin);
   await page.locator('.live-workspace').waitFor();
-  const imported = await importThroughPage('precision105', '合成105人525评分精度验收');
+  const imported = await importThroughPage(
+    fixture,
+    control ? '合成105人安全整数对照' : '合成105人525评分精度验收',
+  );
   assert.equal(imported.data.scope.batch_record_count, 105);
   assert.equal(imported.data.scope.scope_record_count, 105);
   const batch = await page.evaluate(async (batchId) => {
@@ -35,6 +44,11 @@ export async function teacherIntegerFlow(h) {
     spec,
   );
   assert.equal(detailResult.status, 200);
+  const stale = await post(`/batches/${batch.batch_id}/discoveries/query`, {
+    ...spec,
+    snapshot_id: 'stale-synthetic-snapshot',
+  });
+  assert.equal(stale.status, 409, 'An actual stale snapshot must still be rejected');
   const record = {
     synthetic_only: true,
     frontend_revision: process.env.EDU_TEST_FRONTEND_REVISION || null,
@@ -42,8 +56,11 @@ export async function teacherIntegerFlow(h) {
     backend_upload_revision: process.env.EDU_TEST_UPLOAD_REVISION || null,
     students: 105,
     score_rows: 525,
+    fixture,
+    control_only: control,
     discoveries_http_status: 200,
     detail_http_status: 200,
+    stale_snapshot_status: stale.status,
   };
   const focus = page.locator('.discoveries-panel');
   if (process.env.EDU_EXPECT_INTEGER_REJECTION === '1') {
@@ -116,6 +133,25 @@ export async function teacherIntegerFlow(h) {
   assert.equal(reviewed.version, 2);
   assert.equal(reviewed.discovery_findings[0].teacher_review.status, 'confirmed');
   await review.locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  // Refresh and reopen via the saved list, exercising a fresh GET and the nested DTO.
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.live-workspace').waitFor();
+  const reopenedResponse = wait(
+    (r) =>
+      r.request().method() === 'GET' && new URL(r.url()).pathname.endsWith('/' + saved.result_id),
+  );
+  await page
+    .locator('.saved-analysis-list .panel')
+    .filter({ hasText: saved.title })
+    .getByRole('button', { name: '查看与核验', exact: true })
+    .click();
+  const reopened = await (await reopenedResponse).json();
+  assert.equal(reopened.result_id, saved.result_id);
+  assert.equal(reopened.version, reviewed.version);
+  assert.deepEqual(reopened.analysis.discovery, reviewed.analysis.discovery);
+  assert.deepEqual(reopened.discovery_findings, reviewed.discovery_findings);
+  await review.locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  assert.equal(await review.getByRole('radio', { name: '已确认', exact: true }).isChecked(), true);
   const downloads = [];
   for (const format of ['xlsx', 'md']) {
     const initialCheck = wait((r) => r.url().endsWith('/export-check'));
@@ -141,20 +177,22 @@ export async function teacherIntegerFlow(h) {
     const destination = path.join(artifacts, `105-confirmed-report.${format}`);
     await file.saveAs(destination);
     const bytes = await readFile(destination);
-    if (format === 'md') assert.match(bytes.toString('utf8'), /^#/);
-    else {
-      assert.equal(bytes.subarray(0, 4).toString('hex'), '504b0304');
-      execFileSync(
-        python,
-        [
-          '-c',
-          'import sys; from openpyxl import load_workbook; b=load_workbook(sys.argv[1], read_only=True, data_only=True); assert b.sheetnames; b.close()',
-          destination,
-        ],
-        { env, windowsHide: true },
-      );
-    }
-    downloads.push({ format, bytes: bytes.length, reopened: true });
+    const verified = verifyReportArtifact({
+      format,
+      bytes,
+      destination,
+      python,
+      env,
+      reference: {
+        batchId: batch.batch_id,
+        snapshotId: batch.snapshot_id,
+        resultId: saved.result_id,
+        version: reviewed.version,
+        studentCount: 105,
+        discoveryIds: [chosen.discovery_id],
+      },
+    });
+    downloads.push({ format, bytes: bytes.length, reopened: true, ...verified });
     await dialog.locator('.ant-modal-close').click();
   }
   await navigation('学情诊断');
@@ -165,8 +203,8 @@ export async function teacherIntegerFlow(h) {
     JSON.stringify(
       {
         ...record,
-        status: 'complete',
-        product_accepted: true,
+        status: control ? 'control_complete' : 'complete',
+        product_accepted: !control,
         downloads,
       },
       null,
@@ -174,6 +212,6 @@ export async function teacherIntegerFlow(h) {
     ),
   );
   return [
-    '105/525 real upload → diagnosis → discovery/chart → exact original group → evidence → save → confirmed → reopened MD/XLSX',
+    `${control ? 'CONTROL ONLY, not the precision fix: ' : ''}105/525 real upload → diagnosis → discovery/chart → exact original group → evidence → save → confirmed → refresh/reopen → validated MD/XLSX metadata`,
   ];
 }

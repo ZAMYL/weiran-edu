@@ -37,7 +37,9 @@ const artifacts = path.join(
     : process.env.EDU_PRODUCT_FLOW === '1'
       ? 'artifacts/teacher-product'
       : process.env.EDU_INTEGER_FLOW === '1'
-        ? 'artifacts/integer-browser'
+        ? process.env.EDU_INTEGER_CONTROL === '1'
+          ? 'artifacts/integer-control'
+          : 'artifacts/integer-browser'
         : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
           ? 'artifacts/teacher-copy'
           : 'artifacts/discovery-flow',
