@@ -132,7 +132,7 @@ describe('saved result context checks', () => {
 });
 
 function formalSaved() {
-  const exact = { numerator: 1, denominator: 1, display: '1.00' };
+  const exact = { numerator: 1, denominator: 1, display: '1.0000' };
   const stats = { ...statistics, scope: { kind: 'batch', record_count: 20 } };
   const scope = {
     batch_id: 'batch',
@@ -231,6 +231,35 @@ it('decodes formal discoveries separately from statistical candidates and keeps 
   expect(result.findings).toEqual([]);
   expect(result.discovery_findings[0]?.teacher_review.status).toBe('confirmed');
   expect(result.analysis.members).toHaveLength(20);
+});
+it('round-trips lossless ranking in both saved discovery copies and rejects mismatched facts', () => {
+  const value = formalSaved();
+  const exact = {
+    numerator: '24840307107174983',
+    denominator: '25000000000000000',
+    display: '0.9936',
+  };
+  Object.assign(value.analysis.discovery.findings[0]!.ranking.score, exact);
+  Object.assign(value.discovery_findings[0]!.discovery.ranking.score, exact);
+  const decoded = analysisResultDto(JSON.parse(JSON.stringify(value)));
+  expect(decoded.analysis.discovery?.findings[0]?.ranking.score).toEqual(exact);
+  expect(decoded.discovery_findings[0]?.discovery.ranking.score).toEqual(exact);
+  expect(JSON.parse(JSON.stringify(decoded))).toEqual(decoded);
+  Object.assign(value.discovery_findings[0]!.discovery.ranking.score, {
+    numerator: '24840307107174984',
+  });
+  expect(() => analysisResultDto(value)).toThrow('INVALID_API_RESPONSE');
+});
+it('rejects unsafe JSON numbers in saved ranking and string ordinary versions', () => {
+  for (const kind of ['ranking', 'version']) {
+    const value = formalSaved();
+    if (kind === 'ranking')
+      Object.assign(value.analysis.discovery.findings[0]!.ranking.score, {
+        numerator: Number.MAX_SAFE_INTEGER + 1,
+      });
+    else Object.assign(value, { version: '2' });
+    expect(() => analysisResultDto(value)).toThrow('INVALID_API_RESPONSE');
+  }
 });
 it.each(['snapshot', 'scope', 'query', 'review', 'version', 'metrics', 'duplicate', 'legacy'])(
   'rejects inconsistent saved formal discovery %s',

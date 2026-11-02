@@ -52,6 +52,11 @@ export function verifyReportArtifact({ format, bytes, destination, python, env, 
       rows.some((row) => row[0] === label && row[1] === String(value)),
       `${format}: mismatched ${label}`,
     );
+  for (const [label, value] of reference.factRows ?? [])
+    assert.ok(
+      rows.some((row) => row[0] === label && row[1] === String(value)),
+      `${format}: mismatched discovery fact ${label}`,
+    );
   const cells = rows.flat();
   discoveryReferences ??= [...new Set(cells.filter((cell) => /^[a-f0-9]{24}$/.test(cell)))];
   assert.equal(
@@ -66,5 +71,6 @@ export function verifyReportArtifact({ format, bytes, destination, python, env, 
     sheets,
     verifiedMetadataFields: expected.length,
     confirmedDiscoveryCount: reference.discoveryIds.length,
+    verifiedFactRows: reference.factRows?.length ?? 0,
   };
 }

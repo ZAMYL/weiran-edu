@@ -72,6 +72,23 @@ it('decodes chart by kind, keeps complete counts and rejects mismatched shapes o
   ])
     expect(() => discoveryChartDto(broken)).toThrow();
 });
+it('decodes lossless chart/threshold/statistics components without changing counts or order', () => {
+  const value = structuredClone(chart);
+  const huge = { numerator: '9'.repeat(1024), denominator: '9'.repeat(1024), display: '1.0000' };
+  Object.assign(value.chart[0]!.x, huge);
+  Object.assign(value.scope.statistics.dimensions[0]!.mean.exact, huge);
+  const decoded = discoveryChartDto({
+    ...value,
+    conditions: [{ dimension_code: 'code_implementation', operator: 'gt', threshold: huge }],
+  });
+  expect(decoded.chart).toEqual(value.chart);
+  expect(decoded.conditions[0]?.threshold).toEqual(huge);
+  expect(decoded.scope.statistics.dimensions[0]?.mean.exact?.numerator).toBe(huge.numerator);
+  expect(decoded.metrics.student_denominator).toBe(53);
+  expect(() =>
+    discoveryChartDto({ ...value, chart: [{ ...value.chart[0], count: huge.numerator }] }),
+  ).toThrow();
+});
 it('sends original outer scope and metric through the controlled records endpoint', async () => {
   const scoped: DiscoverySpec = {
     ...spec,

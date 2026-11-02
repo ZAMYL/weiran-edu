@@ -19,16 +19,13 @@ import {
   statisticsDto,
   type ApiCondition,
 } from './types';
+import { discoveryExactDto as exact } from './exact';
 
 export interface DiscoverySpec {
   snapshot_id: string;
   scope_conditions: ApiCondition[];
   profile: 'edu.discovery.profile.v1';
 }
-const exact = checked(
-  object({ numerator: numeric, denominator: count, display: text }),
-  (v) => Number.isSafeInteger(v.numerator) && v.denominator > 0,
-);
 export type DiscoveryExact = Decoded<typeof exact>;
 const condition = object({
   dimension_code: dimensionCode,

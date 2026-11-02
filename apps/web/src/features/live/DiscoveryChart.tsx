@@ -14,6 +14,7 @@ import type {
   DiscoveryExact,
 } from '../../services/edu-api/discovery-types';
 import { dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
+import { exactToNumber } from '../../services/edu-api/exact';
 
 register([
   BarChart,
@@ -24,9 +25,9 @@ register([
   TooltipComponent,
   SVGRenderer,
 ]);
-export const exactValue = (value: DiscoveryExact) => value.numerator / value.denominator;
+export const exactValue = exactToNumber;
 export const scoreText = (value: DiscoveryExact | null) =>
-  value === null ? '—' : scoreDisplay(exactValue(value));
+  value === null ? '—' : scoreDisplay(Number(value.display));
 
 export function DiscoveryChart({ data }: { data: ChartData }) {
   const element = useRef<HTMLDivElement>(null);

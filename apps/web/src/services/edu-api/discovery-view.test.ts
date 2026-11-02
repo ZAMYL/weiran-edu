@@ -1,5 +1,12 @@
 import { expect, it } from 'vitest';
 import { discoverySummaryText } from './discovery-view';
+it('formats bounded huge fractions without converting their components to Number', () => {
+  const n = '9'.repeat(1024);
+  expect(discoverySummaryText(`均值${n}/${n}；Fraction(-${n}, ${n})；${n}/${n}分`)).toBe(
+    '均值1；-1；1分',
+  );
+  expect(discoverySummaryText('Fraction(1, 0)')).toBe('Fraction(1, 0)');
+});
 it('formats score fractions and coefficients without changing count denominators', () => {
   expect(discoverySummaryText('有效53/53条；均值16917/5300，中位数331/100')).toBe(
     '有效评分53条（共53条）；均值3.19，中位数3.31',

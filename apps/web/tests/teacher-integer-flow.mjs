@@ -44,6 +44,14 @@ export async function teacherIntegerFlow(h) {
     spec,
   );
   assert.equal(detailResult.status, 200);
+  if (!control && process.env.EDU_EXPECT_INTEGER_REJECTION !== '1') {
+    assert.equal(typeof detailResult.body?.ranking?.score?.numerator, 'string');
+    assert.equal(typeof detailResult.body.ranking.score.denominator, 'string');
+    assert.ok(BigInt(detailResult.body.ranking.score.numerator) > BigInt(Number.MAX_SAFE_INTEGER));
+    assert.ok(
+      BigInt(detailResult.body.ranking.score.denominator) > BigInt(Number.MAX_SAFE_INTEGER),
+    );
+  }
   const stale = await post(`/batches/${batch.batch_id}/discoveries/query`, {
     ...spec,
     snapshot_id: 'stale-synthetic-snapshot',
@@ -61,6 +69,9 @@ export async function teacherIntegerFlow(h) {
     discoveries_http_status: 200,
     detail_http_status: 200,
     stale_snapshot_status: stale.status,
+    wire_contract: 'EXACT_JSON_WIRE_V1',
+    ranking: detailResult.body.ranking,
+    browser: await page.evaluate(() => navigator.userAgent),
   };
   const focus = page.locator('.discoveries-panel');
   if (process.env.EDU_EXPECT_INTEGER_REJECTION === '1') {
@@ -91,6 +102,7 @@ export async function teacherIntegerFlow(h) {
   await focus.getByRole('button', { name: '查看发现与依据', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: '发现详情', exact: true });
   await page.getByTestId('discovery-chart').locator('svg').waitFor();
+  await page.screenshot({ path: path.join(artifacts, '105-discovery-detail.png'), fullPage: true });
   await drawer.getByRole('button', { name: '继续探索这组学生', exact: true }).click();
   await page.waitForURL('**/explorer?discovery=*');
   const pointer = JSON.parse(new URL(page.url()).searchParams.get('discovery'));
@@ -106,6 +118,7 @@ export async function teacherIntegerFlow(h) {
   assert.equal(proof.batch_id, batch.batch_id);
   assert.equal(proof.snapshot_id, batch.snapshot_id);
   assert.equal(proof.comment, null);
+  await page.screenshot({ path: path.join(artifacts, '105-score-evidence.png'), fullPage: true });
   await closeTop();
   await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
   await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
@@ -119,6 +132,8 @@ export async function teacherIntegerFlow(h) {
   assert.equal(saved.discovery_findings.length, 1);
   assert.equal(saved.discovery_findings[0].discovery.discovery_id, chosen.discovery_id);
   assert.deepEqual(saved.analysis.discovery.spec, spec);
+  assert.deepEqual(saved.analysis.discovery.findings[0].ranking, detailResult.body.ranking);
+  assert.deepEqual(saved.discovery_findings[0].discovery.ranking, detailResult.body.ranking);
   const review = page.getByRole('region', { name: '分析核验', exact: true });
   await review.locator('.saved-version').waitFor();
   await review
@@ -150,8 +165,13 @@ export async function teacherIntegerFlow(h) {
   assert.equal(reopened.version, reviewed.version);
   assert.deepEqual(reopened.analysis.discovery, reviewed.analysis.discovery);
   assert.deepEqual(reopened.discovery_findings, reviewed.discovery_findings);
+  assert.deepEqual(reopened.discovery_findings[0].discovery.ranking, detailResult.body.ranking);
   await review.locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
   assert.equal(await review.getByRole('radio', { name: '已确认', exact: true }).isChecked(), true);
+  await page.screenshot({
+    path: path.join(artifacts, '105-confirmed-reopened.png'),
+    fullPage: true,
+  });
   const downloads = [];
   for (const format of ['xlsx', 'md']) {
     const initialCheck = wait((r) => r.url().endsWith('/export-check'));
@@ -190,6 +210,14 @@ export async function teacherIntegerFlow(h) {
         version: reviewed.version,
         studentCount: 105,
         discoveryIds: [chosen.discovery_id],
+        factRows:
+          detailResult.body.type === 'dimension_relation'
+            ? [
+                ['分析范围人数', detailResult.body.metrics.student_denominator],
+                ['有效成对人数', detailResult.body.metrics.paired_count],
+                ['等级相关系数', detailResult.body.metrics.rho.value.toFixed(2)],
+              ]
+            : [],
       },
     });
     downloads.push({ format, bytes: bytes.length, reopened: true, ...verified });

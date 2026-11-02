@@ -43,7 +43,7 @@ vi.mock('../src/services/edu-api/schema', async (importOriginal) => {
 import { ContractError } from '../src/services/edu-api/schema';
 import { discoveriesDto, discoveryDetailDto } from '../src/services/edu-api/discovery-types';
 
-it('pinpoints the original unsafe-number failure without relaxing the production decoder', () => {
+it('rejects the archived unsafe-number response after the lossless decoder fix', () => {
   const directory = 'artifacts/integer-precision';
   const diagnostic = JSON.parse(readFileSync(`${directory}/integer-diagnostics.json`, 'utf8'));
   expect(diagnostic.synthetic_only).toBe(true);
@@ -60,9 +60,9 @@ it('pinpoints the original unsafe-number failure without relaxing the production
     expect(error).toBeInstanceOf(ContractError);
     failure = error as typeof failure;
   }
-  expect(failure?.path).toBe('.ranking.score.denominator');
-  expect(failure?.expected).toBe('nonnegative safe integer');
-  expect(failure?.actualType).toBe('number');
+  expect(failure?.path).toBe('.ranking.score.numerator');
+  expect(typeof detail.ranking.score.numerator).toBe('number');
+  expect(Number.isSafeInteger(detail.ranking.score.numerator)).toBe(false);
   // A test-only replacement isolates the fault. This is never applied to HTTP data.
   const isolated = structuredClone(detail);
   isolated.ranking.score = { numerator: 1, denominator: 1, display: '1.0000' };
@@ -73,15 +73,16 @@ it('pinpoints the original unsafe-number failure without relaxing the production
     JSON.stringify(
       {
         synthetic_only: true,
-        current_bug_reproduced: true,
+        current_bug_reproduced: false,
+        unsafe_legacy_number_rejected: true,
         endpoint: 'POST /api/v1/edu/batches/{batch_id}/discoveries/{id}/query',
         status: 200,
         first_rejected_path: `$${failure?.path}`,
-        actual_type_after_existing_json_parse: failure?.actualType,
-        expected_type: failure?.expected,
+        actual_type_after_existing_json_parse: typeof detail.ranking.score.numerator,
+        expected_type: 'safe number or canonical oversized decimal integer string',
         raw_integer_lexemes: diagnostic.responses[1].unsafe_integers,
         full_detail_passes_after_test_only_ranking_isolation: true,
-        production_decoder_changed: false,
+        production_decoder_changed: true,
       },
       null,
       2,

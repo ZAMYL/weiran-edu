@@ -12,6 +12,7 @@ import {
   text,
   type Decoded,
 } from './schema';
+import { exactRationalDto } from './exact';
 
 export const DIMENSIONS = [
   { code: 'algorithm_data_structure', name: '算法与数据结构' },
@@ -32,7 +33,7 @@ export type ApiCondition = Decoded<typeof conditionDto>;
 export const pageDto = object({ offset: count, limit: count, returned: count, has_more: flag });
 export const statValueDto = object({
   value: nullable(numeric),
-  exact: nullable(object({ numerator: numeric, denominator: count })),
+  exact: nullable(exactRationalDto),
   display: text,
 });
 const frequencyDto = object({ score: numeric, count, denominator: count, ratio: statValueDto });

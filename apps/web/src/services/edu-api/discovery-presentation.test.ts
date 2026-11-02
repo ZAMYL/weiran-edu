@@ -11,7 +11,7 @@ import {
 const exact = (numerator: number, denominator = 1) => ({
   numerator,
   denominator,
-  display: 'not used',
+  display: (numerator / denominator).toFixed(4),
 });
 function group() {
   const stat = { value: 3, exact: exact(3), display: '3' };

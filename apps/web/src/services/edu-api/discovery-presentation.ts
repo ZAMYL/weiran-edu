@@ -1,13 +1,12 @@
-import type { DiscoveryDetail } from './discovery-types';
+import type { DiscoveryDetail, DiscoveryExact } from './discovery-types';
+import { exactToNumber as value } from './exact';
 import { dimensionName, operatorLabels, ratioDisplay, scoreDisplay } from './view-model';
 
-type Exact = { numerator: number; denominator: number };
-const value = (v: Exact) => v.numerator / v.denominator;
-const score = (v: Exact | null) =>
+const score = (v: DiscoveryExact | null) =>
   v === null
     ? '—'
     : new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-        Math.abs(value(v)) < 0.005 ? 0 : value(v),
+        Math.abs(Number(v.display)) < 0.005 ? 0 : Number(v.display),
       );
 export const discoveryConditionsText = (conditions: DiscoveryDetail['conditions']) =>
   conditions
