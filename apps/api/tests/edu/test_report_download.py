@@ -104,14 +104,14 @@ def test_four_formats_match_real_saved_counts_conditions_and_confirmations(
                 for row in workbook["测评概况"].iter_rows(values_only=True)
                 if row and row[0]
             }
-            assert info["测评记录数"] == size
+            assert info["参评人数"] == size
             assert "默认仅汇总" in text
             metrics = {
                 row[0]: row[1]
                 for row in workbook["选定群体"].iter_rows(values_only=True)
                 if len(row) > 2
             }
-            assert metrics["符合条件人数"] == matched and metrics["全部测评人数"] == size
+            assert metrics["符合条件人数"] == matched and metrics["参评人数"] == size
             assert all(
                 c.data_type != "f" and c.hyperlink is None
                 for sheet in workbook

@@ -74,8 +74,8 @@ def test_teacher_body_and_audit_reconcile_without_debug_fields(size):
     matched = sum(i % 4 in (0, 1) for i in range(size))
     assert group_values["符合条件人数"].value == matched
     assert group_values["符合条件人数"].number_format == "#,##0"
-    assert group_values["占全部测评人数比例"].value == pytest.approx(matched / size)
-    assert group_values["占全部测评人数比例"].number_format == "0.00%"
+    assert group_values["占参评人数比例"].value == pytest.approx(matched / size)
+    assert group_values["占参评人数比例"].number_format == "0.00%"
     assert all(
         cell.data_type != "f" and cell.hyperlink is None
         for sheet in workbook
@@ -149,7 +149,7 @@ def test_unevaluable_group_records_keep_both_denominators_visible():
     body = files.markdown.split("## 技术附录", 1)[0]
     assert "不可判定人数 | 2" in body
     assert "50.00%" in body and "100.00%" in body
-    assert "仍保留在全部测评人数中" in body
+    assert "仍保留在参评人数中" in body
 
 
 @pytest.mark.parametrize("status", ["pending", "dismissed"])
@@ -162,4 +162,21 @@ def test_empty_discovery_sections_and_unconfirmed_references_are_omitted(status)
     assert all(f.candidate.candidate_id not in files.markdown for f in saved.findings)
     workbook = load_workbook(BytesIO(files.xlsx))
     assert workbook.sheetnames == ["测评概况", "维度统计", "技术附录"]
+    workbook.close()
+
+
+@pytest.mark.parametrize(
+    "scope_kind,expected", [("batch", "本次测评"), ("authorized_subset", "当前授权参评范围")]
+)
+def test_report_names_the_provided_scope_without_inventing_a_class(scope_kind, expected):
+    report = replace(synthetic_report(4), scope_kind=scope_kind)
+    files = generate_report(report)
+    workbook = load_workbook(BytesIO(files.xlsx))
+    info = {row[0]: row[1] for row in workbook["测评概况"].iter_rows(values_only=True) if row[0]}
+    assert info["参评人数"] == 4 and info["分析范围"] == expected
+    assert f"| 分析范围 | {expected} |" in files.markdown
+    assert "不推定所属班级、学校或课程" in files.markdown
+    assert "评分按本次测评提供的维度和量表统计" in files.markdown
+    assert not {"班级", "学校", "课程", "比赛名称", "测评日期"} & info.keys()
+    assert "未然 EDU 学情分析报告" in workbook["测评概况"]["A2"].value
     workbook.close()
