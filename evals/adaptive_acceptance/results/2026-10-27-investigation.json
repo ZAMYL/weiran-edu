@@ -1,0 +1,4187 @@
+{
+  "schema_version": "edu-focused-investigation-0.1",
+  "product_positioning": "未然 EDU——AI 时代的编程能力与学习成效诊断平台",
+  "input_fingerprint": "e3c9371d669cd48aa9247149a50f166abe1f954f0696da2a892ecbde056d8492",
+  "participant_count": 53,
+  "fixed_deterministic": {
+    "status": "completed",
+    "executed": true,
+    "reason": null,
+    "coverage": {
+      "count": 1,
+      "denominator": 1
+    },
+    "computed_coverage": {
+      "count": 1,
+      "denominator": 1
+    },
+    "false_discoveries": 0,
+    "duplicate_discoveries": 0,
+    "data_accuracy": {
+      "count": 12,
+      "denominator": 12,
+      "value": 1.0
+    },
+    "source_accuracy": {
+      "count": 12,
+      "denominator": 12
+    },
+    "source_binding_accuracy": {
+      "count": 1166,
+      "denominator": 1166,
+      "value": 1.0
+    },
+    "illegal_tool_proposals": 0,
+    "disclosure_errors": [],
+    "zero_finding_correct": null,
+    "operation_counts": {
+      "app/analysis/edu/correlation.py:average_ranks": 80,
+      "app/analysis/edu/engine.py:select_students": 8,
+      "app/analysis/edu/discovery/engine.py:compare_groups": 8,
+      "app/analysis/edu/discovery/engine.py:discover": 1,
+      "app/analysis/edu/correlation.py:_pair": 40,
+      "app/analysis/edu/engine.py:dimension_stats": 97,
+      "app/analysis/edu/correlation.py:spearman_correlations": 4,
+      "app/analysis/edu/engine.py:summarize": 1
+    },
+    "tool_attempts": null,
+    "model_requests": 0,
+    "elapsed_seconds": 0.3733847999246791,
+    "actual_tokens": null,
+    "actual_cost_cny": null,
+    "passed": true,
+    "frozen_grade": {
+      "status": "completed",
+      "reason": null,
+      "coverage": {
+        "count": 1,
+        "denominator": 1,
+        "value": 1.0
+      },
+      "computed_coverage": {
+        "count": 1,
+        "denominator": 1,
+        "value": 1.0
+      },
+      "wrong_discoveries": 0,
+      "wrong_proposals": 0,
+      "proposed_duplicate_discoveries": 0,
+      "duplicate_discoveries": 0,
+      "unknown_fact_references": 0,
+      "proposed_invalid_facts": 0,
+      "data_accuracy": {
+        "count": 12,
+        "denominator": 12,
+        "value": 1.0
+      },
+      "reference_accuracy": {
+        "count": 1166,
+        "denominator": 1166,
+        "value": 1.0
+      },
+      "fact_reference_accuracy": {
+        "count": 3,
+        "denominator": 3,
+        "value": 1.0
+      },
+      "verified_extra_selected": 2,
+      "empty_selection": false,
+      "invalid_tool_requests": 0,
+      "unsafe_tool_executions": 0,
+      "compute_seconds": 0.3733847999246791,
+      "engine_invocations": 1,
+      "tool_calls": 0,
+      "repeated_tool_calls": 0,
+      "operation_counts": {
+        "app/analysis/edu/correlation.py:average_ranks": 80,
+        "app/analysis/edu/engine.py:select_students": 8,
+        "app/analysis/edu/discovery/engine.py:compare_groups": 8,
+        "app/analysis/edu/discovery/engine.py:discover": 1,
+        "app/analysis/edu/correlation.py:_pair": 40,
+        "app/analysis/edu/engine.py:dimension_stats": 97,
+        "app/analysis/edu/correlation.py:spearman_correlations": 4,
+        "app/analysis/edu/engine.py:summarize": 1
+      },
+      "engine_qualified_count": 3,
+      "engine_returned_count": 3,
+      "search_attempts": 8,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null,
+      "measurement_origin": "offline_deterministic",
+      "model_requests": 0,
+      "errors": [],
+      "observations": [
+        {
+          "fact_id_digest": "7f88a031d80ef089697d70556354fa83e9de638a5df56c00990a846d1d54858a",
+          "kind": "relation",
+          "dimensions": [
+            "ALGORITHMS",
+            "IMPLEMENTATION"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": -1.0
+          },
+          "source_binding_digest": "5d564c9ca5de4daf02e79b304b995780aa62c22f30b86cbab78039b2fd00049b"
+        },
+        {
+          "fact_id_digest": "c6432b97dd307abaccd4599b8298df3247d460db1e7c58519148ef23f164f5cc",
+          "kind": "group",
+          "dimensions": [
+            "IMPLEMENTATION"
+          ],
+          "values": {
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "population_count": 53,
+            "eligible_count": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1
+            },
+            "target": {
+              "mean": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "valid": 26,
+              "missing": 0,
+              "invalid": 0
+            },
+            "remainder": {
+              "mean": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "valid": 27,
+              "missing": 0,
+              "invalid": 0
+            }
+          },
+          "source_binding_digest": "5c4a6da702379170518904bba1a9b104f7a67f01c22c91d7725d45caff850d76"
+        },
+        {
+          "fact_id_digest": "126d021c8b1f19e7a10e521d88dea6a120f5773a85f6c4177b579554fd385213",
+          "kind": "group",
+          "dimensions": [
+            "ALGORITHMS"
+          ],
+          "values": {
+            "target_count": 27,
+            "remainder_count": 26,
+            "unevaluable_count": 0,
+            "population_count": 53,
+            "eligible_count": 53,
+            "share_total": {
+              "numerator": 27,
+              "denominator": 53
+            },
+            "share_eligible": {
+              "numerator": 27,
+              "denominator": 53
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1
+            },
+            "target": {
+              "mean": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "valid": 27,
+              "missing": 0,
+              "invalid": 0
+            },
+            "remainder": {
+              "mean": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "valid": 26,
+              "missing": 0,
+              "invalid": 0
+            }
+          },
+          "source_binding_digest": "8d33ef8d7a7106aea355cd790c26547fd51e5754adc41644bd9e4e69816baff9"
+        },
+        {
+          "fact_id_digest": "1cb88730b0356da7e8b6d59fd7dc6151ff659714b743aebcf4303f3b0a06ebee",
+          "kind": "relation",
+          "dimensions": [
+            "ALGORITHMS",
+            "MODELING"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "67012a75d6d7e69c723cc9c1c68c8492987e1287daa08b92e4139fa2cc532b83"
+        },
+        {
+          "fact_id_digest": "6d08ed42223ae55b837865af784853a62594c27c3f7355be0dac9ab2743ca4c4",
+          "kind": "relation",
+          "dimensions": [
+            "ALGORITHMS",
+            "EFFICIENCY"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "b28476c4af679b8c2401d4c72c359113df0db6e3647a92edd3e2de37dacd6587"
+        },
+        {
+          "fact_id_digest": "1c27feb9f6ac1acf685f6e76ddad10199a1d7b02ebf277b0504fb9ba7db85248",
+          "kind": "relation",
+          "dimensions": [
+            "ALGORITHMS",
+            "STRATEGY"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "b3eeb3b1476355459f078a1e62debcd0b794cbafabcfd3e2c9c358ef1d870eab"
+        },
+        {
+          "fact_id_digest": "719a207e0d0780b88aa5915f64cd8f00d89d2b15a636d7ed556cb311eb21fa61",
+          "kind": "relation",
+          "dimensions": [
+            "IMPLEMENTATION",
+            "MODELING"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "c2fd93e5a14d9bec3001390f6e713a3001bcf4fbd9d94628a7d85ced8ee63d41"
+        },
+        {
+          "fact_id_digest": "4ca8f18212dc58608553c05dd429ba2ce42cf57578618a7e9987bc5f7a0e4fd4",
+          "kind": "relation",
+          "dimensions": [
+            "IMPLEMENTATION",
+            "EFFICIENCY"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "3ee7ddeeaabe4242d16f7ea9e99e6ba8f918c9681bfbeacf8e14bdb26ee71464"
+        },
+        {
+          "fact_id_digest": "a9324b22f313d1bc8d91eb84f7845eb5e7edd8e2f419eaba4dccd0e44766676c",
+          "kind": "relation",
+          "dimensions": [
+            "IMPLEMENTATION",
+            "STRATEGY"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "7323d860023f1b30ee4cac33f08f92fa6ef64c4aa010c2d1519cb95f5d97c26d"
+        },
+        {
+          "fact_id_digest": "2897891ab40e3609b4b8ab327ea4ed17ace03f5402109a96c7aac22b98c5269f",
+          "kind": "relation",
+          "dimensions": [
+            "MODELING",
+            "EFFICIENCY"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "0d43d4d5d742807bfb6f0c61e744f2344fd9ff24871d6765f16258c8bdae1ec2"
+        },
+        {
+          "fact_id_digest": "6fbe1c0f5b10fe96e5692753d61dfa210f5a350323709984eb724badf74ca27f",
+          "kind": "relation",
+          "dimensions": [
+            "MODELING",
+            "STRATEGY"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "d92f471daadce87ff42a71367798834e808860365dd624ade5e502caac6eb6d5"
+        },
+        {
+          "fact_id_digest": "6bf5b88999cc7828abf977eb9dfe28a0c03fdac02ee52d1dca254f182aede437",
+          "kind": "relation",
+          "dimensions": [
+            "EFFICIENCY",
+            "STRATEGY"
+          ],
+          "values": {
+            "paired_count": 53,
+            "excluded_count": 0,
+            "rho": null
+          },
+          "source_binding_digest": "36388f16a593682b2c549f33bea6f4292bf9f258b50f412cf5e1efc77b7a4dde"
+        }
+      ],
+      "failed_samples": []
+    },
+    "audit": {
+      "run_id": "offline-80ce412dd9a24c119ca573557f28d3ca",
+      "engine_invocations": 1,
+      "engine_qualified_count": 3,
+      "search_attempts": 8,
+      "selected_ids": [
+        "offline-80ce412dd9a24c119ca573557f28d3ca:f289d9e85315014f4284629d",
+        "offline-80ce412dd9a24c119ca573557f28d3ca:1ab79f371be402ddc84ee996",
+        "offline-80ce412dd9a24c119ca573557f28d3ca:633164b45e7c19a7477a5e90"
+      ],
+      "ledger_claim_count": 12
+    }
+  },
+  "offline_http_mock": {
+    "evaluation": {
+      "status": "completed",
+      "reason": "completed",
+      "executed": true,
+      "coverage": {
+        "count": 1,
+        "denominator": 1
+      },
+      "computed_coverage": {
+        "count": 1,
+        "denominator": 1
+      },
+      "missed_targets": [],
+      "false_discoveries": 0,
+      "duplicate_discoveries": 0,
+      "card_projection_errors": [],
+      "duplicate_final_proposals": 0,
+      "wrong_final_proposals": 0,
+      "data_accuracy": {
+        "count": 4,
+        "denominator": 4
+      },
+      "source_accuracy": {
+        "count": 4,
+        "denominator": 4
+      },
+      "illegal_tool_proposals": 0,
+      "disclosure_errors": [],
+      "zero_finding_correct": null,
+      "verified_extra_selected": 1,
+      "actual_tokens": null,
+      "actual_cost_cny": null,
+      "http_usage_fixture": {
+        "request_count": 5,
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580"
+      },
+      "model_requests": 5,
+      "tool_attempts": 4,
+      "elapsed_seconds": 5.85915319994092,
+      "operation_counts": {
+        "analysis.py:group": 6,
+        "analysis.py:statistics": 53,
+        "analysis.py:_pair": 24,
+        "agent.py:_verify": 13,
+        "agent.py:derive": 12,
+        "agent.py:_gate": 7
+      },
+      "fact_checks": [
+        {
+          "fact_id": "run-d5bd63b972044bec-f001",
+          "data_correct": true,
+          "sources_correct": true,
+          "qualified": false,
+          "signature": null,
+          "errors": [],
+          "source_digest": "91bd3f47688b1c05bc0954198f3a2bf0ec6e22c68f2da5f661896931bc01ec8f"
+        },
+        {
+          "fact_id": "run-d5bd63b972044bec-f002",
+          "data_correct": true,
+          "sources_correct": true,
+          "qualified": true,
+          "signature": "712112fd346adbb71f9ba5fd8fdc58f6954bcad6d0ee83f16345d081aa480eef",
+          "errors": [],
+          "source_digest": "3b3a976b9a20f9c465f0140dcd81a10e96728cdd36566e72b39ae59ae6fd7e8d"
+        },
+        {
+          "fact_id": "run-d5bd63b972044bec-f003",
+          "data_correct": true,
+          "sources_correct": true,
+          "qualified": true,
+          "signature": "32b8dac779501581a90529f2470e523b8ffec9d0b4947e659067ab2452c45c6a",
+          "errors": [],
+          "source_digest": "03f21d2c5a76bea7bca2b9b661d5140db1133e9b14c7afc7abbd0f9db44822bf"
+        },
+        {
+          "fact_id": "run-d5bd63b972044bec-f004",
+          "data_correct": true,
+          "sources_correct": true,
+          "qualified": false,
+          "signature": null,
+          "errors": [],
+          "source_digest": "03f21d2c5a76bea7bca2b9b661d5140db1133e9b14c7afc7abbd0f9db44822bf"
+        }
+      ],
+      "passed": true
+    },
+    "audit": {
+      "profile": "http_mock",
+      "planner_class": "prototypes.adaptive_assessment.live.planner.QwenAdaptivePlanner",
+      "measurement_origin": "offline_mechanism",
+      "source_fingerprint": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "runtime_batch_id": "synthetic-batch-18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+      "run_id": "run-d5bd63b972044bec",
+      "status": "completed",
+      "reason": "completed",
+      "http_transcript": [
+        {
+          "round": 1,
+          "new_message": {
+            "content": "{\"analysis_context\": {\"model_view\": \"adaptive-aggregate-v1\", \"items\": [{\"item_id\": \"I01\", \"kind\": \"competency\", \"label\": \"算法与数据结构\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I02\", \"kind\": \"competency\", \"label\": \"代码实现能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I03\", \"kind\": \"competency\", \"label\": \"问题建模能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I04\", \"kind\": \"competency\", \"label\": \"效率意识\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I05\", \"kind\": \"competency\", \"label\": \"解题策略\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}], \"tools\": [\"get_dimension_statistics\", \"query_dimension_relation\", \"compare_student_groups\", \"inspect_item_quality\", \"inspect_discovery_support\", \"finish\"], \"unsupported\": [\"five_dimension_inference_from_questions\", \"combined_ability_grade\", \"ai_collaboration_ability\", \"learning_growth\", \"causal_teaching_effect\", \"score_correctness_judgment\"], \"synthetic_only\": true}, \"facts\": [], \"last_result\": null, \"remaining_model_requests\": 6, \"remaining_tool_attempts\": 5}",
+            "role": "user"
+          },
+          "history_length": 2,
+          "tools": [
+            "get_dimension_statistics",
+            "query_dimension_relation",
+            "compare_student_groups",
+            "inspect_item_quality",
+            "inspect_discovery_support",
+            "finish"
+          ],
+          "tool_schemas": [
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "get_dimension_statistics",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_ids": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "enum": [
+                              "I01",
+                              "I02",
+                              "I03",
+                              "I04",
+                              "I05"
+                            ],
+                            "type": "string"
+                          },
+                          "maxItems": 3,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Item Ids"
+                    }
+                  },
+                  "title": "StatisticsArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "query_dimension_relation",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "left": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Left",
+                      "type": "string"
+                    },
+                    "right": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Right",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "left",
+                    "right"
+                  ],
+                  "title": "PairArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "compare_student_groups",
+                "parameters": {
+                  "$defs": {
+                    "Predicate": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "item_id": {
+                          "enum": [
+                            "I01",
+                            "I02",
+                            "I03",
+                            "I04",
+                            "I05"
+                          ],
+                          "pattern": "^[IQ][0-9]{2,3}$",
+                          "title": "Item Id",
+                          "type": "string"
+                        },
+                        "operator": {
+                          "pattern": "^(<|<=|==|>=|>)$",
+                          "title": "Operator",
+                          "type": "string"
+                        },
+                        "threshold": {
+                          "maxLength": 10,
+                          "pattern": "^[+-]?[0-9]{1,5}(?:\\.[0-9]{1,2})?$",
+                          "title": "Threshold",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "item_id",
+                        "operator",
+                        "threshold"
+                      ],
+                      "title": "Predicate",
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "conditions": {
+                      "items": {
+                        "$ref": "#/$defs/Predicate"
+                      },
+                      "maxItems": 2,
+                      "minItems": 1,
+                      "title": "Conditions",
+                      "type": "array"
+                    },
+                    "outcomes": {
+                      "items": {
+                        "enum": [
+                          "I01",
+                          "I02",
+                          "I03",
+                          "I04",
+                          "I05"
+                        ],
+                        "type": "string"
+                      },
+                      "maxItems": 1,
+                      "minItems": 1,
+                      "title": "Outcomes",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "outcomes"
+                  ],
+                  "title": "GroupArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_item_quality",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_id": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Item Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "item_id"
+                  ],
+                  "title": "ItemArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_discovery_support",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "fact_id": {
+                      "maxLength": 80,
+                      "minLength": 1,
+                      "title": "Fact Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "fact_id"
+                  ],
+                  "title": "SupportArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "finish",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "reason": {
+                      "enum": [
+                        "completed",
+                        "no_valid_findings",
+                        "insufficient_data"
+                      ],
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "selected_fact_ids": {
+                      "items": {
+                        "maxLength": 80,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9:_-]+$",
+                        "type": "string"
+                      },
+                      "maxItems": 3,
+                      "title": "Selected Fact Ids",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "selected_fact_ids",
+                    "reason"
+                  ],
+                  "title": "FinishArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            }
+          ],
+          "protocol": {
+            "model": "qwen3.8-flash",
+            "max_tokens": 800,
+            "tool_choice": "required",
+            "parallel_tool_calls": false,
+            "enable_thinking": false
+          }
+        },
+        {
+          "round": 2,
+          "new_message": {
+            "content": "{\"analysis_context\": {\"model_view\": \"adaptive-aggregate-v1\", \"items\": [{\"item_id\": \"I01\", \"kind\": \"competency\", \"label\": \"算法与数据结构\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I02\", \"kind\": \"competency\", \"label\": \"代码实现能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I03\", \"kind\": \"competency\", \"label\": \"问题建模能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I04\", \"kind\": \"competency\", \"label\": \"效率意识\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I05\", \"kind\": \"competency\", \"label\": \"解题策略\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}], \"tools\": [\"get_dimension_statistics\", \"query_dimension_relation\", \"compare_student_groups\", \"inspect_item_quality\", \"inspect_discovery_support\", \"finish\"], \"unsupported\": [\"five_dimension_inference_from_questions\", \"combined_ability_grade\", \"ai_collaboration_ability\", \"learning_growth\", \"causal_teaching_effect\", \"score_correctness_judgment\"], \"synthetic_only\": true}, \"facts\": [{\"fact_id\": \"run-d5bd63b972044bec-f001\", \"qualified\": false, \"items\": [{\"item_id\": \"I01\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 161, \"denominator\": 53, \"display\": \"3.0377\"}, \"median\": {\"numerator\": 5, \"denominator\": 1, \"display\": \"5.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I02\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 157, \"denominator\": 53, \"display\": \"2.9623\"}, \"median\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I03\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I04\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I05\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}], \"state\": \"available\"}], \"last_result\": {\"tool\": \"get_dimension_statistics\", \"status\": \"accepted\"}, \"remaining_model_requests\": 5, \"remaining_tool_attempts\": 4}",
+            "role": "tool",
+            "tool_call_id": "live-mock-0"
+          },
+          "history_length": 4,
+          "tools": [
+            "get_dimension_statistics",
+            "query_dimension_relation",
+            "compare_student_groups",
+            "inspect_item_quality",
+            "inspect_discovery_support",
+            "finish"
+          ],
+          "tool_schemas": [
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "get_dimension_statistics",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_ids": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "enum": [
+                              "I01",
+                              "I02",
+                              "I03",
+                              "I04",
+                              "I05"
+                            ],
+                            "type": "string"
+                          },
+                          "maxItems": 3,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Item Ids"
+                    }
+                  },
+                  "title": "StatisticsArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "query_dimension_relation",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "left": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Left",
+                      "type": "string"
+                    },
+                    "right": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Right",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "left",
+                    "right"
+                  ],
+                  "title": "PairArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "compare_student_groups",
+                "parameters": {
+                  "$defs": {
+                    "Predicate": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "item_id": {
+                          "enum": [
+                            "I01",
+                            "I02",
+                            "I03",
+                            "I04",
+                            "I05"
+                          ],
+                          "pattern": "^[IQ][0-9]{2,3}$",
+                          "title": "Item Id",
+                          "type": "string"
+                        },
+                        "operator": {
+                          "pattern": "^(<|<=|==|>=|>)$",
+                          "title": "Operator",
+                          "type": "string"
+                        },
+                        "threshold": {
+                          "maxLength": 10,
+                          "pattern": "^[+-]?[0-9]{1,5}(?:\\.[0-9]{1,2})?$",
+                          "title": "Threshold",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "item_id",
+                        "operator",
+                        "threshold"
+                      ],
+                      "title": "Predicate",
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "conditions": {
+                      "items": {
+                        "$ref": "#/$defs/Predicate"
+                      },
+                      "maxItems": 2,
+                      "minItems": 1,
+                      "title": "Conditions",
+                      "type": "array"
+                    },
+                    "outcomes": {
+                      "items": {
+                        "enum": [
+                          "I01",
+                          "I02",
+                          "I03",
+                          "I04",
+                          "I05"
+                        ],
+                        "type": "string"
+                      },
+                      "maxItems": 1,
+                      "minItems": 1,
+                      "title": "Outcomes",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "outcomes"
+                  ],
+                  "title": "GroupArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_item_quality",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_id": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Item Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "item_id"
+                  ],
+                  "title": "ItemArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_discovery_support",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "fact_id": {
+                      "maxLength": 80,
+                      "minLength": 1,
+                      "title": "Fact Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "fact_id"
+                  ],
+                  "title": "SupportArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "finish",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "reason": {
+                      "enum": [
+                        "completed",
+                        "no_valid_findings",
+                        "insufficient_data"
+                      ],
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "selected_fact_ids": {
+                      "items": {
+                        "maxLength": 80,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9:_-]+$",
+                        "type": "string"
+                      },
+                      "maxItems": 3,
+                      "title": "Selected Fact Ids",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "selected_fact_ids",
+                    "reason"
+                  ],
+                  "title": "FinishArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            }
+          ],
+          "protocol": {
+            "model": "qwen3.8-flash",
+            "max_tokens": 800,
+            "tool_choice": "required",
+            "parallel_tool_calls": false,
+            "enable_thinking": false
+          }
+        },
+        {
+          "round": 3,
+          "new_message": {
+            "content": "{\"analysis_context\": {\"model_view\": \"adaptive-aggregate-v1\", \"items\": [{\"item_id\": \"I01\", \"kind\": \"competency\", \"label\": \"算法与数据结构\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I02\", \"kind\": \"competency\", \"label\": \"代码实现能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I03\", \"kind\": \"competency\", \"label\": \"问题建模能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I04\", \"kind\": \"competency\", \"label\": \"效率意识\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I05\", \"kind\": \"competency\", \"label\": \"解题策略\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}], \"tools\": [\"get_dimension_statistics\", \"query_dimension_relation\", \"compare_student_groups\", \"inspect_item_quality\", \"inspect_discovery_support\", \"finish\"], \"unsupported\": [\"five_dimension_inference_from_questions\", \"combined_ability_grade\", \"ai_collaboration_ability\", \"learning_growth\", \"causal_teaching_effect\", \"score_correctness_judgment\"], \"synthetic_only\": true}, \"facts\": [{\"fact_id\": \"run-d5bd63b972044bec-f001\", \"qualified\": false, \"items\": [{\"item_id\": \"I01\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 161, \"denominator\": 53, \"display\": \"3.0377\"}, \"median\": {\"numerator\": 5, \"denominator\": 1, \"display\": \"5.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I02\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 157, \"denominator\": 53, \"display\": \"2.9623\"}, \"median\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I03\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I04\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I05\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}], \"state\": \"available\"}, {\"fact_id\": \"run-d5bd63b972044bec-f002\", \"qualified\": true, \"metrics\": {\"left\": \"I01\", \"right\": \"I02\", \"rho\": -1.0, \"paired_count\": 53, \"excluded_count\": 0, \"denominator\": 53, \"state\": \"computable\"}, \"status\": \"displayable\", \"ranking\": {\"score\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"support_count\": 53, \"robustness\": {\"method\": \"three_fixed_deletions\", \"planned\": 3, \"evaluated\": 3, \"passed\": 3, \"value\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}}, \"is_statistical_confidence\": false}, \"limitation_codes\": [\"correlation_not_causation\", \"ties_use_existing_average_ranks\"], \"type\": \"item_relation\"}], \"last_result\": {\"tool\": \"query_dimension_relation\", \"status\": \"accepted\"}, \"remaining_model_requests\": 4, \"remaining_tool_attempts\": 3}",
+            "role": "tool",
+            "tool_call_id": "live-mock-1"
+          },
+          "history_length": 6,
+          "tools": [
+            "get_dimension_statistics",
+            "query_dimension_relation",
+            "compare_student_groups",
+            "inspect_item_quality",
+            "inspect_discovery_support",
+            "finish"
+          ],
+          "tool_schemas": [
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "get_dimension_statistics",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_ids": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "enum": [
+                              "I01",
+                              "I02",
+                              "I03",
+                              "I04",
+                              "I05"
+                            ],
+                            "type": "string"
+                          },
+                          "maxItems": 3,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Item Ids"
+                    }
+                  },
+                  "title": "StatisticsArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "query_dimension_relation",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "left": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Left",
+                      "type": "string"
+                    },
+                    "right": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Right",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "left",
+                    "right"
+                  ],
+                  "title": "PairArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "compare_student_groups",
+                "parameters": {
+                  "$defs": {
+                    "Predicate": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "item_id": {
+                          "enum": [
+                            "I01",
+                            "I02",
+                            "I03",
+                            "I04",
+                            "I05"
+                          ],
+                          "pattern": "^[IQ][0-9]{2,3}$",
+                          "title": "Item Id",
+                          "type": "string"
+                        },
+                        "operator": {
+                          "pattern": "^(<|<=|==|>=|>)$",
+                          "title": "Operator",
+                          "type": "string"
+                        },
+                        "threshold": {
+                          "maxLength": 10,
+                          "pattern": "^[+-]?[0-9]{1,5}(?:\\.[0-9]{1,2})?$",
+                          "title": "Threshold",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "item_id",
+                        "operator",
+                        "threshold"
+                      ],
+                      "title": "Predicate",
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "conditions": {
+                      "items": {
+                        "$ref": "#/$defs/Predicate"
+                      },
+                      "maxItems": 2,
+                      "minItems": 1,
+                      "title": "Conditions",
+                      "type": "array"
+                    },
+                    "outcomes": {
+                      "items": {
+                        "enum": [
+                          "I01",
+                          "I02",
+                          "I03",
+                          "I04",
+                          "I05"
+                        ],
+                        "type": "string"
+                      },
+                      "maxItems": 1,
+                      "minItems": 1,
+                      "title": "Outcomes",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "outcomes"
+                  ],
+                  "title": "GroupArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_item_quality",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_id": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Item Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "item_id"
+                  ],
+                  "title": "ItemArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_discovery_support",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "fact_id": {
+                      "maxLength": 80,
+                      "minLength": 1,
+                      "title": "Fact Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "fact_id"
+                  ],
+                  "title": "SupportArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "finish",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "reason": {
+                      "enum": [
+                        "completed",
+                        "no_valid_findings",
+                        "insufficient_data"
+                      ],
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "selected_fact_ids": {
+                      "items": {
+                        "maxLength": 80,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9:_-]+$",
+                        "type": "string"
+                      },
+                      "maxItems": 3,
+                      "title": "Selected Fact Ids",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "selected_fact_ids",
+                    "reason"
+                  ],
+                  "title": "FinishArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            }
+          ],
+          "protocol": {
+            "model": "qwen3.8-flash",
+            "max_tokens": 800,
+            "tool_choice": "required",
+            "parallel_tool_calls": false,
+            "enable_thinking": false
+          }
+        },
+        {
+          "round": 4,
+          "new_message": {
+            "content": "{\"analysis_context\": {\"model_view\": \"adaptive-aggregate-v1\", \"items\": [{\"item_id\": \"I01\", \"kind\": \"competency\", \"label\": \"算法与数据结构\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I02\", \"kind\": \"competency\", \"label\": \"代码实现能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I03\", \"kind\": \"competency\", \"label\": \"问题建模能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I04\", \"kind\": \"competency\", \"label\": \"效率意识\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I05\", \"kind\": \"competency\", \"label\": \"解题策略\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}], \"tools\": [\"get_dimension_statistics\", \"query_dimension_relation\", \"compare_student_groups\", \"inspect_item_quality\", \"inspect_discovery_support\", \"finish\"], \"unsupported\": [\"five_dimension_inference_from_questions\", \"combined_ability_grade\", \"ai_collaboration_ability\", \"learning_growth\", \"causal_teaching_effect\", \"score_correctness_judgment\"], \"synthetic_only\": true}, \"facts\": [{\"fact_id\": \"run-d5bd63b972044bec-f001\", \"qualified\": false, \"items\": [{\"item_id\": \"I01\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 161, \"denominator\": 53, \"display\": \"3.0377\"}, \"median\": {\"numerator\": 5, \"denominator\": 1, \"display\": \"5.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I02\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 157, \"denominator\": 53, \"display\": \"2.9623\"}, \"median\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I03\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I04\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I05\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}], \"state\": \"available\"}, {\"fact_id\": \"run-d5bd63b972044bec-f002\", \"qualified\": true, \"metrics\": {\"left\": \"I01\", \"right\": \"I02\", \"rho\": -1.0, \"paired_count\": 53, \"excluded_count\": 0, \"denominator\": 53, \"state\": \"computable\"}, \"status\": \"displayable\", \"ranking\": {\"score\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"support_count\": 53, \"robustness\": {\"method\": \"three_fixed_deletions\", \"planned\": 3, \"evaluated\": 3, \"passed\": 3, \"value\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}}, \"is_statistical_confidence\": false}, \"limitation_codes\": [\"correlation_not_causation\", \"ties_use_existing_average_ranks\"], \"type\": \"item_relation\"}, {\"fact_id\": \"run-d5bd63b972044bec-f003\", \"qualified\": true, \"metrics\": {\"outcome\": \"I02\", \"conditions\": [{\"item_id\": \"I01\", \"operator\": \"<=\", \"threshold\": \"1\"}], \"target_count\": 26, \"remainder_count\": 27, \"unevaluable_count\": 0, \"denominator\": 53, \"eligible_denominator\": 53, \"share_total\": {\"numerator\": 26, \"denominator\": 53, \"display\": \"0.4906\"}, \"share_eligible\": {\"numerator\": 26, \"denominator\": 53, \"display\": \"0.4906\"}, \"target_valid\": 26, \"remainder_valid\": 27, \"target_mean\": {\"numerator\": 5, \"denominator\": 1, \"display\": \"5.0000\"}, \"remainder_mean\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"difference\": {\"numerator\": 4, \"denominator\": 1, \"display\": \"4.0000\"}, \"outcome_unit\": \"level\"}, \"status\": \"displayable\", \"ranking\": {\"score\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"support_count\": 26, \"robustness\": {\"method\": \"three_fixed_deletions\", \"planned\": 3, \"evaluated\": 3, \"passed\": 3, \"value\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}}, \"is_statistical_confidence\": false}, \"limitation_codes\": [\"condition_dimensions_not_discoveries\", \"disjoint_remainder\", \"ordinal_mean_is_descriptive\", \"no_cross_item_score_sum\"], \"type\": \"item_group_difference\"}], \"last_result\": {\"tool\": \"compare_student_groups\", \"status\": \"accepted\"}, \"remaining_model_requests\": 3, \"remaining_tool_attempts\": 2}",
+            "role": "tool",
+            "tool_call_id": "live-mock-2"
+          },
+          "history_length": 8,
+          "tools": [
+            "get_dimension_statistics",
+            "query_dimension_relation",
+            "compare_student_groups",
+            "inspect_item_quality",
+            "inspect_discovery_support",
+            "finish"
+          ],
+          "tool_schemas": [
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "get_dimension_statistics",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_ids": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "enum": [
+                              "I01",
+                              "I02",
+                              "I03",
+                              "I04",
+                              "I05"
+                            ],
+                            "type": "string"
+                          },
+                          "maxItems": 3,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Item Ids"
+                    }
+                  },
+                  "title": "StatisticsArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "query_dimension_relation",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "left": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Left",
+                      "type": "string"
+                    },
+                    "right": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Right",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "left",
+                    "right"
+                  ],
+                  "title": "PairArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "compare_student_groups",
+                "parameters": {
+                  "$defs": {
+                    "Predicate": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "item_id": {
+                          "enum": [
+                            "I01",
+                            "I02",
+                            "I03",
+                            "I04",
+                            "I05"
+                          ],
+                          "pattern": "^[IQ][0-9]{2,3}$",
+                          "title": "Item Id",
+                          "type": "string"
+                        },
+                        "operator": {
+                          "pattern": "^(<|<=|==|>=|>)$",
+                          "title": "Operator",
+                          "type": "string"
+                        },
+                        "threshold": {
+                          "maxLength": 10,
+                          "pattern": "^[+-]?[0-9]{1,5}(?:\\.[0-9]{1,2})?$",
+                          "title": "Threshold",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "item_id",
+                        "operator",
+                        "threshold"
+                      ],
+                      "title": "Predicate",
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "conditions": {
+                      "items": {
+                        "$ref": "#/$defs/Predicate"
+                      },
+                      "maxItems": 2,
+                      "minItems": 1,
+                      "title": "Conditions",
+                      "type": "array"
+                    },
+                    "outcomes": {
+                      "items": {
+                        "enum": [
+                          "I01",
+                          "I02",
+                          "I03",
+                          "I04",
+                          "I05"
+                        ],
+                        "type": "string"
+                      },
+                      "maxItems": 1,
+                      "minItems": 1,
+                      "title": "Outcomes",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "outcomes"
+                  ],
+                  "title": "GroupArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_item_quality",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_id": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Item Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "item_id"
+                  ],
+                  "title": "ItemArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_discovery_support",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "fact_id": {
+                      "maxLength": 80,
+                      "minLength": 1,
+                      "title": "Fact Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "fact_id"
+                  ],
+                  "title": "SupportArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "finish",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "reason": {
+                      "enum": [
+                        "completed",
+                        "no_valid_findings",
+                        "insufficient_data"
+                      ],
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "selected_fact_ids": {
+                      "items": {
+                        "maxLength": 80,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9:_-]+$",
+                        "type": "string"
+                      },
+                      "maxItems": 3,
+                      "title": "Selected Fact Ids",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "selected_fact_ids",
+                    "reason"
+                  ],
+                  "title": "FinishArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            }
+          ],
+          "protocol": {
+            "model": "qwen3.8-flash",
+            "max_tokens": 800,
+            "tool_choice": "required",
+            "parallel_tool_calls": false,
+            "enable_thinking": false
+          }
+        },
+        {
+          "round": 5,
+          "new_message": {
+            "content": "{\"analysis_context\": {\"model_view\": \"adaptive-aggregate-v1\", \"items\": [{\"item_id\": \"I01\", \"kind\": \"competency\", \"label\": \"算法与数据结构\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I02\", \"kind\": \"competency\", \"label\": \"代码实现能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I03\", \"kind\": \"competency\", \"label\": \"问题建模能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I04\", \"kind\": \"competency\", \"label\": \"效率意识\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I05\", \"kind\": \"competency\", \"label\": \"解题策略\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}], \"tools\": [\"get_dimension_statistics\", \"query_dimension_relation\", \"compare_student_groups\", \"inspect_item_quality\", \"inspect_discovery_support\", \"finish\"], \"unsupported\": [\"five_dimension_inference_from_questions\", \"combined_ability_grade\", \"ai_collaboration_ability\", \"learning_growth\", \"causal_teaching_effect\", \"score_correctness_judgment\"], \"synthetic_only\": true}, \"facts\": [{\"fact_id\": \"run-d5bd63b972044bec-f001\", \"qualified\": false, \"items\": [{\"item_id\": \"I01\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 161, \"denominator\": 53, \"display\": \"3.0377\"}, \"median\": {\"numerator\": 5, \"denominator\": 1, \"display\": \"5.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I02\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 157, \"denominator\": 53, \"display\": \"2.9623\"}, \"median\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": true, \"exploration_thresholds\": [\"1\", \"5\"]}, {\"item_id\": \"I03\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I04\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I05\", \"denominator\": 53, \"valid_count\": 53, \"excluded_count\": 0, \"states\": {\"valid\": 53}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}], \"state\": \"available\"}, {\"fact_id\": \"run-d5bd63b972044bec-f002\", \"qualified\": true, \"metrics\": {\"left\": \"I01\", \"right\": \"I02\", \"rho\": -1.0, \"paired_count\": 53, \"excluded_count\": 0, \"denominator\": 53, \"state\": \"computable\"}, \"status\": \"displayable\", \"ranking\": {\"score\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"support_count\": 53, \"robustness\": {\"method\": \"three_fixed_deletions\", \"planned\": 3, \"evaluated\": 3, \"passed\": 3, \"value\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}}, \"is_statistical_confidence\": false}, \"limitation_codes\": [\"correlation_not_causation\", \"ties_use_existing_average_ranks\"], \"type\": \"item_relation\"}, {\"fact_id\": \"run-d5bd63b972044bec-f003\", \"qualified\": true, \"metrics\": {\"outcome\": \"I02\", \"conditions\": [{\"item_id\": \"I01\", \"operator\": \"<=\", \"threshold\": \"1\"}], \"target_count\": 26, \"remainder_count\": 27, \"unevaluable_count\": 0, \"denominator\": 53, \"eligible_denominator\": 53, \"share_total\": {\"numerator\": 26, \"denominator\": 53, \"display\": \"0.4906\"}, \"share_eligible\": {\"numerator\": 26, \"denominator\": 53, \"display\": \"0.4906\"}, \"target_valid\": 26, \"remainder_valid\": 27, \"target_mean\": {\"numerator\": 5, \"denominator\": 1, \"display\": \"5.0000\"}, \"remainder_mean\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"difference\": {\"numerator\": 4, \"denominator\": 1, \"display\": \"4.0000\"}, \"outcome_unit\": \"level\"}, \"status\": \"displayable\", \"ranking\": {\"score\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"support_count\": 26, \"robustness\": {\"method\": \"three_fixed_deletions\", \"planned\": 3, \"evaluated\": 3, \"passed\": 3, \"value\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}}, \"is_statistical_confidence\": false}, \"limitation_codes\": [\"condition_dimensions_not_discoveries\", \"disjoint_remainder\", \"ordinal_mean_is_descriptive\", \"no_cross_item_score_sum\"], \"type\": \"item_group_difference\"}, {\"fact_id\": \"run-d5bd63b972044bec-f004\", \"qualified\": false, \"checked_fact_id\": \"run-d5bd63b972044bec-f003\", \"qualification\": \"qualified\", \"ranking\": {\"score\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}, \"support_count\": 26, \"robustness\": {\"method\": \"three_fixed_deletions\", \"planned\": 3, \"evaluated\": 3, \"passed\": 3, \"value\": {\"numerator\": 1, \"denominator\": 1, \"display\": \"1.0000\"}}, \"is_statistical_confidence\": false}, \"limitations\": [\"condition_dimensions_not_discoveries\", \"disjoint_remainder\", \"ordinal_mean_is_descriptive\", \"no_cross_item_score_sum\"]}], \"last_result\": {\"tool\": \"inspect_discovery_support\", \"status\": \"accepted\"}, \"remaining_model_requests\": 2, \"remaining_tool_attempts\": 1}",
+            "role": "tool",
+            "tool_call_id": "live-mock-3"
+          },
+          "history_length": 10,
+          "tools": [
+            "get_dimension_statistics",
+            "query_dimension_relation",
+            "compare_student_groups",
+            "inspect_item_quality",
+            "inspect_discovery_support",
+            "finish"
+          ],
+          "tool_schemas": [
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "get_dimension_statistics",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_ids": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "enum": [
+                              "I01",
+                              "I02",
+                              "I03",
+                              "I04",
+                              "I05"
+                            ],
+                            "type": "string"
+                          },
+                          "maxItems": 3,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Item Ids"
+                    }
+                  },
+                  "title": "StatisticsArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "query_dimension_relation",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "left": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Left",
+                      "type": "string"
+                    },
+                    "right": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Right",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "left",
+                    "right"
+                  ],
+                  "title": "PairArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "compare_student_groups",
+                "parameters": {
+                  "$defs": {
+                    "Predicate": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "item_id": {
+                          "enum": [
+                            "I01",
+                            "I02",
+                            "I03",
+                            "I04",
+                            "I05"
+                          ],
+                          "pattern": "^[IQ][0-9]{2,3}$",
+                          "title": "Item Id",
+                          "type": "string"
+                        },
+                        "operator": {
+                          "pattern": "^(<|<=|==|>=|>)$",
+                          "title": "Operator",
+                          "type": "string"
+                        },
+                        "threshold": {
+                          "maxLength": 10,
+                          "pattern": "^[+-]?[0-9]{1,5}(?:\\.[0-9]{1,2})?$",
+                          "title": "Threshold",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "item_id",
+                        "operator",
+                        "threshold"
+                      ],
+                      "title": "Predicate",
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "conditions": {
+                      "items": {
+                        "$ref": "#/$defs/Predicate"
+                      },
+                      "maxItems": 2,
+                      "minItems": 1,
+                      "title": "Conditions",
+                      "type": "array"
+                    },
+                    "outcomes": {
+                      "items": {
+                        "enum": [
+                          "I01",
+                          "I02",
+                          "I03",
+                          "I04",
+                          "I05"
+                        ],
+                        "type": "string"
+                      },
+                      "maxItems": 1,
+                      "minItems": 1,
+                      "title": "Outcomes",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "outcomes"
+                  ],
+                  "title": "GroupArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_item_quality",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_id": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Item Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "item_id"
+                  ],
+                  "title": "ItemArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_discovery_support",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "fact_id": {
+                      "maxLength": 80,
+                      "minLength": 1,
+                      "title": "Fact Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "fact_id"
+                  ],
+                  "title": "SupportArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "finish",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "reason": {
+                      "enum": [
+                        "completed",
+                        "no_valid_findings",
+                        "insufficient_data"
+                      ],
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "selected_fact_ids": {
+                      "items": {
+                        "maxLength": 80,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9:_-]+$",
+                        "type": "string"
+                      },
+                      "maxItems": 3,
+                      "title": "Selected Fact Ids",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "selected_fact_ids",
+                    "reason"
+                  ],
+                  "title": "FinishArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            }
+          ],
+          "protocol": {
+            "model": "qwen3.8-flash",
+            "max_tokens": 800,
+            "tool_choice": "required",
+            "parallel_tool_calls": false,
+            "enable_thinking": false
+          }
+        }
+      ],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "get_dimension_statistics",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 2,
+          "decision": {
+            "name": "query_dimension_relation",
+            "arguments": {
+              "left": "I01",
+              "right": "I02"
+            },
+            "basis_fact_ids": [
+              "run-d5bd63b972044bec-f001"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 3,
+          "decision": {
+            "name": "compare_student_groups",
+            "arguments": {
+              "conditions": [
+                {
+                  "item_id": "I01",
+                  "operator": "<=",
+                  "threshold": "1"
+                }
+              ],
+              "outcomes": [
+                "I02"
+              ]
+            },
+            "basis_fact_ids": [
+              "run-d5bd63b972044bec-f002"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 4,
+          "decision": {
+            "name": "inspect_discovery_support",
+            "arguments": {
+              "fact_id": "run-d5bd63b972044bec-f003"
+            },
+            "basis_fact_ids": [
+              "run-d5bd63b972044bec-f003"
+            ]
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 5,
+          "decision": {
+            "name": "finish",
+            "arguments": {
+              "selected_fact_ids": [
+                "run-d5bd63b972044bec-f002",
+                "run-d5bd63b972044bec-f003"
+              ],
+              "reason": "completed"
+            },
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        }
+      ],
+      "planner_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "query_dimension_relation",
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          },
+          "basis_fact_ids": [
+            "run-d5bd63b972044bec-f001"
+          ]
+        },
+        {
+          "round": 3,
+          "tool": "compare_student_groups",
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcomes": [
+              "I02"
+            ]
+          },
+          "basis_fact_ids": [
+            "run-d5bd63b972044bec-f002"
+          ]
+        },
+        {
+          "round": 4,
+          "tool": "inspect_discovery_support",
+          "arguments": {
+            "fact_id": "run-d5bd63b972044bec-f003"
+          },
+          "basis_fact_ids": [
+            "run-d5bd63b972044bec-f003"
+          ]
+        },
+        {
+          "round": 5,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [
+              "run-d5bd63b972044bec-f002",
+              "run-d5bd63b972044bec-f003"
+            ],
+            "reason": "completed"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        },
+        {
+          "attempt": 2,
+          "tool": "query_dimension_relation",
+          "status": "accepted",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f002"
+          ],
+          "error": null,
+          "arguments": {
+            "left": "I01",
+            "right": "I02"
+          }
+        },
+        {
+          "attempt": 3,
+          "tool": "compare_student_groups",
+          "status": "accepted",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f003"
+          ],
+          "error": null,
+          "arguments": {
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "outcomes": [
+              "I02"
+            ]
+          }
+        },
+        {
+          "attempt": 4,
+          "tool": "inspect_discovery_support",
+          "status": "accepted",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f004"
+          ],
+          "error": null,
+          "arguments": {
+            "fact_id": "run-d5bd63b972044bec-f003"
+          }
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 9,
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "query_dimension_relation",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 10,
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "query_dimension_relation",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 11,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 12,
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f002"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 13,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 14,
+          "round": 3,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "compare_student_groups",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 15,
+          "round": 3,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "compare_student_groups",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 16,
+          "round": 4,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 17,
+          "round": 4,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f003"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 18,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 19,
+          "round": 4,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 20,
+          "round": 4,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "inspect_discovery_support",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f004"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 21,
+          "round": 5,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 22,
+          "round": 5,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 23,
+          "round": 5,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [
+            "run-d5bd63b972044bec-f002",
+            "run-d5bd63b972044bec-f003"
+          ],
+          "error": null
+        }
+      ],
+      "issued_facts": [
+        {
+          "fact_id": "run-d5bd63b972044bec-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "I01",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 161,
+                "denominator": 53,
+                "display": "3.0377"
+              },
+              "median": {
+                "numerator": 5,
+                "denominator": 1,
+                "display": "5.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "1",
+                "5"
+              ]
+            },
+            {
+              "item_id": "I02",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 157,
+                "denominator": 53,
+                "display": "2.9623"
+              },
+              "median": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": true,
+              "exploration_thresholds": [
+                "1",
+                "5"
+              ]
+            },
+            {
+              "item_id": "I03",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I04",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I05",
+              "denominator": 53,
+              "valid_count": 53,
+              "excluded_count": 0,
+              "states": {
+                "valid": 53
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            }
+          ],
+          "state": "available"
+        },
+        {
+          "fact_id": "run-d5bd63b972044bec-f002",
+          "qualified": true,
+          "metrics": {
+            "left": "I01",
+            "right": "I02",
+            "rho": -1.0,
+            "paired_count": 53,
+            "excluded_count": 0,
+            "denominator": 53,
+            "state": "computable"
+          },
+          "status": "displayable",
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 53,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "type": "item_relation"
+        },
+        {
+          "fact_id": "run-d5bd63b972044bec-f003",
+          "qualified": true,
+          "metrics": {
+            "outcome": "I02",
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "denominator": 53,
+            "eligible_denominator": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "target_valid": 26,
+            "remainder_valid": 27,
+            "target_mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "remainder_mean": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1,
+              "display": "4.0000"
+            },
+            "outcome_unit": "level"
+          },
+          "status": "displayable",
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 26,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitation_codes": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "type": "item_group_difference"
+        },
+        {
+          "fact_id": "run-d5bd63b972044bec-f004",
+          "qualified": false,
+          "checked_fact_id": "run-d5bd63b972044bec-f003",
+          "qualification": "qualified",
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 26,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ]
+        }
+      ],
+      "proposed_ids": [
+        "run-d5bd63b972044bec-f002",
+        "run-d5bd63b972044bec-f003"
+      ],
+      "selected_ids": [
+        "run-d5bd63b972044bec-f002",
+        "run-d5bd63b972044bec-f003"
+      ],
+      "cards": [
+        {
+          "fact_id": "run-d5bd63b972044bec-f002",
+          "discovery_id": "b345d6425588b66889a97ea7",
+          "type": "item_relation",
+          "title": "I01 与 I02 的评分关联",
+          "summary": "有效成对53人，Spearman=-1；相关不代表因果。",
+          "batch_id": "synthetic-batch-18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "left": "I01",
+            "right": "I02",
+            "rho": -1.0,
+            "paired_count": 53,
+            "excluded_count": 0,
+            "denominator": 53,
+            "state": "computable"
+          },
+          "chart": {
+            "left": "I01",
+            "right": "I02",
+            "rho": -1.0,
+            "paired_count": 53,
+            "excluded_count": 0,
+            "denominator": 53,
+            "state": "computable"
+          },
+          "status": "displayable",
+          "limitations": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 53,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-d5bd63b972044bec-f002",
+              "metric_key": "left.paired"
+            },
+            {
+              "fact_id": "run-d5bd63b972044bec-f002",
+              "metric_key": "right.paired"
+            }
+          ]
+        },
+        {
+          "fact_id": "run-d5bd63b972044bec-f003",
+          "discovery_id": "7e35fe77213b3b2aac7278c9",
+          "type": "item_group_difference",
+          "title": "I02 的互斥群体描述差异",
+          "summary": "目标26人，余组27人，均值差4；不表示因果或能力等级。",
+          "batch_id": "synthetic-batch-18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "snapshot_id": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "metrics": {
+            "outcome": "I02",
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "denominator": 53,
+            "eligible_denominator": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "target_valid": 26,
+            "remainder_valid": 27,
+            "target_mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "remainder_mean": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1,
+              "display": "4.0000"
+            },
+            "outcome_unit": "level"
+          },
+          "chart": {
+            "outcome": "I02",
+            "conditions": [
+              {
+                "item_id": "I01",
+                "operator": "<=",
+                "threshold": "1"
+              }
+            ],
+            "target_count": 26,
+            "remainder_count": 27,
+            "unevaluable_count": 0,
+            "denominator": 53,
+            "eligible_denominator": 53,
+            "share_total": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "share_eligible": {
+              "numerator": 26,
+              "denominator": 53,
+              "display": "0.4906"
+            },
+            "target_valid": 26,
+            "remainder_valid": 27,
+            "target_mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "remainder_mean": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "difference": {
+              "numerator": 4,
+              "denominator": 1,
+              "display": "4.0000"
+            },
+            "outcome_unit": "level"
+          },
+          "status": "displayable",
+          "limitations": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "ranking": {
+            "score": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            },
+            "support_count": 26,
+            "robustness": {
+              "method": "three_fixed_deletions",
+              "planned": 3,
+              "evaluated": 3,
+              "passed": 3,
+              "value": {
+                "numerator": 1,
+                "denominator": 1,
+                "display": "1.0000"
+              }
+            },
+            "is_statistical_confidence": false
+          },
+          "public_display_allowed": false,
+          "source_queries": [
+            {
+              "fact_id": "run-d5bd63b972044bec-f003",
+              "metric_key": "target.valid"
+            },
+            {
+              "fact_id": "run-d5bd63b972044bec-f003",
+              "metric_key": "remainder.valid"
+            },
+            {
+              "fact_id": "run-d5bd63b972044bec-f003",
+              "metric_key": "target.condition.I01"
+            },
+            {
+              "fact_id": "run-d5bd63b972044bec-f003",
+              "metric_key": "remainder.condition.I01"
+            },
+            {
+              "fact_id": "run-d5bd63b972044bec-f003",
+              "metric_key": "unevaluable.rows"
+            }
+          ]
+        }
+      ],
+      "tool_attempts": 4,
+      "policy_decisions": 5,
+      "model_requests": 5,
+      "elapsed_seconds": 5.85915319994092,
+      "operation_counts": {
+        "analysis.py:group": 6,
+        "analysis.py:statistics": 53,
+        "analysis.py:_pair": 24,
+        "agent.py:_verify": 13,
+        "agent.py:derive": 12,
+        "agent.py:_gate": 7
+      },
+      "budget": {
+        "campaign_id": "eval-692a3463a6ad42a9aaa04ab40005d5bf",
+        "authorization_fingerprint": "299d39b209d26cc4ca994171605243120895d138da89ce154d6f0277b0179a64",
+        "source_fingerprints": {
+          "five": "18bb3de7d58625dc8a157ca4c67e69d5839b0693757043558eac9a4c5a4b3b12"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 5,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 6500,
+        "charged_cny_upper_bound": "0.00580",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 3,
+            "http_status": 200,
+            "transport_status": "response_received",
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "http_status": 200,
+            "transport_status": "response_received",
+            "error": null
+          },
+          {
+            "request": 3,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1300,
+            "charged_cny_upper_bound": "0.00116",
+            "actual_usage": {
+              "input_tokens": 1200,
+              "output_tokens": 100,
+              "total_tokens": 1300,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 3,
+            "http_status": 200,
+            "transport_status": "response_received",
+            "error": null
+          },
+          {
+            "request": 4,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1400,
+            "charged_cny_upper_bound": "0.00124",
+            "actual_usage": {
+              "input_tokens": 1300,
+              "output_tokens": 100,
+              "total_tokens": 1400,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "http_status": 200,
+            "transport_status": "response_received",
+            "error": null
+          },
+          {
+            "request": 5,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1500,
+            "charged_cny_upper_bound": "0.00132",
+            "actual_usage": {
+              "input_tokens": 1400,
+              "output_tokens": 100,
+              "total_tokens": 1500,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "http_status": 200,
+            "transport_status": "response_received",
+            "error": null
+          }
+        ]
+      },
+      "actual_tokens": null,
+      "actual_cost_cny": null,
+      "paid_api_calls": 0
+    }
+  },
+  "constant_score_control": {
+    "evaluation": {
+      "status": "completed",
+      "reason": "no_valid_findings",
+      "executed": true,
+      "coverage": {
+        "count": 0,
+        "denominator": 0
+      },
+      "computed_coverage": {
+        "count": 0,
+        "denominator": 0
+      },
+      "missed_targets": [],
+      "false_discoveries": 0,
+      "duplicate_discoveries": 0,
+      "card_projection_errors": [],
+      "duplicate_final_proposals": 0,
+      "wrong_final_proposals": 0,
+      "data_accuracy": {
+        "count": 1,
+        "denominator": 1
+      },
+      "source_accuracy": {
+        "count": 1,
+        "denominator": 1
+      },
+      "illegal_tool_proposals": 0,
+      "disclosure_errors": [],
+      "zero_finding_correct": true,
+      "verified_extra_selected": 0,
+      "actual_tokens": null,
+      "actual_cost_cny": null,
+      "http_usage_fixture": {
+        "request_count": 2,
+        "charged_tokens": 2300,
+        "charged_cny_upper_bound": "0.00208"
+      },
+      "model_requests": 2,
+      "tool_attempts": 1,
+      "elapsed_seconds": 0.5102721999865025,
+      "operation_counts": {
+        "analysis.py:statistics": 5,
+        "agent.py:_verify": 1,
+        "agent.py:_gate": 5
+      },
+      "fact_checks": [
+        {
+          "fact_id": "run-2bf03497d29a498d-f001",
+          "data_correct": true,
+          "sources_correct": true,
+          "qualified": false,
+          "signature": null,
+          "errors": [],
+          "source_digest": "12f575b55756e0e4d6d430bed6fd1e2ab8443fc0a3b05caa51e0c36f5e9dd55b"
+        }
+      ],
+      "passed": true
+    },
+    "audit": {
+      "profile": "http_mock",
+      "planner_class": "prototypes.adaptive_assessment.live.planner.QwenAdaptivePlanner",
+      "measurement_origin": "offline_mechanism",
+      "source_fingerprint": "2d8c2045ecfc0c9eea45893e78b1ac697688d909cea5d24813100bb856ff404c",
+      "runtime_batch_id": "synthetic-batch-2d8c2045ecfc0c9eea45893e78b1ac697688d909cea5d24813100bb856ff404c",
+      "snapshot_id": "2d8c2045ecfc0c9eea45893e78b1ac697688d909cea5d24813100bb856ff404c",
+      "run_id": "run-2bf03497d29a498d",
+      "status": "completed",
+      "reason": "no_valid_findings",
+      "http_transcript": [
+        {
+          "round": 1,
+          "new_message": {
+            "content": "{\"analysis_context\": {\"model_view\": \"adaptive-aggregate-v1\", \"items\": [{\"item_id\": \"I01\", \"kind\": \"competency\", \"label\": \"算法与数据结构\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I02\", \"kind\": \"competency\", \"label\": \"代码实现能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I03\", \"kind\": \"competency\", \"label\": \"问题建模能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I04\", \"kind\": \"competency\", \"label\": \"效率意识\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I05\", \"kind\": \"competency\", \"label\": \"解题策略\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}], \"tools\": [\"get_dimension_statistics\", \"query_dimension_relation\", \"compare_student_groups\", \"inspect_item_quality\", \"inspect_discovery_support\", \"finish\"], \"unsupported\": [\"five_dimension_inference_from_questions\", \"combined_ability_grade\", \"ai_collaboration_ability\", \"learning_growth\", \"causal_teaching_effect\", \"score_correctness_judgment\"], \"synthetic_only\": true}, \"facts\": [], \"last_result\": null, \"remaining_model_requests\": 6, \"remaining_tool_attempts\": 5}",
+            "role": "user"
+          },
+          "history_length": 2,
+          "tools": [
+            "get_dimension_statistics",
+            "query_dimension_relation",
+            "compare_student_groups",
+            "inspect_item_quality",
+            "inspect_discovery_support",
+            "finish"
+          ],
+          "tool_schemas": [
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "get_dimension_statistics",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_ids": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "enum": [
+                              "I01",
+                              "I02",
+                              "I03",
+                              "I04",
+                              "I05"
+                            ],
+                            "type": "string"
+                          },
+                          "maxItems": 3,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Item Ids"
+                    }
+                  },
+                  "title": "StatisticsArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "query_dimension_relation",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "left": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Left",
+                      "type": "string"
+                    },
+                    "right": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Right",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "left",
+                    "right"
+                  ],
+                  "title": "PairArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "compare_student_groups",
+                "parameters": {
+                  "$defs": {
+                    "Predicate": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "item_id": {
+                          "enum": [
+                            "I01",
+                            "I02",
+                            "I03",
+                            "I04",
+                            "I05"
+                          ],
+                          "pattern": "^[IQ][0-9]{2,3}$",
+                          "title": "Item Id",
+                          "type": "string"
+                        },
+                        "operator": {
+                          "pattern": "^(<|<=|==|>=|>)$",
+                          "title": "Operator",
+                          "type": "string"
+                        },
+                        "threshold": {
+                          "maxLength": 10,
+                          "pattern": "^[+-]?[0-9]{1,5}(?:\\.[0-9]{1,2})?$",
+                          "title": "Threshold",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "item_id",
+                        "operator",
+                        "threshold"
+                      ],
+                      "title": "Predicate",
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "conditions": {
+                      "items": {
+                        "$ref": "#/$defs/Predicate"
+                      },
+                      "maxItems": 2,
+                      "minItems": 1,
+                      "title": "Conditions",
+                      "type": "array"
+                    },
+                    "outcomes": {
+                      "items": {
+                        "enum": [
+                          "I01",
+                          "I02",
+                          "I03",
+                          "I04",
+                          "I05"
+                        ],
+                        "type": "string"
+                      },
+                      "maxItems": 1,
+                      "minItems": 1,
+                      "title": "Outcomes",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "outcomes"
+                  ],
+                  "title": "GroupArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_item_quality",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_id": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Item Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "item_id"
+                  ],
+                  "title": "ItemArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_discovery_support",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "fact_id": {
+                      "maxLength": 80,
+                      "minLength": 1,
+                      "title": "Fact Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "fact_id"
+                  ],
+                  "title": "SupportArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "finish",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "reason": {
+                      "enum": [
+                        "completed",
+                        "no_valid_findings",
+                        "insufficient_data"
+                      ],
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "selected_fact_ids": {
+                      "items": {
+                        "maxLength": 80,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9:_-]+$",
+                        "type": "string"
+                      },
+                      "maxItems": 3,
+                      "title": "Selected Fact Ids",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "selected_fact_ids",
+                    "reason"
+                  ],
+                  "title": "FinishArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            }
+          ],
+          "protocol": {
+            "model": "qwen3.8-flash",
+            "max_tokens": 800,
+            "tool_choice": "required",
+            "parallel_tool_calls": false,
+            "enable_thinking": false
+          }
+        },
+        {
+          "round": 2,
+          "new_message": {
+            "content": "{\"analysis_context\": {\"model_view\": \"adaptive-aggregate-v1\", \"items\": [{\"item_id\": \"I01\", \"kind\": \"competency\", \"label\": \"算法与数据结构\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I02\", \"kind\": \"competency\", \"label\": \"代码实现能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I03\", \"kind\": \"competency\", \"label\": \"问题建模能力\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I04\", \"kind\": \"competency\", \"label\": \"效率意识\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}, {\"item_id\": \"I05\", \"kind\": \"competency\", \"label\": \"解题策略\", \"scale\": {\"minimum\": \"1\", \"maximum\": \"5\", \"step\": \"0.01\", \"unit\": \"level\"}, \"measurement_level\": \"ordinal\", \"statistics\": \"available\", \"relation_eligible\": true, \"filter_eligible\": true, \"rubric_available\": false}], \"tools\": [\"get_dimension_statistics\", \"query_dimension_relation\", \"compare_student_groups\", \"inspect_item_quality\", \"inspect_discovery_support\", \"finish\"], \"unsupported\": [\"five_dimension_inference_from_questions\", \"combined_ability_grade\", \"ai_collaboration_ability\", \"learning_growth\", \"causal_teaching_effect\", \"score_correctness_judgment\"], \"synthetic_only\": true}, \"facts\": [{\"fact_id\": \"run-2bf03497d29a498d-f001\", \"qualified\": false, \"items\": [{\"item_id\": \"I01\", \"denominator\": 17, \"valid_count\": 17, \"excluded_count\": 0, \"states\": {\"valid\": 17}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I02\", \"denominator\": 17, \"valid_count\": 17, \"excluded_count\": 0, \"states\": {\"valid\": 17}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I03\", \"denominator\": 17, \"valid_count\": 17, \"excluded_count\": 0, \"states\": {\"valid\": 17}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I04\", \"denominator\": 17, \"valid_count\": 17, \"excluded_count\": 0, \"states\": {\"valid\": 17}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}, {\"item_id\": \"I05\", \"denominator\": 17, \"valid_count\": 17, \"excluded_count\": 0, \"states\": {\"valid\": 17}, \"mean\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"median\": {\"numerator\": 3, \"denominator\": 1, \"display\": \"3.0000\"}, \"range_checked\": true, \"state\": \"available\", \"has_variance\": false, \"exploration_thresholds\": [\"3\"]}], \"state\": \"available\"}], \"last_result\": {\"tool\": \"get_dimension_statistics\", \"status\": \"accepted\"}, \"remaining_model_requests\": 5, \"remaining_tool_attempts\": 4}",
+            "role": "tool",
+            "tool_call_id": "live-mock-0"
+          },
+          "history_length": 4,
+          "tools": [
+            "get_dimension_statistics",
+            "query_dimension_relation",
+            "compare_student_groups",
+            "inspect_item_quality",
+            "inspect_discovery_support",
+            "finish"
+          ],
+          "tool_schemas": [
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "get_dimension_statistics",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_ids": {
+                      "anyOf": [
+                        {
+                          "items": {
+                            "enum": [
+                              "I01",
+                              "I02",
+                              "I03",
+                              "I04",
+                              "I05"
+                            ],
+                            "type": "string"
+                          },
+                          "maxItems": 3,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Item Ids"
+                    }
+                  },
+                  "title": "StatisticsArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "query_dimension_relation",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "left": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Left",
+                      "type": "string"
+                    },
+                    "right": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Right",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "left",
+                    "right"
+                  ],
+                  "title": "PairArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "compare_student_groups",
+                "parameters": {
+                  "$defs": {
+                    "Predicate": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "item_id": {
+                          "enum": [
+                            "I01",
+                            "I02",
+                            "I03",
+                            "I04",
+                            "I05"
+                          ],
+                          "pattern": "^[IQ][0-9]{2,3}$",
+                          "title": "Item Id",
+                          "type": "string"
+                        },
+                        "operator": {
+                          "pattern": "^(<|<=|==|>=|>)$",
+                          "title": "Operator",
+                          "type": "string"
+                        },
+                        "threshold": {
+                          "maxLength": 10,
+                          "pattern": "^[+-]?[0-9]{1,5}(?:\\.[0-9]{1,2})?$",
+                          "title": "Threshold",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "item_id",
+                        "operator",
+                        "threshold"
+                      ],
+                      "title": "Predicate",
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "conditions": {
+                      "items": {
+                        "$ref": "#/$defs/Predicate"
+                      },
+                      "maxItems": 2,
+                      "minItems": 1,
+                      "title": "Conditions",
+                      "type": "array"
+                    },
+                    "outcomes": {
+                      "items": {
+                        "enum": [
+                          "I01",
+                          "I02",
+                          "I03",
+                          "I04",
+                          "I05"
+                        ],
+                        "type": "string"
+                      },
+                      "maxItems": 1,
+                      "minItems": 1,
+                      "title": "Outcomes",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "conditions",
+                    "outcomes"
+                  ],
+                  "title": "GroupArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_item_quality",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "item_id": {
+                      "enum": [
+                        "I01",
+                        "I02",
+                        "I03",
+                        "I04",
+                        "I05"
+                      ],
+                      "pattern": "^[IQ][0-9]{2,3}$",
+                      "title": "Item Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "item_id"
+                  ],
+                  "title": "ItemArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "inspect_discovery_support",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "fact_id": {
+                      "maxLength": 80,
+                      "minLength": 1,
+                      "title": "Fact Id",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "fact_id"
+                  ],
+                  "title": "SupportArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Controlled aggregate exploration; statistics and qualification are computed by the server.",
+                "name": "finish",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "basis_fact_ids": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "maxItems": 8,
+                      "type": "array"
+                    },
+                    "reason": {
+                      "enum": [
+                        "completed",
+                        "no_valid_findings",
+                        "insufficient_data"
+                      ],
+                      "title": "Reason",
+                      "type": "string"
+                    },
+                    "selected_fact_ids": {
+                      "items": {
+                        "maxLength": 80,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9:_-]+$",
+                        "type": "string"
+                      },
+                      "maxItems": 3,
+                      "title": "Selected Fact Ids",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "selected_fact_ids",
+                    "reason"
+                  ],
+                  "title": "FinishArgs",
+                  "type": "object"
+                }
+              },
+              "type": "function"
+            }
+          ],
+          "protocol": {
+            "model": "qwen3.8-flash",
+            "max_tokens": 800,
+            "tool_choice": "required",
+            "parallel_tool_calls": false,
+            "enable_thinking": false
+          }
+        }
+      ],
+      "model_proposals": [
+        {
+          "round": 1,
+          "decision": {
+            "name": "get_dimension_statistics",
+            "arguments": {},
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        },
+        {
+          "round": 2,
+          "decision": {
+            "name": "finish",
+            "arguments": {
+              "selected_fact_ids": [],
+              "reason": "no_valid_findings"
+            },
+            "basis_fact_ids": []
+          },
+          "legal_domain_request": true
+        }
+      ],
+      "planner_choices": [
+        {
+          "round": 1,
+          "tool": "get_dimension_statistics",
+          "arguments": {
+            "item_ids": null
+          },
+          "basis_fact_ids": []
+        },
+        {
+          "round": 2,
+          "tool": "finish",
+          "arguments": {
+            "selected_fact_ids": [],
+            "reason": "no_valid_findings"
+          },
+          "basis_fact_ids": []
+        }
+      ],
+      "tool_ledger": [
+        {
+          "attempt": 1,
+          "tool": "get_dimension_statistics",
+          "status": "accepted",
+          "fact_ids": [
+            "run-2bf03497d29a498d-f001"
+          ],
+          "error": null,
+          "arguments": {
+            "item_ids": null
+          }
+        }
+      ],
+      "full_trace": [
+        {
+          "sequence": 1,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 2,
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 3,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 4,
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 5,
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "tool": "get_dimension_statistics",
+          "fact_ids": [
+            "run-2bf03497d29a498d-f001"
+          ],
+          "error": null
+        },
+        {
+          "sequence": 6,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "tool": null,
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 7,
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        },
+        {
+          "sequence": 8,
+          "round": 2,
+          "phase": "final_selection",
+          "status": "accepted",
+          "tool": "finish",
+          "fact_ids": [],
+          "error": null
+        }
+      ],
+      "issued_facts": [
+        {
+          "fact_id": "run-2bf03497d29a498d-f001",
+          "qualified": false,
+          "items": [
+            {
+              "item_id": "I01",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I02",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I03",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I04",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            },
+            {
+              "item_id": "I05",
+              "denominator": 17,
+              "valid_count": 17,
+              "excluded_count": 0,
+              "states": {
+                "valid": 17
+              },
+              "mean": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "median": {
+                "numerator": 3,
+                "denominator": 1,
+                "display": "3.0000"
+              },
+              "range_checked": true,
+              "state": "available",
+              "has_variance": false,
+              "exploration_thresholds": [
+                "3"
+              ]
+            }
+          ],
+          "state": "available"
+        }
+      ],
+      "proposed_ids": [],
+      "selected_ids": [],
+      "cards": [],
+      "tool_attempts": 1,
+      "policy_decisions": 2,
+      "model_requests": 2,
+      "elapsed_seconds": 0.5102721999865025,
+      "operation_counts": {
+        "analysis.py:statistics": 5,
+        "agent.py:_verify": 1,
+        "agent.py:_gate": 5
+      },
+      "budget": {
+        "campaign_id": "eval-0b375bf52641440b9e28f6e3441930bc",
+        "authorization_fingerprint": "8acddf9653f22b99cec5303d91a632f3a9351c31dadf35950ee201c3d4417dc6",
+        "source_fingerprints": {
+          "constant17": "2d8c2045ecfc0c9eea45893e78b1ac697688d909cea5d24813100bb856ff404c"
+        },
+        "origin": "http_mock",
+        "billing_basis": "verified_list_price_upper_bound_not_invoice",
+        "price": {
+          "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+          "model": "qwen3.8-flash",
+          "checked_on": "2026-10-26",
+          "valid_until": "2026-11-02",
+          "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+          "max_input_tokens": 991808,
+          "input_per_million": "0.8",
+          "cached_per_million": "0.1",
+          "output_per_million": "2.7"
+        },
+        "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+        "max_requests": 6,
+        "total_token_limit": 2000000,
+        "cost_cap_cny": "2",
+        "request_count": 2,
+        "blocked": null,
+        "claimed": true,
+        "charged_tokens": 2300,
+        "charged_cny_upper_bound": "0.00208",
+        "entries": [
+          {
+            "request": 1,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "actual_usage": {
+              "input_tokens": 1000,
+              "output_tokens": 100,
+              "total_tokens": 1100,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 1,
+            "http_status": 200,
+            "transport_status": "response_received",
+            "error": null
+          },
+          {
+            "request": 2,
+            "state": "settled",
+            "reserved_tokens": 992608,
+            "reserved_cny": "0.7956064",
+            "charged_tokens": 1200,
+            "charged_cny_upper_bound": "0.00108",
+            "actual_usage": {
+              "input_tokens": 1100,
+              "output_tokens": 100,
+              "total_tokens": 1200,
+              "cached_input_tokens": 100
+            },
+            "elapsed_ms": 2,
+            "http_status": 200,
+            "transport_status": "response_received",
+            "error": null
+          }
+        ]
+      },
+      "actual_tokens": null,
+      "actual_cost_cny": null,
+      "paid_api_calls": 0
+    }
+  },
+  "real_qwen": {
+    "status": "not_run",
+    "reason": "separate_scenario_model_request_token_cny_authorization_required",
+    "model": "qwen3.8-flash",
+    "requests": 0,
+    "actual_tokens": null,
+    "actual_cost_cny": null
+  },
+  "paid_api_calls": 0,
+  "ai_incremental_value": "not_proven",
+  "limitations": [
+    "Mock decisions are a deterministic offline policy, not measured Qwen autonomy.",
+    "Tool arithmetic and sources are independently checked; causal claims are unsupported.",
+    "HTTP usage fixtures and price arithmetic are not actual tokens or supplier invoices.",
+    "Only registered synthetic input is admitted; no teacher authentication is implemented here.",
+    "Focused examples do not replace the full frozen evaluation denominator or historical omissions."
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "adaptive-acceptance-0.1",
+  "status": "not_run",
+  "measurement_origin": "qwen_live",
+  "human_authorization": {
+    "status": "required_separate_approval",
+    "reference": null,
+    "campaign_id": null,
+    "model": null,
+    "endpoint_sha256": null,
+    "source_fingerprints": {},
+    "max_requests": null,
+    "total_token_limit": null,
+    "cost_cap_cny": null,
+    "valid_until": null
+  },
+  "input_fingerprint": null,
+  "price_fingerprint": null,
+  "model_proposals": [],
+  "http_transcript": [],
+  "tool_ledger": [],
+  "issued_facts": [],
+  "local_source_proof_digests": [],
+  "proposed_ids": [],
+  "selected_ids": [],
+  "cards": [],
+  "full_trace": [],
+  "budget": null,
+  "measurements": {
+    "model_requests": null,
+    "tool_attempts": null,
+    "latency_seconds": null,
+    "provider_input_tokens": null,
+    "provider_output_tokens": null,
+    "provider_total_tokens": null,
+    "list_price_cost_upper_bound_cny": null,
+    "actual_invoice_cost_cny": null
+  },
+  "verification": "requires_trusted_local_runtime_capture_not_arbitrary_JSON",
+  "limitations": [
+    "Do not record API keys, rows, answers, comments or student identities.",
+    "Source proof objects stay local; model receives approved aggregates only."
+  ]
+}
