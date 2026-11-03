@@ -1,6 +1,7 @@
 import {
   count,
   checked,
+  type Decoder,
   empty,
   flag,
   list,
@@ -13,6 +14,7 @@ import {
   type Decoded,
 } from './schema';
 import { exactRationalDto } from './exact';
+import { batchItemsDto, previewItemsDto } from './assessment-items';
 
 export const DIMENSIONS = [
   { code: 'algorithm_data_structure', name: '算法与数据结构' },
@@ -37,8 +39,7 @@ export const statValueDto = object({
   display: text,
 });
 const frequencyDto = object({ score: numeric, count, denominator: count, ratio: statValueDto });
-const dimensionStatsDto = object({
-  dimension_code: dimensionCode,
+const itemStatisticFields = {
   valid_count: count,
   missing_count: count,
   invalid_count: count,
@@ -47,6 +48,17 @@ const dimensionStatsDto = object({
   minimum: statValueDto,
   maximum: statValueDto,
   distribution: list(frequencyDto),
+};
+const dimensionStatsDto = object({
+  dimension_code: dimensionCode,
+  ...itemStatisticFields,
+});
+const itemStatisticsDto = object({ item_id: text, ...itemStatisticFields });
+export type ItemStatistics = Decoded<typeof itemStatisticsDto>;
+export const assessmentStatisticsDto = object({
+  batch_id: text,
+  snapshot_id: text,
+  item_statistics: list(itemStatisticsDto),
 });
 const matrixDto = object({
   scope: literal('batch'),
@@ -70,7 +82,7 @@ export const statisticsDto = object({
   matrix: nullable(matrixDto),
 });
 export type ApiStatistics = Decoded<typeof statisticsDto>;
-export const batchDto = object({
+const batchFieldsDto = object({
   batch_id: text,
   data_scope_id: text,
   snapshot_id: text,
@@ -79,7 +91,7 @@ export const batchDto = object({
   assessment_date: nullable(text),
   student_count: count,
   evaluation_count: count,
-  rubric_version: text,
+  rubric_version: nullable(text),
   parser_version: text,
   file_sha256: text,
   content_sha256: text,
@@ -88,7 +100,12 @@ export const batchDto = object({
   is_current: flag,
   created_at: text,
 });
-export type ApiBatch = Decoded<typeof batchDto>;
+export type ApiBatch = Decoded<typeof batchFieldsDto> & Partial<Decoded<typeof batchItemsDto>>;
+export const batchDto: Decoder<ApiBatch> = (value) => {
+  const batch = batchFieldsDto(value);
+  const items = batchItemsDto(value);
+  return items.recognized_items === undefined ? batch : { ...batch, ...items };
+};
 export const batchListDto = object({ total_count: count, items: list(batchDto), page: pageDto });
 export const scoreDto = object({
   dimension_code: dimensionCode,
@@ -259,6 +276,7 @@ const summaryDto = object({
 });
 const previewScoreShape = {
   dimension_code: nullable(dimensionCode),
+  item_id: optional(nullable(text)),
   score: nullable(numeric),
   score_raw: nullable(text),
   score_state: literal('valid', 'invalid', 'missing'),
@@ -278,7 +296,7 @@ export const issueDto = object({
   severity: literal('error', 'warning'),
   code: text,
   message: text,
-  sheet_name: literal('Sheet1', 'Sheet2'),
+  sheet_name: text,
   row_number: count,
   cell: text,
   row_key: nullable(text),
@@ -309,19 +327,7 @@ export const importDto = object({
     committed_batch_id: nullable(text),
   }),
   preview_available: flag,
-  recognized_items: optional(
-    nullable(
-      list(
-        object({
-          item_id: text,
-          display_name: text,
-          kind: text,
-          scale: object({ minimum: numeric, maximum: numeric, step: numeric }),
-          score_row_count: count,
-        }),
-      ),
-    ),
-  ),
+  recognized_items: optional(nullable(previewItemsDto)),
   summary: summaryDto,
   student_samples: nullable(
     list(

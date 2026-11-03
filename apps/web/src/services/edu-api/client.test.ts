@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { assertSnapshot, createEduClient } from './client';
 import { evidenceDto, studentListDto, type ApiBatch, type InsightMetric } from './types';
 import { commentStatusText, metricDisplay, parseThreshold } from './view-model';
+import { batchItemsDto } from './assessment-items';
 
 const response = (status: number, data: unknown) =>
   new Response(JSON.stringify(data), {
@@ -10,6 +11,57 @@ const response = (status: number, data: unknown) =>
   });
 const token = 'synthetic-test-credential-not-a-real-token';
 afterEach(() => vi.useRealTimers());
+
+describe('assessment item contract', () => {
+  const item = { item_id: 'q13', display_name: '第 13 题', kind: 'question', scale: null };
+  const stat = { value: null, exact: null, display: '—' };
+  const entry = {
+    item_id: item.item_id,
+    valid_count: 0,
+    invalid_count: 0,
+    missing_count: 1,
+    mean: stat,
+    median: stat,
+    minimum: stat,
+    maximum: stat,
+    distribution: [],
+  };
+
+  it('requires complete, unique item metadata while allowing unknown scales', () => {
+    expect(batchItemsDto({ recognized_items: [item], available_analyses: [] })).toMatchObject({
+      recognized_items: [item],
+    });
+    expect(() => batchItemsDto({ recognized_items: [item] })).toThrow('INVALID_API_RESPONSE');
+    expect(() => batchItemsDto({ recognized_items: [item, item], available_analyses: [] })).toThrow(
+      'INVALID_API_RESPONSE',
+    );
+  });
+
+  it.each([
+    { snapshot: 'old', items: [entry], status: 409 },
+    { snapshot: 'current', items: [entry, entry], status: 502 },
+    { snapshot: 'current', items: [{ ...entry, item_id: 'other' }], status: 502 },
+    { snapshot: 'current', items: [], status: 502 },
+  ])('rejects invalid project results with status $status', async ({ snapshot, items, status }) => {
+    const client = createEduClient(
+      vi.fn(),
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(
+          response(200, { batch_id: 'b', snapshot_id: snapshot, item_statistics: items }),
+        ),
+    );
+    client.authenticate(token);
+    await expect(
+      client.itemStatistics({
+        batch_id: 'b',
+        snapshot_id: 'current',
+        recognized_items: [item],
+      } as ApiBatch),
+    ).rejects.toMatchObject({ status });
+  });
+});
+
 describe('formal API privacy and cancellation', () => {
   it('allows an explicitly selected server test session without sending credentials from the browser', async () => {
     const transport = vi

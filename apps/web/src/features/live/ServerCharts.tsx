@@ -29,6 +29,75 @@ register([
   AriaComponent,
   SVGRenderer,
 ]);
+
+interface RadarAxis {
+  label: string;
+  value: number | null;
+  minimum: number;
+  maximum: number;
+}
+
+const radarRadius = (width: number) => (width < 450 ? '46%' : '64%');
+const radarDescription = (axes: RadarAxis[]) =>
+  axes.map(({ label, value }) => `${label}均值${scoreDisplay(value)}`).join('，');
+
+function radarOption(axes: RadarAxis[], width: number): EChartsCoreOption {
+  return {
+    aria: { enabled: true, label: { description: radarDescription(axes) } },
+    tooltip: { trigger: 'item' },
+    radar: {
+      center: ['50%', '53%'],
+      radius: radarRadius(width),
+      indicator: axes.map(({ label, value, minimum, maximum }) => ({
+        name: `${label}\n${scoreDisplay(value)}`,
+        min: minimum,
+        max: maximum,
+      })),
+      axisName: { color: '#274570', fontSize: 12, lineHeight: 22 },
+      axisLine: { lineStyle: { color: '#dce4f1' } },
+      splitLine: { lineStyle: { color: '#dce4f1' } },
+      splitArea: { areaStyle: { color: ['#fff', '#fbfcff'] } },
+    },
+    series: [
+      {
+        type: 'radar',
+        symbolSize: 7,
+        itemStyle: { color: '#2463f5' },
+        lineStyle: { width: 2.5 },
+        areaStyle: { color: 'rgba(36,99,245,.22)' },
+        data: [{ value: axes.map(({ value }) => value), name: '测评平均分' }],
+      },
+    ],
+  };
+}
+
+export function ProjectAbilityRadar({ axes }: { axes: RadarAxis[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const chart = init(element, undefined, { renderer: 'svg' });
+    chart.setOption(radarOption(axes, element.clientWidth));
+    const observer = new ResizeObserver(() => {
+      chart.setOption({ radar: { radius: radarRadius(element.clientWidth) } });
+      chart.resize();
+    });
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      chart.dispose();
+    };
+  }, [axes]);
+  return (
+    <div
+      className="ability-chart server-chart"
+      ref={ref}
+      role="img"
+      aria-label={radarDescription(axes)}
+    />
+  );
+}
+
 export function ServerAbilityChart({
   statistics,
   rubric,
@@ -48,40 +117,15 @@ export function ServerAbilityChart({
       .filter((s) => s !== undefined);
     const option: EChartsCoreOption =
       mode === 'radar'
-        ? {
-            aria: {
-              enabled: true,
-              label: {
-                description: statistics.dimensions
-                  .map((d) => `${dimensionName(d.dimension_code)}均值${scoreDisplay(d.mean.value)}`)
-                  .join('，'),
-              },
-            },
-            tooltip: { trigger: 'item' },
-            radar: {
-              center: ['50%', '53%'],
-              radius: element.clientWidth < 450 ? '46%' : '64%',
-              indicator: ordered.map((d) => ({
-                name: `${dimensionName(d.dimension_code)}\n${scoreDisplay(d.mean.value)}`,
-                min: 0,
-                max: rubric.score_policy.maximum,
-              })),
-              axisName: { color: '#274570', fontSize: 12, lineHeight: 22 },
-              axisLine: { lineStyle: { color: '#dce4f1' } },
-              splitLine: { lineStyle: { color: '#dce4f1' } },
-              splitArea: { areaStyle: { color: ['#fff', '#fbfcff'] } },
-            },
-            series: [
-              {
-                type: 'radar',
-                symbolSize: 7,
-                itemStyle: { color: '#2463f5' },
-                lineStyle: { width: 2.5 },
-                areaStyle: { color: 'rgba(36,99,245,.22)' },
-                data: [{ value: ordered.map((d) => d.mean.value), name: '测评平均分' }],
-              },
-            ],
-          }
+        ? radarOption(
+            ordered.map((d) => ({
+              label: dimensionName(d.dimension_code),
+              value: d.mean.value,
+              minimum: 0,
+              maximum: rubric.score_policy.maximum,
+            })),
+            element.clientWidth,
+          )
         : {
             aria: {
               enabled: true,
@@ -143,7 +187,7 @@ export function ServerAbilityChart({
     chart.setOption(option);
     const observer = new ResizeObserver(() => {
       if (mode === 'radar')
-        chart.setOption({ radar: { radius: element.clientWidth < 450 ? '46%' : '64%' } });
+        chart.setOption({ radar: { radius: radarRadius(element.clientWidth) } });
       chart.resize();
     });
     observer.observe(element);
