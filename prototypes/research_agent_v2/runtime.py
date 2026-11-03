@@ -142,7 +142,8 @@ async def investigate(
         )
         # Preserve all verified initial observations independently of model's card selection.
         retained_cards = [i for i in seeds if executor.facts[i].view["qualified"]]
-        selected = tuple(dict.fromkeys((*retained_cards, *run.selected_ids)))
+        all_selected = tuple(dict.fromkeys((*retained_cards, *run.selected_ids)))
+        selected = all_selected[:3]
         cards = executor.finish(
             executor.parse(
                 "finish",
@@ -176,6 +177,8 @@ async def investigate(
                 "retained_fact_ids": list(seeds),
                 "new_fact_ids": [f.fact_id for f in run.facts if f.fact_id not in seeds],
                 "findings": cards,
+                "display_limit": 3,
+                "verified_but_not_displayed": [i for i in all_selected if i not in selected],
                 "unsupported_explanations": [
                     "causal_teaching_effect",
                     "student_psychology",
@@ -202,12 +205,19 @@ async def investigate(
                 "budget": budget.snapshot(),
                 "actual_tokens": None
                 if budget.origin == "http_mock"
-                else sum(m.total_tokens or 0 for m in planner.metrics),
+                else sum(m.total_tokens for m in planner.metrics)
+                if planner.metrics
+                and len(planner.metrics) == budget.snapshot()["request_count"]
+                and all(m.total_tokens is not None for m in planner.metrics)
+                else None,
                 "actual_cost_cny": None,
                 "estimated_list_price_cost_cny": None
                 if budget.origin == "http_mock"
                 else budget.snapshot()["charged_cny_upper_bound"],
-                "real_qwen": "not_run" if budget.origin == "http_mock" else "executed",
+                "real_qwen": "not_run"
+                if budget.origin == "http_mock" or not budget.snapshot()["request_count"]
+                else "attempted",
+                "call_metrics": [asdict(m) for m in planner.metrics],
                 "production_enabled": False,
                 "formal_teacher_authorization": "not_implemented",
             }
@@ -234,7 +244,8 @@ def markdown(result: dict) -> str:
         for item in fact["values"].get("items", []):
             value = item.get("mean") or {}
             rows.append(
-                f"|{item['item_id']}|{item.get('valid_count', '未披露')}/{item.get('denominator', '未披露')}|"
+                f"|{item['item_id']}|{item.get('valid_count', '未披露')}/"
+                f"{item.get('denominator', '未披露')}|"
                 f"{value.get('display', '不可计算')}|{item.get('states', item.get('state'))}|"
             )
     rows += [

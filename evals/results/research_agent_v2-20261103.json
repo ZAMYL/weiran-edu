@@ -1,0 +1,5251 @@
+{
+  "version": "research-v2-heldout-0.1",
+  "origin": "offline_mechanism",
+  "cases": [
+    {
+      "synthetic_case": "research-v2-final-interaction",
+      "seed": 9001,
+      "target": "joint_difference",
+      "agent_target_met": true,
+      "fixed": {
+        "wrong_facts": 0,
+        "source_errors": 0,
+        "qualified_semantics": [],
+        "duplicates": 0,
+        "verified_fact_count": 2,
+        "source_count": 18,
+        "fact_error_fraction": [
+          0,
+          2
+        ],
+        "source_correct_fraction": [
+          2,
+          2
+        ],
+        "retained_seed_fraction": [
+          1,
+          1
+        ],
+        "repeat_attempts": 0,
+        "model_requests": 2,
+        "tool_attempts": 2,
+        "verification_replay_executions": 18,
+        "elapsed_seconds": 6.726471199886873,
+        "mock_token_usage": 2300,
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      },
+      "agent_http_mock": {
+        "wrong_facts": 0,
+        "source_errors": 0,
+        "qualified_semantics": [
+          "{\"type\": \"item_group_difference\", \"values\": \"{'outcome': 'I03', 'conditions': [{'item_id': 'I01', 'operator': '<=', 'threshold': '1'}, {'item_id': 'I02', 'operator': '<=', 'threshold': '1'}], 'target_count': 16, 'remainder_count': 48, 'unevaluable_count': 0, 'denominator': 64, 'eligible_denominator': 64, 'share_total': Fraction(1, 4), 'share_eligible': Fraction(1, 4), 'target_valid': 16, 'remainder_valid': 48, 'target_mean': Fraction(1, 1), 'remainder_mean': Fraction(11, 3), 'difference': Fraction(-8, 3), 'outcome_unit': 'level'}\"}"
+        ],
+        "duplicates": 0,
+        "verified_fact_count": 3,
+        "source_count": 25,
+        "fact_error_fraction": [
+          0,
+          3
+        ],
+        "source_correct_fraction": [
+          3,
+          3
+        ],
+        "retained_seed_fraction": [
+          1,
+          1
+        ],
+        "repeat_attempts": 0,
+        "model_requests": 3,
+        "tool_attempts": 3,
+        "verification_replay_executions": 52,
+        "elapsed_seconds": 14.422695999965072,
+        "mock_token_usage": 3600,
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      },
+      "added_correct_semantics": 1,
+      "missed_baseline_semantics": 0,
+      "runs": {
+        "fixed": {
+          "origin": "offline_mechanism",
+          "goal": {
+            "type": "priority",
+            "items": [],
+            "rubric_evidence": "unavailable",
+            "task_evidence": "unavailable",
+            "no_causal_conclusions": true
+          },
+          "status": "completed",
+          "stop_reason": "goal_unmet",
+          "observation_goal": {
+            "state": "needs_investigation",
+            "matching_fact_ids": [],
+            "evidence_gaps": [],
+            "observation_is_not_explanation": true
+          },
+          "verified_observations": [
+            {
+              "fact_id": "research-9a11a60cd378-f001",
+              "batch_id": "synthetic-batch-892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "snapshot_id": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "get_dimension_statistics",
+                "arguments": {
+                  "item_ids": null
+                }
+              },
+              "values": {
+                "fact_id": "research-9a11a60cd378-f001",
+                "qualified": false,
+                "items": [
+                  {
+                    "item_id": "I01",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "1",
+                      "5"
+                    ]
+                  },
+                  {
+                    "item_id": "I02",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "1",
+                      "5"
+                    ]
+                  },
+                  {
+                    "item_id": "I03",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "1",
+                      "5"
+                    ]
+                  },
+                  {
+                    "item_id": "I04",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I05",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I06",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I07",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I08",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  }
+                ],
+                "state": "available"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "get_dimension_statistics",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "I01.valid",
+                  "item_id": "I01",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I01.valid"
+                  }
+                },
+                {
+                  "metric_key": "I01.state.valid",
+                  "item_id": "I01",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I01.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.valid",
+                  "item_id": "I02",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I02.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.state.valid",
+                  "item_id": "I02",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I02.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.valid",
+                  "item_id": "I03",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I03.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.state.valid",
+                  "item_id": "I03",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I03.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.valid",
+                  "item_id": "I04",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I04.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.state.valid",
+                  "item_id": "I04",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I04.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I05.valid",
+                  "item_id": "I05",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I05.valid"
+                  }
+                },
+                {
+                  "metric_key": "I05.state.valid",
+                  "item_id": "I05",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I05.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I06.valid",
+                  "item_id": "I06",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I06.valid"
+                  }
+                },
+                {
+                  "metric_key": "I06.state.valid",
+                  "item_id": "I06",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I06.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I07.valid",
+                  "item_id": "I07",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I07.valid"
+                  }
+                },
+                {
+                  "metric_key": "I07.state.valid",
+                  "item_id": "I07",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I07.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I08.valid",
+                  "item_id": "I08",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I08.valid"
+                  }
+                },
+                {
+                  "metric_key": "I08.state.valid",
+                  "item_id": "I08",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f001",
+                    "metric_key": "I08.state.valid"
+                  }
+                }
+              ]
+            },
+            {
+              "fact_id": "research-9a11a60cd378-f002",
+              "batch_id": "synthetic-batch-892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "snapshot_id": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "query_dimension_relation",
+                "arguments": {
+                  "left": "I01",
+                  "right": "I02"
+                }
+              },
+              "values": {
+                "fact_id": "research-9a11a60cd378-f002",
+                "qualified": false,
+                "metrics": {
+                  "left": "I01",
+                  "right": "I02",
+                  "rho": 0.0,
+                  "paired_count": 64,
+                  "excluded_count": 0,
+                  "denominator": 64,
+                  "state": "computable"
+                },
+                "status": "interpret_cautiously",
+                "ranking": {
+                  "score": {
+                    "numerator": 2,
+                    "denominator": 5,
+                    "display": "0.4000"
+                  },
+                  "support_count": 64,
+                  "robustness": {
+                    "method": "three_fixed_deletions",
+                    "planned": 3,
+                    "evaluated": 3,
+                    "passed": 0,
+                    "value": {
+                      "numerator": 0,
+                      "denominator": 1,
+                      "display": "0.0000"
+                    }
+                  },
+                  "is_statistical_confidence": false
+                },
+                "limitation_codes": [
+                  "correlation_not_causation",
+                  "ties_use_existing_average_ranks"
+                ],
+                "type": "item_relation"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "query_dimension_relation",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "left.paired",
+                  "item_id": "I01",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f002",
+                    "metric_key": "left.paired"
+                  }
+                },
+                {
+                  "metric_key": "right.paired",
+                  "item_id": "I02",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-9a11a60cd378-f002",
+                    "metric_key": "right.paired"
+                  }
+                }
+              ]
+            }
+          ],
+          "retained_fact_ids": [
+            "research-9a11a60cd378-f001"
+          ],
+          "new_fact_ids": [
+            "research-9a11a60cd378-f002"
+          ],
+          "findings": [],
+          "unsupported_explanations": [
+            "causal_teaching_effect",
+            "student_psychology",
+            "AI_dependency"
+          ],
+          "missing_evidence": [],
+          "next_check": "按指标来源查询核对记录；群体差异不等于能力诊断。",
+          "seed_ledger": [
+            {
+              "phase": "trusted_seed",
+              "tool": "get_dimension_statistics",
+              "fact_ids": [
+                "research-9a11a60cd378-f001"
+              ]
+            }
+          ],
+          "tool_ledger": [
+            {
+              "attempt": 1,
+              "tool": "query_dimension_relation",
+              "status": "accepted",
+              "fact_ids": [
+                "research-9a11a60cd378-f002"
+              ],
+              "error": null,
+              "arguments": {
+                "left": "I01",
+                "right": "I02"
+              }
+            }
+          ],
+          "trace": [
+            {
+              "sequence": 1,
+              "round": 1,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "round": 1,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-9a11a60cd378-f001"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "attempted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "computed",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 5,
+              "round": 1,
+              "phase": "fact_validation",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-9a11a60cd378-f002"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 6,
+              "round": 2,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 7,
+              "round": 2,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 8,
+              "round": 2,
+              "phase": "final_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            }
+          ],
+          "reflections": [
+            {
+              "state": "needs_investigation",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            },
+            {
+              "state": "needs_investigation",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            }
+          ],
+          "model_choices": [
+            {
+              "round": 1,
+              "tool": "query_dimension_relation",
+              "arguments": {
+                "left": "I01",
+                "right": "I02"
+              },
+              "basis_fact_ids": [
+                "research-9a11a60cd378-f001"
+              ]
+            },
+            {
+              "round": 2,
+              "tool": "finish",
+              "arguments": {
+                "selected_fact_ids": [],
+                "reason": "no_valid_findings"
+              },
+              "basis_fact_ids": []
+            }
+          ],
+          "model_requests": 2,
+          "tool_attempts": 2,
+          "verification_replay_executions": 18,
+          "seed_tool_attempts": 1,
+          "elapsed_seconds": 6.726471199886873,
+          "tool_compute_seconds": 0.2410438999067992,
+          "budget": {
+            "campaign_id": "fixed-research-v2-final-interaction",
+            "authorization_fingerprint": "399917f67819f2645c8d68187afd75aebe05571a6d6cd58d771c6bd537f7521b",
+            "source_fingerprints": {
+              "research-v2-final-interaction": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082"
+            },
+            "origin": "http_mock",
+            "billing_basis": "verified_list_price_upper_bound_not_invoice",
+            "price": {
+              "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+              "model": "qwen3.8-flash",
+              "checked_on": "2026-10-26",
+              "valid_until": "2026-11-02",
+              "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+              "max_input_tokens": 991808,
+              "input_per_million": "0.8",
+              "cached_per_million": "0.1",
+              "output_per_million": "2.7"
+            },
+            "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+            "max_requests": 6,
+            "total_token_limit": 2000000,
+            "cost_cap_cny": "2",
+            "request_count": 2,
+            "blocked": null,
+            "claimed": true,
+            "charged_tokens": 2300,
+            "charged_cny_upper_bound": "0.00208",
+            "entries": [
+              {
+                "request": 1,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1100,
+                "charged_cny_upper_bound": "0.001",
+                "actual_usage": {
+                  "input_tokens": 1000,
+                  "output_tokens": 100,
+                  "total_tokens": 1100,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 4,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              },
+              {
+                "request": 2,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1200,
+                "charged_cny_upper_bound": "0.00108",
+                "actual_usage": {
+                  "input_tokens": 1100,
+                  "output_tokens": 100,
+                  "total_tokens": 1200,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 2,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              }
+            ]
+          },
+          "actual_tokens": null,
+          "actual_cost_cny": null,
+          "estimated_list_price_cost_cny": null,
+          "real_qwen": "not_run",
+          "production_enabled": false,
+          "formal_teacher_authorization": "not_implemented",
+          "native_request_sha256": [
+            "f6aaa3d62c75368a83b92557213fa814ab3e086c3870dc8c3ac8ac3951f946ef",
+            "999fa924328cadfa6c2af9ad34c413d175221e8e0548eab5c4d6be53509df8f6"
+          ]
+        },
+        "agent_http_mock": {
+          "origin": "offline_mechanism",
+          "goal": {
+            "type": "priority",
+            "items": [],
+            "rubric_evidence": "unavailable",
+            "task_evidence": "unavailable",
+            "no_causal_conclusions": true
+          },
+          "status": "completed",
+          "stop_reason": "goal_satisfied",
+          "observation_goal": {
+            "state": "goal_satisfied",
+            "matching_fact_ids": [
+              "research-c172585d1455-f003"
+            ],
+            "evidence_gaps": [],
+            "observation_is_not_explanation": true
+          },
+          "verified_observations": [
+            {
+              "fact_id": "research-c172585d1455-f001",
+              "batch_id": "synthetic-batch-892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "snapshot_id": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "get_dimension_statistics",
+                "arguments": {
+                  "item_ids": null
+                }
+              },
+              "values": {
+                "fact_id": "research-c172585d1455-f001",
+                "qualified": false,
+                "items": [
+                  {
+                    "item_id": "I01",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "1",
+                      "5"
+                    ]
+                  },
+                  {
+                    "item_id": "I02",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "1",
+                      "5"
+                    ]
+                  },
+                  {
+                    "item_id": "I03",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "1",
+                      "5"
+                    ]
+                  },
+                  {
+                    "item_id": "I04",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I05",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I06",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I07",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I08",
+                    "denominator": 64,
+                    "valid_count": 64,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 64
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  }
+                ],
+                "state": "available"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "get_dimension_statistics",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "I01.valid",
+                  "item_id": "I01",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I01.valid"
+                  }
+                },
+                {
+                  "metric_key": "I01.state.valid",
+                  "item_id": "I01",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I01.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.valid",
+                  "item_id": "I02",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I02.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.state.valid",
+                  "item_id": "I02",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I02.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.valid",
+                  "item_id": "I03",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I03.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.state.valid",
+                  "item_id": "I03",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I03.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.valid",
+                  "item_id": "I04",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I04.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.state.valid",
+                  "item_id": "I04",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I04.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I05.valid",
+                  "item_id": "I05",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I05.valid"
+                  }
+                },
+                {
+                  "metric_key": "I05.state.valid",
+                  "item_id": "I05",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I05.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I06.valid",
+                  "item_id": "I06",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I06.valid"
+                  }
+                },
+                {
+                  "metric_key": "I06.state.valid",
+                  "item_id": "I06",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I06.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I07.valid",
+                  "item_id": "I07",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I07.valid"
+                  }
+                },
+                {
+                  "metric_key": "I07.state.valid",
+                  "item_id": "I07",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I07.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I08.valid",
+                  "item_id": "I08",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I08.valid"
+                  }
+                },
+                {
+                  "metric_key": "I08.state.valid",
+                  "item_id": "I08",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f001",
+                    "metric_key": "I08.state.valid"
+                  }
+                }
+              ]
+            },
+            {
+              "fact_id": "research-c172585d1455-f002",
+              "batch_id": "synthetic-batch-892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "snapshot_id": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "query_dimension_relation",
+                "arguments": {
+                  "left": "I01",
+                  "right": "I02"
+                }
+              },
+              "values": {
+                "fact_id": "research-c172585d1455-f002",
+                "qualified": false,
+                "metrics": {
+                  "left": "I01",
+                  "right": "I02",
+                  "rho": 0.0,
+                  "paired_count": 64,
+                  "excluded_count": 0,
+                  "denominator": 64,
+                  "state": "computable"
+                },
+                "status": "interpret_cautiously",
+                "ranking": {
+                  "score": {
+                    "numerator": 2,
+                    "denominator": 5,
+                    "display": "0.4000"
+                  },
+                  "support_count": 64,
+                  "robustness": {
+                    "method": "three_fixed_deletions",
+                    "planned": 3,
+                    "evaluated": 3,
+                    "passed": 0,
+                    "value": {
+                      "numerator": 0,
+                      "denominator": 1,
+                      "display": "0.0000"
+                    }
+                  },
+                  "is_statistical_confidence": false
+                },
+                "limitation_codes": [
+                  "correlation_not_causation",
+                  "ties_use_existing_average_ranks"
+                ],
+                "type": "item_relation"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "query_dimension_relation",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "left.paired",
+                  "item_id": "I01",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f002",
+                    "metric_key": "left.paired"
+                  }
+                },
+                {
+                  "metric_key": "right.paired",
+                  "item_id": "I02",
+                  "record_count": 64,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f002",
+                    "metric_key": "right.paired"
+                  }
+                }
+              ]
+            },
+            {
+              "fact_id": "research-c172585d1455-f003",
+              "batch_id": "synthetic-batch-892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "snapshot_id": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "compare_student_groups",
+                "arguments": {
+                  "conditions": [
+                    {
+                      "item_id": "I01",
+                      "operator": "<=",
+                      "threshold": "1"
+                    },
+                    {
+                      "item_id": "I02",
+                      "operator": "<=",
+                      "threshold": "1"
+                    }
+                  ],
+                  "outcomes": [
+                    "I03"
+                  ]
+                }
+              },
+              "values": {
+                "fact_id": "research-c172585d1455-f003",
+                "qualified": true,
+                "metrics": {
+                  "outcome": "I03",
+                  "conditions": [
+                    {
+                      "item_id": "I01",
+                      "operator": "<=",
+                      "threshold": "1"
+                    },
+                    {
+                      "item_id": "I02",
+                      "operator": "<=",
+                      "threshold": "1"
+                    }
+                  ],
+                  "target_count": 16,
+                  "remainder_count": 48,
+                  "unevaluable_count": 0,
+                  "denominator": 64,
+                  "eligible_denominator": 64,
+                  "share_total": {
+                    "numerator": 1,
+                    "denominator": 4,
+                    "display": "0.2500"
+                  },
+                  "share_eligible": {
+                    "numerator": 1,
+                    "denominator": 4,
+                    "display": "0.2500"
+                  },
+                  "target_valid": 16,
+                  "remainder_valid": 48,
+                  "target_mean": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  },
+                  "remainder_mean": {
+                    "numerator": 11,
+                    "denominator": 3,
+                    "display": "3.6667"
+                  },
+                  "difference": {
+                    "numerator": -8,
+                    "denominator": 3,
+                    "display": "-2.6667"
+                  },
+                  "outcome_unit": "level"
+                },
+                "status": "interpret_cautiously",
+                "ranking": {
+                  "score": {
+                    "numerator": 62,
+                    "denominator": 75,
+                    "display": "0.8267"
+                  },
+                  "support_count": 16,
+                  "robustness": {
+                    "method": "three_fixed_deletions",
+                    "planned": 3,
+                    "evaluated": 3,
+                    "passed": 3,
+                    "value": {
+                      "numerator": 1,
+                      "denominator": 1,
+                      "display": "1.0000"
+                    }
+                  },
+                  "is_statistical_confidence": false
+                },
+                "limitation_codes": [
+                  "condition_dimensions_not_discoveries",
+                  "disjoint_remainder",
+                  "ordinal_mean_is_descriptive",
+                  "no_cross_item_score_sum"
+                ],
+                "type": "item_group_difference"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "compare_student_groups",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "target.valid",
+                  "item_id": "I03",
+                  "record_count": 16,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f003",
+                    "metric_key": "target.valid"
+                  }
+                },
+                {
+                  "metric_key": "remainder.valid",
+                  "item_id": "I03",
+                  "record_count": 48,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f003",
+                    "metric_key": "remainder.valid"
+                  }
+                },
+                {
+                  "metric_key": "target.condition.I01",
+                  "item_id": "I01",
+                  "record_count": 16,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f003",
+                    "metric_key": "target.condition.I01"
+                  }
+                },
+                {
+                  "metric_key": "remainder.condition.I01",
+                  "item_id": "I01",
+                  "record_count": 48,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f003",
+                    "metric_key": "remainder.condition.I01"
+                  }
+                },
+                {
+                  "metric_key": "target.condition.I02",
+                  "item_id": "I02",
+                  "record_count": 16,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f003",
+                    "metric_key": "target.condition.I02"
+                  }
+                },
+                {
+                  "metric_key": "remainder.condition.I02",
+                  "item_id": "I02",
+                  "record_count": 48,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f003",
+                    "metric_key": "remainder.condition.I02"
+                  }
+                },
+                {
+                  "metric_key": "unevaluable.rows",
+                  "item_id": "I01",
+                  "record_count": 0,
+                  "controlled_query": {
+                    "fact_id": "research-c172585d1455-f003",
+                    "metric_key": "unevaluable.rows"
+                  }
+                }
+              ]
+            }
+          ],
+          "retained_fact_ids": [
+            "research-c172585d1455-f001"
+          ],
+          "new_fact_ids": [
+            "research-c172585d1455-f002",
+            "research-c172585d1455-f003"
+          ],
+          "findings": [
+            {
+              "fact_id": "research-c172585d1455-f003",
+              "discovery_id": "ed0d49445b3f417e47a4a0c1",
+              "type": "item_group_difference",
+              "title": "I03 的互斥群体描述差异",
+              "summary": "目标16人，余组48人，均值差-8/3；不表示因果或能力等级。",
+              "batch_id": "synthetic-batch-892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "snapshot_id": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082",
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "metrics": {
+                "outcome": "I03",
+                "conditions": [
+                  {
+                    "item_id": "I01",
+                    "operator": "<=",
+                    "threshold": "1"
+                  },
+                  {
+                    "item_id": "I02",
+                    "operator": "<=",
+                    "threshold": "1"
+                  }
+                ],
+                "target_count": 16,
+                "remainder_count": 48,
+                "unevaluable_count": 0,
+                "denominator": 64,
+                "eligible_denominator": 64,
+                "share_total": {
+                  "numerator": 1,
+                  "denominator": 4,
+                  "display": "0.2500"
+                },
+                "share_eligible": {
+                  "numerator": 1,
+                  "denominator": 4,
+                  "display": "0.2500"
+                },
+                "target_valid": 16,
+                "remainder_valid": 48,
+                "target_mean": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "remainder_mean": {
+                  "numerator": 11,
+                  "denominator": 3,
+                  "display": "3.6667"
+                },
+                "difference": {
+                  "numerator": -8,
+                  "denominator": 3,
+                  "display": "-2.6667"
+                },
+                "outcome_unit": "level"
+              },
+              "chart": {
+                "outcome": "I03",
+                "conditions": [
+                  {
+                    "item_id": "I01",
+                    "operator": "<=",
+                    "threshold": "1"
+                  },
+                  {
+                    "item_id": "I02",
+                    "operator": "<=",
+                    "threshold": "1"
+                  }
+                ],
+                "target_count": 16,
+                "remainder_count": 48,
+                "unevaluable_count": 0,
+                "denominator": 64,
+                "eligible_denominator": 64,
+                "share_total": {
+                  "numerator": 1,
+                  "denominator": 4,
+                  "display": "0.2500"
+                },
+                "share_eligible": {
+                  "numerator": 1,
+                  "denominator": 4,
+                  "display": "0.2500"
+                },
+                "target_valid": 16,
+                "remainder_valid": 48,
+                "target_mean": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "remainder_mean": {
+                  "numerator": 11,
+                  "denominator": 3,
+                  "display": "3.6667"
+                },
+                "difference": {
+                  "numerator": -8,
+                  "denominator": 3,
+                  "display": "-2.6667"
+                },
+                "outcome_unit": "level"
+              },
+              "status": "interpret_cautiously",
+              "limitations": [
+                "condition_dimensions_not_discoveries",
+                "disjoint_remainder",
+                "ordinal_mean_is_descriptive",
+                "no_cross_item_score_sum"
+              ],
+              "ranking": {
+                "score": {
+                  "numerator": 62,
+                  "denominator": 75,
+                  "display": "0.8267"
+                },
+                "support_count": 16,
+                "robustness": {
+                  "method": "three_fixed_deletions",
+                  "planned": 3,
+                  "evaluated": 3,
+                  "passed": 3,
+                  "value": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  }
+                },
+                "is_statistical_confidence": false
+              },
+              "public_display_allowed": false,
+              "source_queries": [
+                {
+                  "fact_id": "research-c172585d1455-f003",
+                  "metric_key": "target.valid"
+                },
+                {
+                  "fact_id": "research-c172585d1455-f003",
+                  "metric_key": "remainder.valid"
+                },
+                {
+                  "fact_id": "research-c172585d1455-f003",
+                  "metric_key": "target.condition.I01"
+                },
+                {
+                  "fact_id": "research-c172585d1455-f003",
+                  "metric_key": "remainder.condition.I01"
+                },
+                {
+                  "fact_id": "research-c172585d1455-f003",
+                  "metric_key": "target.condition.I02"
+                },
+                {
+                  "fact_id": "research-c172585d1455-f003",
+                  "metric_key": "remainder.condition.I02"
+                },
+                {
+                  "fact_id": "research-c172585d1455-f003",
+                  "metric_key": "unevaluable.rows"
+                }
+              ]
+            }
+          ],
+          "unsupported_explanations": [
+            "causal_teaching_effect",
+            "student_psychology",
+            "AI_dependency"
+          ],
+          "missing_evidence": [],
+          "next_check": "按指标来源查询核对记录；群体差异不等于能力诊断。",
+          "seed_ledger": [
+            {
+              "phase": "trusted_seed",
+              "tool": "get_dimension_statistics",
+              "fact_ids": [
+                "research-c172585d1455-f001"
+              ]
+            }
+          ],
+          "tool_ledger": [
+            {
+              "attempt": 1,
+              "tool": "query_dimension_relation",
+              "status": "accepted",
+              "fact_ids": [
+                "research-c172585d1455-f002"
+              ],
+              "error": null,
+              "arguments": {
+                "left": "I01",
+                "right": "I02"
+              }
+            },
+            {
+              "attempt": 2,
+              "tool": "compare_student_groups",
+              "status": "accepted",
+              "fact_ids": [
+                "research-c172585d1455-f003"
+              ],
+              "error": null,
+              "arguments": {
+                "conditions": [
+                  {
+                    "item_id": "I01",
+                    "operator": "<=",
+                    "threshold": "1"
+                  },
+                  {
+                    "item_id": "I02",
+                    "operator": "<=",
+                    "threshold": "1"
+                  }
+                ],
+                "outcomes": [
+                  "I03"
+                ]
+              }
+            }
+          ],
+          "trace": [
+            {
+              "sequence": 1,
+              "round": 1,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "round": 1,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-c172585d1455-f001"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "attempted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "computed",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 5,
+              "round": 1,
+              "phase": "fact_validation",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-c172585d1455-f002"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 6,
+              "round": 2,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 7,
+              "round": 2,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "compare_student_groups",
+              "fact_ids": [
+                "research-c172585d1455-f001",
+                "research-c172585d1455-f002"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 8,
+              "round": 2,
+              "phase": "tool_execution",
+              "status": "attempted",
+              "tool": "compare_student_groups",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 9,
+              "round": 2,
+              "phase": "tool_execution",
+              "status": "computed",
+              "tool": "compare_student_groups",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 10,
+              "round": 2,
+              "phase": "fact_validation",
+              "status": "accepted",
+              "tool": "compare_student_groups",
+              "fact_ids": [
+                "research-c172585d1455-f003"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 11,
+              "round": 3,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 12,
+              "round": 3,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 13,
+              "round": 3,
+              "phase": "final_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [
+                "research-c172585d1455-f003"
+              ],
+              "error": null
+            }
+          ],
+          "reflections": [
+            {
+              "state": "needs_investigation",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            },
+            {
+              "state": "needs_investigation",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            },
+            {
+              "state": "goal_satisfied",
+              "matching_fact_ids": [
+                "research-c172585d1455-f003"
+              ],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            }
+          ],
+          "model_choices": [
+            {
+              "round": 1,
+              "tool": "query_dimension_relation",
+              "arguments": {
+                "left": "I01",
+                "right": "I02"
+              },
+              "basis_fact_ids": [
+                "research-c172585d1455-f001"
+              ]
+            },
+            {
+              "round": 2,
+              "tool": "compare_student_groups",
+              "arguments": {
+                "conditions": [
+                  {
+                    "item_id": "I01",
+                    "operator": "<=",
+                    "threshold": "1"
+                  },
+                  {
+                    "item_id": "I02",
+                    "operator": "<=",
+                    "threshold": "1"
+                  }
+                ],
+                "outcomes": [
+                  "I03"
+                ]
+              },
+              "basis_fact_ids": [
+                "research-c172585d1455-f001",
+                "research-c172585d1455-f002"
+              ]
+            },
+            {
+              "round": 3,
+              "tool": "finish",
+              "arguments": {
+                "selected_fact_ids": [
+                  "research-c172585d1455-f003"
+                ],
+                "reason": "completed"
+              },
+              "basis_fact_ids": []
+            }
+          ],
+          "model_requests": 3,
+          "tool_attempts": 3,
+          "verification_replay_executions": 52,
+          "seed_tool_attempts": 1,
+          "elapsed_seconds": 14.422695999965072,
+          "tool_compute_seconds": 0.42269579973071814,
+          "budget": {
+            "campaign_id": "agent-research-v2-final-interaction",
+            "authorization_fingerprint": "d419ceddaa754e2dd0ad1c6e7cf9f8cb0bb35c7203bd45eaf790b77a79a1f789",
+            "source_fingerprints": {
+              "research-v2-final-interaction": "892eed2fe66f6ac280fa088c06416363277d915cdf2c700033a9e785e288e082"
+            },
+            "origin": "http_mock",
+            "billing_basis": "verified_list_price_upper_bound_not_invoice",
+            "price": {
+              "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+              "model": "qwen3.8-flash",
+              "checked_on": "2026-10-26",
+              "valid_until": "2026-11-02",
+              "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+              "max_input_tokens": 991808,
+              "input_per_million": "0.8",
+              "cached_per_million": "0.1",
+              "output_per_million": "2.7"
+            },
+            "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+            "max_requests": 6,
+            "total_token_limit": 2000000,
+            "cost_cap_cny": "2",
+            "request_count": 3,
+            "blocked": null,
+            "claimed": true,
+            "charged_tokens": 3600,
+            "charged_cny_upper_bound": "0.00324",
+            "entries": [
+              {
+                "request": 1,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1100,
+                "charged_cny_upper_bound": "0.001",
+                "actual_usage": {
+                  "input_tokens": 1000,
+                  "output_tokens": 100,
+                  "total_tokens": 1100,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 1,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              },
+              {
+                "request": 2,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1200,
+                "charged_cny_upper_bound": "0.00108",
+                "actual_usage": {
+                  "input_tokens": 1100,
+                  "output_tokens": 100,
+                  "total_tokens": 1200,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 2,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              },
+              {
+                "request": 3,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1300,
+                "charged_cny_upper_bound": "0.00116",
+                "actual_usage": {
+                  "input_tokens": 1200,
+                  "output_tokens": 100,
+                  "total_tokens": 1300,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 1,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              }
+            ]
+          },
+          "actual_tokens": null,
+          "actual_cost_cny": null,
+          "estimated_list_price_cost_cny": null,
+          "real_qwen": "not_run",
+          "production_enabled": false,
+          "formal_teacher_authorization": "not_implemented",
+          "native_request_sha256": [
+            "09c8039212be399b4b2432788e688bad8085dd0c53d5540f6554442f1f1a4d63",
+            "b0318f4271d9b06fad05ef0a367765eaedf867433c5f68b8c23ee12b652faa5f",
+            "a0b749e663577a30b5e1691dae96e169e0e70077dd14f55888d4a452a96320ed"
+          ]
+        }
+      },
+      "qwen": {
+        "status": "not_run",
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      }
+    },
+    {
+      "synthetic_case": "research-v2-final-relation",
+      "seed": 9007,
+      "target": "negative_relation",
+      "agent_target_met": true,
+      "fixed": {
+        "wrong_facts": 0,
+        "source_errors": 0,
+        "qualified_semantics": [
+          "{\"type\": \"item_relation\", \"values\": \"{'left': 'Q01', 'right': 'Q02', 'rho': -1.0, 'paired_count': 80, 'excluded_count': 0, 'denominator': 80, 'state': 'computable'}\"}",
+          "{\"type\": \"item_group_difference\", \"values\": \"{'outcome': 'Q02', 'conditions': [{'item_id': 'Q01', 'operator': '<=', 'threshold': '20'}], 'target_count': 40, 'remainder_count': 40, 'unevaluable_count': 0, 'denominator': 80, 'eligible_denominator': 80, 'share_total': Fraction(1, 2), 'share_eligible': Fraction(1, 2), 'target_valid': 40, 'remainder_valid': 40, 'target_mean': Fraction(80, 1), 'remainder_mean': Fraction(20, 1), 'difference': Fraction(60, 1), 'outcome_unit': 'points'}\"}"
+        ],
+        "duplicates": 0,
+        "verified_fact_count": 4,
+        "source_count": 34,
+        "fact_error_fraction": [
+          0,
+          4
+        ],
+        "source_correct_fraction": [
+          4,
+          4
+        ],
+        "retained_seed_fraction": [
+          1,
+          1
+        ],
+        "repeat_attempts": 0,
+        "model_requests": 4,
+        "tool_attempts": 4,
+        "verification_replay_executions": 111,
+        "elapsed_seconds": 48.11365189985372,
+        "mock_token_usage": 5000,
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      },
+      "agent_http_mock": {
+        "wrong_facts": 0,
+        "source_errors": 0,
+        "qualified_semantics": [
+          "{\"type\": \"item_relation\", \"values\": \"{'left': 'Q01', 'right': 'Q02', 'rho': -1.0, 'paired_count': 80, 'excluded_count': 0, 'denominator': 80, 'state': 'computable'}\"}"
+        ],
+        "duplicates": 0,
+        "verified_fact_count": 2,
+        "source_count": 24,
+        "fact_error_fraction": [
+          0,
+          2
+        ],
+        "source_correct_fraction": [
+          2,
+          2
+        ],
+        "retained_seed_fraction": [
+          1,
+          1
+        ],
+        "repeat_attempts": 0,
+        "model_requests": 2,
+        "tool_attempts": 2,
+        "verification_replay_executions": 22,
+        "elapsed_seconds": 11.946455100085586,
+        "mock_token_usage": 2300,
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      },
+      "added_correct_semantics": 0,
+      "missed_baseline_semantics": 1,
+      "runs": {
+        "fixed": {
+          "origin": "offline_mechanism",
+          "goal": {
+            "type": "priority",
+            "items": [],
+            "rubric_evidence": "unavailable",
+            "task_evidence": "unavailable",
+            "no_causal_conclusions": true
+          },
+          "status": "completed",
+          "stop_reason": "goal_satisfied",
+          "observation_goal": {
+            "state": "goal_satisfied",
+            "matching_fact_ids": [
+              "research-a3185c1a4a1a-f002",
+              "research-a3185c1a4a1a-f003"
+            ],
+            "evidence_gaps": [],
+            "observation_is_not_explanation": true
+          },
+          "verified_observations": [
+            {
+              "fact_id": "research-a3185c1a4a1a-f001",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "get_dimension_statistics",
+                "arguments": {
+                  "item_ids": null
+                }
+              },
+              "values": {
+                "fact_id": "research-a3185c1a4a1a-f001",
+                "qualified": false,
+                "items": [
+                  {
+                    "item_id": "Q01",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q02",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q03",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q04",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q05",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q06",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q07",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q08",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q09",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q10",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q11",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  }
+                ],
+                "state": "available"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "get_dimension_statistics",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "Q01.valid",
+                  "item_id": "Q01",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q01.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q01.state.valid",
+                  "item_id": "Q01",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q01.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q02.valid",
+                  "item_id": "Q02",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q02.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q02.state.valid",
+                  "item_id": "Q02",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q02.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q03.valid",
+                  "item_id": "Q03",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q03.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q03.state.valid",
+                  "item_id": "Q03",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q03.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q04.valid",
+                  "item_id": "Q04",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q04.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q04.state.valid",
+                  "item_id": "Q04",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q04.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q05.valid",
+                  "item_id": "Q05",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q05.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q05.state.valid",
+                  "item_id": "Q05",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q05.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q06.valid",
+                  "item_id": "Q06",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q06.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q06.state.valid",
+                  "item_id": "Q06",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q06.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q07.valid",
+                  "item_id": "Q07",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q07.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q07.state.valid",
+                  "item_id": "Q07",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q07.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q08.valid",
+                  "item_id": "Q08",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q08.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q08.state.valid",
+                  "item_id": "Q08",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q08.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q09.valid",
+                  "item_id": "Q09",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q09.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q09.state.valid",
+                  "item_id": "Q09",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q09.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q10.valid",
+                  "item_id": "Q10",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q10.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q10.state.valid",
+                  "item_id": "Q10",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q10.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q11.valid",
+                  "item_id": "Q11",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q11.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q11.state.valid",
+                  "item_id": "Q11",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f001",
+                    "metric_key": "Q11.state.valid"
+                  }
+                }
+              ]
+            },
+            {
+              "fact_id": "research-a3185c1a4a1a-f002",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "query_dimension_relation",
+                "arguments": {
+                  "left": "Q01",
+                  "right": "Q02"
+                }
+              },
+              "values": {
+                "fact_id": "research-a3185c1a4a1a-f002",
+                "qualified": true,
+                "metrics": {
+                  "left": "Q01",
+                  "right": "Q02",
+                  "rho": -1.0,
+                  "paired_count": 80,
+                  "excluded_count": 0,
+                  "denominator": 80,
+                  "state": "computable"
+                },
+                "status": "displayable",
+                "ranking": {
+                  "score": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  },
+                  "support_count": 80,
+                  "robustness": {
+                    "method": "three_fixed_deletions",
+                    "planned": 3,
+                    "evaluated": 3,
+                    "passed": 3,
+                    "value": {
+                      "numerator": 1,
+                      "denominator": 1,
+                      "display": "1.0000"
+                    }
+                  },
+                  "is_statistical_confidence": false
+                },
+                "limitation_codes": [
+                  "correlation_not_causation",
+                  "ties_use_existing_average_ranks"
+                ],
+                "type": "item_relation"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "query_dimension_relation",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "left.paired",
+                  "item_id": "Q01",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f002",
+                    "metric_key": "left.paired"
+                  }
+                },
+                {
+                  "metric_key": "right.paired",
+                  "item_id": "Q02",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f002",
+                    "metric_key": "right.paired"
+                  }
+                }
+              ]
+            },
+            {
+              "fact_id": "research-a3185c1a4a1a-f003",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "compare_student_groups",
+                "arguments": {
+                  "conditions": [
+                    {
+                      "item_id": "Q01",
+                      "operator": "<=",
+                      "threshold": "20"
+                    }
+                  ],
+                  "outcomes": [
+                    "Q02"
+                  ]
+                }
+              },
+              "values": {
+                "fact_id": "research-a3185c1a4a1a-f003",
+                "qualified": true,
+                "metrics": {
+                  "outcome": "Q02",
+                  "conditions": [
+                    {
+                      "item_id": "Q01",
+                      "operator": "<=",
+                      "threshold": "20"
+                    }
+                  ],
+                  "target_count": 40,
+                  "remainder_count": 40,
+                  "unevaluable_count": 0,
+                  "denominator": 80,
+                  "eligible_denominator": 80,
+                  "share_total": {
+                    "numerator": 1,
+                    "denominator": 2,
+                    "display": "0.5000"
+                  },
+                  "share_eligible": {
+                    "numerator": 1,
+                    "denominator": 2,
+                    "display": "0.5000"
+                  },
+                  "target_valid": 40,
+                  "remainder_valid": 40,
+                  "target_mean": {
+                    "numerator": 80,
+                    "denominator": 1,
+                    "display": "80.0000"
+                  },
+                  "remainder_mean": {
+                    "numerator": 20,
+                    "denominator": 1,
+                    "display": "20.0000"
+                  },
+                  "difference": {
+                    "numerator": 60,
+                    "denominator": 1,
+                    "display": "60.0000"
+                  },
+                  "outcome_unit": "points"
+                },
+                "status": "displayable",
+                "ranking": {
+                  "score": {
+                    "numerator": 21,
+                    "denominator": 25,
+                    "display": "0.8400"
+                  },
+                  "support_count": 40,
+                  "robustness": {
+                    "method": "three_fixed_deletions",
+                    "planned": 3,
+                    "evaluated": 3,
+                    "passed": 3,
+                    "value": {
+                      "numerator": 1,
+                      "denominator": 1,
+                      "display": "1.0000"
+                    }
+                  },
+                  "is_statistical_confidence": false
+                },
+                "limitation_codes": [
+                  "condition_dimensions_not_discoveries",
+                  "disjoint_remainder",
+                  "ordinal_mean_is_descriptive",
+                  "no_cross_item_score_sum"
+                ],
+                "type": "item_group_difference"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "compare_student_groups",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "target.valid",
+                  "item_id": "Q02",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f003",
+                    "metric_key": "target.valid"
+                  }
+                },
+                {
+                  "metric_key": "remainder.valid",
+                  "item_id": "Q02",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f003",
+                    "metric_key": "remainder.valid"
+                  }
+                },
+                {
+                  "metric_key": "target.condition.Q01",
+                  "item_id": "Q01",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f003",
+                    "metric_key": "target.condition.Q01"
+                  }
+                },
+                {
+                  "metric_key": "remainder.condition.Q01",
+                  "item_id": "Q01",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f003",
+                    "metric_key": "remainder.condition.Q01"
+                  }
+                },
+                {
+                  "metric_key": "unevaluable.rows",
+                  "item_id": "Q01",
+                  "record_count": 0,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f003",
+                    "metric_key": "unevaluable.rows"
+                  }
+                }
+              ]
+            },
+            {
+              "fact_id": "research-a3185c1a4a1a-f004",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "inspect_discovery_support",
+                "arguments": {
+                  "fact_id": "research-a3185c1a4a1a-f003"
+                }
+              },
+              "values": {
+                "fact_id": "research-a3185c1a4a1a-f004",
+                "qualified": false,
+                "checked_fact_id": "research-a3185c1a4a1a-f003",
+                "qualification": "qualified",
+                "ranking": {
+                  "score": {
+                    "numerator": 21,
+                    "denominator": 25,
+                    "display": "0.8400"
+                  },
+                  "support_count": 40,
+                  "robustness": {
+                    "method": "three_fixed_deletions",
+                    "planned": 3,
+                    "evaluated": 3,
+                    "passed": 3,
+                    "value": {
+                      "numerator": 1,
+                      "denominator": 1,
+                      "display": "1.0000"
+                    }
+                  },
+                  "is_statistical_confidence": false
+                },
+                "limitations": [
+                  "condition_dimensions_not_discoveries",
+                  "disjoint_remainder",
+                  "ordinal_mean_is_descriptive",
+                  "no_cross_item_score_sum"
+                ]
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "inspect_discovery_support",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "target.valid",
+                  "item_id": "Q02",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f004",
+                    "metric_key": "target.valid"
+                  }
+                },
+                {
+                  "metric_key": "remainder.valid",
+                  "item_id": "Q02",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f004",
+                    "metric_key": "remainder.valid"
+                  }
+                },
+                {
+                  "metric_key": "target.condition.Q01",
+                  "item_id": "Q01",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f004",
+                    "metric_key": "target.condition.Q01"
+                  }
+                },
+                {
+                  "metric_key": "remainder.condition.Q01",
+                  "item_id": "Q01",
+                  "record_count": 40,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f004",
+                    "metric_key": "remainder.condition.Q01"
+                  }
+                },
+                {
+                  "metric_key": "unevaluable.rows",
+                  "item_id": "Q01",
+                  "record_count": 0,
+                  "controlled_query": {
+                    "fact_id": "research-a3185c1a4a1a-f004",
+                    "metric_key": "unevaluable.rows"
+                  }
+                }
+              ]
+            }
+          ],
+          "retained_fact_ids": [
+            "research-a3185c1a4a1a-f001"
+          ],
+          "new_fact_ids": [
+            "research-a3185c1a4a1a-f002",
+            "research-a3185c1a4a1a-f003",
+            "research-a3185c1a4a1a-f004"
+          ],
+          "findings": [
+            {
+              "fact_id": "research-a3185c1a4a1a-f002",
+              "discovery_id": "6af4e7c1c9a723ac5913079f",
+              "type": "item_relation",
+              "title": "Q01 与 Q02 的评分关联",
+              "summary": "有效成对80人，Spearman=-1；相关不代表因果。",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "metrics": {
+                "left": "Q01",
+                "right": "Q02",
+                "rho": -1.0,
+                "paired_count": 80,
+                "excluded_count": 0,
+                "denominator": 80,
+                "state": "computable"
+              },
+              "chart": {
+                "left": "Q01",
+                "right": "Q02",
+                "rho": -1.0,
+                "paired_count": 80,
+                "excluded_count": 0,
+                "denominator": 80,
+                "state": "computable"
+              },
+              "status": "displayable",
+              "limitations": [
+                "correlation_not_causation",
+                "ties_use_existing_average_ranks"
+              ],
+              "ranking": {
+                "score": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "support_count": 80,
+                "robustness": {
+                  "method": "three_fixed_deletions",
+                  "planned": 3,
+                  "evaluated": 3,
+                  "passed": 3,
+                  "value": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  }
+                },
+                "is_statistical_confidence": false
+              },
+              "public_display_allowed": false,
+              "source_queries": [
+                {
+                  "fact_id": "research-a3185c1a4a1a-f002",
+                  "metric_key": "left.paired"
+                },
+                {
+                  "fact_id": "research-a3185c1a4a1a-f002",
+                  "metric_key": "right.paired"
+                }
+              ]
+            },
+            {
+              "fact_id": "research-a3185c1a4a1a-f003",
+              "discovery_id": "79f1bf14febda445f930fd66",
+              "type": "item_group_difference",
+              "title": "Q02 的互斥群体描述差异",
+              "summary": "目标40人，余组40人，均值差60；不表示因果或能力等级。",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "metrics": {
+                "outcome": "Q02",
+                "conditions": [
+                  {
+                    "item_id": "Q01",
+                    "operator": "<=",
+                    "threshold": "20"
+                  }
+                ],
+                "target_count": 40,
+                "remainder_count": 40,
+                "unevaluable_count": 0,
+                "denominator": 80,
+                "eligible_denominator": 80,
+                "share_total": {
+                  "numerator": 1,
+                  "denominator": 2,
+                  "display": "0.5000"
+                },
+                "share_eligible": {
+                  "numerator": 1,
+                  "denominator": 2,
+                  "display": "0.5000"
+                },
+                "target_valid": 40,
+                "remainder_valid": 40,
+                "target_mean": {
+                  "numerator": 80,
+                  "denominator": 1,
+                  "display": "80.0000"
+                },
+                "remainder_mean": {
+                  "numerator": 20,
+                  "denominator": 1,
+                  "display": "20.0000"
+                },
+                "difference": {
+                  "numerator": 60,
+                  "denominator": 1,
+                  "display": "60.0000"
+                },
+                "outcome_unit": "points"
+              },
+              "chart": {
+                "outcome": "Q02",
+                "conditions": [
+                  {
+                    "item_id": "Q01",
+                    "operator": "<=",
+                    "threshold": "20"
+                  }
+                ],
+                "target_count": 40,
+                "remainder_count": 40,
+                "unevaluable_count": 0,
+                "denominator": 80,
+                "eligible_denominator": 80,
+                "share_total": {
+                  "numerator": 1,
+                  "denominator": 2,
+                  "display": "0.5000"
+                },
+                "share_eligible": {
+                  "numerator": 1,
+                  "denominator": 2,
+                  "display": "0.5000"
+                },
+                "target_valid": 40,
+                "remainder_valid": 40,
+                "target_mean": {
+                  "numerator": 80,
+                  "denominator": 1,
+                  "display": "80.0000"
+                },
+                "remainder_mean": {
+                  "numerator": 20,
+                  "denominator": 1,
+                  "display": "20.0000"
+                },
+                "difference": {
+                  "numerator": 60,
+                  "denominator": 1,
+                  "display": "60.0000"
+                },
+                "outcome_unit": "points"
+              },
+              "status": "displayable",
+              "limitations": [
+                "condition_dimensions_not_discoveries",
+                "disjoint_remainder",
+                "ordinal_mean_is_descriptive",
+                "no_cross_item_score_sum"
+              ],
+              "ranking": {
+                "score": {
+                  "numerator": 21,
+                  "denominator": 25,
+                  "display": "0.8400"
+                },
+                "support_count": 40,
+                "robustness": {
+                  "method": "three_fixed_deletions",
+                  "planned": 3,
+                  "evaluated": 3,
+                  "passed": 3,
+                  "value": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  }
+                },
+                "is_statistical_confidence": false
+              },
+              "public_display_allowed": false,
+              "source_queries": [
+                {
+                  "fact_id": "research-a3185c1a4a1a-f003",
+                  "metric_key": "target.valid"
+                },
+                {
+                  "fact_id": "research-a3185c1a4a1a-f003",
+                  "metric_key": "remainder.valid"
+                },
+                {
+                  "fact_id": "research-a3185c1a4a1a-f003",
+                  "metric_key": "target.condition.Q01"
+                },
+                {
+                  "fact_id": "research-a3185c1a4a1a-f003",
+                  "metric_key": "remainder.condition.Q01"
+                },
+                {
+                  "fact_id": "research-a3185c1a4a1a-f003",
+                  "metric_key": "unevaluable.rows"
+                }
+              ]
+            }
+          ],
+          "unsupported_explanations": [
+            "causal_teaching_effect",
+            "student_psychology",
+            "AI_dependency"
+          ],
+          "missing_evidence": [],
+          "next_check": "按指标来源查询核对记录；群体差异不等于能力诊断。",
+          "seed_ledger": [
+            {
+              "phase": "trusted_seed",
+              "tool": "get_dimension_statistics",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f001"
+              ]
+            }
+          ],
+          "tool_ledger": [
+            {
+              "attempt": 1,
+              "tool": "query_dimension_relation",
+              "status": "accepted",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f002"
+              ],
+              "error": null,
+              "arguments": {
+                "left": "Q01",
+                "right": "Q02"
+              }
+            },
+            {
+              "attempt": 2,
+              "tool": "compare_student_groups",
+              "status": "accepted",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f003"
+              ],
+              "error": null,
+              "arguments": {
+                "conditions": [
+                  {
+                    "item_id": "Q01",
+                    "operator": "<=",
+                    "threshold": "20"
+                  }
+                ],
+                "outcomes": [
+                  "Q02"
+                ]
+              }
+            },
+            {
+              "attempt": 3,
+              "tool": "inspect_discovery_support",
+              "status": "accepted",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f004"
+              ],
+              "error": null,
+              "arguments": {
+                "fact_id": "research-a3185c1a4a1a-f003"
+              }
+            }
+          ],
+          "trace": [
+            {
+              "sequence": 1,
+              "round": 1,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "round": 1,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f001"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "attempted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "computed",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 5,
+              "round": 1,
+              "phase": "fact_validation",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f002"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 6,
+              "round": 2,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 7,
+              "round": 2,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "compare_student_groups",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f002"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 8,
+              "round": 2,
+              "phase": "tool_execution",
+              "status": "attempted",
+              "tool": "compare_student_groups",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 9,
+              "round": 2,
+              "phase": "tool_execution",
+              "status": "computed",
+              "tool": "compare_student_groups",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 10,
+              "round": 2,
+              "phase": "fact_validation",
+              "status": "accepted",
+              "tool": "compare_student_groups",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f003"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 11,
+              "round": 3,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 12,
+              "round": 3,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "inspect_discovery_support",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f003"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 13,
+              "round": 3,
+              "phase": "tool_execution",
+              "status": "attempted",
+              "tool": "inspect_discovery_support",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 14,
+              "round": 3,
+              "phase": "tool_execution",
+              "status": "computed",
+              "tool": "inspect_discovery_support",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 15,
+              "round": 3,
+              "phase": "fact_validation",
+              "status": "accepted",
+              "tool": "inspect_discovery_support",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f004"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 16,
+              "round": 4,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 17,
+              "round": 4,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 18,
+              "round": 4,
+              "phase": "final_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [
+                "research-a3185c1a4a1a-f002",
+                "research-a3185c1a4a1a-f003"
+              ],
+              "error": null
+            }
+          ],
+          "reflections": [
+            {
+              "state": "needs_investigation",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            },
+            {
+              "state": "goal_satisfied",
+              "matching_fact_ids": [
+                "research-a3185c1a4a1a-f002"
+              ],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            },
+            {
+              "state": "goal_satisfied",
+              "matching_fact_ids": [
+                "research-a3185c1a4a1a-f002",
+                "research-a3185c1a4a1a-f003"
+              ],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            },
+            {
+              "state": "goal_satisfied",
+              "matching_fact_ids": [
+                "research-a3185c1a4a1a-f002",
+                "research-a3185c1a4a1a-f003"
+              ],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            }
+          ],
+          "model_choices": [
+            {
+              "round": 1,
+              "tool": "query_dimension_relation",
+              "arguments": {
+                "left": "Q01",
+                "right": "Q02"
+              },
+              "basis_fact_ids": [
+                "research-a3185c1a4a1a-f001"
+              ]
+            },
+            {
+              "round": 2,
+              "tool": "compare_student_groups",
+              "arguments": {
+                "conditions": [
+                  {
+                    "item_id": "Q01",
+                    "operator": "<=",
+                    "threshold": "20"
+                  }
+                ],
+                "outcomes": [
+                  "Q02"
+                ]
+              },
+              "basis_fact_ids": [
+                "research-a3185c1a4a1a-f002"
+              ]
+            },
+            {
+              "round": 3,
+              "tool": "inspect_discovery_support",
+              "arguments": {
+                "fact_id": "research-a3185c1a4a1a-f003"
+              },
+              "basis_fact_ids": [
+                "research-a3185c1a4a1a-f003"
+              ]
+            },
+            {
+              "round": 4,
+              "tool": "finish",
+              "arguments": {
+                "selected_fact_ids": [
+                  "research-a3185c1a4a1a-f002",
+                  "research-a3185c1a4a1a-f003"
+                ],
+                "reason": "completed"
+              },
+              "basis_fact_ids": []
+            }
+          ],
+          "model_requests": 4,
+          "tool_attempts": 4,
+          "verification_replay_executions": 111,
+          "seed_tool_attempts": 1,
+          "elapsed_seconds": 48.11365189985372,
+          "tool_compute_seconds": 2.1509445998817682,
+          "budget": {
+            "campaign_id": "fixed-research-v2-final-relation",
+            "authorization_fingerprint": "b73dfbb30aa67df739181ff80f13e57e640a546df6a3afe0670b1895a0b45e01",
+            "source_fingerprints": {
+              "research-v2-final-relation": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51"
+            },
+            "origin": "http_mock",
+            "billing_basis": "verified_list_price_upper_bound_not_invoice",
+            "price": {
+              "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+              "model": "qwen3.8-flash",
+              "checked_on": "2026-10-26",
+              "valid_until": "2026-11-02",
+              "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+              "max_input_tokens": 991808,
+              "input_per_million": "0.8",
+              "cached_per_million": "0.1",
+              "output_per_million": "2.7"
+            },
+            "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+            "max_requests": 6,
+            "total_token_limit": 2000000,
+            "cost_cap_cny": "2",
+            "request_count": 4,
+            "blocked": null,
+            "claimed": true,
+            "charged_tokens": 5000,
+            "charged_cny_upper_bound": "0.00448",
+            "entries": [
+              {
+                "request": 1,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1100,
+                "charged_cny_upper_bound": "0.001",
+                "actual_usage": {
+                  "input_tokens": 1000,
+                  "output_tokens": 100,
+                  "total_tokens": 1100,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 6,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              },
+              {
+                "request": 2,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1200,
+                "charged_cny_upper_bound": "0.00108",
+                "actual_usage": {
+                  "input_tokens": 1100,
+                  "output_tokens": 100,
+                  "total_tokens": 1200,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 1,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              },
+              {
+                "request": 3,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1300,
+                "charged_cny_upper_bound": "0.00116",
+                "actual_usage": {
+                  "input_tokens": 1200,
+                  "output_tokens": 100,
+                  "total_tokens": 1300,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 3,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              },
+              {
+                "request": 4,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1400,
+                "charged_cny_upper_bound": "0.00124",
+                "actual_usage": {
+                  "input_tokens": 1300,
+                  "output_tokens": 100,
+                  "total_tokens": 1400,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 2,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              }
+            ]
+          },
+          "actual_tokens": null,
+          "actual_cost_cny": null,
+          "estimated_list_price_cost_cny": null,
+          "real_qwen": "not_run",
+          "production_enabled": false,
+          "formal_teacher_authorization": "not_implemented",
+          "native_request_sha256": [
+            "f4f4ccb9e676b9dc0e434db5fa25d863c00563a04a39d8a96dac3e2718a2c29a",
+            "3dce4179527b5bd3430b11926f496b17e857795a60b26c85a1640731113b5a85",
+            "c038de6ed57f5ee581aab0e5dae9b43c02e418fd35422edd0c007f4abcc31f76",
+            "fa7faffe59902377a0b223ba1b12fd74accbbc2f38da7a2ef2efd37548d40fc7"
+          ]
+        },
+        "agent_http_mock": {
+          "origin": "offline_mechanism",
+          "goal": {
+            "type": "priority",
+            "items": [],
+            "rubric_evidence": "unavailable",
+            "task_evidence": "unavailable",
+            "no_causal_conclusions": true
+          },
+          "status": "completed",
+          "stop_reason": "goal_satisfied",
+          "observation_goal": {
+            "state": "goal_satisfied",
+            "matching_fact_ids": [
+              "research-815e7a9b22f5-f002"
+            ],
+            "evidence_gaps": [],
+            "observation_is_not_explanation": true
+          },
+          "verified_observations": [
+            {
+              "fact_id": "research-815e7a9b22f5-f001",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "get_dimension_statistics",
+                "arguments": {
+                  "item_ids": null
+                }
+              },
+              "values": {
+                "fact_id": "research-815e7a9b22f5-f001",
+                "qualified": false,
+                "items": [
+                  {
+                    "item_id": "Q01",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q02",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q03",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q04",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q05",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q06",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q07",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q08",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q09",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q10",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  },
+                  {
+                    "item_id": "Q11",
+                    "denominator": 80,
+                    "valid_count": 80,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 80
+                    },
+                    "mean": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "median": {
+                      "numerator": 50,
+                      "denominator": 1,
+                      "display": "50.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": true,
+                    "exploration_thresholds": [
+                      "20",
+                      "80"
+                    ]
+                  }
+                ],
+                "state": "available"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "get_dimension_statistics",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "Q01.valid",
+                  "item_id": "Q01",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q01.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q01.state.valid",
+                  "item_id": "Q01",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q01.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q02.valid",
+                  "item_id": "Q02",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q02.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q02.state.valid",
+                  "item_id": "Q02",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q02.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q03.valid",
+                  "item_id": "Q03",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q03.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q03.state.valid",
+                  "item_id": "Q03",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q03.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q04.valid",
+                  "item_id": "Q04",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q04.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q04.state.valid",
+                  "item_id": "Q04",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q04.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q05.valid",
+                  "item_id": "Q05",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q05.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q05.state.valid",
+                  "item_id": "Q05",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q05.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q06.valid",
+                  "item_id": "Q06",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q06.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q06.state.valid",
+                  "item_id": "Q06",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q06.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q07.valid",
+                  "item_id": "Q07",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q07.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q07.state.valid",
+                  "item_id": "Q07",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q07.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q08.valid",
+                  "item_id": "Q08",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q08.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q08.state.valid",
+                  "item_id": "Q08",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q08.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q09.valid",
+                  "item_id": "Q09",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q09.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q09.state.valid",
+                  "item_id": "Q09",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q09.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q10.valid",
+                  "item_id": "Q10",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q10.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q10.state.valid",
+                  "item_id": "Q10",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q10.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q11.valid",
+                  "item_id": "Q11",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q11.valid"
+                  }
+                },
+                {
+                  "metric_key": "Q11.state.valid",
+                  "item_id": "Q11",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f001",
+                    "metric_key": "Q11.state.valid"
+                  }
+                }
+              ]
+            },
+            {
+              "fact_id": "research-815e7a9b22f5-f002",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "query_dimension_relation",
+                "arguments": {
+                  "left": "Q01",
+                  "right": "Q02"
+                }
+              },
+              "values": {
+                "fact_id": "research-815e7a9b22f5-f002",
+                "qualified": true,
+                "metrics": {
+                  "left": "Q01",
+                  "right": "Q02",
+                  "rho": -1.0,
+                  "paired_count": 80,
+                  "excluded_count": 0,
+                  "denominator": 80,
+                  "state": "computable"
+                },
+                "status": "displayable",
+                "ranking": {
+                  "score": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  },
+                  "support_count": 80,
+                  "robustness": {
+                    "method": "three_fixed_deletions",
+                    "planned": 3,
+                    "evaluated": 3,
+                    "passed": 3,
+                    "value": {
+                      "numerator": 1,
+                      "denominator": 1,
+                      "display": "1.0000"
+                    }
+                  },
+                  "is_statistical_confidence": false
+                },
+                "limitation_codes": [
+                  "correlation_not_causation",
+                  "ties_use_existing_average_ranks"
+                ],
+                "type": "item_relation"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "query_dimension_relation",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "left.paired",
+                  "item_id": "Q01",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f002",
+                    "metric_key": "left.paired"
+                  }
+                },
+                {
+                  "metric_key": "right.paired",
+                  "item_id": "Q02",
+                  "record_count": 80,
+                  "controlled_query": {
+                    "fact_id": "research-815e7a9b22f5-f002",
+                    "metric_key": "right.paired"
+                  }
+                }
+              ]
+            }
+          ],
+          "retained_fact_ids": [
+            "research-815e7a9b22f5-f001"
+          ],
+          "new_fact_ids": [
+            "research-815e7a9b22f5-f002"
+          ],
+          "findings": [
+            {
+              "fact_id": "research-815e7a9b22f5-f002",
+              "discovery_id": "6af4e7c1c9a723ac5913079f",
+              "type": "item_relation",
+              "title": "Q01 与 Q02 的评分关联",
+              "summary": "有效成对80人，Spearman=-1；相关不代表因果。",
+              "batch_id": "synthetic-batch-28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "snapshot_id": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51",
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "metrics": {
+                "left": "Q01",
+                "right": "Q02",
+                "rho": -1.0,
+                "paired_count": 80,
+                "excluded_count": 0,
+                "denominator": 80,
+                "state": "computable"
+              },
+              "chart": {
+                "left": "Q01",
+                "right": "Q02",
+                "rho": -1.0,
+                "paired_count": 80,
+                "excluded_count": 0,
+                "denominator": 80,
+                "state": "computable"
+              },
+              "status": "displayable",
+              "limitations": [
+                "correlation_not_causation",
+                "ties_use_existing_average_ranks"
+              ],
+              "ranking": {
+                "score": {
+                  "numerator": 1,
+                  "denominator": 1,
+                  "display": "1.0000"
+                },
+                "support_count": 80,
+                "robustness": {
+                  "method": "three_fixed_deletions",
+                  "planned": 3,
+                  "evaluated": 3,
+                  "passed": 3,
+                  "value": {
+                    "numerator": 1,
+                    "denominator": 1,
+                    "display": "1.0000"
+                  }
+                },
+                "is_statistical_confidence": false
+              },
+              "public_display_allowed": false,
+              "source_queries": [
+                {
+                  "fact_id": "research-815e7a9b22f5-f002",
+                  "metric_key": "left.paired"
+                },
+                {
+                  "fact_id": "research-815e7a9b22f5-f002",
+                  "metric_key": "right.paired"
+                }
+              ]
+            }
+          ],
+          "unsupported_explanations": [
+            "causal_teaching_effect",
+            "student_psychology",
+            "AI_dependency"
+          ],
+          "missing_evidence": [],
+          "next_check": "按指标来源查询核对记录；群体差异不等于能力诊断。",
+          "seed_ledger": [
+            {
+              "phase": "trusted_seed",
+              "tool": "get_dimension_statistics",
+              "fact_ids": [
+                "research-815e7a9b22f5-f001"
+              ]
+            }
+          ],
+          "tool_ledger": [
+            {
+              "attempt": 1,
+              "tool": "query_dimension_relation",
+              "status": "accepted",
+              "fact_ids": [
+                "research-815e7a9b22f5-f002"
+              ],
+              "error": null,
+              "arguments": {
+                "left": "Q01",
+                "right": "Q02"
+              }
+            }
+          ],
+          "trace": [
+            {
+              "sequence": 1,
+              "round": 1,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "round": 1,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-815e7a9b22f5-f001"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "attempted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 4,
+              "round": 1,
+              "phase": "tool_execution",
+              "status": "computed",
+              "tool": "query_dimension_relation",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 5,
+              "round": 1,
+              "phase": "fact_validation",
+              "status": "accepted",
+              "tool": "query_dimension_relation",
+              "fact_ids": [
+                "research-815e7a9b22f5-f002"
+              ],
+              "error": null
+            },
+            {
+              "sequence": 6,
+              "round": 2,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 7,
+              "round": 2,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 8,
+              "round": 2,
+              "phase": "final_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [
+                "research-815e7a9b22f5-f002"
+              ],
+              "error": null
+            }
+          ],
+          "reflections": [
+            {
+              "state": "needs_investigation",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            },
+            {
+              "state": "goal_satisfied",
+              "matching_fact_ids": [
+                "research-815e7a9b22f5-f002"
+              ],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            }
+          ],
+          "model_choices": [
+            {
+              "round": 1,
+              "tool": "query_dimension_relation",
+              "arguments": {
+                "left": "Q01",
+                "right": "Q02"
+              },
+              "basis_fact_ids": [
+                "research-815e7a9b22f5-f001"
+              ]
+            },
+            {
+              "round": 2,
+              "tool": "finish",
+              "arguments": {
+                "selected_fact_ids": [
+                  "research-815e7a9b22f5-f002"
+                ],
+                "reason": "completed"
+              },
+              "basis_fact_ids": []
+            }
+          ],
+          "model_requests": 2,
+          "tool_attempts": 2,
+          "verification_replay_executions": 22,
+          "seed_tool_attempts": 1,
+          "elapsed_seconds": 11.946455100085586,
+          "tool_compute_seconds": 0.45110940001904964,
+          "budget": {
+            "campaign_id": "agent-research-v2-final-relation",
+            "authorization_fingerprint": "2f775be8d0cd3072b8014177324af8ba80661ec970cf84ae66291d32962b167d",
+            "source_fingerprints": {
+              "research-v2-final-relation": "28791afd94e59d3574c14836bd2adcccce1bf5da0e18e014674c32fd40480f51"
+            },
+            "origin": "http_mock",
+            "billing_basis": "verified_list_price_upper_bound_not_invoice",
+            "price": {
+              "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+              "model": "qwen3.8-flash",
+              "checked_on": "2026-10-26",
+              "valid_until": "2026-11-02",
+              "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+              "max_input_tokens": 991808,
+              "input_per_million": "0.8",
+              "cached_per_million": "0.1",
+              "output_per_million": "2.7"
+            },
+            "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+            "max_requests": 6,
+            "total_token_limit": 2000000,
+            "cost_cap_cny": "2",
+            "request_count": 2,
+            "blocked": null,
+            "claimed": true,
+            "charged_tokens": 2300,
+            "charged_cny_upper_bound": "0.00208",
+            "entries": [
+              {
+                "request": 1,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1100,
+                "charged_cny_upper_bound": "0.001",
+                "actual_usage": {
+                  "input_tokens": 1000,
+                  "output_tokens": 100,
+                  "total_tokens": 1100,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 1,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              },
+              {
+                "request": 2,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1200,
+                "charged_cny_upper_bound": "0.00108",
+                "actual_usage": {
+                  "input_tokens": 1100,
+                  "output_tokens": 100,
+                  "total_tokens": 1200,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 2,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              }
+            ]
+          },
+          "actual_tokens": null,
+          "actual_cost_cny": null,
+          "estimated_list_price_cost_cny": null,
+          "real_qwen": "not_run",
+          "production_enabled": false,
+          "formal_teacher_authorization": "not_implemented",
+          "native_request_sha256": [
+            "d661b0141feb8e6d670406441feca6acdf20e291b8a9d6887092130e083112c7",
+            "da074b6ff0f735cadcb6fea047c8eafb5f50a9c04462b0bb36d425a12a28907f"
+          ]
+        }
+      },
+      "qwen": {
+        "status": "not_run",
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      }
+    },
+    {
+      "synthetic_case": "research-v2-final-empty",
+      "seed": 9011,
+      "target": "zero_findings",
+      "agent_target_met": true,
+      "fixed": {
+        "wrong_facts": 0,
+        "source_errors": 0,
+        "qualified_semantics": [],
+        "duplicates": 0,
+        "verified_fact_count": 1,
+        "source_count": 8,
+        "fact_error_fraction": [
+          0,
+          1
+        ],
+        "source_correct_fraction": [
+          1,
+          1
+        ],
+        "retained_seed_fraction": [
+          1,
+          1
+        ],
+        "repeat_attempts": 0,
+        "model_requests": 1,
+        "tool_attempts": 1,
+        "verification_replay_executions": 4,
+        "elapsed_seconds": 0.6572020000312477,
+        "mock_token_usage": 1100,
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      },
+      "agent_http_mock": {
+        "wrong_facts": 0,
+        "source_errors": 0,
+        "qualified_semantics": [],
+        "duplicates": 0,
+        "verified_fact_count": 1,
+        "source_count": 8,
+        "fact_error_fraction": [
+          0,
+          1
+        ],
+        "source_correct_fraction": [
+          1,
+          1
+        ],
+        "retained_seed_fraction": [
+          1,
+          1
+        ],
+        "repeat_attempts": 0,
+        "model_requests": 1,
+        "tool_attempts": 1,
+        "verification_replay_executions": 4,
+        "elapsed_seconds": 0.6817427999339998,
+        "mock_token_usage": 1100,
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      },
+      "added_correct_semantics": 0,
+      "missed_baseline_semantics": 0,
+      "runs": {
+        "fixed": {
+          "origin": "offline_mechanism",
+          "goal": {
+            "type": "priority",
+            "items": [],
+            "rubric_evidence": "unavailable",
+            "task_evidence": "unavailable",
+            "no_causal_conclusions": true
+          },
+          "status": "completed",
+          "stop_reason": "no_supported_findings",
+          "observation_goal": {
+            "state": "no_supported_findings",
+            "matching_fact_ids": [],
+            "evidence_gaps": [],
+            "observation_is_not_explanation": true
+          },
+          "verified_observations": [
+            {
+              "fact_id": "research-8f5b0a16cfc6-f001",
+              "batch_id": "synthetic-batch-cdea7238b572ca08fd9ceb41f0ec0d59115b3a23dc45aa577f8cfa5d7bd7bffa",
+              "snapshot_id": "cdea7238b572ca08fd9ceb41f0ec0d59115b3a23dc45aa577f8cfa5d7bd7bffa",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "get_dimension_statistics",
+                "arguments": {
+                  "item_ids": null
+                }
+              },
+              "values": {
+                "fact_id": "research-8f5b0a16cfc6-f001",
+                "qualified": false,
+                "items": [
+                  {
+                    "item_id": "I01",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I02",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I03",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I04",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  }
+                ],
+                "state": "available"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "get_dimension_statistics",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "I01.valid",
+                  "item_id": "I01",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I01.valid"
+                  }
+                },
+                {
+                  "metric_key": "I01.state.valid",
+                  "item_id": "I01",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I01.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.valid",
+                  "item_id": "I02",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I02.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.state.valid",
+                  "item_id": "I02",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I02.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.valid",
+                  "item_id": "I03",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I03.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.state.valid",
+                  "item_id": "I03",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I03.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.valid",
+                  "item_id": "I04",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I04.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.state.valid",
+                  "item_id": "I04",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-8f5b0a16cfc6-f001",
+                    "metric_key": "I04.state.valid"
+                  }
+                }
+              ]
+            }
+          ],
+          "retained_fact_ids": [
+            "research-8f5b0a16cfc6-f001"
+          ],
+          "new_fact_ids": [],
+          "findings": [],
+          "unsupported_explanations": [
+            "causal_teaching_effect",
+            "student_psychology",
+            "AI_dependency"
+          ],
+          "missing_evidence": [],
+          "next_check": "按指标来源查询核对记录；群体差异不等于能力诊断。",
+          "seed_ledger": [
+            {
+              "phase": "trusted_seed",
+              "tool": "get_dimension_statistics",
+              "fact_ids": [
+                "research-8f5b0a16cfc6-f001"
+              ]
+            }
+          ],
+          "tool_ledger": [],
+          "trace": [
+            {
+              "sequence": 1,
+              "round": 1,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "round": 1,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "round": 1,
+              "phase": "final_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            }
+          ],
+          "reflections": [
+            {
+              "state": "no_supported_findings",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            }
+          ],
+          "model_choices": [
+            {
+              "round": 1,
+              "tool": "finish",
+              "arguments": {
+                "selected_fact_ids": [],
+                "reason": "no_valid_findings"
+              },
+              "basis_fact_ids": []
+            }
+          ],
+          "model_requests": 1,
+          "tool_attempts": 1,
+          "verification_replay_executions": 4,
+          "seed_tool_attempts": 1,
+          "elapsed_seconds": 0.6572020000312477,
+          "tool_compute_seconds": 0.02944519999437034,
+          "budget": {
+            "campaign_id": "fixed-research-v2-final-empty",
+            "authorization_fingerprint": "3a75503fca159350366d2cef8bcdc3ae657c7eb2c87207a1a9d13604ecc788a5",
+            "source_fingerprints": {
+              "research-v2-final-empty": "cdea7238b572ca08fd9ceb41f0ec0d59115b3a23dc45aa577f8cfa5d7bd7bffa"
+            },
+            "origin": "http_mock",
+            "billing_basis": "verified_list_price_upper_bound_not_invoice",
+            "price": {
+              "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+              "model": "qwen3.8-flash",
+              "checked_on": "2026-10-26",
+              "valid_until": "2026-11-02",
+              "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+              "max_input_tokens": 991808,
+              "input_per_million": "0.8",
+              "cached_per_million": "0.1",
+              "output_per_million": "2.7"
+            },
+            "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+            "max_requests": 6,
+            "total_token_limit": 2000000,
+            "cost_cap_cny": "2",
+            "request_count": 1,
+            "blocked": null,
+            "claimed": true,
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "entries": [
+              {
+                "request": 1,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1100,
+                "charged_cny_upper_bound": "0.001",
+                "actual_usage": {
+                  "input_tokens": 1000,
+                  "output_tokens": 100,
+                  "total_tokens": 1100,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 1,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              }
+            ]
+          },
+          "actual_tokens": null,
+          "actual_cost_cny": null,
+          "estimated_list_price_cost_cny": null,
+          "real_qwen": "not_run",
+          "production_enabled": false,
+          "formal_teacher_authorization": "not_implemented",
+          "native_request_sha256": [
+            "f874b3a1bcd1b253b82ba4cbd1a3fa8d7f5d40fbc81695b1dba1c3ff25606005"
+          ]
+        },
+        "agent_http_mock": {
+          "origin": "offline_mechanism",
+          "goal": {
+            "type": "priority",
+            "items": [],
+            "rubric_evidence": "unavailable",
+            "task_evidence": "unavailable",
+            "no_causal_conclusions": true
+          },
+          "status": "completed",
+          "stop_reason": "no_supported_findings",
+          "observation_goal": {
+            "state": "no_supported_findings",
+            "matching_fact_ids": [],
+            "evidence_gaps": [],
+            "observation_is_not_explanation": true
+          },
+          "verified_observations": [
+            {
+              "fact_id": "research-07e28b344e95-f001",
+              "batch_id": "synthetic-batch-cdea7238b572ca08fd9ceb41f0ec0d59115b3a23dc45aa577f8cfa5d7bd7bffa",
+              "snapshot_id": "cdea7238b572ca08fd9ceb41f0ec0d59115b3a23dc45aa577f8cfa5d7bd7bffa",
+              "scope": "complete_registered_synthetic_batch",
+              "query": {
+                "tool": "get_dimension_statistics",
+                "arguments": {
+                  "item_ids": null
+                }
+              },
+              "values": {
+                "fact_id": "research-07e28b344e95-f001",
+                "qualified": false,
+                "items": [
+                  {
+                    "item_id": "I01",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I02",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I03",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  },
+                  {
+                    "item_id": "I04",
+                    "denominator": 36,
+                    "valid_count": 36,
+                    "excluded_count": 0,
+                    "states": {
+                      "valid": 36
+                    },
+                    "mean": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "median": {
+                      "numerator": 3,
+                      "denominator": 1,
+                      "display": "3.0000"
+                    },
+                    "range_checked": true,
+                    "state": "available",
+                    "has_variance": false,
+                    "exploration_thresholds": [
+                      "3"
+                    ]
+                  }
+                ],
+                "state": "available"
+              },
+              "rule_version": "edu-adaptive-prototype-0.1-draft",
+              "method": "get_dimension_statistics",
+              "source_replay_verified": true,
+              "sources": [
+                {
+                  "metric_key": "I01.valid",
+                  "item_id": "I01",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I01.valid"
+                  }
+                },
+                {
+                  "metric_key": "I01.state.valid",
+                  "item_id": "I01",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I01.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.valid",
+                  "item_id": "I02",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I02.valid"
+                  }
+                },
+                {
+                  "metric_key": "I02.state.valid",
+                  "item_id": "I02",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I02.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.valid",
+                  "item_id": "I03",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I03.valid"
+                  }
+                },
+                {
+                  "metric_key": "I03.state.valid",
+                  "item_id": "I03",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I03.state.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.valid",
+                  "item_id": "I04",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I04.valid"
+                  }
+                },
+                {
+                  "metric_key": "I04.state.valid",
+                  "item_id": "I04",
+                  "record_count": 36,
+                  "controlled_query": {
+                    "fact_id": "research-07e28b344e95-f001",
+                    "metric_key": "I04.state.valid"
+                  }
+                }
+              ]
+            }
+          ],
+          "retained_fact_ids": [
+            "research-07e28b344e95-f001"
+          ],
+          "new_fact_ids": [],
+          "findings": [],
+          "unsupported_explanations": [
+            "causal_teaching_effect",
+            "student_psychology",
+            "AI_dependency"
+          ],
+          "missing_evidence": [],
+          "next_check": "按指标来源查询核对记录；群体差异不等于能力诊断。",
+          "seed_ledger": [
+            {
+              "phase": "trusted_seed",
+              "tool": "get_dimension_statistics",
+              "fact_ids": [
+                "research-07e28b344e95-f001"
+              ]
+            }
+          ],
+          "tool_ledger": [],
+          "trace": [
+            {
+              "sequence": 1,
+              "round": 1,
+              "phase": "planning",
+              "status": "requested",
+              "tool": null,
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 2,
+              "round": 1,
+              "phase": "model_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            },
+            {
+              "sequence": 3,
+              "round": 1,
+              "phase": "final_selection",
+              "status": "accepted",
+              "tool": "finish",
+              "fact_ids": [],
+              "error": null
+            }
+          ],
+          "reflections": [
+            {
+              "state": "no_supported_findings",
+              "matching_fact_ids": [],
+              "evidence_gaps": [],
+              "observation_is_not_explanation": true
+            }
+          ],
+          "model_choices": [
+            {
+              "round": 1,
+              "tool": "finish",
+              "arguments": {
+                "selected_fact_ids": [],
+                "reason": "no_valid_findings"
+              },
+              "basis_fact_ids": []
+            }
+          ],
+          "model_requests": 1,
+          "tool_attempts": 1,
+          "verification_replay_executions": 4,
+          "seed_tool_attempts": 1,
+          "elapsed_seconds": 0.6817427999339998,
+          "tool_compute_seconds": 0.020590800093486905,
+          "budget": {
+            "campaign_id": "agent-research-v2-final-empty",
+            "authorization_fingerprint": "4ad821bfde3193271ac5ab5abdcff0e57e06900f3acca0791d7deeb161627a15",
+            "source_fingerprints": {
+              "research-v2-final-empty": "cdea7238b572ca08fd9ceb41f0ec0d59115b3a23dc45aa577f8cfa5d7bd7bffa"
+            },
+            "origin": "http_mock",
+            "billing_basis": "verified_list_price_upper_bound_not_invoice",
+            "price": {
+              "price_id": "qwen3.8-flash-beijing-2026-10-26-v1",
+              "model": "qwen3.8-flash",
+              "checked_on": "2026-10-26",
+              "valid_until": "2026-11-02",
+              "source": "https://help.aliyun.com/zh/model-studio/qwen3-8-flash",
+              "max_input_tokens": 991808,
+              "input_per_million": "0.8",
+              "cached_per_million": "0.1",
+              "output_per_million": "2.7"
+            },
+            "price_fingerprint": "383875995d8472ae36f36267a13b633efcab64a28f59badf3ced93097088b609",
+            "max_requests": 6,
+            "total_token_limit": 2000000,
+            "cost_cap_cny": "2",
+            "request_count": 1,
+            "blocked": null,
+            "claimed": true,
+            "charged_tokens": 1100,
+            "charged_cny_upper_bound": "0.001",
+            "entries": [
+              {
+                "request": 1,
+                "state": "settled",
+                "reserved_tokens": 992608,
+                "reserved_cny": "0.7956064",
+                "charged_tokens": 1100,
+                "charged_cny_upper_bound": "0.001",
+                "actual_usage": {
+                  "input_tokens": 1000,
+                  "output_tokens": 100,
+                  "total_tokens": 1100,
+                  "cached_input_tokens": 100
+                },
+                "elapsed_ms": 1,
+                "http_status": 200,
+                "transport_status": "response_received",
+                "error": null
+              }
+            ]
+          },
+          "actual_tokens": null,
+          "actual_cost_cny": null,
+          "estimated_list_price_cost_cny": null,
+          "real_qwen": "not_run",
+          "production_enabled": false,
+          "formal_teacher_authorization": "not_implemented",
+          "native_request_sha256": [
+            "f6148ff36ed7b587b4053e40ee9ad75c9682e7aadc145870a534d28a3671e8ce"
+          ]
+        }
+      },
+      "qwen": {
+        "status": "not_run",
+        "actual_tokens": null,
+        "actual_cost_cny": null
+      }
+    }
+  ],
+  "case_denominator": 3,
+  "restricted": [
+    {
+      "kind": "access",
+      "status": "blocked",
+      "reason": "synthetic_access_denied"
+    },
+    {
+      "kind": "budget",
+      "status": "blocked",
+      "reason": "seed_budget_exhausted"
+    }
+  ],
+  "real_qwen": "not_run",
+  "paid_requests": 0,
+  "AI_incremental_value": "not_proven",
+  "baseline": "existing AdaptiveFake bounded policy, not exhaustive discovery",
+  "implementation_freeze_base": "a050dba",
+  "first_run_preserved": true,
+  "note": "First final batch; subsequent changes concern cost/error handling and presentation, not planner policy or oracle tuning. Not Qwen quality."
+}

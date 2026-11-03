@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 
 import httpx
 from app.ai.edu.discovery.models import AgentError, Limits
+from pydantic import ValidationError
 
 from prototypes.adaptive_assessment.live.budget import CampaignBudget, SyntheticLiveAuthorization
 from prototypes.adaptive_assessment.live.demo import MOCK_DATE, mock_authorization, native_response
@@ -185,6 +186,13 @@ def main() -> int:
 
     try:
         result, _ = asyncio.run(run())
+    except (OSError, ValidationError):
+        result = {
+            "status": "blocked",
+            "reason": "invalid_local_authorization_or_configuration",
+            "real_qwen": "not_run",
+            "production_enabled": False,
+        }
     except (AgentError, ValueError) as error:
         result = {
             "status": "blocked",

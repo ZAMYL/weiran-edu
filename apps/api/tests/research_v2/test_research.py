@@ -291,3 +291,73 @@ def test_new_prototype_style_is_in_existing_ci():
             timeout=60,
         )
         assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_valid_seed_finding_survives_model_omission(tmp_path):
+    from prototypes.research_agent_v2.demo import mock_transport
+
+    async def run():
+        recipe = "research-v2-questions"
+        budget = CampaignBudget(
+            mock_authorization(recipe), tmp_path, origin="http_mock", today=MOCK_DATE
+        )
+        try:
+            r, executor = await investigate(
+                recipe,
+                "核查所有项目的缺分",
+                budget,
+                seed_queries=(
+                    ("get_dimension_statistics", {}),
+                    ("query_dimension_relation", {"left": "Q01", "right": "Q02"}),
+                ),
+                transport=mock_transport(
+                    fault=lambda choice, view: {
+                        "name": "finish",
+                        "arguments": {"selected_fact_ids": [], "reason": "no_valid_findings"},
+                    }
+                ),
+            )
+            assert len(r["retained_fact_ids"]) == 2
+            assert len(r["findings"]) == 1 and r["findings"][0]["type"] == "item_relation"
+            assert r["stop_reason"] == "goal_satisfied"
+            assert len(r["goal"]["items"]) == len(executor.kernel.items) == 7
+        finally:
+            budget.close()
+
+    asyncio.run(run())
+
+
+def test_missing_usage_is_not_reported_as_free_success(tmp_path):
+    from prototypes.adaptive_assessment.live.demo import native_response
+
+    recipe = "research-v2-capability"
+
+    async def run():
+        budget = CampaignBudget(
+            mock_authorization(recipe), tmp_path, origin="http_mock", today=MOCK_DATE
+        )
+
+        def handler(request):
+            return httpx.Response(
+                200,
+                json=native_response(
+                    {
+                        "name": "finish",
+                        "arguments": {"selected_fact_ids": [], "reason": "no_valid_findings"},
+                    },
+                    usage=False,
+                ),
+            )
+
+        try:
+            r, _ = await investigate(
+                recipe, "优先核查评分异常", budget, transport=httpx.MockTransport(handler)
+            )
+            assert r["status"] == "failed" and r["stop_reason"] == "unverifiable_usage"
+            assert r["budget"]["request_count"] == 1
+            assert r["budget"]["entries"][0]["state"] == "usage_unknown_reservation_held"
+            assert r["actual_tokens"] is r["actual_cost_cny"] is None
+        finally:
+            budget.close()
+
+    asyncio.run(run())
