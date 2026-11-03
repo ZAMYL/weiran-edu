@@ -373,3 +373,11 @@ def test_native_dialogue_retains_exact_previously_sent_context(tmp_path):
         history = first["messages"]
         assert second["messages"][: len(history)] == history
         assert len(second["messages"]) == len(history) + 2
+
+
+def test_chinese_goal_does_not_require_spaces_around_item_ids():
+    catalog = {"items": [{"item_id": f"I{i:02}"} for i in range(1, 4)]}
+    assert understand("调查I01和I02的关联", catalog).items == ("I01", "I02")
+    assert understand("比较I01、I02的组合与I03的群体差异", catalog).items == ("I01", "I02", "I03")
+    with pytest.raises(AgentError):
+        understand("调查I01000和I02的关联", catalog)

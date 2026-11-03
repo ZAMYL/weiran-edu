@@ -26,7 +26,9 @@ def understand(question: str, catalog: dict) -> Goal:
         raise AgentError("unsupported_goal")
     if re.search(r"忽略|ignore|SQL|https?://|[/\\]|改分|修改成绩|其他批次", question, re.I):
         raise AgentError("unsafe_or_unsupported_goal")
-    items = tuple(dict.fromkeys(re.findall(r"\b[IQ]\d{2,3}\b", question)))
+    items = tuple(
+        dict.fromkeys(re.findall(r"(?<![A-Za-z0-9_])[IQ]\d{2,3}(?![A-Za-z0-9_])", question))
+    )
     allowed = {i["item_id"] for i in catalog["items"]}
     if not set(items) <= allowed:
         raise AgentError("goal_item_outside_scope")
