@@ -1,0 +1,45 @@
+{
+  "version": "research-v2-final-holdout-1",
+  "freeze_stage": "before_first_final_batch_execution",
+  "planner_inputs_exclude_this_file": true,
+  "reference_method": "separately written Fraction/average ranks and explicit balanced 4-cell counts",
+  "cases": [
+    {
+      "recipe": "research-v2-final-interaction",
+      "seed": 9001,
+      "n": 64,
+      "items": 8,
+      "target": {
+        "target_count": 16,
+        "remainder_count": 48,
+        "difference": {
+          "numerator": -8,
+          "denominator": 3
+        },
+        "pairwise_rho": 0
+      }
+    },
+    {
+      "recipe": "research-v2-final-relation",
+      "seed": 9007,
+      "n": 80,
+      "items": 11,
+      "target": {
+        "rho": -1,
+        "paired_count": 80
+      }
+    },
+    {
+      "recipe": "research-v2-final-empty",
+      "seed": 9011,
+      "n": 36,
+      "items": 4,
+      "target": {
+        "qualified_findings": 0,
+        "mean": 3
+      }
+    }
+  ],
+  "existing_PR47_oracles": "not_modified_not_imported",
+  "real_qwen": "not_run"
+}
