@@ -5247,5 +5247,5 @@
   "baseline": "existing AdaptiveFake bounded policy, not exhaustive discovery",
   "implementation_freeze_base": "a050dba",
   "first_run_preserved": true,
-  "note": "First final batch; subsequent changes concern cost/error handling and presentation, not planner policy or oracle tuning. Not Qwen quality."
+  "note": "First frozen final batch retained. Later fixes cover cost/error handling, exact native context retention and presentation; no planner policy or oracle tuning. HTTP Mock is not Qwen quality."
 }

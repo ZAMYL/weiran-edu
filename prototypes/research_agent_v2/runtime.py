@@ -66,7 +66,8 @@ class ResearchPlanner(QwenAdaptivePlanner):
             > self._executor.limits.prompt_bytes
         ):
             raise AgentError("prompt_size_limit")
-        self.payloads.append(payload)
+        self.payloads.append(json.loads(json.dumps(payload)))
+        self.history = payload["messages"]
         return await super()._post(payload)
 
 

@@ -9,8 +9,6 @@ from pathlib import Path
 
 import httpx
 import pytest
-from app.ai.edu.discovery.models import AgentError, Limits
-
 from evals.research_agent_v2 import evaluate
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.demo import MOCK_DATE, mock_authorization
@@ -18,6 +16,8 @@ from prototypes.adaptive_assessment.synthetic import admit
 from prototypes.research_agent_v2.demo import offline
 from prototypes.research_agent_v2.goals import understand
 from prototypes.research_agent_v2.runtime import investigate
+
+from app.ai.edu.discovery.models import AgentError, Limits
 
 
 @pytest.fixture(scope="module")
@@ -361,3 +361,15 @@ def test_missing_usage_is_not_reported_as_free_success(tmp_path):
             budget.close()
 
     asyncio.run(run())
+
+
+def test_native_dialogue_retains_exact_previously_sent_context(tmp_path):
+    result, _ = asyncio.run(
+        offline("research-v2-capability", "比较 I01、I02 与 I03 的群体差异", tmp_path)
+    )
+    requests = result["native_requests"]
+    assert len(requests) == 3
+    for first, second in zip(requests, requests[1:]):
+        history = first["messages"]
+        assert second["messages"][: len(history)] == history
+        assert len(second["messages"]) == len(history) + 2
