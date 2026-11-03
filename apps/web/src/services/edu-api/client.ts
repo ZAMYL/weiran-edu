@@ -18,6 +18,7 @@ import {
 import { readReportFile, ReportFileError, type ReportFile } from './report-file';
 
 import {
+  assessmentStatisticsDto,
   batchDto,
   batchListDto,
   commitDto,
@@ -297,6 +298,18 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       get(`/batches?offset=${offset}&limit=${limit}`, batchListDto, signal),
     batch: (batchId: string, signal?: AbortSignal) =>
       get(`/batches/${id(batchId)}`, batchDto, signal),
+    itemStatistics: async (batch: ApiBatch, signal?: AbortSignal) => {
+      const result = assertSnapshot(
+        await get(`${base(batch)}/statistics?${snapshot(batch)}`, assessmentStatisticsDto, signal),
+        batch,
+      );
+      const ids = new Set(batch.recognized_items?.map((item) => item.item_id));
+      for (const item of result.item_statistics) {
+        if (!ids.delete(item.item_id)) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      }
+      if (ids.size) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return result;
+    },
     statistics: async (
       batch: ApiBatch,
       x = 'algorithm_data_structure',

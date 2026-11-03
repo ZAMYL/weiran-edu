@@ -28,6 +28,7 @@ import { LiveScoreDrawer, LiveStudentDrawer, LiveStudentTable } from './LiveStud
 import AnalysisActions from './AnalysisActions';
 import { DiscoveryChart, scoreText } from './DiscoveryChart';
 import StudentPortrait from './StudentPortrait';
+import AssessmentItemPage from './AssessmentItemPage';
 
 interface Draft {
   dimension_code: DimensionCode;
@@ -36,6 +37,8 @@ interface Draft {
 }
 export default function LiveExplorerPage() {
   const { batch } = useDataMode();
+  if (batch?.recognized_items)
+    return <AssessmentItemPage key={batch.snapshot_id} batch={batch} view="explorer" />;
   return batch ? (
     <Explorer key={`${batch.batch_id}:${batch.snapshot_id}`} batch={batch} />
   ) : (
