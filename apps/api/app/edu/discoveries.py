@@ -20,6 +20,7 @@ from . import discovery_worker as worker
 from .analysis import CODE_MAP, DIMENSION_MAP, OPERATOR_MAP
 from .auth import Principal, deny
 from .discovery_bridge import DiscoveryInput, DiscoveryInputReader
+from .discovery_disconnect import CancelCheck, check_cancelled
 from .discovery_models import (
     DiscoveryChart,
     DiscoveryDetail,
@@ -108,27 +109,27 @@ async def _snapshot(
 
 
 class DiscoveryReader(DiscoveryInputReader):
-    async def query(
+    @asynccontextmanager
+    async def calculation(
         self,
         actor: Principal,
         batch_id: str,
         query: DiscoverySpec,
         *,
-        operation: str,
-        discovery_id: str | None = None,
         request: Request | None = None,
-    ) -> DiscoveryList | DiscoveryDetail | DiscoveryChart | DiscoveryRecords:
+        cancelled: CancelCheck | None = None,
+    ):
         started = perf_counter()
         disconnect = getattr(request.state, "edu_discovery_disconnect", None) if request else None
 
         async def disconnected() -> bool:
+            if cancelled is not None and cancelled():
+                return True
             if disconnect is not None:
                 return disconnect.is_set()
             return await request.is_disconnected() if request else False
 
         async with _snapshot(self, actor, batch_id, query) as data:
-            if discovery_id is not None and not re.fullmatch(r"[0-9a-f]{24}", discovery_id):
-                deny(404)
             try:
                 result = await worker.execute(
                     data.dataset,
@@ -140,21 +141,38 @@ class DiscoveryReader(DiscoveryInputReader):
                     timeout=max(0, bridge.MAX_SECONDS - (perf_counter() - started)),
                     disconnected=disconnected,
                 )
-                return await run_in_threadpool(
-                    self._response, actor, data, result, query, operation, discovery_id
-                )
+                self.check_result(data, result)
+                check_cancelled(cancelled)
+                yield data, result
+                check_cancelled(cancelled)
             except (AnalysisInputError, ValidationError, KeyError, TypeError, ValueError):
                 fail("DATA_INTEGRITY_ERROR", 503)
 
-    def _response(
+    async def query(
         self,
         actor: Principal,
-        data: DiscoveryInput,
-        result: DiscoveryResult,
+        batch_id: str,
         query: DiscoverySpec,
+        *,
         operation: str,
-        discovery_id: str | None,
+        discovery_id: str | None = None,
+        request: Request | None = None,
     ) -> DiscoveryList | DiscoveryDetail | DiscoveryChart | DiscoveryRecords:
+        if discovery_id is not None and not re.fullmatch(r"[0-9a-f]{24}", discovery_id):
+            # Preserve authorization precedence for unknown IDs.
+            def authorize() -> None:
+                with self.database.transaction() as connection:
+                    self._batch(connection, actor, batch_id, query.snapshot_id)
+
+            await run_in_threadpool(authorize)
+            deny(404)
+        async with self.calculation(actor, batch_id, query, request=request) as (data, result):
+            return await run_in_threadpool(
+                self._response, actor, data, result, query, operation, discovery_id
+            )
+
+    @staticmethod
+    def check_result(data: DiscoveryInput, result: DiscoveryResult) -> None:
         expected_refs = tuple(
             r.reference for r in data.dataset.records if r.reference.student_id in data.student_ids
         )
@@ -173,6 +191,16 @@ class DiscoveryReader(DiscoveryInputReader):
             )
         ):
             fail("DATA_INTEGRITY_ERROR", 503)
+
+    def _response(
+        self,
+        actor: Principal,
+        data: DiscoveryInput,
+        result: DiscoveryResult,
+        query: DiscoverySpec,
+        operation: str,
+        discovery_id: str | None,
+    ) -> DiscoveryList | DiscoveryDetail | DiscoveryChart | DiscoveryRecords:
         if operation == "list":
             assert isinstance(query, DiscoveryQuery)
             # Only after full computation/sorting/retention do we select a result page.

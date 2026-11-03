@@ -1,5 +1,6 @@
 """Private, bounded exports from saved server facts and current approved text."""
 
+import asyncio
 import csv
 import io
 import json
@@ -12,6 +13,8 @@ from app.reporting.edu import ExportLimits, ReportError, generate_report
 
 from .analysis import DIMENSION_MAP
 from .auth import Principal
+from .discovery_disconnect import CancelCheck, check_cancelled
+from .discovery_results import DiscoveryResultService
 from .report_exports import report_input
 from .results import ResultService
 from .review_models import AnalysisResult
@@ -68,34 +71,62 @@ class ResultExporter(ResultService):
         snapshot_id: str,
         expected_version: int,
         format: ExportFormat,
+        *,
+        cancelled: CancelCheck | None = None,
     ) -> tuple[AnalysisResult, dict, bytes, bytes | None]:
         try:
             with self.database.transaction() as connection:
                 result, payload, content = self._prepare(
                     connection, principal, batch_id, result_id, snapshot_id, expected_version
                 )
+                check_cancelled(cancelled)
                 report = None
                 if format in REPORT_FORMATS:
                     batch = self._batch(connection, principal, batch_id, snapshot_id)
                     report = report_input(
                         connection, batch, result, payload["rubric"], generated_at=self.clock()
                     )
+            if result.analysis.discovery is not None:
+                # No SQLite read lock while the bounded worker recomputes selected facts.
+                asyncio.run(
+                    DiscoveryResultService(self.database, clock=self.clock).verify_saved(
+                        principal, result, cancelled=cancelled
+                    )
+                )
             report_content = None
+            check_cancelled(cancelled)
             if report is not None:
                 # Build once, completely in memory. Both preflight/download use these guards.
                 files = generate_report(
-                    report, limits=ExportLimits(max_file_bytes=MAX_REPORT_BYTES)
+                    report,
+                    limits=ExportLimits(max_file_bytes=MAX_REPORT_BYTES),
+                    checkpoint=lambda: check_cancelled(cancelled),
                 )
+                check_cancelled(cancelled)
                 report_content = files.xlsx if format == "xlsx" else files.markdown.encode("utf-8")
                 if len(report_content) > MAX_REPORT_BYTES:
                     raise APIError(413, "EXPORT_TOO_LARGE", "报告超过当前同步导出限制")
-                # Reopen after rendering so revocation/version changes cannot reuse the old read.
+            if report is not None or result.analysis.discovery is not None:
+                # Reopen after compute/render so revocation/version cannot reuse the old read.
                 with self.database.transaction() as connection:
                     _, current = self._current(
                         connection, principal, batch_id, result_id, snapshot_id, expected_version
                     )
                     if current.analysis != result.analysis:
                         fail("DATA_INTEGRITY_ERROR", 503)
+                    if current.analysis.discovery is not None:
+                        # The discovery recomputation can outlive a text publication.
+                        # Refresh approved text under this final transaction; never ship
+                        # a comment/rubric withdrawn while the child was calculating.
+                        _, payload, content = self._prepare(
+                            connection,
+                            principal,
+                            batch_id,
+                            result_id,
+                            snapshot_id,
+                            expected_version,
+                        )
+            check_cancelled(cancelled)
             return result, payload, content, report_content
         except ReportError as error:
             if str(error) in {
@@ -169,14 +200,19 @@ class ResultExporter(ResultService):
                     "criteria_review_version": version,
                 }
             )
-        counts = Counter(f.teacher_review.status for f in result.findings)
+        all_findings = (*result.findings, *result.discovery_findings)
+        counts = Counter(f.teacher_review.status for f in all_findings)
         payload = {
             "format_version": "edu.private-export.v1",
             "audience": "authorized_teacher_only",
             "public_display_allowed": False,
             "exported_at": stamp(self.clock()),
-            "result": result.model_dump(mode="json", exclude={"analysis", "findings"}),
-            "analysis": result.analysis.model_dump(mode="json", exclude={"candidates"}),
+            "result": result.model_dump(
+                mode="json", exclude={"analysis", "findings", "discovery_findings"}
+            ),
+            "analysis": result.analysis.model_dump(
+                mode="json", exclude={"candidates", "discovery"}
+            ),
             "confirmed_findings": [
                 f.model_dump(mode="json")
                 for f in result.findings
@@ -191,6 +227,13 @@ class ResultExporter(ResultService):
                 "正文按导出时最新审核版本读取；withheld 不等于空原文。教师判断不构成因果证明。"
             ),
         }
+        if result.analysis.discovery is not None:
+            payload["discovery_spec"] = result.analysis.discovery.spec.model_dump(mode="json")
+            payload["confirmed_discoveries"] = [
+                f.model_dump(mode="json")
+                for f in result.discovery_findings
+                if f.teacher_review.status == "confirmed"
+            ]
         content = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
         if len(content) > MAX_EXPORT_BYTES:
             raise APIError(413, "EXPORT_TOO_LARGE", "导出内容超过当前同步限制")
@@ -205,9 +248,16 @@ class ResultExporter(ResultService):
         snapshot_id: str,
         expected_version: int,
         format: ExportFormat,
+        cancelled: CancelCheck | None = None,
     ) -> ExportCheck:
         result, payload, content, report_content = self._download_input(
-            principal, batch_id, result_id, snapshot_id, expected_version, format
+            principal,
+            batch_id,
+            result_id,
+            snapshot_id,
+            expected_version,
+            format,
+            cancelled=cancelled,
         )
         warnings = []
         for code, count, message in (
@@ -251,7 +301,8 @@ class ResultExporter(ResultService):
             result_version=result.version,
             format=format,
             member_count=len(result.analysis.members),
-            confirmed_finding_count=len(payload["confirmed_findings"]),
+            confirmed_finding_count=len(payload["confirmed_findings"])
+            + len(payload.get("confirmed_discoveries", [])),
             json_payload_bytes=len(content),
             max_json_payload_bytes=MAX_EXPORT_BYTES,
             warnings=tuple(warnings),
@@ -267,9 +318,16 @@ class ResultExporter(ResultService):
         snapshot_id: str,
         expected_version: int,
         format: ExportFormat,
+        cancelled: CancelCheck | None = None,
     ) -> tuple[bytes, str, str]:
         result, payload, content, report_content = self._download_input(
-            principal, batch_id, result_id, snapshot_id, expected_version, format
+            principal,
+            batch_id,
+            result_id,
+            snapshot_id,
+            expected_version,
+            format,
+            cancelled=cancelled,
         )
         evidence = payload["evidence"]
         filename = f"weiran-analysis-{result.result_id}-v{result.version}"
@@ -287,6 +345,7 @@ class ResultExporter(ResultService):
             ]
         ]
         for member in result.analysis.members:
+            check_cancelled(cancelled)
             scores = {score.dimension_code: score for score in member.scores}
             students.append(
                 [
@@ -312,6 +371,7 @@ class ResultExporter(ResultService):
             ]
         ]
         for scope in (result.analysis.statistics, result.analysis.group_statistics):
+            check_cancelled(cancelled)
             if scope is None:
                 continue
             for dimension in scope.dimensions:
@@ -353,6 +413,20 @@ class ResultExporter(ResultService):
                         finding.teacher_review.note,
                     ]
                 )
+        for finding in result.discovery_findings:
+            if finding.teacher_review.status == "confirmed":
+                card = finding.discovery
+                findings.append(
+                    [
+                        card.discovery_id,
+                        card.title,
+                        card.summary,
+                        card.scope.scope_record_count,
+                        card.rule_version,
+                        "confirmed",
+                        finding.teacher_review.note,
+                    ]
+                )
         proof_rows = [
             [
                 "evidence_id",
@@ -384,6 +458,7 @@ class ResultExporter(ResultService):
         )
         output = io.BytesIO()
         with ZipFile(output, "w", ZIP_DEFLATED) as archive:
+            check_cancelled(cancelled)
             archive.writestr("analysis.json", content)
             for name, rows in (
                 ("students.csv", students),
@@ -391,6 +466,7 @@ class ResultExporter(ResultService):
                 ("confirmed-findings.csv", findings),
                 ("evidence.csv", proof_rows),
             ):
+                check_cancelled(cancelled)
                 archive.writestr(name, csv_bytes(rows))
             archive.writestr(
                 "README.txt",
@@ -403,4 +479,5 @@ class ResultExporter(ResultService):
                     "CSV 对公式起始字符增加单引号，避免作为电子表格公式执行。\n"
                 ).encode(),
             )
+        check_cancelled(cancelled)
         return output.getvalue(), "application/zip", filename + ".zip"

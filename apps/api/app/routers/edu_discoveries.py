@@ -4,6 +4,7 @@ from fastapi import APIRouter, Request
 from starlette.requests import ClientDisconnect
 
 from app.core.errors import APIError
+from app.core.exact_json import ExactJSONResponse
 from app.edu.discoveries import DiscoveryReader
 from app.edu.discovery_models import (
     DiscoveryChart,
@@ -19,7 +20,11 @@ from app.schemas.common import ErrorResponse
 
 from .edu import INSIGHT_ERRORS, Actor, Backend
 
-router = APIRouter(prefix="/api/v1/edu/batches/{batch_id}/discoveries", tags=["EDU发现"])
+router = APIRouter(
+    prefix="/api/v1/edu/batches/{batch_id}/discoveries",
+    tags=["EDU发现"],
+    default_response_class=ExactJSONResponse,
+)
 DISCOVERY_ERRORS = {**INSIGHT_ERRORS, 499: {"model": ErrorResponse}}
 
 

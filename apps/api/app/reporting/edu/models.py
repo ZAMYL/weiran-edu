@@ -1,9 +1,14 @@
 """Internal whitelist inputs. Upstream code owns authentication and source verification."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from fractions import Fraction
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from app.edu.discovery_models import DiscoveryDetail
 
 
 class ReportError(ValueError):
@@ -127,6 +132,7 @@ class ReportInput:
     scope_kind: Literal["batch", "authorized_subset"] = "batch"
     synthetic: bool = False
     reviewed: ReviewedFindings | None = None
+    discoveries: tuple[DiscoveryDetail, ...] = ()
 
 
 @dataclass(frozen=True)

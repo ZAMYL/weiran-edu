@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, WithJsonSchema, field_serializer, field_validator, model_validator
 
+from app.core.exact_json import ExactDenominator, ExactNumerator
 from app.importing.edu.preview import Page
 
 from .models import Identifier, Model, Student
@@ -71,8 +72,8 @@ class GroupQuery(Model):
 
 
 class ExactRational(Model):
-    numerator: int
-    denominator: int
+    numerator: ExactNumerator
+    denominator: ExactDenominator
 
 
 class StatValue(Model):

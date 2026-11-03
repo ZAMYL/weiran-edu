@@ -2,6 +2,7 @@
 
 import html
 import re
+from collections.abc import Callable
 from datetime import UTC, datetime
 from fractions import Fraction
 from io import BytesIO
@@ -47,13 +48,15 @@ def _height(values, widths) -> float:
     return min(144, max(24, lines * 16 + 8))
 
 
-def _canonical_zip(raw: bytes, generated_at: datetime) -> bytes:
+def _canonical_zip(raw: bytes, generated_at: datetime, checkpoint=None) -> bytes:
     result = BytesIO()
     with (
         ZipFile(BytesIO(raw)) as original,
         ZipFile(result, "w", compression=ZIP_DEFLATED) as target,
     ):
         for name in sorted(original.namelist()):
+            if checkpoint is not None:
+                checkpoint()
             data = original.read(name)
             if name == "docProps/core.xml":
                 root = ElementTree.fromstring(data)
@@ -72,8 +75,15 @@ def _canonical_zip(raw: bytes, generated_at: datetime) -> bytes:
     return result.getvalue()
 
 
-def _xlsx(report: ReportInput, sheets) -> bytes:
+def _xlsx(report: ReportInput, sheets, checkpoint=None) -> bytes:
     workbook = Workbook()
+    try:
+        return _write_xlsx(workbook, report, sheets, checkpoint)
+    finally:
+        workbook.close()
+
+
+def _write_xlsx(workbook, report: ReportInput, sheets, checkpoint=None) -> bytes:
     workbook.remove(workbook.active)
     workbook.properties.creator = "未然 EDU"
     workbook.properties.title = "教师内部学情分析报告"
@@ -90,6 +100,8 @@ def _xlsx(report: ReportInput, sheets) -> bytes:
             ws.column_dimensions[get_column_letter(index)].width = width
             ws.cell(3, index).border = Border(bottom=Side(style="thin", color="A9B5BE"))
         for number, row in enumerate(sheet.rows, 4):
+            if checkpoint is not None:
+                checkpoint()
             for index, item in enumerate(row.cells, 1):
                 cell = ws.cell(number, index)
                 value = item.value
@@ -123,9 +135,10 @@ def _xlsx(report: ReportInput, sheets) -> bytes:
         ws.page_setup.fitToWidth, ws.page_setup.fitToHeight = 1, 0
         ws.print_area = f"A1:{get_column_letter(len(sheet.widths))}{ws.max_row}"
     stream = BytesIO()
+    if checkpoint is not None:
+        checkpoint()
     workbook.save(stream)
-    workbook.close()
-    return _canonical_zip(stream.getvalue(), report.generated_at)
+    return _canonical_zip(stream.getvalue(), report.generated_at, checkpoint)
 
 
 def md_text(value: object) -> str:
@@ -146,7 +159,7 @@ def _md_value(cell: Cell) -> str:
     return str(value)
 
 
-def _markdown(report: ReportInput, sheets) -> str:
+def _markdown(report: ReportInput, sheets, checkpoint=None) -> str:
     """Use the same section plan and format semantics as the downloadable workbook."""
     lines = [
         "# 未然 EDU 学情分析报告" + ("（合成演示）" if report.synthetic else ""),
@@ -183,6 +196,8 @@ def _markdown(report: ReportInput, sheets) -> str:
             block.clear()
 
         for row in sheet.rows:
+            if checkpoint is not None:
+                checkpoint()
             if row.section:
                 flush()
                 lines += ["### " + md_text(row.cells[0].value), ""]
@@ -202,13 +217,18 @@ def generate_report(
     include_details: bool = False,
     authorization: DetailAuthorization | None = None,
     limits: ExportLimits | None = None,
+    checkpoint: Callable[[], None] | None = None,
 ) -> ReportFiles:
     """Atomic in-memory pair. Never authenticates, writes paths, or returns partial output."""
     limits = ExportLimits() if limits is None else limits
     validate(report, limits, include_details, authorization)
-    sheets = plan(report, include_details, limits)
-    markdown = _markdown(report, sheets)
+    if checkpoint is not None:
+        checkpoint()
+    sheets = plan(report, include_details, limits, checkpoint)
+    markdown = _markdown(report, sheets, checkpoint)
     require(len(markdown.encode("utf-8")) <= limits.max_file_bytes, "report_file_size_limit")
-    xlsx = _xlsx(report, sheets)
+    xlsx = _xlsx(report, sheets, checkpoint)
     require(len(xlsx) <= limits.max_file_bytes, "report_file_size_limit")
+    if checkpoint is not None:
+        checkpoint()
     return ReportFiles(xlsx, markdown)

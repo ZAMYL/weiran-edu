@@ -10,6 +10,7 @@ from starlette.datastructures import UploadFile
 from starlette.responses import PlainTextResponse
 
 from app.core.errors import APIError
+from app.core.exact_json import ExactJSONResponse
 from app.edu.analysis import AnalysisReader
 from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
 from app.edu.auth import Principal, authenticate, deny, require_teacher
@@ -43,7 +44,7 @@ from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
 from app.schemas.common import ErrorResponse
 
-router = APIRouter(prefix="/api/v1/edu", tags=["EDU"])
+router = APIRouter(prefix="/api/v1/edu", tags=["EDU"], default_response_class=ExactJSONResponse)
 bearer = HTTPBearer(auto_error=False)
 INSIGHT_ERRORS = {
     status: {"model": ErrorResponse} for status in (401, 404, 409, 413, 415, 422, 500, 503)
