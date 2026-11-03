@@ -369,7 +369,7 @@ def test_native_dialogue_retains_exact_previously_sent_context(tmp_path):
     )
     requests = result["native_requests"]
     assert len(requests) == 3
-    for first, second in zip(requests, requests[1:]):
+    for first, second in zip(requests, requests[1:], strict=False):
         history = first["messages"]
         assert second["messages"][: len(history)] == history
         assert len(second["messages"]) == len(history) + 2
