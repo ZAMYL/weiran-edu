@@ -59,11 +59,13 @@
 
 请求为 `multipart/form-data`，字段如下。元数据与文件一起作为表单字段上传，不混用 JSON 请求体。
 
+V1 入口为「上传测评文件」，不预选模板；当前仅处理已有验证的五维 XLSX。默认值、权限范围及未支持格式见 [V1_FILE_INTAKE.md](V1_FILE_INTAKE.md)。
+
 | 字段 | 类型 | 必填 | 约束 |
 | --- | --- | --- | --- |
 | `file` | binary | 是 | 当前固定模板 `.xlsx`，检查实际内容而非仅扩展名 |
-| `data_scope_id` | string | 是 | 当前教师有导入权限的受控来源范围 |
-| `title` | string | 是 | 去除首尾空白后 1～100 字符 |
+| `data_scope_id` | string | 否 | 当前教学空间；省略时仅自动使用唯一可导入范围，修订可继承本人拥有的目标范围；歧义为409 IMPORT_SCOPE_REQUIRED |
+| `title` | string | 否 | 显式提供时去除首尾空白后1～100字符；省略时取安全处理后的文件名，预览后可PATCH |
 | `course` | string | 否 | 未传视为 `null`；若传入，1～100 字符 |
 | `assessment_date` | date | 否 | 未传视为 `null`，不从上传日期推断 |
 | `revision_of_batch_id` | string | 否 | 修正版指向同范围、可访问且可修订的原批次；未传为 `null` |
@@ -123,7 +125,7 @@
 | 文件或内容已入库且可访问 | 200 | `duplicate` | 关联已有批次，保留其原始来源和元数据 |
 | 同一预览已确认 | 200 | `replayed` | 权限和版本核验后返回原批次 |
 
-三种成功响应字段相同：`import_id`、`batch_id`、`result`。同一导入 ID 的重试幂等，不依赖另设 `Idempotency-Key`。数据库错误返回 503；事务回滚后预览仍可按有效期重试。状态冲突或摘要不匹配返回 409，过期返回 410，`invalid` 预览返回 409 `IMPORT_NOT_CONFIRMABLE`。
+三种成功响应字段相同：`import_id`、`batch_id`、`snapshot_id`、`result`。快照引用来自同一事务中当前授权的持久化批次；前端直接打开返回批次的诊断，duplicate打开已有批次，无须手动选择。预览新增recognized_items，含实际已识别项目、中文名、种类、量表与全文件评分行数。详见[林明接入契约](IMPORT_FRONTEND_HANDOFF.md)。同一导入ID重试幂等，不另设Idempotency-Key。数据库故障为503，预览按有效期重试；状态/版本冲突为409，原文件或内容完整性异常按运行时校验拒绝，过期410，invalid为409 IMPORT_NOT_CONFIRMABLE。
 
 已经提交的请求，先核对身份、预览摘要与正式批次访问权，再返回原批次；不因暂存材料清理而重新解析，也不因 24 小时已过拒绝合法重放。
 

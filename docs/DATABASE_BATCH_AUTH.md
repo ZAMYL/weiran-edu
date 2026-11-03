@@ -72,7 +72,7 @@ uv run --locked python -m app.edu cleanup-expired
 | GET | `/api/v1/edu/batches/{batch_id}/students/{student_id}/evidence` | 本批学生五条证据 |
 | GET | `/api/v1/edu/batches/{batch_id}/evidence/{evidence_id}` | 按批次限定的单条证据 |
 
-实际请求与响应Schema见启动后的 `/openapi.json`、`/docs`。上传字段沿用草案：`file`、`data_scope_id`、`title` 必填；`course`、`assessment_date`、`revision_of_batch_id` 可选。拒绝未知或重复字段，不允许通过表单设置教师ID或修正评分。课程或日期未知时省略；PATCH允许显式置为null，标题不能为空。
+实际请求与响应Schema见启动后的 `/openapi.json`、`/docs`。V1直接上传仅file必填，title默认安全处理后的文件名；data_scope_id省略时仅自动使用唯一可导入范围（修订继承本人拥有的目标范围），多范围无上下文为409 IMPORT_SCOPE_REQUIRED，不放松权限。旧显式字段兼容；course、assessment_date、revision_of_batch_id可选。拒绝未知或重复字段，不允许表单设置教师ID或修正评分。课程/日期未知时省略；PATCH可显式置null，标题不能为空。见[直接上传契约](V1_FILE_INTAKE.md)。
 
 预览回读分页：`student_offset/student_limit` 默认0/20，`row_offset/row_limit` 默认0/25，`issue_offset/issue_limit` 默认0/50，页大小1～100。预览中的 `parsed_evaluation_count` 沿用已实现解析器口径，统计检测到的评分行，包括非法行；完整学生只进入 `student_samples`，错误行仍在 `rows` 供定位。质量问题码沿用解析服务的实际问题码，旧草案中的部分命名不同，以运行时Schema和 `EXCEL_PARSER.md` 为准。
 

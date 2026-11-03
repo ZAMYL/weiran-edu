@@ -1,0 +1,1373 @@
+{
+  "synthetic_only": true,
+  "note": "Actual FastAPI responses using synthetic data; IDs are examples, never live references.",
+  "cases": {
+    "preview_ready": {
+      "http_status": 201,
+      "body": {
+        "import": {
+          "import_id": "9b2b95bd-d2b3-484c-b6d8-3f61fefa8433",
+          "status": "preview_ready",
+          "data_scope_id": "5975cee5-6bb4-416a-b748-f3080a947554",
+          "title": "合成接口验收",
+          "course": null,
+          "assessment_date": null,
+          "revision_of_batch_id": null,
+          "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+          "content_sha256": "f12de96f5fdb6fa5b83b8e2ac57a4621dcf9dce232ec587e6c2f05aed4145d31",
+          "content_hash_version": "content.v1",
+          "parser_version": "current_template.v1",
+          "rubric_version": "rubric.v1.b84961e451027656e139d8d502c1c2909aa25f2101a56a8fb592857119a2a85a",
+          "preview_version": "5a2da15923ad11ba7c9bcec6ae0b65a887944f86f68180a0528b39d783ab6556",
+          "created_at": "2026-10-27T13:17:16.697665Z",
+          "expires_at": "2026-10-28T13:17:16.697665Z",
+          "committed_batch_id": null
+        },
+        "preview_available": true,
+        "summary": {
+          "detected_student_count": 2,
+          "complete_student_count": 2,
+          "parsed_evaluation_count": 10,
+          "error_count": 0,
+          "warning_count": 0
+        },
+        "recognized_items": [
+          {
+            "item_id": "algorithm_data_structure",
+            "display_name": "算法与数据结构",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "code_implementation",
+            "display_name": "代码实现能力",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "problem_modeling",
+            "display_name": "问题建模能力",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "efficiency_awareness",
+            "display_name": "效率意识",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "solution_strategy",
+            "display_name": "解题策略",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          }
+        ],
+        "student_samples": [
+          {
+            "preview_student_id": "c185cd29-84a6-4c0c-a616-e845b0e3c02f",
+            "display_label": "学生 001",
+            "scores": [
+              {
+                "dimension_code": "algorithm_data_structure",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 3,
+                  "dimension_cell": "B3",
+                  "score_cell": "C3",
+                  "comment_cell": "D3"
+                }
+              },
+              {
+                "dimension_code": "code_implementation",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 4,
+                  "dimension_cell": "B4",
+                  "score_cell": "C4",
+                  "comment_cell": "D4"
+                }
+              },
+              {
+                "dimension_code": "problem_modeling",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 5,
+                  "dimension_cell": "B5",
+                  "score_cell": "C5",
+                  "comment_cell": "D5"
+                }
+              },
+              {
+                "dimension_code": "efficiency_awareness",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 6,
+                  "dimension_cell": "B6",
+                  "score_cell": "C6",
+                  "comment_cell": "D6"
+                }
+              },
+              {
+                "dimension_code": "solution_strategy",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 7,
+                  "dimension_cell": "B7",
+                  "score_cell": "C7",
+                  "comment_cell": "D7"
+                }
+              }
+            ]
+          },
+          {
+            "preview_student_id": "3652ddf6-194a-4fe4-80a7-90e0dea671ca",
+            "display_label": "学生 002",
+            "scores": [
+              {
+                "dimension_code": "algorithm_data_structure",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 9,
+                  "dimension_cell": "B9",
+                  "score_cell": "C9",
+                  "comment_cell": "D9"
+                }
+              },
+              {
+                "dimension_code": "code_implementation",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 10,
+                  "dimension_cell": "B10",
+                  "score_cell": "C10",
+                  "comment_cell": "D10"
+                }
+              },
+              {
+                "dimension_code": "problem_modeling",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 11,
+                  "dimension_cell": "B11",
+                  "score_cell": "C11",
+                  "comment_cell": "D11"
+                }
+              },
+              {
+                "dimension_code": "efficiency_awareness",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 12,
+                  "dimension_cell": "B12",
+                  "score_cell": "C12",
+                  "comment_cell": "D12"
+                }
+              },
+              {
+                "dimension_code": "solution_strategy",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+                  "sheet_name": "Sheet2",
+                  "row_number": 13,
+                  "dimension_cell": "B13",
+                  "score_cell": "C13",
+                  "comment_cell": "D13"
+                }
+              }
+            ]
+          }
+        ],
+        "student_page": {
+          "offset": 0,
+          "limit": 20,
+          "returned": 2,
+          "has_more": false
+        },
+        "rows": [
+          {
+            "dimension_code": "algorithm_data_structure",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 3,
+              "dimension_cell": "B3",
+              "score_cell": "C3",
+              "comment_cell": "D3"
+            },
+            "row_key": "row:3",
+            "preview_student_id": "c185cd29-84a6-4c0c-a616-e845b0e3c02f",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "code_implementation",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 4,
+              "dimension_cell": "B4",
+              "score_cell": "C4",
+              "comment_cell": "D4"
+            },
+            "row_key": "row:4",
+            "preview_student_id": "c185cd29-84a6-4c0c-a616-e845b0e3c02f",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "problem_modeling",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 5,
+              "dimension_cell": "B5",
+              "score_cell": "C5",
+              "comment_cell": "D5"
+            },
+            "row_key": "row:5",
+            "preview_student_id": "c185cd29-84a6-4c0c-a616-e845b0e3c02f",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "efficiency_awareness",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 6,
+              "dimension_cell": "B6",
+              "score_cell": "C6",
+              "comment_cell": "D6"
+            },
+            "row_key": "row:6",
+            "preview_student_id": "c185cd29-84a6-4c0c-a616-e845b0e3c02f",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "solution_strategy",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 7,
+              "dimension_cell": "B7",
+              "score_cell": "C7",
+              "comment_cell": "D7"
+            },
+            "row_key": "row:7",
+            "preview_student_id": "c185cd29-84a6-4c0c-a616-e845b0e3c02f",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "algorithm_data_structure",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 9,
+              "dimension_cell": "B9",
+              "score_cell": "C9",
+              "comment_cell": "D9"
+            },
+            "row_key": "row:9",
+            "preview_student_id": "3652ddf6-194a-4fe4-80a7-90e0dea671ca",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "code_implementation",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 10,
+              "dimension_cell": "B10",
+              "score_cell": "C10",
+              "comment_cell": "D10"
+            },
+            "row_key": "row:10",
+            "preview_student_id": "3652ddf6-194a-4fe4-80a7-90e0dea671ca",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "problem_modeling",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 11,
+              "dimension_cell": "B11",
+              "score_cell": "C11",
+              "comment_cell": "D11"
+            },
+            "row_key": "row:11",
+            "preview_student_id": "3652ddf6-194a-4fe4-80a7-90e0dea671ca",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "efficiency_awareness",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 12,
+              "dimension_cell": "B12",
+              "score_cell": "C12",
+              "comment_cell": "D12"
+            },
+            "row_key": "row:12",
+            "preview_student_id": "3652ddf6-194a-4fe4-80a7-90e0dea671ca",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "solution_strategy",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+              "sheet_name": "Sheet2",
+              "row_number": 13,
+              "dimension_cell": "B13",
+              "score_cell": "C13",
+              "comment_cell": "D13"
+            },
+            "row_key": "row:13",
+            "preview_student_id": "3652ddf6-194a-4fe4-80a7-90e0dea671ca",
+            "display_label": "学生 002",
+            "issue_codes": []
+          }
+        ],
+        "row_page": {
+          "offset": 0,
+          "limit": 25,
+          "returned": 10,
+          "has_more": false
+        },
+        "issues": [],
+        "issue_page": {
+          "offset": 0,
+          "limit": 50,
+          "returned": 0,
+          "has_more": false
+        }
+      }
+    },
+    "quality_passed": {
+      "http_status": 200,
+      "body": {
+        "report_version": "quality.v1",
+        "parser_version": "current_template.v1",
+        "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+        "status": "passed",
+        "validation_passed": true,
+        "requires_warning_acknowledgement": false,
+        "summary": {
+          "detected_student_count": 2,
+          "complete_student_count": 2,
+          "parsed_evaluation_count": 10,
+          "error_count": 0,
+          "warning_count": 0,
+          "valid_score_count": 10,
+          "missing_score_count": 0,
+          "invalid_score_count": 0,
+          "unknown_dimension_row_count": 0,
+          "affected_student_count": 0,
+          "students_with_errors": 0,
+          "students_with_warnings": 0,
+          "workbook_issue_count": 0
+        },
+        "dimensions": [
+          {
+            "dimension_code": "algorithm_data_structure",
+            "dimension_label": "算法与数据结构",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "code_implementation",
+            "dimension_label": "代码实现能力",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "problem_modeling",
+            "dimension_label": "问题建模能力",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "efficiency_awareness",
+            "dimension_label": "效率意识",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "solution_strategy",
+            "dimension_label": "解题策略",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          }
+        ],
+        "issue_groups": [],
+        "issues": []
+      }
+    },
+    "preview_invalid": {
+      "http_status": 201,
+      "body": {
+        "import": {
+          "import_id": "2e2eebba-19a9-405b-ac69-cb1f1d1532b6",
+          "status": "invalid",
+          "data_scope_id": "5975cee5-6bb4-416a-b748-f3080a947554",
+          "title": "合成接口验收",
+          "course": null,
+          "assessment_date": null,
+          "revision_of_batch_id": null,
+          "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+          "content_sha256": null,
+          "content_hash_version": "content.v1",
+          "parser_version": "current_template.v1",
+          "rubric_version": "rubric.v1.b84961e451027656e139d8d502c1c2909aa25f2101a56a8fb592857119a2a85a",
+          "preview_version": "0bcead46918ba9344fb7524cf5fa46ca6d4ab5772da0dda8f2a467fb1ec99da9",
+          "created_at": "2026-10-27T13:17:23.358525Z",
+          "expires_at": "2026-10-28T13:17:23.358525Z",
+          "committed_batch_id": null
+        },
+        "preview_available": true,
+        "summary": {
+          "detected_student_count": 2,
+          "complete_student_count": 1,
+          "parsed_evaluation_count": 10,
+          "error_count": 1,
+          "warning_count": 1
+        },
+        "recognized_items": [
+          {
+            "item_id": "algorithm_data_structure",
+            "display_name": "算法与数据结构",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "code_implementation",
+            "display_name": "代码实现能力",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "problem_modeling",
+            "display_name": "问题建模能力",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "efficiency_awareness",
+            "display_name": "效率意识",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          },
+          {
+            "item_id": "solution_strategy",
+            "display_name": "解题策略",
+            "kind": "competency",
+            "scale": {
+              "minimum": 1,
+              "maximum": 5,
+              "step": 0.01
+            },
+            "score_row_count": 2
+          }
+        ],
+        "student_samples": [
+          {
+            "preview_student_id": "90e8d5df-5e47-402d-be87-7928611cb6b7",
+            "display_label": "学生 002",
+            "scores": [
+              {
+                "dimension_code": "algorithm_data_structure",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+                  "sheet_name": "Sheet2",
+                  "row_number": 9,
+                  "dimension_cell": "B9",
+                  "score_cell": "C9",
+                  "comment_cell": "D9"
+                }
+              },
+              {
+                "dimension_code": "code_implementation",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+                  "sheet_name": "Sheet2",
+                  "row_number": 10,
+                  "dimension_cell": "B10",
+                  "score_cell": "C10",
+                  "comment_cell": "D10"
+                }
+              },
+              {
+                "dimension_code": "problem_modeling",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+                  "sheet_name": "Sheet2",
+                  "row_number": 11,
+                  "dimension_cell": "B11",
+                  "score_cell": "C11",
+                  "comment_cell": "D11"
+                }
+              },
+              {
+                "dimension_code": "efficiency_awareness",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+                  "sheet_name": "Sheet2",
+                  "row_number": 12,
+                  "dimension_cell": "B12",
+                  "score_cell": "C12",
+                  "comment_cell": "D12"
+                }
+              },
+              {
+                "dimension_code": "solution_strategy",
+                "score": 2.75,
+                "score_raw": "2.75",
+                "score_state": "valid",
+                "comment": null,
+                "comment_status": "withheld",
+                "source": {
+                  "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+                  "sheet_name": "Sheet2",
+                  "row_number": 13,
+                  "dimension_cell": "B13",
+                  "score_cell": "C13",
+                  "comment_cell": "D13"
+                }
+              }
+            ]
+          }
+        ],
+        "student_page": {
+          "offset": 0,
+          "limit": 20,
+          "returned": 1,
+          "has_more": false
+        },
+        "rows": [
+          {
+            "dimension_code": "algorithm_data_structure",
+            "score": null,
+            "score_raw": null,
+            "score_state": "missing",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 3,
+              "dimension_cell": "B3",
+              "score_cell": "C3",
+              "comment_cell": "D3"
+            },
+            "row_key": "row:3",
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "issue_codes": [
+              "SCORE_REQUIRED"
+            ]
+          },
+          {
+            "dimension_code": "code_implementation",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "empty",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 4,
+              "dimension_cell": "B4",
+              "score_cell": "C4",
+              "comment_cell": "D4"
+            },
+            "row_key": "row:4",
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "issue_codes": [
+              "COMMENT_EMPTY"
+            ]
+          },
+          {
+            "dimension_code": "problem_modeling",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 5,
+              "dimension_cell": "B5",
+              "score_cell": "C5",
+              "comment_cell": "D5"
+            },
+            "row_key": "row:5",
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "efficiency_awareness",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 6,
+              "dimension_cell": "B6",
+              "score_cell": "C6",
+              "comment_cell": "D6"
+            },
+            "row_key": "row:6",
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "solution_strategy",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 7,
+              "dimension_cell": "B7",
+              "score_cell": "C7",
+              "comment_cell": "D7"
+            },
+            "row_key": "row:7",
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "algorithm_data_structure",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 9,
+              "dimension_cell": "B9",
+              "score_cell": "C9",
+              "comment_cell": "D9"
+            },
+            "row_key": "row:9",
+            "preview_student_id": "90e8d5df-5e47-402d-be87-7928611cb6b7",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "code_implementation",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 10,
+              "dimension_cell": "B10",
+              "score_cell": "C10",
+              "comment_cell": "D10"
+            },
+            "row_key": "row:10",
+            "preview_student_id": "90e8d5df-5e47-402d-be87-7928611cb6b7",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "problem_modeling",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 11,
+              "dimension_cell": "B11",
+              "score_cell": "C11",
+              "comment_cell": "D11"
+            },
+            "row_key": "row:11",
+            "preview_student_id": "90e8d5df-5e47-402d-be87-7928611cb6b7",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "efficiency_awareness",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 12,
+              "dimension_cell": "B12",
+              "score_cell": "C12",
+              "comment_cell": "D12"
+            },
+            "row_key": "row:12",
+            "preview_student_id": "90e8d5df-5e47-402d-be87-7928611cb6b7",
+            "display_label": "学生 002",
+            "issue_codes": []
+          },
+          {
+            "dimension_code": "solution_strategy",
+            "score": 2.75,
+            "score_raw": "2.75",
+            "score_state": "valid",
+            "comment": null,
+            "comment_status": "withheld",
+            "source": {
+              "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+              "sheet_name": "Sheet2",
+              "row_number": 13,
+              "dimension_cell": "B13",
+              "score_cell": "C13",
+              "comment_cell": "D13"
+            },
+            "row_key": "row:13",
+            "preview_student_id": "90e8d5df-5e47-402d-be87-7928611cb6b7",
+            "display_label": "学生 002",
+            "issue_codes": []
+          }
+        ],
+        "row_page": {
+          "offset": 0,
+          "limit": 25,
+          "returned": 10,
+          "has_more": false
+        },
+        "issues": [
+          {
+            "issue_id": "55ff50d8-a22c-5b38-9986-417aeded5147",
+            "severity": "error",
+            "code": "SCORE_REQUIRED",
+            "message": "评分不能为空",
+            "sheet_name": "Sheet2",
+            "row_number": 3,
+            "cell": "C3",
+            "row_key": "row:3",
+            "row_offset": 0,
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "dimension_code": "algorithm_data_structure",
+            "scope": "student"
+          },
+          {
+            "issue_id": "f2a93955-179d-5149-9025-fa1cbbb13d8c",
+            "severity": "warning",
+            "code": "COMMENT_EMPTY",
+            "message": "评语为空，请复核；此项不阻止确认",
+            "sheet_name": "Sheet2",
+            "row_number": 4,
+            "cell": "D4",
+            "row_key": "row:4",
+            "row_offset": 1,
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "dimension_code": "code_implementation",
+            "scope": "student"
+          }
+        ],
+        "issue_page": {
+          "offset": 0,
+          "limit": 50,
+          "returned": 2,
+          "has_more": false
+        }
+      }
+    },
+    "quality_warning": {
+      "http_status": 200,
+      "body": {
+        "report_version": "quality.v1",
+        "parser_version": "current_template.v1",
+        "file_sha256": "a78d8e5744b092b3bba45dac59ded429ce3bea2889cfd3a8a4e930b06a4aaf82",
+        "status": "warning",
+        "validation_passed": true,
+        "requires_warning_acknowledgement": true,
+        "summary": {
+          "detected_student_count": 2,
+          "complete_student_count": 2,
+          "parsed_evaluation_count": 10,
+          "error_count": 0,
+          "warning_count": 1,
+          "valid_score_count": 10,
+          "missing_score_count": 0,
+          "invalid_score_count": 0,
+          "unknown_dimension_row_count": 0,
+          "affected_student_count": 1,
+          "students_with_errors": 0,
+          "students_with_warnings": 1,
+          "workbook_issue_count": 0
+        },
+        "dimensions": [
+          {
+            "dimension_code": "algorithm_data_structure",
+            "dimension_label": "算法与数据结构",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "code_implementation",
+            "dimension_label": "代码实现能力",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "problem_modeling",
+            "dimension_label": "问题建模能力",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "efficiency_awareness",
+            "dimension_label": "效率意识",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "solution_strategy",
+            "dimension_label": "解题策略",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          }
+        ],
+        "issue_groups": [
+          {
+            "code": "COMMENT_EMPTY",
+            "severity": "warning",
+            "message": "评语为空，请复核；此项不阻止确认",
+            "occurrence_count": 1,
+            "affected_student_count": 1,
+            "affected_row_count": 1,
+            "examples": [
+              {
+                "issue_id": "f1983a12-f5e9-595c-858d-ebdeb8f498ce",
+                "severity": "warning",
+                "code": "COMMENT_EMPTY",
+                "message": "评语为空，请复核；此项不阻止确认",
+                "sheet_name": "Sheet2",
+                "row_number": 3,
+                "cell": "D3",
+                "row_key": "row:3",
+                "row_offset": 0,
+                "preview_student_id": "c00d8436-7cf3-4c24-a6af-35472b8b7953",
+                "display_label": "学生 001",
+                "dimension_code": "algorithm_data_structure",
+                "scope": "student"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          {
+            "issue_id": "f1983a12-f5e9-595c-858d-ebdeb8f498ce",
+            "severity": "warning",
+            "code": "COMMENT_EMPTY",
+            "message": "评语为空，请复核；此项不阻止确认",
+            "sheet_name": "Sheet2",
+            "row_number": 3,
+            "cell": "D3",
+            "row_key": "row:3",
+            "row_offset": 0,
+            "preview_student_id": "c00d8436-7cf3-4c24-a6af-35472b8b7953",
+            "display_label": "学生 001",
+            "dimension_code": "algorithm_data_structure",
+            "scope": "student"
+          }
+        ]
+      }
+    },
+    "quality_blocked": {
+      "http_status": 200,
+      "body": {
+        "report_version": "quality.v1",
+        "parser_version": "current_template.v1",
+        "file_sha256": "c81e2d6f4b037da01fd670f5fe843bdc37fb90386ede15569553168c584fa5ab",
+        "status": "blocked",
+        "validation_passed": false,
+        "requires_warning_acknowledgement": true,
+        "summary": {
+          "detected_student_count": 2,
+          "complete_student_count": 1,
+          "parsed_evaluation_count": 10,
+          "error_count": 1,
+          "warning_count": 1,
+          "valid_score_count": 9,
+          "missing_score_count": 1,
+          "invalid_score_count": 0,
+          "unknown_dimension_row_count": 0,
+          "affected_student_count": 1,
+          "students_with_errors": 1,
+          "students_with_warnings": 1,
+          "workbook_issue_count": 0
+        },
+        "dimensions": [
+          {
+            "dimension_code": "algorithm_data_structure",
+            "dimension_label": "算法与数据结构",
+            "score_row_count": 2,
+            "valid_score_count": 1,
+            "missing_score_count": 1,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "code_implementation",
+            "dimension_label": "代码实现能力",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "problem_modeling",
+            "dimension_label": "问题建模能力",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "efficiency_awareness",
+            "dimension_label": "效率意识",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          },
+          {
+            "dimension_code": "solution_strategy",
+            "dimension_label": "解题策略",
+            "score_row_count": 2,
+            "valid_score_count": 2,
+            "missing_score_count": 0,
+            "invalid_score_count": 0,
+            "students_missing_dimension_count": 0,
+            "students_with_duplicate_dimension_count": 0
+          }
+        ],
+        "issue_groups": [
+          {
+            "code": "SCORE_REQUIRED",
+            "severity": "error",
+            "message": "评分不能为空",
+            "occurrence_count": 1,
+            "affected_student_count": 1,
+            "affected_row_count": 1,
+            "examples": [
+              {
+                "issue_id": "55ff50d8-a22c-5b38-9986-417aeded5147",
+                "severity": "error",
+                "code": "SCORE_REQUIRED",
+                "message": "评分不能为空",
+                "sheet_name": "Sheet2",
+                "row_number": 3,
+                "cell": "C3",
+                "row_key": "row:3",
+                "row_offset": 0,
+                "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+                "display_label": "学生 001",
+                "dimension_code": "algorithm_data_structure",
+                "scope": "student"
+              }
+            ]
+          },
+          {
+            "code": "COMMENT_EMPTY",
+            "severity": "warning",
+            "message": "评语为空，请复核；此项不阻止确认",
+            "occurrence_count": 1,
+            "affected_student_count": 1,
+            "affected_row_count": 1,
+            "examples": [
+              {
+                "issue_id": "f2a93955-179d-5149-9025-fa1cbbb13d8c",
+                "severity": "warning",
+                "code": "COMMENT_EMPTY",
+                "message": "评语为空，请复核；此项不阻止确认",
+                "sheet_name": "Sheet2",
+                "row_number": 4,
+                "cell": "D4",
+                "row_key": "row:4",
+                "row_offset": 1,
+                "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+                "display_label": "学生 001",
+                "dimension_code": "code_implementation",
+                "scope": "student"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          {
+            "issue_id": "55ff50d8-a22c-5b38-9986-417aeded5147",
+            "severity": "error",
+            "code": "SCORE_REQUIRED",
+            "message": "评分不能为空",
+            "sheet_name": "Sheet2",
+            "row_number": 3,
+            "cell": "C3",
+            "row_key": "row:3",
+            "row_offset": 0,
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "dimension_code": "algorithm_data_structure",
+            "scope": "student"
+          },
+          {
+            "issue_id": "f2a93955-179d-5149-9025-fa1cbbb13d8c",
+            "severity": "warning",
+            "code": "COMMENT_EMPTY",
+            "message": "评语为空，请复核；此项不阻止确认",
+            "sheet_name": "Sheet2",
+            "row_number": 4,
+            "cell": "D4",
+            "row_key": "row:4",
+            "row_offset": 1,
+            "preview_student_id": "e0f43376-d47c-445e-b081-918c1a53c7f2",
+            "display_label": "学生 001",
+            "dimension_code": "code_implementation",
+            "scope": "student"
+          }
+        ]
+      }
+    },
+    "commit_created": {
+      "http_status": 201,
+      "body": {
+        "import_id": "9b2b95bd-d2b3-484c-b6d8-3f61fefa8433",
+        "batch_id": "375f0d16-72c4-4fbe-87b0-a81327b691c0",
+        "snapshot_id": "4a8ca43c-debd-4b1f-822c-b393e416730c",
+        "result": "created"
+      }
+    },
+    "commit_duplicate": {
+      "http_status": 200,
+      "body": {
+        "import_id": "ace103c4-1cab-480a-aff2-b465c56a5826",
+        "batch_id": "375f0d16-72c4-4fbe-87b0-a81327b691c0",
+        "snapshot_id": "4a8ca43c-debd-4b1f-822c-b393e416730c",
+        "result": "duplicate"
+      }
+    },
+    "commit_replayed": {
+      "http_status": 200,
+      "body": {
+        "import_id": "ace103c4-1cab-480a-aff2-b465c56a5826",
+        "batch_id": "375f0d16-72c4-4fbe-87b0-a81327b691c0",
+        "snapshot_id": "4a8ca43c-debd-4b1f-822c-b393e416730c",
+        "result": "replayed"
+      }
+    },
+    "diagnostic_batch": {
+      "http_status": 200,
+      "body": {
+        "batch_id": "375f0d16-72c4-4fbe-87b0-a81327b691c0",
+        "data_scope_id": "5975cee5-6bb4-416a-b748-f3080a947554",
+        "snapshot_id": "4a8ca43c-debd-4b1f-822c-b393e416730c",
+        "title": "教师确认的合成测评",
+        "course": null,
+        "assessment_date": null,
+        "student_count": 2,
+        "evaluation_count": 10,
+        "rubric_version": "rubric.v1.b84961e451027656e139d8d502c1c2909aa25f2101a56a8fb592857119a2a85a",
+        "parser_version": "current_template.v1",
+        "file_sha256": "f5823ae12a0e3474558df20d452e2102aafc3aa42276550f4b63d89555b113c7",
+        "content_sha256": "f12de96f5fdb6fa5b83b8e2ac57a4621dcf9dce232ec587e6c2f05aed4145d31",
+        "content_hash_version": "content.v1",
+        "revision_of_batch_id": null,
+        "is_current": true,
+        "created_at": "2026-10-27T13:17:17.795491Z"
+      }
+    },
+    "stale_preview_rejected": {
+      "http_status": 409,
+      "body": {
+        "error": {
+          "code": "PREVIEW_VERSION_MISMATCH",
+          "message": "预览版本已变化，请刷新后重试",
+          "request_id": "req_6dbbd3a535004736ada5c46cf7c926a4"
+        }
+      }
+    },
+    "warning_ack_required": {
+      "http_status": 409,
+      "body": {
+        "error": {
+          "code": "WARNINGS_NOT_ACKNOWLEDGED",
+          "message": "请先复核并确认质量警告",
+          "request_id": "req_305a56c391944a09b9956e4ac99192d2"
+        }
+      }
+    },
+    "blocked_cannot_be_overridden": {
+      "http_status": 409,
+      "body": {
+        "error": {
+          "code": "IMPORT_NOT_CONFIRMABLE",
+          "message": "该预览不能确认入库",
+          "request_id": "req_061a91d6dfbf4ef5b6842693acceef6b"
+        }
+      }
+    },
+    "unsupported_structure": {
+      "http_status": 422,
+      "body": {
+        "error": {
+          "code": "IMPORT_FORMAT_UNSUPPORTED",
+          "message": "当前暂不支持此文件结构，未创建测评批次",
+          "request_id": "req_10623689856b48f49e6e92fc61cbaa3d"
+        }
+      }
+    }
+  }
+}
