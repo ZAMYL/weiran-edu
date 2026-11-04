@@ -158,10 +158,13 @@ def test_fact_validation_does_not_read_private_source_contents(client, runtime, 
 
 
 def test_existing_two_migration_database_upgrades_without_changing_facts(runtime, stage):
+    from .conftest import remove_empty_question_schema
+
     created = commit(runtime, stage())
     before = runtime.reader.students(runtime.p, created.batch_id)
     # Reconstruct the previous schema state in this disposable fixture only.
     with runtime.db.transaction(write=True) as connection:
+        remove_empty_question_schema(connection)
         connection.execute("DROP TRIGGER immutable_students_update")
         connection.execute("DROP TRIGGER immutable_students_delete")
         connection.execute("DROP TABLE analysis_result_versions")
@@ -189,7 +192,7 @@ def test_existing_two_migration_database_upgrades_without_changing_facts(runtime
             )
         ]
     assert current[:2] == prior
-    assert len(current) == 4
+    assert len(current) == 5
     assert runtime.reader.students(runtime.p, created.batch_id) == before
     with pytest.raises(APIError):
         with runtime.db.transaction(write=True) as connection:
