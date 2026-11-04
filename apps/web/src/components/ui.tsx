@@ -58,10 +58,27 @@ export function DataBadge({ demo }: { demo: boolean }) {
     </Tag>
   );
 }
+export function AssessmentContext({
+  title,
+  course,
+  date,
+}: {
+  title?: string | null;
+  course?: string | null;
+  date?: string | null;
+}) {
+  return (
+    <div className="assessment-context">
+      <p className="drawer-subtitle">{title?.trim() || '测评'}</p>
+      {course?.trim() && <p className="muted small">课程：{course.trim()}</p>}
+      {date?.trim() && <p className="muted small">测评日期：{date.trim()}</p>}
+    </div>
+  );
+}
 export function StatCards({ batch }: { batch: Batch }) {
   const stats = [
     {
-      title: '参与学生',
+      title: '参评人数',
       value: batch.students.length,
       unit: '人',
       icon: <TeamOutlined />,

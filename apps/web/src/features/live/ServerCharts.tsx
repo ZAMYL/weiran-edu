@@ -16,7 +16,7 @@ import {
   type ApiRubric,
   type ApiStatistics,
 } from '../../services/edu-api/types';
-import { dimensionName } from '../../services/edu-api/view-model';
+import { dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
 
 register([
   RadarChart,
@@ -53,7 +53,7 @@ export function ServerAbilityChart({
               enabled: true,
               label: {
                 description: statistics.dimensions
-                  .map((d) => `${dimensionName(d.dimension_code)}均值${d.mean.display}`)
+                  .map((d) => `${dimensionName(d.dimension_code)}均值${scoreDisplay(d.mean.value)}`)
                   .join('，'),
               },
             },
@@ -62,7 +62,7 @@ export function ServerAbilityChart({
               center: ['50%', '53%'],
               radius: element.clientWidth < 450 ? '46%' : '64%',
               indicator: ordered.map((d) => ({
-                name: `${dimensionName(d.dimension_code)}\n${d.mean.display}`,
+                name: `${dimensionName(d.dimension_code)}\n${scoreDisplay(d.mean.value)}`,
                 min: 0,
                 max: rubric.score_policy.maximum,
               })),
@@ -78,7 +78,7 @@ export function ServerAbilityChart({
                 itemStyle: { color: '#2463f5' },
                 lineStyle: { width: 2.5 },
                 areaStyle: { color: 'rgba(36,99,245,.22)' },
-                data: [{ value: ordered.map((d) => d.mean.value), name: '服务端五维均值' }],
+                data: [{ value: ordered.map((d) => d.mean.value), name: '测评平均分' }],
               },
             ],
           }
@@ -87,7 +87,7 @@ export function ServerAbilityChart({
               enabled: true,
               label: {
                 description: statistics.dimensions
-                  .map((d) => `${dimensionName(d.dimension_code)}均值${d.mean.display}`)
+                  .map((d) => `${dimensionName(d.dimension_code)}均值${scoreDisplay(d.mean.value)}`)
                   .join('，'),
               },
             },
@@ -134,7 +134,7 @@ export function ServerAbilityChart({
                 tooltip: {
                   formatter: (params: unknown) => {
                     const p = params as { value: number[] };
-                    return `${DIMENSIONS[p.value[1] ?? -1]?.name ?? ''}：${p.value[0]} 分，${p.value[2]} 人`;
+                    return `${DIMENSIONS[p.value[1] ?? -1]?.name ?? ''}：${p.value[0]} 分，参评人数 ${p.value[2]} 人`;
                   },
                 },
               },
@@ -158,7 +158,7 @@ export function ServerAbilityChart({
       ref={ref}
       role="img"
       aria-label={statistics.dimensions
-        .map((d) => `${dimensionName(d.dimension_code)}均值${d.mean.display}`)
+        .map((d) => `${dimensionName(d.dimension_code)}均值${scoreDisplay(d.mean.value)}`)
         .join('，')}
     />
   );
@@ -214,13 +214,13 @@ export function SparseMatrix({
       aria: {
         enabled: true,
         label: {
-          description: `服务端稀疏矩阵，${matrix.cells.length} 个实际评分组合，配对人数 ${matrix.paired_count}`,
+          description: `实际评分组合，${matrix.cells.length} 个实际评分组合，配对人数 ${matrix.paired_count}`,
         },
       },
       tooltip: {
         trigger: 'item',
         formatter: (p: { value: number[] }) =>
-          `${dimensionName(matrix.x_dimension)} ${p.value[0]} 分<br/>${dimensionName(matrix.y_dimension)} ${p.value[1]} 分<br/>${p.value[2]} 人`,
+          `${dimensionName(matrix.x_dimension)} ${p.value[0]} 分<br/>${dimensionName(matrix.y_dimension)} ${p.value[1]} 分<br/>参评人数 ${p.value[2]} 人`,
       },
       grid: { left: 50, right: 24, top: 30, bottom: 95 },
       xAxis: {
@@ -292,7 +292,7 @@ export function SparseMatrix({
         ref={ref}
         className="sparse-matrix"
         role="img"
-        aria-label={`服务端稀疏矩阵，${statistics.matrix?.cells.length ?? 0} 个实际评分组合，配对人数 ${statistics.matrix?.paired_count ?? 0}`}
+        aria-label={`实际评分组合，${statistics.matrix?.cells.length ?? 0} 个实际评分组合，配对人数 ${statistics.matrix?.paired_count ?? 0}`}
       />
       <p className="muted small">
         每个色块为实际评分组合，保留小数；不扩展为完整网格。点击色块精确筛选。

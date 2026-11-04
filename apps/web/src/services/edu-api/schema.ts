@@ -37,6 +37,10 @@ export const nullable =
   <T>(decode: Decoder<T>): Decoder<T | null> =>
   (value) =>
     value === null ? null : decode(value);
+export const optional =
+  <T>(decode: Decoder<T>): Decoder<T | undefined> =>
+  (value) =>
+    value === undefined ? undefined : decode(value);
 export const checked =
   <T>(decode: Decoder<T>, valid: (value: T) => boolean): Decoder<T> =>
   (value) => {

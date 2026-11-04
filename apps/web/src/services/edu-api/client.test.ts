@@ -204,7 +204,7 @@ describe('server totals and decimal presentation', () => {
     expect(metricDisplay(metric)).toBe('2.75');
     expect(
       metricDisplay({ ...metric, unit: 'ratio', value: { ...metric.value, value: 0.25 } }),
-    ).toBe('25.00%');
+    ).toBe('25%');
     expect(commentStatusText('withheld')).toContain('非空');
     expect(commentStatusText('empty')).toContain('为空');
   });

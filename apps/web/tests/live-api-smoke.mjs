@@ -11,10 +11,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { teacherAnalysisFlow, saveEmptyAnalysis } from './teacher-analysis-flow.mjs';
+import { renameImport } from './upload-workflow-utils.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..'),
-  apiRoot = path.join(repo, 'apps/api');
+  apiRoot = process.env.EDU_TEST_API_ROOT || path.join(repo, 'apps/api');
 const python =
   process.env.EDU_TEST_PYTHON ||
   path.join(
@@ -35,6 +37,7 @@ const env = {
   WEIRAN_EDU_ENV: 'test',
   WEIRAN_EDU_DATABASE: database,
   NEXT_TELEMETRY_DISABLED: '1',
+  EDU_ENABLE_DEMO: '1',
 };
 function admin(...args) {
   return JSON.parse(
@@ -139,10 +142,16 @@ try {
     },
   );
   await ready(origin, frontend);
-  const chrome = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+  const chrome = [
+    process.env.EDU_TEST_BROWSER,
+    'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    process.env.LOCALAPPDATA &&
+      path.join(process.env.LOCALAPPDATA, 'Google/Chrome/Application/chrome.exe'),
+    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+  ].find((value) => value && existsSync(value));
   browser = await chromium.launch({
     headless: true,
-    ...(existsSync(chrome) ? { executablePath: chrome } : {}),
+    ...(chrome ? { executablePath: chrome } : {}),
   });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(15_000);
@@ -152,43 +161,79 @@ try {
     if (testMode && request.url().includes('/api/edu/') && request.headers().authorization)
       browserAuthorization.push(true);
   });
-  const shot = (name) =>
-    page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage: true });
+  const shot = async (name) =>
+    page.screenshot({
+      path: path.join(artifacts, `${name}.png`),
+      fullPage: (await page.locator('.ant-drawer-open').count()) === 0,
+    });
   const noOverflow = async () =>
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
       'No document overflow',
     );
-  const navigation = (name) => page.getByRole('link', { name, exact: true }).click();
+  const navigation = async (name) => {
+    if (name === '测评数据') {
+      if (await page.locator('.upload-workspace-heading').count()) {
+        const reselect = page.getByRole('button', { name: '更换文件', exact: true });
+        if (await reselect.count()) await reselect.click();
+      } else await page.getByRole('button', { name: '上传新测评', exact: true }).click();
+    } else {
+      await page.getByRole('link', { name, exact: true }).click();
+      if (name === '学情诊断')
+        await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
+    }
+  };
   async function login(retryTestSession = false) {
     if (testMode) {
-      const retry = page.getByRole('button', { name: '重新连接测试数据', exact: true });
+      const retry = page.getByRole('button', { name: '重新连接', exact: true });
       if (retryTestSession) await retry.click();
       await page.locator('.live-workspace').waitFor();
       assert.equal(await page.locator('#teacher-access-token').count(), 0);
       assert.equal(await page.getByRole('button', { name: '连接教师', exact: true }).count(), 0);
       return;
     }
-    await page.getByRole('button', { name: '连接教师会话', exact: true }).click();
-    await page.getByLabel('教师临时凭证', { exact: true }).fill(token);
+    await page
+      .locator('.session-gate')
+      .getByRole('button', { name: '连接账户', exact: true })
+      .click();
+    await page.getByLabel('访问凭据', { exact: true }).fill(token);
     await page.getByRole('dialog').getByRole('button', { name: '连接', exact: true }).click();
     await page.getByRole('button', { name: '结束会话', exact: true }).waitFor();
     await page.locator('#teacher-access-token').waitFor({ state: 'detached' });
   }
-  async function upload(kind, title) {
-    await page.getByLabel('测评名称', { exact: true }).fill(title);
-    await page.locator('input[type=file]').setInputFiles(path.join(temporary, `${kind}.xlsx`));
-    await page.getByRole('heading', { name: '正式导入预览' }).waitFor();
-    await page.locator('.source-details').filter({ hasText: '预览版本' }).waitFor();
+  async function upload(kind, title, filename = title) {
+    await navigation('测评数据');
+    assert.equal(
+      await page.getByRole('button', { name: '选择文件', exact: true }).isEnabled(),
+      true,
+    );
+    const previewHTTP = page.waitForResponse((r) => r.url().endsWith('/imports/preview'));
+    await page.locator('input[type=file]').setInputFiles({
+      name: `${filename}.xlsx`,
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: await readFile(path.join(temporary, `${kind}.xlsx`)),
+    });
+    const uploaded = await previewHTTP;
+    assert.equal((await uploaded.json()).import.title, filename);
+    await page.getByRole('heading', { name: '文件检查结果', exact: true }).waitFor();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), filename);
+    await renameImport(page, title);
+    await page
+      .locator('.source-details')
+      .filter({ hasText: '预览版本' })
+      .waitFor({ state: 'attached' });
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), title);
   }
   async function commit() {
+    const next = page.getByRole('button', { name: '下一步：确认导入', exact: true });
+    if (await next.count()) await next.click();
     const pending = page.waitForResponse(
       (r) => r.url().endsWith('/commit') && [200, 201].includes(r.status()),
     );
-    await page.getByRole('button', { name: '确认入库', exact: true }).click();
+    await page.getByRole('button', { name: '确认导入', exact: true }).click();
     const data = await (await pending).json();
-    await page.getByRole('heading', { name: '上传正式测评' }).waitFor();
+    await page.locator('.discoveries-panel').waitFor();
     return data;
   }
   async function request(route, init = {}) {
@@ -208,31 +253,96 @@ try {
     await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
     await page.locator('.ant-select-dropdown').getByText(title, { exact: true }).click();
   }
+  async function selectAspect(label) {
+    await page.getByRole('combobox', { name: '查看洞察方面', exact: true }).click();
+    await page.locator('.ant-select-dropdown:visible').getByText(label, { exact: true }).click();
+  }
   checkpoint = 'login';
   await page.goto(origin);
   await login();
   await navigation('测评数据');
+  assert.equal(await page.getByLabel('测评名称', { exact: true }).count(), 0);
+  checkpoint = 'automatic file check and rename';
+  const selectedBytes = await readFile(path.join(temporary, 'normal.xlsx'));
+  let autoChecks = 0;
+  let earlyCommits = 0;
+  const trackChecks = (request) => {
+    if (request.url().endsWith('/imports/preview')) autoChecks++;
+    if (request.url().endsWith('/commit')) earlyCommits++;
+  };
+  page.on('request', trackChecks);
+  for (const filename of ['合成首次选择.xlsx', '合成再次选择.XLSX']) {
+    const checked = page.waitForResponse((r) => r.url().endsWith('/imports/preview'));
+    await page.locator('input[type=file]').setInputFiles({
+      name: filename,
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: selectedBytes,
+    });
+    assert.equal((await checked).status(), 201);
+    await page.getByLabel('测评名称', { exact: true }).waitFor();
+    assert.equal(
+      await page.getByLabel('测评名称', { exact: true }).inputValue(),
+      filename.replace(/\.xlsx$/i, ''),
+    );
+    await page.getByLabel('测评名称', { exact: true }).fill('');
+    await page.getByLabel('测评名称', { exact: true }).press('Tab');
+    assert.equal(
+      await page.getByLabel('测评名称', { exact: true }).inputValue(),
+      filename.replace(/\.xlsx$/i, ''),
+    );
+    await renameImport(page, '合成手动改名');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await noOverflow();
+    await shot('upload-name-mobile');
+    await page.getByRole('button', { name: '更换文件', exact: true }).click();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).count(), 0);
+  }
+  assert.equal(autoChecks, 2, 'each selected file starts one automatic check');
+  assert.equal(earlyCommits, 0, 'checking and renaming never import a file');
+  page.off('request', trackChecks);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  checks.push(
+    'selecting a file checks once automatically; name defaults to filename, edits save on blur; changing files never commits',
+  );
   checkpoint = 'blocked preview';
   await upload('blocked', '合成阻断测评');
+  const blockedFrame = await page.locator('.upload-workflow').boundingBox();
   await page.getByText('存在阻断错误，无法确认入库', { exact: true }).waitFor();
   assert.equal(
-    await page.getByRole('button', { name: '确认入库', exact: true }).isDisabled(),
+    await page.getByRole('button', { name: '下一步：确认导入', exact: true }).isDisabled(),
     true,
   );
-  await page.getByRole('button', { name: '定位记录', exact: true }).first().click();
+  await page.locator('.issue-group details > summary').first().click();
+  await page
+    .locator('.issue-group')
+    .getByRole('button', { name: '定位记录', exact: true })
+    .first()
+    .click();
   await page.locator('.located-row').waitFor();
   // Independent issue and row pages both retain full-file counts.
-  await page.locator('.issue-list').locator('..').getByTitle('2', { exact: true }).click();
-  await page.locator('.issue-list').getByRole('heading').first().waitFor();
+  await page.locator('.all-issues > summary').click();
+  await page.locator('.all-issues').getByTitle('2', { exact: true }).click();
+  await page.locator('.all-issues .ant-table-row').first().waitFor();
+  const expandedFrame = await page.locator('.upload-workflow').boundingBox();
+  assert.ok(
+    Math.abs(blockedFrame.height - expandedFrame.height) <= 1,
+    'expanded issues do not resize the upload frame',
+  );
+  assert.ok(
+    await page
+      .locator('.upload-workflow-body')
+      .evaluate((element) => element.scrollHeight > element.clientHeight),
+    'details scroll inside the single content region',
+  );
   await shot('blocked-preview');
-  await page.getByRole('button', { name: '返回上传', exact: true }).click();
+  await page.getByRole('button', { name: '更换文件', exact: true }).click();
   checks.push('blocked dual-Sheet upload, full quality report, issue pagination and row location');
   checkpoint = 'warning version';
-  await upload('warning', '合成警告测评');
-  const confirm = page.getByRole('button', { name: '确认入库', exact: true });
+  await upload('warning', '合成警告测评', '合成警告原文件名');
+  const confirm = page.getByRole('button', { name: '下一步：确认导入', exact: true });
   assert.equal(await confirm.isDisabled(), true);
-  await page.getByRole('checkbox', { name: /我已查看本预览版本/ }).check();
-  await page.getByLabel('正式测评名称', { exact: true }).fill('合成警告测评已确认');
+  await page.getByRole('checkbox', { name: /我已查看以上提醒/ }).check();
+  await page.getByLabel('测评名称', { exact: true }).fill('合成警告测评已确认');
   // Hold the real PATCH so the loading icon is present while checking the action name.
   let releasePatch;
   const patchGate = new Promise((resolve) => (releasePatch = resolve));
@@ -243,7 +353,7 @@ try {
   await page.route('**/api/edu/imports/*', patchRoute);
   const patchStarted = page.waitForRequest((r) => r.method() === 'PATCH');
   const patched = page.waitForResponse((r) => r.request().method() === 'PATCH');
-  await page.getByRole('button', { name: '保存名称并更新预览版本' }).click();
+  await page.getByLabel('测评名称', { exact: true }).press('Tab');
   await patchStarted;
   try {
     assert.equal(await confirm.isDisabled(), true);
@@ -252,12 +362,25 @@ try {
   }
   assert.equal((await patched).status(), 200);
   await page.unroute('**/api/edu/imports/*', patchRoute);
-  await page.getByRole('button', { name: '保存名称并更新预览版本' }).waitFor({ state: 'detached' });
-  assert.equal(await page.getByRole('checkbox', { name: /我已查看本预览版本/ }).isChecked(), false);
+  await page.waitForFunction(
+    () => document.querySelector('.upload-workflow')?.getAttribute('aria-busy') === 'false',
+  );
+  assert.equal(await page.getByRole('checkbox', { name: /我已查看以上提醒/ }).isChecked(), false);
   assert.equal(await confirm.isDisabled(), true);
-  await page.getByRole('checkbox', { name: /我已查看本预览版本/ }).check();
+  await page.getByRole('checkbox', { name: /我已查看以上提醒/ }).check();
   const warningCommit = await commit();
   assert.equal(warningCommit.result, 'created');
+  await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+  await page
+    .getByRole('row')
+    .filter({ hasText: '合成警告测评已确认' })
+    .getByRole('button', { name: '评分概况', exact: true })
+    .click();
+  assert.doesNotMatch(
+    await page.locator('.ant-drawer-open').innerText(),
+    /合成课程作业|2026-01-15/,
+  );
+  await page.locator('.ant-drawer-open .ant-drawer-close').click();
   const replay = await request(`/imports/${warningCommit.import_id}/commit`, {
     method: 'POST',
     body: JSON.stringify({
@@ -268,7 +391,7 @@ try {
   });
   assert.equal(replay.result, 'replayed');
   checkpoint = 'normal and duplicate';
-  await upload('normal', '合成正常测评');
+  await upload('normal', '合成竞赛测评');
   const normalCommit = await commit();
   assert.equal(normalCommit.result, 'created');
   await upload('normal', '合成重复上传');
@@ -278,17 +401,69 @@ try {
     'warning acknowledgement tied to updated preview version; created/duplicate/replayed results',
   );
   checkpoint = 'statistics';
-  await navigation('学情洞察');
+  await navigation('学情诊断');
   await page.getByRole('img', { name: /算法与数据结构均值3.11/ }).waitFor();
   assert.match(await page.locator('.stat-grid').innerText(), /23/);
+  assert.match(await page.locator('.stat-grid').innerText(), /参评人数/);
+  await page.getByRole('heading', { name: '评分画像', exact: true }).waitFor();
+  const radarBox = await page.locator('.server-chart').boundingBox();
+  await page
+    .locator('.server-chart')
+    .hover({ position: { x: radarBox.width / 2, y: radarBox.height * 0.53 } });
+  await page.locator('.server-chart').getByText('测评平均分', { exact: false }).first().waitFor();
+  await page.mouse.move(0, 0);
+  assert.equal(await page.getByText(/^课程：/).count(), 0);
+  assert.doesNotMatch(await page.locator('.workspace').innerText(), /班级|全班|课堂成绩|算法比赛/);
+  await page.locator('.insights-right .live-candidate').waitFor();
+  for (const dimension of [
+    '算法与数据结构',
+    '代码实现能力',
+    '问题建模能力',
+    '效率意识',
+    '解题策略',
+  ]) {
+    await selectAspect(dimension);
+    assert.equal(await page.locator('.insights-right .live-candidate').count(), 1);
+    await page
+      .locator('.insights-right .live-candidate h2')
+      .filter({ hasText: dimension })
+      .waitFor();
+    const summaryMetricCount = await page.locator('.insights-right .live-metrics button').count();
+    assert.ok(summaryMetricCount > 0 && summaryMetricCount <= 4);
+  }
+  await selectAspect('算法与数据结构');
+  assert.equal(
+    await page
+      .locator('.insights-statistics-panel')
+      .evaluate((element) => getComputedStyle(element).overflowY),
+    'visible',
+  );
+  const overviewBounds = await page.locator('.radar-panel').boundingBox();
+  const detailsBounds = await page.locator('.insights-right').boundingBox();
+  assert.ok(
+    detailsBounds.height <= overviewBounds.height + 220,
+    'A single aspect must not leave a long empty left column',
+  );
   await shot('insights-desktop');
   await selectBatch('合成警告测评已确认');
   await page.getByRole('img', { name: /算法与数据结构均值3.11/ }).waitFor();
-  await selectBatch('合成正常测评');
+  await selectBatch('合成竞赛测评');
   await page.getByRole('img', { name: /算法与数据结构均值3.11/ }).waitFor();
   checkpoint = 'group pagination';
   await navigation('画像探索');
   await page.locator('.match-summary').filter({ hasText: '23 / 23' }).waitFor();
+  await page.locator('.sparse-matrix').waitFor();
+  const matrixBox = await page.locator('.sparse-matrix').boundingBox();
+  await page.mouse.move(
+    matrixBox.x + 50 + ((2.75 - 1) / 4) * (matrixBox.width - 74),
+    matrixBox.y + 30 + ((5 - 4) / 4) * (matrixBox.height - 125),
+  );
+  await page
+    .locator('.sparse-matrix')
+    .getByText('参评人数 12 人', { exact: false })
+    .first()
+    .waitFor();
+  await page.mouse.move(0, 0);
   await page.getByRole('button', { name: '添加条件', exact: true }).click();
   await page.getByRole('combobox', { name: '正式条件1比较' }).click();
   await page.locator('.ant-select-dropdown').getByText('=', { exact: true }).click();
@@ -316,6 +491,17 @@ try {
     .click();
   await page.getByText('原始评语暂未开放（非空，待审核）', { exact: true }).first().waitFor();
   assert.equal(await page.locator('.ant-drawer-open .source-details').count(), 5);
+  assert.equal(
+    await page
+      .locator('.ant-drawer-open')
+      .getByText(/^课程：/)
+      .count(),
+    0,
+  );
+  await page
+    .locator('.ant-drawer-open .assessment-context')
+    .getByText('合成竞赛测评', { exact: true })
+    .waitFor();
   await page.locator('.ant-drawer-open .ant-drawer-close').click();
   await page
     .getByRole('button', { name: /算法与数据结构 2.75 分证据/ })
@@ -374,9 +560,14 @@ try {
   checks.push(
     'server full-batch mean 3.11; exact 2.75 group 12/23, second page 2 items; withheld and authorized source/rubric',
   );
+  assert.doesNotMatch(await page.locator('.workspace').innerText(), /班级|全班|课堂成绩|算法比赛/);
+  checks.push(
+    'synthetic competition assessment uses neutral labels without class/course assumptions or invented course/date metadata',
+  );
   checkpoint = 'metric query replay';
   await page.getByRole('button', { name: '查看这组评分洞察' }).click();
-  await page.locator('.live-candidate').first().waitFor();
+  await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
+  await page.locator('.insights-right .live-candidate').first().waitFor();
   const batch = await request(`/batches/${normalCommit.batch_id}`);
   const spec = {
     snapshot_id: batch.snapshot_id,
@@ -394,6 +585,13 @@ try {
   assert.deepEqual(card.conditions, []); // This must not replace the original query conditions.
   const metric = card.metrics.find((m) => m.key === 'mean');
   assert.ok(metric);
+  await selectAspect('当前筛选群体');
+  assert.equal(await page.locator('.insights-right .live-candidate').count(), 1);
+  await page
+    .locator('.insights-right .live-candidate h2')
+    .filter({ hasText: '当前筛选群体概况' })
+    .waitFor();
+  await selectAspect('算法与数据结构');
   const recordsResponse = page.waitForResponse((r) => r.url().includes('/records/query'));
   await page.getByRole('button', { name: `${card.title} mean 查看评分证据`, exact: true }).click();
   const recordsHTTP = await recordsResponse,
@@ -416,21 +614,51 @@ try {
   checks.push(
     'insight metric drilldown replays original conditions/snapshot/include_dimensions; rational denominator is not headcount',
   );
+  checkpoint = 'teacher analysis save/review/export';
+  checks.push(
+    ...(await teacherAnalysisFlow({
+      page,
+      batch,
+      spec,
+      request,
+      admin,
+      scope,
+      ownerToken: token,
+      shot,
+      navigation,
+      switchSession: async (nextToken) => {
+        token = nextToken;
+        if (testMode)
+          await writeFile(
+            testSessionFile,
+            JSON.stringify({ synthetic_only: true, access_token: token }),
+          );
+        await page.reload();
+        await login();
+        await selectBatch('合成竞赛测评');
+      },
+    })),
+  );
   checkpoint = 'empty group and insight';
   await navigation('画像探索');
   await page.getByRole('textbox', { name: '正式条件1评分' }).fill('5');
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
   await page.locator('.match-summary').filter({ hasText: '0 / 23' }).waitFor();
   await page.getByText('没有匹配记录，请调整筛选条件。', { exact: true }).waitFor();
-  await navigation('学情洞察');
+  await saveEmptyAnalysis(page, '合成空群体分析', 0, true);
+  await navigation('学情诊断');
   const include = page.getByRole('checkbox', { name: '包含各维度洞察' });
   await include.uncheck();
   // Empty group candidates may be insufficient-data cards; no-candidate empty is tested with zero conditions + dimensions disabled.
   await navigation('画像探索');
   await page.getByRole('button', { name: '重置', exact: true }).click();
-  await navigation('学情洞察');
+  await navigation('学情诊断');
   await page.getByRole('checkbox', { name: '包含各维度洞察' }).uncheck();
   await page.getByText('当前查询没有可展示的评分洞察候选。', { exact: true }).waitFor();
+  await saveEmptyAnalysis(page, '合成无候选分析', 23, true);
+  checks.push(
+    'zero-match analysis saves correctly; no-candidate analysis exports a genuine zero-confirmed report',
+  );
   checks.push('zero-match group and genuine no-candidate insight states');
   checkpoint = 'error states';
   await navigation('画像探索');
@@ -454,7 +682,7 @@ try {
         body: JSON.stringify({ error: { code, message: '合成私密输入不得回显' } }),
       }),
     );
-    await navigation('学情洞察');
+    await navigation('学情诊断');
     await page.locator('.live-error').filter({ hasText: code }).waitFor();
     assert.equal(await page.getByText('合成私密输入不得回显', { exact: true }).count(), 0);
     await page.unroute(pattern);
@@ -462,7 +690,7 @@ try {
   }
   const statsPattern = '**/api/edu/batches/*/statistics?*';
   await page.route(statsPattern, (route) => route.abort('failed'));
-  await navigation('学情洞察');
+  await navigation('学情诊断');
   await page.locator('.live-error').filter({ hasText: 'NETWORK_ERROR' }).waitFor();
   await page.unroute(statsPattern);
   checks.push('safe 403/404/409/410/413/415/422/503 and network failure UI, with no Demo fallback');
@@ -485,18 +713,30 @@ try {
   );
   assert.equal(largeStats.matrix.cells.length, 401);
   await navigation('测评数据');
-  await page.getByRole('button', { name: /刷新批次/ }).click();
+  await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
   const largeRow = page.getByRole('row').filter({ hasText: '合成401评分测评' });
   await largeRow.getByRole('button', { name: '查看学情' }).click();
-  await page.getByRole('img', { name: /算法与数据结构均值3.00/ }).waitFor();
+  await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
+  await page.getByRole('img', { name: /算法与数据结构均值3(?:，|$)/ }).waitFor();
+  await page
+    .locator('.insights-right .live-candidate')
+    .getByText('评分分布', { exact: true })
+    .click();
+  await page.getByRole('combobox', { name: '查看评分人数', exact: true }).fill('5.00');
+  await page.locator('.ant-select-dropdown:visible').getByText('5 分', { exact: true }).click();
+  assert.equal(await page.locator('.live-metrics button').count(), 1);
+  const frequencyEvidence = page.waitForResponse((r) => r.url().includes('/records/query'));
+  await page.locator('.live-metrics button').click();
+  const frequencyHTTP = await frequencyEvidence;
+  assert.equal(frequencyHTTP.request().postDataJSON().metric_key, 'frequency:5');
+  assert.equal((await frequencyHTTP.json()).metric.at_score.value, 5);
+  await page.locator('.ant-drawer-open .ant-drawer-close').click();
   assert.ok(
     (await page.locator('.live-metrics button').count()) < 80,
     'Progressively disclose 401 score buckets',
   );
   await navigation('画像探索');
-  await page
-    .getByRole('img', { name: '服务端稀疏矩阵，401 个实际评分组合，配对人数 401' })
-    .waitFor();
+  await page.getByRole('img', { name: '实际评分组合，401 个实际评分组合，配对人数 401' }).waitFor();
   assert.ok(
     (await page.locator('.sparse-matrix svg path').count()) < 1000,
     'No Cartesian expansion',
@@ -505,6 +745,9 @@ try {
   assert.ok(axisLabels.includes('1') && axisLabels.includes('5'), 'Readable 1–5 score axes');
   await shot('401-sparse-scores');
   checks.push('401 distinct legal scores rendered as 401 sparse cells without full-grid expansion');
+  checks.push(
+    'one selected insight aspect at a time, no inner panel scrolling; exact score dropdown and evidence remain bounded for 401 score buckets',
+  );
   checkpoint = 'batch request race';
   let release;
   const held = new Promise((resolve) => {
@@ -521,9 +764,9 @@ try {
     await held;
     await route.fulfill({ response }).catch(() => {});
   });
-  await navigation('学情洞察');
+  await navigation('学情诊断');
   await requested;
-  await selectBatch('合成正常测评');
+  await selectBatch('合成竞赛测评');
   await page.getByRole('img', { name: /算法与数据结构均值3.11/ }).waitFor();
   release();
   await page.unroute(oldPattern);
@@ -534,7 +777,7 @@ try {
   checkpoint = 'mobile';
   await page.setViewportSize({ width: 390, height: 844 });
   for (const [name, artifact] of [
-    ['学情洞察', 'insights-mobile'],
+    ['学情诊断', 'insights-mobile'],
     ['画像探索', 'explorer-mobile'],
     ['测评数据', 'data-mobile'],
   ]) {
@@ -549,13 +792,17 @@ try {
   checks.push('390px three-page layout without document overflow');
   checkpoint = 'real permission revocation';
   admin('member-set', '--teacher-id', teacher, '--scope-id', scope); // Cached UI cannot override server-side import revocation.
-  await page.getByLabel('测评名称', { exact: true }).fill('合成权限测试');
   await page.locator('input[type=file]').setInputFiles(path.join(temporary, 'normal.xlsx'));
   await page.getByText('当前教师没有执行此操作的权限。', { exact: true }).waitFor();
   admin('token-revoke', '--teacher-id', teacher);
-  await page.getByRole('button', { name: /刷新批次/ }).click();
+  const workspaceExpiredHTTP = page.waitForResponse(
+    (r) => r.url().includes('/api/edu/') && r.status() === 401,
+  );
+  workspaceExpiredHTTP.catch(() => {});
+  await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+  assert.equal((await workspaceExpiredHTTP).status(), 401);
   await page
-    .getByRole('heading', { name: testMode ? '连接测试数据' : '连接教师会话，查看正式测评数据' })
+    .getByRole('heading', { name: testMode ? '正在连接数据' : '连接账户，查看测评' })
     .waitFor();
   assert.equal(await page.locator('.live-workspace').count(), 0);
   checks.push(
@@ -566,7 +813,8 @@ try {
   if (testMode)
     await writeFile(testSessionFile, JSON.stringify({ synthetic_only: true, access_token: token }));
   await login(true);
-  await page.getByRole('row').filter({ hasText: '合成正常测评' }).waitFor();
+  await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+  await page.getByRole('row').filter({ hasText: '合成竞赛测评' }).waitFor();
   const storage = await page.evaluate(() => ({
     local: JSON.stringify(localStorage),
     session: JSON.stringify(sessionStorage),
@@ -576,17 +824,19 @@ try {
   }));
   assert.ok(Object.values(storage).every((value) => !value.includes(token)));
   await page.reload();
-  if (!testMode)
-    await page.getByRole('heading', { name: '连接教师会话，查看正式测评数据' }).waitFor();
+  if (!testMode) await page.getByRole('heading', { name: '连接账户，查看测评' }).waitFor();
   await login();
-  await page.getByRole('row').filter({ hasText: '合成正常测评' }).waitFor();
-  await page.getByText('Demo', { exact: true }).click();
+  await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+  await page.getByRole('row').filter({ hasText: '合成竞赛测评' }).waitFor();
+  await page.goto(`${origin}/dev/demo`);
+  await navigation('测评数据');
   await page.getByRole('heading', { name: '上传新测评' }).waitFor();
-  await page.getByText('正式数据', { exact: true }).click();
+  await page.goto(`${origin}/dev/live`);
   if (testMode) {
     await page.locator('.live-workspace').waitFor();
-    await page.getByRole('row').filter({ hasText: '合成正常测评' }).waitFor();
-  } else await page.getByRole('heading', { name: '连接教师会话，查看正式测评数据' }).waitFor();
+    await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+    await page.getByRole('row').filter({ hasText: '合成竞赛测评' }).waitFor();
+  } else await page.getByRole('heading', { name: '连接账户，查看测评' }).waitFor();
   checks.push(
     testMode
       ? 'test session auto-connects after refresh and Demo return; database batches persist; no browser token input or persistence'
@@ -621,5 +871,10 @@ try {
       await exited;
     }
   }
-  await rm(temporary, { recursive: true, force: true });
+  const resolved = path.resolve(temporary);
+  assert.ok(
+    resolved.startsWith(path.resolve(tmpdir()) + path.sep) &&
+      path.basename(resolved).startsWith('weiran-edu-browser-'),
+  );
+  await rm(resolved, { recursive: true, force: true });
 }

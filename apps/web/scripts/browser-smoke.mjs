@@ -52,17 +52,28 @@ async function main() {
   try {
     const response = await page.goto(process.env.APP_URL || 'http://127.0.0.1:3000/');
     assert.equal(response.status(), 200);
-    await page.getByText('Demo', { exact: true }).click();
-    await page.getByRole('heading', { name: '五维能力概况' }).waitFor();
+    await page.goto(new URL('/dev/demo', process.env.APP_URL || 'http://127.0.0.1:3000/').href);
+    await page.getByRole('heading', { name: '本次测评概况' }).waitFor();
+    assert.match(await page.locator('.stat-grid').innerText(), /参评人数/);
+    assert.doesNotMatch(
+      await page.locator('.workspace').innerText(),
+      /班级|全班|课堂成绩|算法比赛/,
+    );
     await page.locator('.ability-chart svg').waitFor();
+    const demoLabels = await page
+      .locator('.finding-top .ant-tag')
+      .evaluateAll((elements) =>
+        elements.map((element) => parseFloat(getComputedStyle(element).fontSize)),
+      );
+    assert.ok(demoLabels.length > 0 && demoLabels.every((size) => size <= 13));
     await noOverflow();
     await shot('insights-desktop');
     checks.push('桌面首页及雷达图正常渲染');
     await page.getByRole('button', { name: /查看 21 人依据/ }).click();
-    await page.getByText('统计分母：本批次 105 名学生').waitFor();
+    await page.getByText('统计分母：本次测评参评人数 105 人').waitFor();
     await shot('evidence-desktop');
     await closeDrawer();
-    await page.getByRole('button', { name: '生成教学分析' }).click();
+    await page.getByRole('button', { name: '生成测评分析' }).click();
     await page.getByText('规则模板 · 未接入 AI').waitFor();
     await closeDrawer();
     checks.push('证据抽屉与明确标注的分析模板可查看');
@@ -91,7 +102,7 @@ async function main() {
     assert.match(await page.locator('.match-summary').innerText(), /105/);
     await shot('explorer-desktop');
     checks.push('筛选、空结果、重置和学生前后切换通过');
-    await page.getByRole('link', { name: '测评数据', exact: true }).click();
+    await page.getByRole('button', { name: '上传新测评', exact: true }).click();
     await page.getByRole('heading', { name: '上传新测评' }).waitFor();
     await noOverflow();
     await uploadContained();
@@ -105,6 +116,13 @@ async function main() {
     await page
       .locator('input[type=file]')
       .setInputFiles(path.resolve('public/templates/评价_待校验示例.xlsx'));
+    await page.getByLabel('测评名称', { exact: true }).waitFor();
+    assert.equal(
+      await page.getByLabel('测评名称', { exact: true }).inputValue(),
+      '评价_待校验示例',
+    );
+    assert.equal(await page.getByRole('heading', { name: '导入预览', exact: true }).count(), 0);
+    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     await page.getByRole('heading', { name: '导入预览', exact: true }).waitFor();
     assert.equal(await page.getByRole('button', { name: /确认导入$/ }).isDisabled(), true);
     assert.match(await page.locator('.quality-report').innerText(), /2 项需处理/);
@@ -116,9 +134,13 @@ async function main() {
     await page
       .locator('input[type=file]')
       .setInputFiles(path.resolve('public/templates/评价长表模板.xlsx'));
+    await page.getByLabel('测评名称', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), '评价长表模板');
+    await page.getByLabel('测评名称', { exact: true }).fill('浏览器验证批次');
+    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     await page.getByText('所有记录通过当前标准校验').waitFor();
     assert.equal(await page.getByRole('button', { name: /确认导入$/ }).isEnabled(), true);
-    await page.getByLabel('新测评名称', { exact: true }).fill('浏览器验证批次');
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), '浏览器验证批次');
     await page.getByRole('button', { name: /确认导入$/ }).click();
     await page.getByText('浏览器验证批次', { exact: true }).first().waitFor();
     assert.equal(await page.locator('.batches-panel tbody tr.ant-table-row').count(), 2);
@@ -128,9 +150,12 @@ async function main() {
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       buffer: sameFile,
     });
+    await page.getByLabel('测评名称', { exact: true }).waitFor();
+    assert.equal(await page.getByLabel('测评名称', { exact: true }).inputValue(), '重命名');
+    await page.getByRole('button', { name: '下一步：预览校验', exact: true }).click();
     await page.getByText('这份文件已在当前会话中导入，重命名文件也不会创建重复批次。').waitFor();
     checks.push('有效文件确认追加批次，重命名重复文件仍被识别');
-    await page.getByRole('link', { name: '学情洞察', exact: true }).click();
+    await page.getByRole('link', { name: '学情诊断', exact: true }).click();
     assert.match(await page.locator('.stat-grid').innerText(), /2/);
     await page.getByRole('button', { name: /全屏$/ }).click();
     await page.waitForFunction(() => Boolean(document.fullscreenElement));
@@ -141,8 +166,8 @@ async function main() {
     await page.getByRole('navigation', { name: '主导航' }).waitFor();
     checks.push('全屏隐藏主导航，Esc 退出并保留批次');
     await page.reload();
-    await page.getByText('Demo', { exact: true }).click();
-    await page.getByRole('heading', { name: '五维能力概况' }).waitFor();
+    await page.goto(new URL('/dev/demo', process.env.APP_URL || 'http://127.0.0.1:3000/').href);
+    await page.getByRole('heading', { name: '本次测评概况' }).waitFor();
     await page.setViewportSize({ width: 390, height: 844 });
     await noOverflow();
     await shot('insights-mobile');
@@ -150,7 +175,7 @@ async function main() {
     await page.getByRole('heading', { name: '能力组合分布' }).waitFor();
     await noOverflow();
     await shot('explorer-mobile');
-    await page.getByRole('link', { name: '测评数据', exact: true }).click();
+    await page.getByRole('button', { name: '上传新测评', exact: true }).click();
     await page.getByRole('heading', { name: '上传新测评' }).waitFor();
     await noOverflow();
     await uploadContained();

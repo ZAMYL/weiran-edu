@@ -30,6 +30,8 @@ import type { Batch, ImportPreview as Preview } from '../../domain/model';
 import { parseExcel } from '../../services/excel';
 import { Panel } from '../../components/ui';
 import { ImportPreview } from './ImportPreview';
+import { UploadSelection } from './UploadSelection';
+import { assessmentNameFromFilename } from '../../services/assessment-name';
 
 export default function DataPage() {
   const batch = useBatch();
@@ -38,6 +40,8 @@ export default function DataPage() {
   const { message } = App.useApp();
   const router = useRouter();
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -49,12 +53,25 @@ export default function DataPage() {
     },
     [],
   );
-  async function upload(file: File) {
+  function selectFile(file: File) {
+    if (loading) return Upload.LIST_IGNORE;
+    setError(null);
+    setSelectedFile(null);
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+      setError('请选择 .xlsx 格式的 Excel 文件。');
+      return Upload.LIST_IGNORE;
+    }
+    setSelectedFile(file);
+    setTitle(assessmentNameFromFilename(file.name));
+    return Upload.LIST_IGNORE;
+  }
+  async function next() {
+    if (loading || !selectedFile || !title.trim()) return;
     const request = ++uploadRequest.current;
     setError(null);
     setLoading(true);
     try {
-      const parsed = await parseExcel(file, DEMO_STANDARD);
+      const parsed = await parseExcel(selectedFile, DEMO_STANDARD);
       if (request !== uploadRequest.current) return;
       if (useWorkspace.getState().batches.some((b) => b.fingerprint === parsed.fingerprint))
         throw new Error('这份文件已在当前会话中导入，重命名文件也不会创建重复批次。');
@@ -67,7 +84,6 @@ export default function DataPage() {
     } finally {
       if (request === uploadRequest.current) setLoading(false);
     }
-    return Upload.LIST_IGNORE;
   }
   function confirm(name: string) {
     if (!preview || preview.issues.length || !name) return;
@@ -85,6 +101,8 @@ export default function DataPage() {
       students: preview.students,
     });
     setPreview(null);
+    setSelectedFile(null);
+    setTitle('');
     message.success('已创建独立的本地批次；刷新页面后不保留。');
   }
   const enterInsights = (target: Batch) => {
@@ -96,6 +114,7 @@ export default function DataPage() {
       <ImportPreview
         key={preview.fingerprint}
         preview={preview}
+        initialName={title.trim()}
         onCancel={() => setPreview(null)}
         onConfirm={confirm}
       />
@@ -107,7 +126,7 @@ export default function DataPage() {
           <Steps
             current={0}
             size="small"
-            items={[{ title: '上传文件' }, { title: '预览校验' }, { title: '确认导入' }]}
+            items={[{ title: '选择文件' }, { title: '自动检查' }, { title: '确认导入' }]}
           />
           <div className="standard-select">
             <label htmlFor="standard-select">评价标准</label>
@@ -123,7 +142,7 @@ export default function DataPage() {
             multiple={false}
             disabled={loading}
             showUploadList={false}
-            beforeUpload={upload}
+            beforeUpload={selectFile}
             className="excel-dropzone"
           >
             <div className="upload-symbol">
@@ -135,6 +154,20 @@ export default function DataPage() {
             </Button>
             <p>长表格式 · .xlsx · 原始内容本地解析</p>
           </Upload.Dragger>
+          {selectedFile && (
+            <UploadSelection
+              filename={selectedFile.name}
+              name={title}
+              onNameChange={setTitle}
+              onNext={next}
+              onClear={() => {
+                setSelectedFile(null);
+                setTitle('');
+                setError(null);
+              }}
+              busy={loading}
+            />
+          )}
           <div className="upload-note">
             <InfoCircleOutlined /> 保留原始评分、评语与来源；确认后才创建批次。
           </div>
@@ -158,22 +191,25 @@ export default function DataPage() {
             </Button>
           </div>
         </Panel>
-        <Panel title="数据准备" className="preparation-panel">
-          <div className="preparation-list">
-            {[
-              ['学生标识、五项评分与原始评语', '每名学生每个维度一条记录，表头请参照模板。'],
-              ['评分范围与缺失检查', '按所选标准检查范围、步长、缺失与重复记录。'],
-              ['重复文件检查', '通过文件内容指纹识别本会话内已导入文件。'],
-            ].map(([title, detail]) => (
-              <div className="preparation-item" key={title}>
-                <CheckCircleFilled />
-                <div>
-                  <h3>{title}</h3>
-                  <p>{detail}</p>
+        <Panel title="上传说明" className="preparation-panel">
+          <details>
+            <summary>文件要求与处理方式</summary>
+            <div className="preparation-list">
+              {[
+                ['学生标识、五项评分与原始评语', '每名学生每个维度一条记录，表头请参照模板。'],
+                ['评分范围与缺失检查', '按所选标准检查范围、步长、缺失与重复记录。'],
+                ['重复文件检查', '通过文件内容指纹识别本会话内已导入文件。'],
+              ].map(([title, detail]) => (
+                <div className="preparation-item" key={title}>
+                  <CheckCircleFilled />
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{detail}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </details>
           <Alert
             type="info"
             showIcon
@@ -222,7 +258,7 @@ export default function DataPage() {
               ),
             },
             { title: '来源文件', dataIndex: 'filename' },
-            { title: '学生人数', render: (_, b) => `${b.students.length} 名` },
+            { title: '参评人数', render: (_, b) => `${b.students.length} 人` },
             {
               title: '评分条数',
               render: (_, b) => `${b.students.length * b.standard.dimensions.length} 条`,
@@ -251,11 +287,7 @@ export default function DataPage() {
         />
       </Panel>
       {fullscreen && (
-        <Panel
-          title="当前批次数据概览"
-          subtitle="各维度评分完整情况"
-          className="completeness-panel"
-        >
+        <Panel title="当前批次数据概览" className="completeness-panel">
           <Completeness batch={batch} />
         </Panel>
       )}

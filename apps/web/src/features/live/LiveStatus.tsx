@@ -21,10 +21,11 @@ export function RequestError({ error, retry }: { error: ApiError; retry?: () => 
       type="error"
       title={error.message}
       description={
-        <>
+        <details>
+          <summary>技术详情</summary>
           <span>错误码：{error.code}</span>
           {error.requestId && <span> · 请求编号：{error.requestId}</span>}
-        </>
+        </details>
       }
       action={
         error.code === 'SNAPSHOT_MISMATCH' ? (
@@ -40,14 +41,14 @@ export function LoadingPanel() {
   return (
     <Panel className="live-loading">
       <Spin />
-      <p className="muted">正在读取服务端数据…</p>
+      <p className="muted">正在读取数据…</p>
     </Panel>
   );
 }
 export function NoBatch() {
   return (
     <Panel>
-      <Empty description="暂无已选择的授权批次，请选择批次或到测评数据页上传。" />
+      <Empty description="暂无可查看的测评，请从顶部上传新测评或查看历史测评。" />
     </Panel>
   );
 }

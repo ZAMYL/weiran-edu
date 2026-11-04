@@ -50,8 +50,8 @@ export default function InsightsPage() {
         <div className="insights-left">
           <Panel
             className="radar-panel"
-            title="五维能力概况"
-            subtitle={`本批次有效评分均值 · ${batch.standard.name}`}
+            title="本次测评概况"
+            subtitle={`测评平均分 · ${batch.standard.name}`}
             action={
               <Segmented
                 value={chartMode}
@@ -67,7 +67,7 @@ export default function InsightsPage() {
             <div className="chart-caption">
               <span>
                 <i className="legend-dot" />
-                本次测评 · {batch.students.length} 名学生
+                本次测评 · {batch.students.length} 人参评
               </span>
               <span>基于当前评分记录计算</span>
             </div>
@@ -120,10 +120,9 @@ export default function InsightsPage() {
               <span className="number-divider" />
               <strong>
                 {percentage(students.length, batch.students.length)}
-                <em>占本批次</em>
+                <em>占参评人数</em>
               </strong>
             </div>
-            <p>{students.length} 名学生同时符合上述两项评分条件。</p>
             <div className="finding-actions">
               <Button onClick={() => setPanel('evidence')}>查看 {students.length} 人依据</Button>
               <Button type="text" onClick={openExplorer}>
@@ -133,7 +132,6 @@ export default function InsightsPage() {
           </section>
           <Panel
             title="评语主题与原始依据"
-            subtitle="从原始评语中检索线索，结合记录理解群体表现。"
             action={
               <Button type="link" onClick={() => setPanel('evidence')}>
                 查看依据 <ArrowRightOutlined />
@@ -173,7 +171,7 @@ export default function InsightsPage() {
       <section className="panel teaching-strip">
         <div>
           <h2>
-            下一步：教学检查 <PendingTag />
+            下一步：核对群体差异 <PendingTag />
           </h2>
           <p className="muted">能力差异的原因仍需结合题目与答题过程验证。</p>
         </div>
@@ -187,7 +185,7 @@ export default function InsightsPage() {
           disabled={!students.length}
           onClick={() => setPanel('analysis')}
         >
-          生成教学分析
+          生成测评分析
         </Button>
       </section>
       <GroupDrawers

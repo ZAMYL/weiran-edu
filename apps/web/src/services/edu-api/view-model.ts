@@ -6,11 +6,25 @@ export const operatorLabels = { lt: '<', lte: '≤', eq: '=', gte: '≥', gt: '>
 export const conditionText = (conditions: ApiCondition[]) =>
   conditions
     .map((c) => `${dimensionName(c.dimension_code)} ${operatorLabels[c.operator]} ${c.value}`)
-    .join(' 且 ') || '全部学生';
-export const metricDisplay = (metric: InsightMetric) =>
-  metric.unit === 'ratio' && metric.value.value !== null
-    ? `${(metric.value.value * 100).toFixed(2)}%`
-    : metric.value.display;
+    .join(' 且 ') || '全部参评者';
+export const scoreDisplay = (value: number | null) =>
+  value === null || !Number.isFinite(value)
+    ? '—'
+    : new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(
+        Math.abs(value) < 0.005 ? 0 : value,
+      );
+export const ratioDisplay = (value: number | null) =>
+  value === null ? '—' : `${scoreDisplay(value * 100)}%`;
+export const countDisplay = (value: number | null) =>
+  value === null ? '—' : Number.isSafeInteger(value) ? String(value) : scoreDisplay(value);
+export const metricDisplay = (metric: Pick<InsightMetric, 'unit' | 'value'>) =>
+  metric.value.value === null
+    ? '—'
+    : metric.unit === 'ratio'
+      ? ratioDisplay(metric.value.value)
+      : metric.unit === 'records'
+        ? countDisplay(metric.value.value)
+        : scoreDisplay(metric.value.value);
 export const commentStatusText = (status: ApiEvidence['comment_status']) =>
   status === 'published'
     ? '已审核展示文本 · 仅限授权教师'

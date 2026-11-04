@@ -6,11 +6,13 @@ import {
   list,
   literal,
   nullable,
+  optional,
   numeric,
   object,
   text,
   type Decoded,
 } from './schema';
+import { exactRationalDto } from './exact';
 
 export const DIMENSIONS = [
   { code: 'algorithm_data_structure', name: '算法与数据结构' },
@@ -29,9 +31,9 @@ export const conditionDto = object({
 });
 export type ApiCondition = Decoded<typeof conditionDto>;
 export const pageDto = object({ offset: count, limit: count, returned: count, has_more: flag });
-const statValueDto = object({
+export const statValueDto = object({
   value: nullable(numeric),
-  exact: nullable(object({ numerator: numeric, denominator: count })),
+  exact: nullable(exactRationalDto),
   display: text,
 });
 const frequencyDto = object({ score: numeric, count, denominator: count, ratio: statValueDto });
@@ -93,7 +95,7 @@ export const scoreDto = object({
   score: numeric,
   evidence_id: text,
 });
-const studentDto = object({ student_id: text, display_label: text, scores: list(scoreDto) });
+export const studentDto = object({ student_id: text, display_label: text, scores: list(scoreDto) });
 export type ApiStudent = Decoded<typeof studentDto>;
 export const studentListDto = object({
   batch_id: text,
@@ -192,7 +194,7 @@ const metricDto = object({
   at_score: nullable(statValueDto),
   source_record_count: count,
 });
-const cardDto = object({
+export const cardDto = object({
   candidate_id: text,
   batch_id: text,
   snapshot_id: text,
@@ -307,6 +309,19 @@ export const importDto = object({
     committed_batch_id: nullable(text),
   }),
   preview_available: flag,
+  recognized_items: optional(
+    nullable(
+      list(
+        object({
+          item_id: text,
+          display_name: text,
+          kind: text,
+          scale: object({ minimum: numeric, maximum: numeric, step: numeric }),
+          score_row_count: count,
+        }),
+      ),
+    ),
+  ),
   summary: summaryDto,
   student_samples: nullable(
     list(
@@ -375,8 +390,10 @@ export type ApiQuality = Decoded<typeof qualityDto>;
 export const commitDto = object({
   import_id: text,
   batch_id: text,
+  snapshot_id: optional(text),
   result: literal('created', 'duplicate', 'replayed'),
 });
+export type ApiCommit = Decoded<typeof commitDto>;
 export const meDto = object({ teacher_id: text });
 export const scopesDto = object({
   items: list(object({ data_scope_id: text, label: text, can_import: flag })),

@@ -5,8 +5,8 @@ import { Providers } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '未然 EDU — 学情分析平台',
-  description: '未然 EDU：从测评中看见差异，从证据中形成判断。当前为本地演示版。',
+  title: '未然 EDU｜AI 时代的编程能力与学习成效诊断平台',
+  description: '未然 EDU｜AI 时代的编程能力与学习成效诊断平台',
   icons: { icon: '/favicon.svg' },
 };
 
