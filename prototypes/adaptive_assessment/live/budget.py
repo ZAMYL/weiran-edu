@@ -2,7 +2,7 @@
 
 import json
 import os
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from hashlib import sha256
@@ -59,6 +59,62 @@ class SyntheticLiveAuthorization(Strict):
                 raise AgentError("synthetic_fingerprint_mismatch")
 
 
+@dataclass(frozen=True)
+class OfflineSnapshotPermit:
+    """Operator-owned DB proof, usable ONLY by the existing HTTP Mock ledger.
+
+    Not JSON, not a Synthetic Live approval, and never accepted by the network origin.
+    The proof rechecks actual current teacher/snapshot access on every budget check.
+    """
+
+    source: object = field(repr=False)
+    campaign_id: str
+    price_fingerprint: str
+    max_requests: int = 6
+    max_output_tokens: int = 800
+    total_token_limit: int = 5_955_648
+    cost_cap_cny: Decimal = Decimal("4.78")
+    model: str = "qwen3.8-flash"
+    endpoint_sha256: str = sha256(b"https://dashscope.aliyuncs.com/compatible-mode/v1").hexdigest()
+
+    @property
+    def source_fingerprints(self):
+        return {self.source.recipe: self.source.fingerprint}
+
+    def check(self, today):
+        from prototypes.teacher_agent_bridge.provider import DatabaseSource
+
+        if type(self.source) is not DatabaseSource:
+            raise AgentError("offline_database_proof_required")
+        self.source.validate()
+        if (
+            not 1 <= self.max_requests <= 6
+            or self.max_output_tokens != 800
+            or not 1 <= self.total_token_limit <= 5_955_648
+            or not Decimal(0) < self.cost_cap_cny <= Decimal("4.78")
+        ):
+            raise AgentError("invalid_offline_budget")
+        price = reviewed_price(self.price_fingerprint)
+        price.check(self.model, "https://dashscope.aliyuncs.com/compatible-mode/v1", today)
+
+    def model_dump_json(self):
+        return json.dumps(
+            {
+                "origin": "http_mock",
+                "campaign_id": self.campaign_id,
+                "source_fingerprints": self.source_fingerprints,
+                "price_fingerprint": self.price_fingerprint,
+                "max_requests": self.max_requests,
+                "max_output_tokens": self.max_output_tokens,
+                "total_token_limit": self.total_token_limit,
+                "cost_cap_cny": str(self.cost_cap_cny),
+                "model": self.model,
+                "endpoint_sha256": self.endpoint_sha256,
+            },
+            sort_keys=True,
+        )
+
+
 class CampaignBudget:
     """A trusted operator creates this once. New planners share it, never reconstruct it.
 
@@ -69,20 +125,24 @@ class CampaignBudget:
 
     def __init__(
         self,
-        authorization: SyntheticLiveAuthorization,
+        authorization: SyntheticLiveAuthorization | OfflineSnapshotPermit,
         state_dir: Path,
         *,
         origin: Literal["synthetic_live", "http_mock"],
         today: date | None = None,
     ):
-        if type(authorization) is not SyntheticLiveAuthorization or origin not in (
-            "synthetic_live",
-            "http_mock",
+        if not (
+            type(authorization) is SyntheticLiveAuthorization
+            and origin in ("synthetic_live", "http_mock")
+            or type(authorization) is OfflineSnapshotPermit
+            and origin == "http_mock"
         ):
             raise AgentError("invalid_live_authorization")
         self._today = today if origin == "http_mock" else None
-        self.authorization = SyntheticLiveAuthorization.model_validate_json(
-            authorization.model_dump_json()
+        self.authorization = (
+            authorization
+            if type(authorization) is OfflineSnapshotPermit
+            else SyntheticLiveAuthorization.model_validate_json(authorization.model_dump_json())
         )
         self._bound_price = reviewed_price(self.authorization.price_fingerprint)
         self._authorization_fingerprint = sha256(
@@ -153,6 +213,8 @@ class CampaignBudget:
         if self._closed or self._blocked:
             raise AgentError(self._blocked or "budget_closed")
         a = self.authorization
+        if type(a) is OfflineSnapshotPermit and source is not a.source:
+            raise AgentError("offline_source_identity_mismatch")
         self._check_authorization()
         self.price.check(settings.model, settings.base_url, self.today)
         if (

@@ -159,10 +159,54 @@ async def investigate(
     access="synthetic_full",
     seed_queries: tuple = (),
 ) -> tuple[dict, ResearchExecutor]:
+    return await _investigate(
+        admit(recipe),
+        question,
+        budget,
+        transport=transport,
+        allow_network=allow_network,
+        limits=limits,
+        access=access,
+        seed_queries=seed_queries,
+    )
+
+
+async def investigate_database(source, question, budget, *, transport, limits=None):
+    """Only the server DB Provider may enter this offline-only branch of the same loop."""
+    from prototypes.adaptive_assessment.live.budget import OfflineSnapshotPermit
+    from prototypes.teacher_agent_bridge.provider import DatabaseSource
+
+    if (
+        type(source) is not DatabaseSource
+        or type(transport) is not httpx.MockTransport
+        or budget.origin != "http_mock"
+        or type(budget.authorization) is not OfflineSnapshotPermit
+        or budget.authorization.source is not source
+    ):
+        raise AgentError("offline_database_adapter_required")
+    source.validate()
+    return await _investigate(source, question, budget, transport=transport, limits=limits)
+
+
+async def _investigate(
+    source,
+    question,
+    budget,
+    *,
+    transport=None,
+    allow_network=False,
+    limits=None,
+    access="synthetic_full",
+    seed_queries=(),
+):
     started = perf_counter()
+    if allow_network:
+        from prototypes.adaptive_assessment.synthetic import AdmittedSynthetic
+
+        if type(source) is not AdmittedSynthetic:
+            raise AgentError("database_network_mode_forbidden")
     if access != "synthetic_full":
         raise AgentError("synthetic_access_denied")
-    source = admit(recipe)
     source.validate()
     limits = limits or Limits(timeout_seconds=30)
     executor = ResearchExecutor(source, "research-" + uuid4().hex[:12], limits)
