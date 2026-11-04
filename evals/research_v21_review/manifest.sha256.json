@@ -1,0 +1,10 @@
+{
+  "answers/review_corr_scope_20261103.json": "3a6c9608e8309006a010cabb7851bcfa6c59f7b0320dd01a6ea330ee9f5e1586",
+  "answers/review_decimal_interaction_20261103.json": "84a15c97bf9c14b3327e61c6e45a73714601cccee2109c06fe7bf62ef2044dd3",
+  "answers/review_missing_support_20261103.json": "b43bf73caf0e28ebba89ccac0f166cefbcaef29af2c1dee5e8ca8d574f005c79",
+  "inputs/review_corr_scope_20261103.json": "7a3e9121a1a45c4b09150cb90f801325e5b748cf6f6944ea21298dca03f7c665",
+  "inputs/review_decimal_interaction_20261103.json": "9216013ceb869ecac48882f110bae841b8c014bb4bb2d53ca74d1437509d4b0e",
+  "inputs/review_missing_support_20261103.json": "c20a6bdb69c01aacb9ea75223ac29a358b7ff305a27557f3a8e05808134e946c",
+  "inputs.json": "39ae2ecb35c47019189de361c664c52eacd4e144399c913388d46738e5d2be2a",
+  "oracles.json": "ece492eaf2941825628bc9899515f9bf4aef55a53dae66859e830f13e80b093d"
+}
