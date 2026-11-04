@@ -50,3 +50,18 @@ class Price:
 
 
 PRICE = Price()
+
+
+# Newly verified list prices; historical approvals retain their old expiry and fingerprint.
+RESEARCH_PRICE_20261104 = Price(
+    price_id="qwen3.8-flash-beijing-2026-11-04-v1",
+    checked_on="2026-11-04",
+    valid_until="2026-11-11",
+)
+
+
+def reviewed_price(fingerprint: str) -> Price:
+    for price in (PRICE, RESEARCH_PRICE_20261104):
+        if price.fingerprint == fingerprint:
+            return price
+    raise AgentError("stale_authorization_or_price")

@@ -1,0 +1,721 @@
+{
+  "origin": "closed_synthetic_provider_example",
+  "initial_context": {
+    "binding": {
+      "batch_id": "synthetic-batch-bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "snapshot_id": "bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "scope_sha256": "86ecb9dd2eca2160da890c2c2c3f51eb9e82c60d6c731b6ff7945d1a675eb290",
+      "source_sha256": "bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "authorization_revision": 1,
+      "campaign_id": "synthetic-provider-demo",
+      "disclosure_sha256": "8eb447fa80123cc70a5cd2cdaa96e2e2895649392222f07c3f1121793f0b4f5b",
+      "purpose": "offline_synthetic_provider_probe",
+      "rule_version": "edu-adaptive-prototype-0.1-draft"
+    },
+    "capabilities": {
+      "model_view": "adaptive-aggregate-v1",
+      "items": [
+        {
+          "item_id": "Q01",
+          "kind": "question",
+          "label": "合成评价项 Q01",
+          "scale": {
+            "minimum": "0",
+            "maximum": "10",
+            "step": "0.5",
+            "unit": "points"
+          },
+          "measurement_level": "ordinal",
+          "statistics": "available",
+          "relation_eligible": true,
+          "filter_eligible": true,
+          "rubric_available": false
+        },
+        {
+          "item_id": "Q02",
+          "kind": "question",
+          "label": "合成评价项 Q02",
+          "scale": {
+            "minimum": "0",
+            "maximum": "10",
+            "step": "0.5",
+            "unit": "points"
+          },
+          "measurement_level": "ordinal",
+          "statistics": "available",
+          "relation_eligible": true,
+          "filter_eligible": true,
+          "rubric_available": false
+        },
+        {
+          "item_id": "Q03",
+          "kind": "question",
+          "label": "合成评价项 Q03",
+          "scale": {
+            "minimum": "0",
+            "maximum": "10",
+            "step": "0.5",
+            "unit": "points"
+          },
+          "measurement_level": "ordinal",
+          "statistics": "available",
+          "relation_eligible": true,
+          "filter_eligible": true,
+          "rubric_available": false
+        },
+        {
+          "item_id": "Q04",
+          "kind": "question",
+          "label": "合成评价项 Q04",
+          "scale": {
+            "minimum": "0",
+            "maximum": "10",
+            "step": "0.5",
+            "unit": "points"
+          },
+          "measurement_level": "ordinal",
+          "statistics": "available",
+          "relation_eligible": true,
+          "filter_eligible": true,
+          "rubric_available": false
+        }
+      ],
+      "tools": [
+        "get_dimension_statistics",
+        "query_dimension_relation",
+        "compare_student_groups",
+        "inspect_item_quality",
+        "inspect_discovery_support",
+        "finish"
+      ],
+      "unsupported": [
+        "five_dimension_inference_from_questions",
+        "combined_ability_grade",
+        "ai_collaboration_ability",
+        "learning_growth",
+        "causal_teaching_effect",
+        "score_correctness_judgment"
+      ],
+      "synthetic_only": true
+    },
+    "remote_model_allowed": false,
+    "unimplemented": [
+      "formal_teacher_auth",
+      "cross_session_disclosure",
+      "dynamic_http_dto"
+    ]
+  },
+  "controlled_goal": {
+    "type": "group",
+    "items": [
+      "Q01",
+      "Q02",
+      "Q03"
+    ],
+    "rubric_evidence": "unavailable",
+    "task_evidence": "unavailable",
+    "no_causal_conclusions": true
+  },
+  "verified_facts": [
+    {
+      "fact_id": "provider-probe-f001",
+      "batch_id": "synthetic-batch-bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "snapshot_id": "bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "scope": "complete_registered_synthetic_batch",
+      "query": {
+        "tool": "get_dimension_statistics",
+        "arguments": {
+          "item_ids": null
+        }
+      },
+      "values": {
+        "fact_id": "provider-probe-f001",
+        "qualified": false,
+        "items": [
+          {
+            "item_id": "Q01",
+            "denominator": 40,
+            "valid_count": 40,
+            "excluded_count": 0,
+            "states": {
+              "valid": 40
+            },
+            "mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "median": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "range_checked": true,
+            "state": "available",
+            "has_variance": true,
+            "exploration_thresholds": [
+              "0",
+              "10"
+            ]
+          },
+          {
+            "item_id": "Q02",
+            "denominator": 40,
+            "valid_count": 40,
+            "excluded_count": 0,
+            "states": {
+              "valid": 40
+            },
+            "mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "median": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "range_checked": true,
+            "state": "available",
+            "has_variance": true,
+            "exploration_thresholds": [
+              "0",
+              "10"
+            ]
+          },
+          {
+            "item_id": "Q03",
+            "denominator": 40,
+            "valid_count": 40,
+            "excluded_count": 0,
+            "states": {
+              "valid": 40
+            },
+            "mean": {
+              "numerator": 25,
+              "denominator": 4,
+              "display": "6.2500"
+            },
+            "median": {
+              "numerator": 15,
+              "denominator": 2,
+              "display": "7.5000"
+            },
+            "range_checked": true,
+            "state": "available",
+            "has_variance": true,
+            "exploration_thresholds": [
+              "2.5",
+              "7.5"
+            ]
+          },
+          {
+            "item_id": "Q04",
+            "denominator": 40,
+            "valid_count": 40,
+            "excluded_count": 0,
+            "states": {
+              "valid": 40
+            },
+            "mean": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "median": {
+              "numerator": 5,
+              "denominator": 1,
+              "display": "5.0000"
+            },
+            "range_checked": true,
+            "state": "available",
+            "has_variance": false,
+            "exploration_thresholds": [
+              "5"
+            ]
+          }
+        ],
+        "state": "available"
+      },
+      "rule_version": "edu-adaptive-prototype-0.1-draft",
+      "method": "get_dimension_statistics",
+      "source_replay_verified": true,
+      "sources": [
+        {
+          "metric_key": "Q01.valid",
+          "item_id": "Q01",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q01.valid"
+          }
+        },
+        {
+          "metric_key": "Q01.state.valid",
+          "item_id": "Q01",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q01.state.valid"
+          }
+        },
+        {
+          "metric_key": "Q02.valid",
+          "item_id": "Q02",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q02.valid"
+          }
+        },
+        {
+          "metric_key": "Q02.state.valid",
+          "item_id": "Q02",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q02.state.valid"
+          }
+        },
+        {
+          "metric_key": "Q03.valid",
+          "item_id": "Q03",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q03.valid"
+          }
+        },
+        {
+          "metric_key": "Q03.state.valid",
+          "item_id": "Q03",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q03.state.valid"
+          }
+        },
+        {
+          "metric_key": "Q04.valid",
+          "item_id": "Q04",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q04.valid"
+          }
+        },
+        {
+          "metric_key": "Q04.state.valid",
+          "item_id": "Q04",
+          "record_count": 40,
+          "controlled_query": {
+            "fact_id": "provider-probe-f001",
+            "metric_key": "Q04.state.valid"
+          }
+        }
+      ]
+    },
+    {
+      "fact_id": "provider-probe-f002",
+      "batch_id": "synthetic-batch-bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "snapshot_id": "bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "scope": "complete_registered_synthetic_batch",
+      "query": {
+        "tool": "compare_student_groups",
+        "arguments": {
+          "conditions": [
+            {
+              "item_id": "Q01",
+              "operator": "<=",
+              "threshold": "0"
+            },
+            {
+              "item_id": "Q02",
+              "operator": "<=",
+              "threshold": "0"
+            }
+          ],
+          "outcomes": [
+            "Q03"
+          ]
+        }
+      },
+      "values": {
+        "fact_id": "provider-probe-f002",
+        "qualified": true,
+        "metrics": {
+          "outcome": "Q03",
+          "conditions": [
+            {
+              "item_id": "Q01",
+              "operator": "<=",
+              "threshold": "0"
+            },
+            {
+              "item_id": "Q02",
+              "operator": "<=",
+              "threshold": "0"
+            }
+          ],
+          "target_count": 10,
+          "remainder_count": 30,
+          "unevaluable_count": 0,
+          "denominator": 40,
+          "eligible_denominator": 40,
+          "share_total": {
+            "numerator": 1,
+            "denominator": 4,
+            "display": "0.2500"
+          },
+          "share_eligible": {
+            "numerator": 1,
+            "denominator": 4,
+            "display": "0.2500"
+          },
+          "target_valid": 10,
+          "remainder_valid": 30,
+          "target_mean": {
+            "numerator": 5,
+            "denominator": 2,
+            "display": "2.5000"
+          },
+          "remainder_mean": {
+            "numerator": 15,
+            "denominator": 2,
+            "display": "7.5000"
+          },
+          "difference": {
+            "numerator": -5,
+            "denominator": 1,
+            "display": "-5.0000"
+          },
+          "outcome_unit": "points"
+        },
+        "status": "interpret_cautiously",
+        "ranking": {
+          "score": {
+            "numerator": 7,
+            "denominator": 10,
+            "display": "0.7000"
+          },
+          "support_count": 10,
+          "robustness": {
+            "method": "three_fixed_deletions",
+            "planned": 3,
+            "evaluated": 3,
+            "passed": 3,
+            "value": {
+              "numerator": 1,
+              "denominator": 1,
+              "display": "1.0000"
+            }
+          },
+          "is_statistical_confidence": false
+        },
+        "limitation_codes": [
+          "condition_dimensions_not_discoveries",
+          "disjoint_remainder",
+          "ordinal_mean_is_descriptive",
+          "no_cross_item_score_sum"
+        ],
+        "type": "item_group_difference"
+      },
+      "rule_version": "edu-adaptive-prototype-0.1-draft",
+      "method": "compare_student_groups",
+      "source_replay_verified": true,
+      "sources": [
+        {
+          "metric_key": "target.valid",
+          "item_id": "Q03",
+          "record_count": 10,
+          "controlled_query": {
+            "fact_id": "provider-probe-f002",
+            "metric_key": "target.valid"
+          }
+        },
+        {
+          "metric_key": "remainder.valid",
+          "item_id": "Q03",
+          "record_count": 30,
+          "controlled_query": {
+            "fact_id": "provider-probe-f002",
+            "metric_key": "remainder.valid"
+          }
+        },
+        {
+          "metric_key": "target.condition.Q01",
+          "item_id": "Q01",
+          "record_count": 10,
+          "controlled_query": {
+            "fact_id": "provider-probe-f002",
+            "metric_key": "target.condition.Q01"
+          }
+        },
+        {
+          "metric_key": "remainder.condition.Q01",
+          "item_id": "Q01",
+          "record_count": 30,
+          "controlled_query": {
+            "fact_id": "provider-probe-f002",
+            "metric_key": "remainder.condition.Q01"
+          }
+        },
+        {
+          "metric_key": "target.condition.Q02",
+          "item_id": "Q02",
+          "record_count": 10,
+          "controlled_query": {
+            "fact_id": "provider-probe-f002",
+            "metric_key": "target.condition.Q02"
+          }
+        },
+        {
+          "metric_key": "remainder.condition.Q02",
+          "item_id": "Q02",
+          "record_count": 30,
+          "controlled_query": {
+            "fact_id": "provider-probe-f002",
+            "metric_key": "remainder.condition.Q02"
+          }
+        },
+        {
+          "metric_key": "unevaluable.rows",
+          "item_id": "Q01",
+          "record_count": 0,
+          "controlled_query": {
+            "fact_id": "provider-probe-f002",
+            "metric_key": "unevaluable.rows"
+          }
+        }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "item_id": "Q01",
+      "operator": "<=",
+      "threshold": "0"
+    },
+    {
+      "item_id": "Q02",
+      "operator": "<=",
+      "threshold": "0"
+    }
+  ],
+  "internal_card_projection": [
+    {
+      "fact_id": "provider-probe-f002",
+      "discovery_id": "a90d54a5ce9159fd7eb2ee22",
+      "type": "item_group_difference",
+      "title": "Q03 的互斥群体描述差异",
+      "summary": "目标10人，余组30人，均值差-5；不表示因果或能力等级。",
+      "batch_id": "synthetic-batch-bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "snapshot_id": "bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495",
+      "rule_version": "edu-adaptive-prototype-0.1-draft",
+      "metrics": {
+        "outcome": "Q03",
+        "conditions": [
+          {
+            "item_id": "Q01",
+            "operator": "<=",
+            "threshold": "0"
+          },
+          {
+            "item_id": "Q02",
+            "operator": "<=",
+            "threshold": "0"
+          }
+        ],
+        "target_count": 10,
+        "remainder_count": 30,
+        "unevaluable_count": 0,
+        "denominator": 40,
+        "eligible_denominator": 40,
+        "share_total": {
+          "numerator": 1,
+          "denominator": 4,
+          "display": "0.2500"
+        },
+        "share_eligible": {
+          "numerator": 1,
+          "denominator": 4,
+          "display": "0.2500"
+        },
+        "target_valid": 10,
+        "remainder_valid": 30,
+        "target_mean": {
+          "numerator": 5,
+          "denominator": 2,
+          "display": "2.5000"
+        },
+        "remainder_mean": {
+          "numerator": 15,
+          "denominator": 2,
+          "display": "7.5000"
+        },
+        "difference": {
+          "numerator": -5,
+          "denominator": 1,
+          "display": "-5.0000"
+        },
+        "outcome_unit": "points"
+      },
+      "chart": {
+        "outcome": "Q03",
+        "conditions": [
+          {
+            "item_id": "Q01",
+            "operator": "<=",
+            "threshold": "0"
+          },
+          {
+            "item_id": "Q02",
+            "operator": "<=",
+            "threshold": "0"
+          }
+        ],
+        "target_count": 10,
+        "remainder_count": 30,
+        "unevaluable_count": 0,
+        "denominator": 40,
+        "eligible_denominator": 40,
+        "share_total": {
+          "numerator": 1,
+          "denominator": 4,
+          "display": "0.2500"
+        },
+        "share_eligible": {
+          "numerator": 1,
+          "denominator": 4,
+          "display": "0.2500"
+        },
+        "target_valid": 10,
+        "remainder_valid": 30,
+        "target_mean": {
+          "numerator": 5,
+          "denominator": 2,
+          "display": "2.5000"
+        },
+        "remainder_mean": {
+          "numerator": 15,
+          "denominator": 2,
+          "display": "7.5000"
+        },
+        "difference": {
+          "numerator": -5,
+          "denominator": 1,
+          "display": "-5.0000"
+        },
+        "outcome_unit": "points"
+      },
+      "status": "interpret_cautiously",
+      "limitations": [
+        "condition_dimensions_not_discoveries",
+        "disjoint_remainder",
+        "ordinal_mean_is_descriptive",
+        "no_cross_item_score_sum"
+      ],
+      "ranking": {
+        "score": {
+          "numerator": 7,
+          "denominator": 10,
+          "display": "0.7000"
+        },
+        "support_count": 10,
+        "robustness": {
+          "method": "three_fixed_deletions",
+          "planned": 3,
+          "evaluated": 3,
+          "passed": 3,
+          "value": {
+            "numerator": 1,
+            "denominator": 1,
+            "display": "1.0000"
+          }
+        },
+        "is_statistical_confidence": false
+      },
+      "public_display_allowed": false,
+      "source_queries": [
+        {
+          "fact_id": "provider-probe-f002",
+          "metric_key": "target.valid"
+        },
+        {
+          "fact_id": "provider-probe-f002",
+          "metric_key": "remainder.valid"
+        },
+        {
+          "fact_id": "provider-probe-f002",
+          "metric_key": "target.condition.Q01"
+        },
+        {
+          "fact_id": "provider-probe-f002",
+          "metric_key": "remainder.condition.Q01"
+        },
+        {
+          "fact_id": "provider-probe-f002",
+          "metric_key": "target.condition.Q02"
+        },
+        {
+          "fact_id": "provider-probe-f002",
+          "metric_key": "remainder.condition.Q02"
+        },
+        {
+          "fact_id": "provider-probe-f002",
+          "metric_key": "unevaluable.rows"
+        }
+      ]
+    }
+  ],
+  "tool_execution_ledger": [
+    {
+      "tool": "get_dimension_statistics",
+      "arguments": {
+        "item_ids": null
+      },
+      "status": "verified",
+      "fact_ids": [
+        "provider-probe-f001"
+      ]
+    },
+    {
+      "tool": "compare_student_groups",
+      "arguments": {
+        "conditions": [
+          {
+            "item_id": "Q01",
+            "operator": "<=",
+            "threshold": "0"
+          },
+          {
+            "item_id": "Q02",
+            "operator": "<=",
+            "threshold": "0"
+          }
+        ],
+        "outcomes": [
+          "Q03"
+        ]
+      },
+      "status": "verified",
+      "fact_ids": [
+        "provider-probe-f002"
+      ]
+    }
+  ],
+  "witness_check": {
+    "source_sha256_matches_snapshot": true,
+    "metric_key": "target.valid",
+    "record_count": 10,
+    "raw_witness_and_locator_included": false
+  },
+  "revoked_request": {
+    "status": "rejected",
+    "error": "provider_authorization_revoked"
+  },
+  "production_authentication": "not_implemented",
+  "remote_model_allowed": false,
+  "formal_http_dto": "not_defined"
+}

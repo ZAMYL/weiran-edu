@@ -15,7 +15,7 @@ from app.ai.edu.qwen_config import QwenSettings
 from pydantic import Field, field_validator
 
 from ..synthetic import AdmittedSynthetic, admit
-from .pricing import PRICE
+from .pricing import reviewed_price
 
 
 class SyntheticLiveAuthorization(Strict):
@@ -45,10 +45,11 @@ class SyntheticLiveAuthorization(Strict):
             expiry = date.fromisoformat(self.valid_until)
         except ValueError:
             raise AgentError("invalid_authorization_expiry") from None
+        price = reviewed_price(self.price_fingerprint)
         if (
             expiry < today
-            or expiry > date.fromisoformat(PRICE.valid_until)
-            or self.price_fingerprint != PRICE.fingerprint
+            or expiry > date.fromisoformat(price.valid_until)
+            or today < date.fromisoformat(price.checked_on)
         ):
             raise AgentError("stale_authorization_or_price")
         for recipe, fingerprint in self.source_fingerprints.items():
@@ -83,6 +84,7 @@ class CampaignBudget:
         self.authorization = SyntheticLiveAuthorization.model_validate_json(
             authorization.model_dump_json()
         )
+        self._bound_price = reviewed_price(self.authorization.price_fingerprint)
         self._authorization_fingerprint = sha256(
             self.authorization.model_dump_json().encode()
         ).hexdigest()
@@ -106,6 +108,10 @@ class CampaignBudget:
         except AgentError:
             self.close()
             raise
+
+    @property
+    def price(self):
+        return self._bound_price
 
     @property
     def origin(self):
@@ -148,7 +154,7 @@ class CampaignBudget:
             raise AgentError(self._blocked or "budget_closed")
         a = self.authorization
         self._check_authorization()
-        PRICE.check(settings.model, settings.base_url, self.today)
+        self.price.check(settings.model, settings.base_url, self.today)
         if (
             settings.model != a.model
             or sha256(settings.base_url.rstrip("/").encode()).hexdigest() != a.endpoint_sha256
@@ -175,8 +181,8 @@ class CampaignBudget:
             raise AgentError("request_already_in_flight")
         if len(self._entries) >= a.max_requests:
             raise AgentError("authorized_request_limit")
-        tokens = PRICE.max_input_tokens + a.max_output_tokens
-        cost = PRICE.cost(PRICE.max_input_tokens, a.max_output_tokens)
+        tokens = self.price.max_input_tokens + a.max_output_tokens
+        cost = self.price.cost(self.price.max_input_tokens, a.max_output_tokens)
         used_tokens = sum(e["charged_tokens"] for e in self._entries)
         used_cost = sum((Decimal(e["charged_cny_upper_bound"]) for e in self._entries), Decimal(0))
         if used_tokens + tokens > a.total_token_limit:
@@ -202,6 +208,7 @@ class CampaignBudget:
         return len(self._entries)
 
     def settle(self, ticket: int, metric: CallMetric | None, *, failed: bool):
+        self._check_authorization()
         if ticket != len(self._entries) or self._entries[-1]["state"] != "reserved":
             raise AgentError("invalid_budget_ticket")
         entry = self._entries[-1]
@@ -216,7 +223,7 @@ class CampaignBudget:
         if valid:
             valid = (
                 metric.input_tokens + metric.output_tokens == metric.total_tokens
-                and metric.input_tokens <= PRICE.max_input_tokens
+                and metric.input_tokens <= self.price.max_input_tokens
                 and metric.output_tokens <= self.authorization.max_output_tokens
                 and (
                     metric.cached_input_tokens is None
@@ -231,7 +238,7 @@ class CampaignBudget:
             self._blocked = "unverifiable_usage"
             self._persist()
             raise AgentError("unverifiable_usage")
-        cost = PRICE.cost(
+        cost = self.price.cost(
             metric.input_tokens, metric.output_tokens, metric.cached_input_tokens or 0
         )
         entry.update(
@@ -258,8 +265,8 @@ class CampaignBudget:
             "source_fingerprints": dict(a.source_fingerprints),
             "origin": self.origin,
             "billing_basis": "verified_list_price_upper_bound_not_invoice",
-            "price": asdict(PRICE),
-            "price_fingerprint": PRICE.fingerprint,
+            "price": asdict(self.price),
+            "price_fingerprint": self.price.fingerprint,
             "max_requests": a.max_requests,
             "total_token_limit": a.total_token_limit,
             "cost_cap_cny": str(a.cost_cap_cny),

@@ -1,0 +1,156 @@
+{
+  "origin": "offline_mechanism",
+  "real_qwen": "not_run",
+  "model_requests": 3,
+  "tool_attempts": 3,
+  "reported_replays": 52,
+  "observed_replays": 52,
+  "verify_calls_by_caller": {
+    "decide": 6,
+    "reflect": 9,
+    "finish": 2,
+    "fact_record": 3
+  },
+  "replays_by_caller": {
+    "decide": 14,
+    "reflect": 23,
+    "finish": 6,
+    "fact_record": 9
+  },
+  "events": [
+    {
+      "caller": "decide",
+      "facts_in_ledger": 1,
+      "replay_executions": 1,
+      "elapsed_seconds": 0.31559840007685125
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 1,
+      "replay_executions": 1,
+      "elapsed_seconds": 0.45713900006376207
+    },
+    {
+      "caller": "decide",
+      "facts_in_ledger": 2,
+      "replay_executions": 2,
+      "elapsed_seconds": 0.7120199999772012
+    },
+    {
+      "caller": "decide",
+      "facts_in_ledger": 2,
+      "replay_executions": 2,
+      "elapsed_seconds": 0.9057866001967341
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 2,
+      "replay_executions": 2,
+      "elapsed_seconds": 0.6938000000081956
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 2,
+      "replay_executions": 2,
+      "elapsed_seconds": 0.8675125001464039
+    },
+    {
+      "caller": "decide",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 0.9410282000899315
+    },
+    {
+      "caller": "decide",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1078649000264704
+    },
+    {
+      "caller": "decide",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1335151998791844
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 0.9700440999586135
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1271508000791073
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1247499000746757
+    },
+    {
+      "caller": "finish",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1547640999779105
+    },
+    {
+      "caller": "finish",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1742028999142349
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 0.9220501999370754
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.2167442000936717
+    },
+    {
+      "caller": "reflect",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1918308001477271
+    },
+    {
+      "caller": "fact_record",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.006709000095725
+    },
+    {
+      "caller": "fact_record",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.1575714000500739
+    },
+    {
+      "caller": "fact_record",
+      "facts_in_ledger": 3,
+      "replay_executions": 3,
+      "elapsed_seconds": 1.173400199972093
+    }
+  ],
+  "checks_cached_or_removed": 0,
+  "kernel_and_source_calls": {
+    "AdmittedSynthetic.validate": 118,
+    "Kernel.statistics": 372,
+    "Kernel.relation": 44,
+    "Kernel.group": 36
+  },
+  "timing_limitation": "sys.setprofile adds overhead; do not compare to unprofiled latency",
+  "decision": "retain_executor_checks",
+  "reason": [
+    "mutable_fact_views_and_queries",
+    "source_and_disclosure_history_can_change",
+    "future_provider_revocation_requires_fresh_check"
+  ]
+}
