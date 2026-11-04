@@ -16,6 +16,7 @@ from pydantic import Field, field_validator
 
 from ..synthetic import AdmittedSynthetic, admit
 from .pricing import PRICE
+from .safety import deny_live
 
 
 class SyntheticLiveAuthorization(Strict):
@@ -74,6 +75,8 @@ class CampaignBudget:
         origin: Literal["synthetic_live", "http_mock"],
         today: date | None = None,
     ):
+        if origin == "synthetic_live":
+            deny_live()  # Before authorization processing or creating any ledger.
         if type(authorization) is not SyntheticLiveAuthorization or origin not in (
             "synthetic_live",
             "http_mock",

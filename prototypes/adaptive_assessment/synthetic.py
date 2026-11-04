@@ -102,6 +102,11 @@ def contest_zip(
 
 
 def materialize(name: str) -> Envelope:
+    from prototypes.research_agent_v2.synthetic import RECIPES
+    from prototypes.research_agent_v2.synthetic import materialize as research_materialize
+
+    if name in RECIPES:
+        return research_materialize(name)
     if name == "constant17":
         return from_five_dimension(build("constant17").dataset)
     if name == "five":
