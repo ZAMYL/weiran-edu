@@ -37,7 +37,13 @@ from app.edu.models import (
     StudentList,
 )
 from app.edu.query import group_query, group_schema, read_query, request_schema
-from app.edu.questions import QuestionEvidence, QuestionPreview, QuestionService, QuestionStatistics
+from app.edu.questions import (
+    MixedBatchList,
+    QuestionEvidence,
+    QuestionPreview,
+    QuestionService,
+    QuestionStatistics,
+)
 from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
@@ -324,16 +330,25 @@ def quality_report(
     return Response(report.model_dump_json(), media_type="application/json")
 
 
-@router.get("/batches", response_model=BatchList)
+@router.get("/batches", response_model=BatchList | MixedBatchList)
 def batches(
     actor: Actor,
     backend: Backend,
     data_scope_id: str | None = None,
     include_revisions: bool = False,
+    include_dynamic: bool = False,
     offset: Offset = 0,
     limit: Limit = 20,
-) -> BatchList:
-    return backend.list_batches(
+) -> BatchList | MixedBatchList:
+    if not include_dynamic:
+        return backend.list_batches(
+            actor,
+            data_scope_id=data_scope_id,
+            include_revisions=include_revisions,
+            offset=offset,
+            limit=limit,
+        )
+    return QuestionService(backend).list_batches(
         actor,
         data_scope_id=data_scope_id,
         include_revisions=include_revisions,
@@ -407,12 +422,15 @@ def statistics(
     snapshot_id: str | None = None,
     x_dimension: DimensionCode | None = None,
     y_dimension: DimensionCode | None = None,
+    item_id: str | None = None,
 ) -> Statistics | QuestionStatistics:
     questions = QuestionService(backend)
     if questions.contains(batch_id, batch=True):
         if x_dimension is not None or y_dimension is not None:
             raise APIError(422, "ANALYSIS_UNSUPPORTED", "逐题测评不适用五维分析参数")
-        return questions.statistics(actor, batch_id, snapshot_id)
+        return questions.statistics(actor, batch_id, snapshot_id, item_id)
+    if item_id is not None:
+        raise APIError(422, "ANALYSIS_UNSUPPORTED", "五维批次请使用原维度接口")
     return AnalysisReader(backend.database, clock=backend.clock).statistics(
         actor,
         batch_id,

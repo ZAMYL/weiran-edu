@@ -1,0 +1,12 @@
+[
+  {
+    "sha256": "152d0b73f56b2fc7cd0e8dc7ef4a0d03e9c0ee35023b9e75364e6888f7e16a40",
+    "file": "http.synthetic.json",
+    "bytes": 1086836
+  },
+  {
+    "sha256": "1833bfa566ad90fa887d48dea31697bfdc2cb05c8def77f3acb429458b12d2d7",
+    "file": "focused.junit.xml",
+    "bytes": 21180
+  }
+]

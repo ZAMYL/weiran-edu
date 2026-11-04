@@ -10,12 +10,14 @@ from hashlib import sha256
 from uuid import uuid4
 
 from app.core.errors import APIError
+from app.importing.edu.preview import Page, validate_page
 from app.importing.edu.questions import PROTOCOL, QuestionWorkbook, parse_questions
 from app.importing.edu.worker import parse_isolated
 
-from .auth import Principal, deny, require_scope, require_teacher
-from .models import CommitRequest, CommitResult, ImportMetadata, ImportPatch, Model
-from .service import EduService, fail, stamp
+from .analysis import stat
+from .auth import Principal, accessible_batch, deny, require_scope, require_teacher
+from .models import Batch, CommitRequest, CommitResult, ImportMetadata, ImportPatch, Model
+from .service import EduService, _page, batch_dto, fail, stamp
 
 
 class QuestionPreview(Model):
@@ -26,6 +28,8 @@ class QuestionPreview(Model):
     participant_count: int
     observation_count: int
     recognized_items: tuple[dict, ...]
+    available_analyses: tuple[str, ...]
+    quality_counts: dict[str, int]
     quality_issues: tuple[dict, ...]
     confirmable: bool = True
 
@@ -36,6 +40,9 @@ class QuestionStatistics(Model):
     snapshot_id: str
     title: str
     participant_count: int
+    recognized_items: tuple[dict, ...]
+    available_analyses: tuple[str, ...]
+    item_statistics: tuple[dict, ...]
     items: tuple[dict, ...]
     analysis_status: dict
 
@@ -52,9 +59,40 @@ class QuestionEvidence(Model):
     source: dict
 
 
+class QuestionBatchInfo(Model):
+    format: str = PROTOCOL
+    batch_id: str
+    snapshot_id: str
+    data_scope_id: str
+    title: str
+    course: str | None
+    assessment_date: str | None
+    student_count: int
+    evaluation_count: int
+    recognized_items: tuple[dict, ...]
+    available_analyses: tuple[str, ...]
+
+
+class MixedBatchList(Model):
+    total_count: int
+    items: tuple[Batch | QuestionBatchInfo, ...]
+    page: Page
+
+
 def exact(value: Fraction | None) -> dict | None:
     return (
         None if value is None else {"numerator": value.numerator, "denominator": value.denominator}
+    )
+
+
+def recognized(parsed: QuestionWorkbook) -> tuple[dict, ...]:
+    return tuple(
+        {
+            **asdict(i),
+            "display_name": i.original_name,
+            "scale": {"minimum": i.minimum, "maximum": i.maximum, "step": i.step, "unit": i.unit},
+        }
+        for i in parsed.questions
     )
 
 
@@ -75,6 +113,71 @@ class QuestionService:
 
     def _actor(self, c: sqlite3.Connection, actor: Principal) -> None:
         require_teacher(c, actor, stamp(self.backend.clock()))
+
+    def list_batches(
+        self,
+        actor: Principal,
+        *,
+        data_scope_id: str | None = None,
+        include_revisions: bool = False,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> MixedBatchList:
+        validate_page(offset, limit)
+        with self.database.transaction() as c:
+            self._actor(c, actor)
+            legacy = (
+                "SELECT b.batch_id,0 AS dynamic,julianday(b.created_at) AS ordering FROM batches b "
+                "JOIN scope_members m ON m.data_scope_id=b.data_scope_id AND m.teacher_id=? "
+                "WHERE (b.owner_teacher_id=? OR EXISTS(SELECT 1 FROM batch_access a WHERE "
+                "a.batch_id=b.batch_id AND a.teacher_id=?)) AND (? IS NULL OR b.data_scope_id=?) "
+                "AND (? OR NOT EXISTS(SELECT 1 FROM batches n "
+                "WHERE n.revision_of_batch_id=b.batch_id))"
+            )
+            dynamic = (
+                "SELECT b.batch_id,1 AS dynamic,julianday(i.expires_at)-1.0/24 AS ordering "
+                "FROM question_batches b JOIN question_imports i ON i.import_id=b.source_import_id "
+                "JOIN scope_members m ON m.data_scope_id=i.data_scope_id AND m.teacher_id=? "
+                "WHERE (i.owner_teacher_id=? OR EXISTS(SELECT 1 FROM question_access a WHERE "
+                "a.batch_id=b.batch_id AND a.teacher_id=?)) AND (? IS NULL OR i.data_scope_id=?)"
+            )
+            params = (actor.teacher_id,) * 3 + (
+                data_scope_id,
+                data_scope_id,
+                int(include_revisions),
+            )
+            params += (actor.teacher_id,) * 3 + (data_scope_id, data_scope_id)
+            union = f"({legacy} UNION ALL {dynamic})"
+            total = c.execute("SELECT count(*) FROM " + union, params).fetchone()[0]
+            rows = c.execute(
+                "SELECT * FROM " + union + " ORDER BY ordering DESC,batch_id DESC LIMIT ? OFFSET ?",
+                params + (limit, offset),
+            ).fetchall()
+            items = []
+            for entry in rows:
+                if not entry["dynamic"]:
+                    items.append(batch_dto(accessible_batch(c, actor, entry["batch_id"])))
+                    continue
+                row, parsed, _ = self._batch(c, actor, entry["batch_id"], None)
+                items.append(
+                    QuestionBatchInfo(
+                        batch_id=entry["batch_id"],
+                        snapshot_id=row["snapshot_id"],
+                        data_scope_id=row["data_scope_id"],
+                        title=row["title"],
+                        course=row["course"],
+                        assessment_date=row["assessment_date"],
+                        student_count=len(parsed.participants),
+                        evaluation_count=len(parsed.observations),
+                        recognized_items=recognized(parsed),
+                        available_analyses=("item_statistics",)
+                        if any(o.state == "valid" for o in parsed.observations)
+                        else (),
+                    )
+                )
+            return MixedBatchList(
+                total_count=total, items=tuple(items), page=_page(offset, limit, len(items), total)
+            )
 
     def _owned(self, c: sqlite3.Connection, actor: Principal, identifier: str) -> sqlite3.Row:
         self._actor(c, actor)
@@ -121,7 +224,11 @@ class QuestionService:
             title=row["title"],
             participant_count=len(parsed.participants),
             observation_count=len(parsed.observations),
-            recognized_items=tuple(asdict(i) for i in parsed.questions),
+            recognized_items=recognized(parsed),
+            available_analyses=("item_statistics",)
+            if any(o.state == "valid" for o in parsed.observations)
+            else (),
+            quality_counts=dict(Counter(o.state for o in parsed.observations)),
             quality_issues=issues,
         )
 
@@ -339,15 +446,46 @@ class QuestionService:
         return row, parsed, observations
 
     def statistics(
-        self, actor: Principal, identifier: str, snapshot: str | None = None
+        self,
+        actor: Principal,
+        identifier: str,
+        snapshot: str | None = None,
+        item_id: str | None = None,
     ) -> QuestionStatistics:
         with self.database.transaction() as c:
             row, parsed, observations = self._batch(c, actor, identifier, snapshot)
+            if item_id is not None and item_id not in {i.item_id for i in parsed.questions}:
+                deny(404)
             items = []
+            canonical = []
             for item in parsed.questions:
+                if item_id is not None and item.item_id != item_id:
+                    continue
                 group = [o for o in parsed.observations if o.item_id == item.item_id]
                 counts = Counter(o.state for o in group)
                 valid = [o.exact for o in group if o.exact is not None]
+                distribution = [
+                    {
+                        "score": float(score),
+                        "exact": exact(score),
+                        "count": count,
+                        "denominator": len(parsed.participants),
+                        "ratio": stat(Fraction(count, len(parsed.participants))).model_dump(),
+                    }
+                    for score, count in sorted(Counter(valid).items())
+                ]
+                mean = sum(valid, Fraction()) / len(valid) if valid else None
+                ordered = sorted(valid)
+                middle = len(ordered) // 2
+                median = (
+                    (
+                        ordered[middle]
+                        if len(ordered) % 2
+                        else (ordered[middle - 1] + ordered[middle]) / 2
+                    )
+                    if ordered
+                    else None
+                )
                 items.append(
                     {
                         **asdict(item),
@@ -358,9 +496,26 @@ class QuestionService:
                         "quality_counts": dict(counts),
                         "statistics_status": "available" if valid else "unavailable",
                         "mean": exact(sum(valid, Fraction()) / len(valid)) if valid else None,
+                        "distribution": distribution,
                         "evidence_ids": [
                             o["evidence_id"] for o in observations if o["item_id"] == item.item_id
                         ],
+                    }
+                )
+                canonical.append(
+                    {
+                        **items[-1],
+                        "display_name": item.original_name,
+                        "scale": {
+                            "minimum": item.minimum,
+                            "maximum": item.maximum,
+                            "step": item.step,
+                            "unit": item.unit,
+                        },
+                        "mean": stat(mean).model_dump(),
+                        "median": stat(median).model_dump(),
+                        "minimum": stat(min(valid) if valid else None).model_dump(),
+                        "maximum": stat(max(valid) if valid else None).model_dump(),
                     }
                 )
             return QuestionStatistics(
@@ -368,6 +523,11 @@ class QuestionService:
                 snapshot_id=row["snapshot_id"],
                 title=row["title"],
                 participant_count=len(parsed.participants),
+                recognized_items=recognized(parsed),
+                available_analyses=("item_statistics",)
+                if any(o.state == "valid" for o in parsed.observations)
+                else (),
+                item_statistics=tuple(canonical),
                 items=tuple(items),
                 analysis_status={
                     "item_statistics": "available"
