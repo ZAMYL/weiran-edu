@@ -18,4 +18,4 @@
 ## 复现
 
 - V1 最终组合固定前端 `1b46e8cbde648e0f561305f79b7c78e2f8277dae` 和后端 `f8e13f1f54394813dc8622c8a47c5b03069a1aa9`。原 `teacher-integer-e2e.mjs` 和 `teacher-product-e2e.mjs` 均通过，覆盖 105 人精度、53 人正常、17 人零发现、真实 MD/XLSX、冲突、只读、撤权和凭据失效。该范围内未发现新增 P0/P1。隔离运行产物位于工作区 `.local/qa/v1-final-f8e13f1/frontend/apps/web/artifacts/`。
-- 在新版分支构建前端后，从 `apps/web` 执行 `node tests/teacher-adaptive-e2e.mjs`。脚本只接受本次生成的合成工作簿，使用安装了 openpyxl 的 Python。可通过 `EDU_TEST_PYTHON` 指定解释器。浏览器截图和 HTTP 结果保存在 `artifacts/teacher-adaptive/`。
+- 在新版分支构建前端后，从 `apps/web` 执行 `node tests/teacher-adaptive-e2e.mjs`。脚本只接受本次生成的合成工作簿，使用安装了 openpyxl 的 Python。可通过 `EDU_TEST_PYTHON` 指定解释器。验收包括十三题上传与逐题探索、390px 键盘选题，以及新版 DTO 下的五项和三项能力画像、混合量表和未开放统计。浏览器截图与 HTTP 结果保存在 `artifacts/teacher-adaptive-projects/`。
