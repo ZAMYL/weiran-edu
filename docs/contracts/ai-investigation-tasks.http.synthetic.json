@@ -12,229 +12,235 @@
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/imports/dd606426-fa86-436a-b441-075758f9cba0/commit",
+      "path": "/api/v1/edu/imports/949b63ee-ef66-40ba-b390-435f184fc3f6/commit",
       "expected": 201,
       "status": 201
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks",
       "expected": 202,
       "status": 202
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks",
       "expected": 202,
       "status": 202
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks",
       "expected": 409,
       "status": 409
     },
@@ -246,127 +252,127 @@
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/imports/03b51673-a33a-488c-b80c-c76882258b29/commit",
+      "path": "/api/v1/edu/imports/2452b8ed-64fc-4df6-84c5-0f4889cbb965/commit",
       "expected": 201,
       "status": 201
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks",
       "expected": 202,
       "status": 202
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks",
       "expected": 202,
       "status": 202
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks",
       "expected": 409,
       "status": 409
     },
@@ -378,131 +384,131 @@
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/imports/81238ed7-49ac-4713-ab39-6b3e4dfdc4b1/commit",
+      "path": "/api/v1/edu/imports/d9051a93-c7bf-4dce-bf9a-c9a6c7761de0/commit",
       "expected": 201,
       "status": 201
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks",
       "expected": 202,
       "status": 202
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088",
       "expected": 200,
       "status": 200
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks",
       "expected": 202,
       "status": 202
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks",
+      "path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks",
       "expected": 409,
       "status": 409
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 200,
       "status": 200
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/evidence/ef2c4dab-b126-484b-9ff9-69fa1738701a",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/evidence/17cbe5f6-4404-4e1e-b9ac-830296006f3d",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/evidence/0e204f03-f557-43d5-8d78-47239dd75af9",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/evidence/68422db9-4def-4620-9cbc-a9edb20d9ac0",
       "expected": 200,
       "status": 200
     },
     {
       "method": "POST",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/review-submissions",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/review-submissions",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd",
       "expected": 200,
       "status": 200
     },
     {
       "method": "PATCH",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd/export",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd/export",
       "expected": 200,
       "status": 200
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd/export",
       "expected": 409,
       "status": 409
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8",
       "expected": 403,
       "status": 403
     },
     {
       "method": "GET",
-      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
       "expected": 401,
       "status": 401
     }
   ],
   "runs": {
     "normal": {
-      "task_id": "66a35834-8aed-47e3-a37d-753a1d287b66",
-      "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
-      "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-      "campaign_id": "durable-3daf578901599e4017dd254d256278ae1755f05c",
+      "task_id": "0b4702d2-4136-4c74-b37b-1f7e45f394c8",
+      "batch_id": "77b9da2b-8c7f-4a3e-8636-76ee3cca9b58",
+      "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+      "campaign_id": "durable-ed3a6067e780077658f1e3048b4ffa6ceef66222",
       "state": "completed",
       "error_code": null,
       "stop_reason": "goal_satisfied",
@@ -514,10 +520,10 @@
       "max_tool_attempts": 5,
       "max_model_requests": 6,
       "result": {
-        "run_id": "66a35834-8aed-47e3-a37d-753a1d287b66",
-        "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
-        "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-        "source_manifest_sha256": "df68bbd0c1a482fa650f1b918c2e2b86382baf6e8b71405a634f7fadfad336a7",
+        "run_id": "0b4702d2-4136-4c74-b37b-1f7e45f394c8",
+        "batch_id": "77b9da2b-8c7f-4a3e-8636-76ee3cca9b58",
+        "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+        "source_manifest_sha256": "a022facc31e4e8ffd166fcbf764e11dba2136b131223988d3aae9f7748d3b78a",
         "scope_kind": "whole_authorized_batch",
         "batch_record_count": 53,
         "execution_origin": "http_mock",
@@ -535,9 +541,9 @@
         "missing_evidence": [],
         "facts": [
           {
-            "fact_id": "research-dac959e4b93e-f001",
-            "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
-            "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+            "fact_id": "research-5ac27022027d-f001",
+            "batch_id": "77b9da2b-8c7f-4a3e-8636-76ee3cca9b58",
+            "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
             "method": "get_dimension_statistics",
             "rule_version": "edu-adaptive-prototype-0.1-draft",
             "qualified": false,
@@ -761,10 +767,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I01.valid",
                   "offset": 0,
                   "limit": 20
@@ -775,10 +781,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I01.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -789,10 +795,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I02.valid",
                   "offset": 0,
                   "limit": 20
@@ -803,10 +809,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I02.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -817,10 +823,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I03.valid",
                   "offset": 0,
                   "limit": 20
@@ -831,10 +837,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I03.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -845,10 +851,10 @@
                 "dimension_code": "efficiency_awareness",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I04.valid",
                   "offset": 0,
                   "limit": 20
@@ -859,10 +865,10 @@
                 "dimension_code": "efficiency_awareness",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I04.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -873,10 +879,10 @@
                 "dimension_code": "solution_strategy",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I05.valid",
                   "offset": 0,
                   "limit": 20
@@ -887,10 +893,10 @@
                 "dimension_code": "solution_strategy",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f001",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f001",
                   "metric_key": "I05.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -902,9 +908,9 @@
             "save_group_analysis_request": null
           },
           {
-            "fact_id": "research-dac959e4b93e-f002",
-            "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
-            "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+            "fact_id": "research-5ac27022027d-f002",
+            "batch_id": "77b9da2b-8c7f-4a3e-8636-76ee3cca9b58",
+            "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
             "method": "query_dimension_relation",
             "rule_version": "edu-adaptive-prototype-0.1-draft",
             "qualified": true,
@@ -942,10 +948,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f002",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f002",
                   "metric_key": "left.paired",
                   "offset": 0,
                   "limit": 20
@@ -956,10 +962,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f002",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f002",
                   "metric_key": "right.paired",
                   "offset": 0,
                   "limit": 20
@@ -974,9 +980,9 @@
             "save_group_analysis_request": null
           },
           {
-            "fact_id": "research-dac959e4b93e-f003",
-            "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
-            "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+            "fact_id": "research-5ac27022027d-f003",
+            "batch_id": "77b9da2b-8c7f-4a3e-8636-76ee3cca9b58",
+            "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
             "method": "compare_student_groups",
             "rule_version": "edu-adaptive-prototype-0.1-draft",
             "qualified": true,
@@ -1088,10 +1094,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 26,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f003",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f003",
                   "metric_key": "target.valid",
                   "offset": 0,
                   "limit": 20
@@ -1102,10 +1108,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 27,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f003",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f003",
                   "metric_key": "remainder.valid",
                   "offset": 0,
                   "limit": 20
@@ -1116,10 +1122,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 26,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f003",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f003",
                   "metric_key": "target.condition.I01",
                   "offset": 0,
                   "limit": 20
@@ -1130,10 +1136,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 27,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f003",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f003",
                   "metric_key": "remainder.condition.I01",
                   "offset": 0,
                   "limit": 20
@@ -1144,10 +1150,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 26,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f003",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f003",
                   "metric_key": "target.condition.I02",
                   "offset": 0,
                   "limit": 20
@@ -1158,10 +1164,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 27,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f003",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f003",
                   "metric_key": "remainder.condition.I02",
                   "offset": 0,
                   "limit": 20
@@ -1172,10 +1178,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 0,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/ai-investigation-tasks/0b4702d2-4136-4c74-b37b-1f7e45f394c8/records/query",
                 "records_query": {
-                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-                  "fact_id": "research-dac959e4b93e-f003",
+                  "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+                  "fact_id": "research-5ac27022027d-f003",
                   "metric_key": "unevaluable.rows",
                   "offset": 0,
                   "limit": 20
@@ -1203,11 +1209,11 @@
               ],
               "offset": 0,
               "limit": 20,
-              "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+              "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
               "include_statistics": false
             },
             "save_group_analysis_request": {
-              "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+              "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
               "conditions": [
                 {
                   "dimension_code": "algorithm_data_structure",
@@ -1229,11 +1235,11 @@
           }
         ],
         "selected_fact_ids": [
-          "research-dac959e4b93e-f002",
-          "research-dac959e4b93e-f003"
+          "research-5ac27022027d-f002",
+          "research-5ac27022027d-f003"
         ],
         "retained_fact_ids": [
-          "research-dac959e4b93e-f001"
+          "research-5ac27022027d-f001"
         ],
         "trace": [
           {
@@ -1270,7 +1276,7 @@
             "phase": "fact_validation",
             "status": "accepted",
             "fact_ids": [
-              "research-dac959e4b93e-f002"
+              "research-5ac27022027d-f002"
             ]
           },
           {
@@ -1307,7 +1313,7 @@
             "phase": "fact_validation",
             "status": "accepted",
             "fact_ids": [
-              "research-dac959e4b93e-f003"
+              "research-5ac27022027d-f003"
             ]
           },
           {
@@ -1330,8 +1336,8 @@
             "phase": "final_selection",
             "status": "accepted",
             "fact_ids": [
-              "research-dac959e4b93e-f002",
-              "research-dac959e4b93e-f003"
+              "research-5ac27022027d-f002",
+              "research-5ac27022027d-f003"
             ]
           }
         ],
@@ -1350,13 +1356,13 @@
         "report_integration": "eligible_facts_require_formal_recomputation"
       },
       "review_result_path": null,
-      "expires_at": 1793811228.065889
+      "expires_at": 1793812568.152337
     },
     "evidence": {
-      "task_id": "d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
-      "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
-      "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-      "campaign_id": "durable-5d9ee3e0c6574f5358f0ea78f354ad3f09f1f74e",
+      "task_id": "52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
+      "batch_id": "1d720a19-035b-4278-87a0-cf80e7a09dca",
+      "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+      "campaign_id": "durable-f584cb68c4ad8ddb44227673aec36bc2f0556e16",
       "state": "completed",
       "error_code": null,
       "stop_reason": "needs_external_evidence",
@@ -1368,10 +1374,10 @@
       "max_tool_attempts": 5,
       "max_model_requests": 6,
       "result": {
-        "run_id": "d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
-        "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
-        "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-        "source_manifest_sha256": "8e0246195118656272b46e9151def1c2c690251ffb5b0cbc4432ffb396262b81",
+        "run_id": "52baebf7-5fbe-47b4-8df1-8122d57fe7a8",
+        "batch_id": "1d720a19-035b-4278-87a0-cf80e7a09dca",
+        "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+        "source_manifest_sha256": "a39998930181a643bdb916fa3cd718e38fbdd95a51372e13f1bac4a61332a7e3",
         "scope_kind": "whole_authorized_batch",
         "batch_record_count": 53,
         "execution_origin": "http_mock",
@@ -1391,9 +1397,9 @@
         ],
         "facts": [
           {
-            "fact_id": "research-00de59d23bfe-f001",
-            "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
-            "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+            "fact_id": "research-c86877082938-f001",
+            "batch_id": "1d720a19-035b-4278-87a0-cf80e7a09dca",
+            "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
             "method": "get_dimension_statistics",
             "rule_version": "edu-adaptive-prototype-0.1-draft",
             "qualified": false,
@@ -1617,10 +1623,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I01.valid",
                   "offset": 0,
                   "limit": 20
@@ -1631,10 +1637,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I01.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -1645,10 +1651,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I02.valid",
                   "offset": 0,
                   "limit": 20
@@ -1659,10 +1665,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I02.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -1673,10 +1679,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I03.valid",
                   "offset": 0,
                   "limit": 20
@@ -1687,10 +1693,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I03.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -1701,10 +1707,10 @@
                 "dimension_code": "efficiency_awareness",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I04.valid",
                   "offset": 0,
                   "limit": 20
@@ -1715,10 +1721,10 @@
                 "dimension_code": "efficiency_awareness",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I04.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -1729,10 +1735,10 @@
                 "dimension_code": "solution_strategy",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I05.valid",
                   "offset": 0,
                   "limit": 20
@@ -1743,10 +1749,10 @@
                 "dimension_code": "solution_strategy",
                 "participant_count": 53,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f001",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f001",
                   "metric_key": "I05.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -1758,9 +1764,9 @@
             "save_group_analysis_request": null
           },
           {
-            "fact_id": "research-00de59d23bfe-f002",
-            "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
-            "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+            "fact_id": "research-c86877082938-f002",
+            "batch_id": "1d720a19-035b-4278-87a0-cf80e7a09dca",
+            "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
             "method": "query_dimension_relation",
             "rule_version": "edu-adaptive-prototype-0.1-draft",
             "qualified": true,
@@ -1798,10 +1804,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f002",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f002",
                   "metric_key": "left.paired",
                   "offset": 0,
                   "limit": 20
@@ -1812,10 +1818,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 53,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_path": "/api/v1/edu/batches/1d720a19-035b-4278-87a0-cf80e7a09dca/ai-investigation-tasks/52baebf7-5fbe-47b4-8df1-8122d57fe7a8/records/query",
                 "records_query": {
-                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
-                  "fact_id": "research-00de59d23bfe-f002",
+                  "snapshot_id": "1dbc029d-d3a6-40cd-833a-a37518895ad8",
+                  "fact_id": "research-c86877082938-f002",
                   "metric_key": "right.paired",
                   "offset": 0,
                   "limit": 20
@@ -1831,10 +1837,10 @@
           }
         ],
         "selected_fact_ids": [
-          "research-00de59d23bfe-f002"
+          "research-c86877082938-f002"
         ],
         "retained_fact_ids": [
-          "research-00de59d23bfe-f001"
+          "research-c86877082938-f001"
         ],
         "trace": [
           {
@@ -1871,7 +1877,7 @@
             "phase": "fact_validation",
             "status": "accepted",
             "fact_ids": [
-              "research-00de59d23bfe-f002"
+              "research-c86877082938-f002"
             ]
           },
           {
@@ -1894,7 +1900,7 @@
             "phase": "final_selection",
             "status": "accepted",
             "fact_ids": [
-              "research-00de59d23bfe-f002"
+              "research-c86877082938-f002"
             ]
           }
         ],
@@ -1913,13 +1919,13 @@
         "report_integration": "eligible_facts_require_formal_recomputation"
       },
       "review_result_path": null,
-      "expires_at": 1793811298.3325853
+      "expires_at": 1793812645.553952
     },
     "empty": {
-      "task_id": "08aabc82-fa12-43d4-9dbc-15682f3f74fa",
-      "batch_id": "84a28528-1609-4425-b419-1230a54e9423",
-      "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-      "campaign_id": "durable-c8bbea95fc0dd3af81800e8e735ebfbd00596282",
+      "task_id": "010d84cc-4656-4e4f-8eaf-678891369088",
+      "batch_id": "b4aad270-33b8-4ff6-bea2-91819989b3da",
+      "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+      "campaign_id": "durable-9b353ed9e4c9df8fbcfac3f18bc0d9dd9e231574",
       "state": "completed",
       "error_code": null,
       "stop_reason": "no_supported_findings",
@@ -1931,10 +1937,10 @@
       "max_tool_attempts": 5,
       "max_model_requests": 6,
       "result": {
-        "run_id": "08aabc82-fa12-43d4-9dbc-15682f3f74fa",
-        "batch_id": "84a28528-1609-4425-b419-1230a54e9423",
-        "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-        "source_manifest_sha256": "911eb206c8b7bfd2c42b0681c096a67c4743f0ea9174a1ff14ad69a55a292c78",
+        "run_id": "010d84cc-4656-4e4f-8eaf-678891369088",
+        "batch_id": "b4aad270-33b8-4ff6-bea2-91819989b3da",
+        "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+        "source_manifest_sha256": "9b2cbd872449aa37c7c7026cb687a30482c674eba16ff2b40cc5f8d0a4fbb9c1",
         "scope_kind": "whole_authorized_batch",
         "batch_record_count": 17,
         "execution_origin": "http_mock",
@@ -1948,9 +1954,9 @@
         "missing_evidence": [],
         "facts": [
           {
-            "fact_id": "research-b4e67b7a67a5-f001",
-            "batch_id": "84a28528-1609-4425-b419-1230a54e9423",
-            "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+            "fact_id": "research-96dcedd3bba7-f001",
+            "batch_id": "b4aad270-33b8-4ff6-bea2-91819989b3da",
+            "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
             "method": "get_dimension_statistics",
             "rule_version": "edu-adaptive-prototype-0.1-draft",
             "qualified": false,
@@ -2174,10 +2180,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 17,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I01.valid",
                   "offset": 0,
                   "limit": 20
@@ -2188,10 +2194,10 @@
                 "dimension_code": "algorithm_data_structure",
                 "participant_count": 17,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I01.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -2202,10 +2208,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 17,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I02.valid",
                   "offset": 0,
                   "limit": 20
@@ -2216,10 +2222,10 @@
                 "dimension_code": "code_implementation",
                 "participant_count": 17,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I02.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -2230,10 +2236,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 17,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I03.valid",
                   "offset": 0,
                   "limit": 20
@@ -2244,10 +2250,10 @@
                 "dimension_code": "problem_modeling",
                 "participant_count": 17,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I03.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -2258,10 +2264,10 @@
                 "dimension_code": "efficiency_awareness",
                 "participant_count": 17,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I04.valid",
                   "offset": 0,
                   "limit": 20
@@ -2272,10 +2278,10 @@
                 "dimension_code": "efficiency_awareness",
                 "participant_count": 17,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I04.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -2286,10 +2292,10 @@
                 "dimension_code": "solution_strategy",
                 "participant_count": 17,
                 "witness_kind": "score",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I05.valid",
                   "offset": 0,
                   "limit": 20
@@ -2300,10 +2306,10 @@
                 "dimension_code": "solution_strategy",
                 "participant_count": 17,
                 "witness_kind": "row",
-                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_path": "/api/v1/edu/batches/b4aad270-33b8-4ff6-bea2-91819989b3da/ai-investigation-tasks/010d84cc-4656-4e4f-8eaf-678891369088/records/query",
                 "records_query": {
-                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
-                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "snapshot_id": "4c2ddeb5-a102-4d25-9e82-163057561f95",
+                  "fact_id": "research-96dcedd3bba7-f001",
                   "metric_key": "I05.state.valid",
                   "offset": 0,
                   "limit": 20
@@ -2317,7 +2323,7 @@
         ],
         "selected_fact_ids": [],
         "retained_fact_ids": [
-          "research-b4e67b7a67a5-f001"
+          "research-96dcedd3bba7-f001"
         ],
         "trace": [
           {
@@ -2357,31 +2363,31 @@
         "report_integration": "eligible_facts_require_formal_recomputation"
       },
       "review_result_path": null,
-      "expires_at": 1793811342.091016
+      "expires_at": 1793812689.7762368
     }
   },
   "review_receipt": {
-    "task_id": "66a35834-8aed-47e3-a37d-753a1d287b66",
-    "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
-    "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
-    "result_id": "7701bd58-3eda-4549-97fe-98bf2aeb7372",
+    "task_id": "0b4702d2-4136-4c74-b37b-1f7e45f394c8",
+    "batch_id": "77b9da2b-8c7f-4a3e-8636-76ee3cca9b58",
+    "snapshot_id": "166b3b83-db65-4936-bb88-ec7b0b4e3762",
+    "result_id": "a18ec832-009c-402a-9d4b-245c55b159dd",
     "version": 1,
     "candidate_ids": [
-      "2f8236b191185abf9f7cb329",
-      "995d4639ec8e685541e81da4"
+      "bec27859ad5c810eaeae082b",
+      "61a7ccc114e4bd2623e6d84b"
     ],
     "fact_candidate_map": {
-      "research-dac959e4b93e-f002": "2f8236b191185abf9f7cb329",
-      "research-dac959e4b93e-f003": "995d4639ec8e685541e81da4"
+      "research-5ac27022027d-f002": "bec27859ad5c810eaeae082b",
+      "research-5ac27022027d-f003": "61a7ccc114e4bd2623e6d84b"
     },
     "agent_rule_version": "edu-adaptive-prototype-0.1-draft",
     "formal_rule_version": "edu-discovery-0.1.1-draft",
     "status": "pending_teacher_review",
-    "result_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
-    "review_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
-    "export_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+    "result_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd",
+    "review_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd",
+    "export_path": "/api/v1/edu/batches/77b9da2b-8c7f-4a3e-8636-76ee3cca9b58/analysis-results/a18ec832-009c-402a-9d4b-245c55b159dd/export",
     "notice": "候选已按正式规则重新计算；教师确认不等于因果证明。"
   },
   "report_version": 2,
-  "implementation_sha256": "5f4bf4ac1ca67211fb8ec3c0eb8980c615268a3ecd2d639ec9764e4cb5da1e16"
+  "implementation_sha256": "53e3e6e6d8156379dbf3eb69cc9fccc940fd1b04ecc2414f3b46cb5b7e79cce3"
 }

@@ -2,7 +2,7 @@
 
 ## 版本与结论
 
-执行代码：`1e7d5ab0b0816a706dc2c2c7668e576561599145`，基于 #70 `fa49f6ef10160f103cd15a7c2f66d3a2d8767b63`。后续本记录/HTTP JSON 的提交只补证据，不改执行代码。
+最终执行代码：`7f6be225469169f4836e79eb186a739497bf60e3`，基于 #70 `fa49f6ef10160f103cd15a7c2f66d3a2d8767b63`。后续本记录/HTTP JSON 的提交只补证据，不改执行代码。
 
 已跑通合成闭环，**未开放正式教师 AI、未调用真实模型**。#70 尚无正式 Review；#72 已请求 Peng-Kai789 和 AooMing 审核。CI 排队不能代替批准。
 
@@ -10,9 +10,9 @@
 
 | 检查 | 结果 |
 |---|---|
-| 新增持久任务与原 #70 联合专项 | **31 passed，1 warning，290.72s**，包括取消、用途/凭证撤销、并发、重启/到期、预算封顶、错误模型响应及原切片回归 |
+| 新增持久任务与原 #70 联合专项 | **32 passed，1 warning，321.67s**，包括取消、用途/凭证撤销、并发、重启/到期、预算封顶、错误模型响应及原切片回归 |
 | 后端 Ruff / format | 通过，217 个后端文件格式检查；改动原型按同一后端配置另检，14 个文件通过 |
-| 实际本机 HTTP / SQLite | **82 个预期响应核对通过**，包含轮询；两次独立 Uvicorn 服务进程，不是 Mock 成功接口 |
+| 实际本机 HTTP / SQLite | **83 个预期响应核对通过**，包含轮询；两次独立 Uvicorn 服务进程，不是 Mock 成功接口 |
 | 服务重启 | 第一个服务进程退出，第二个从同一 SQLite 与 campaign journal 重建服务，任务结果一致 |
 | 评分依据 | 实际命中 26 人，分页返回 2 条，逐条通过原评分证据接口核对；未审核评语为空 |
 | 正式核查 | 关联/群体两项经正式发现规则及全部来源核验，写入原 analysis_results，初态均 pending |
@@ -32,8 +32,8 @@
 
 - `docs/contracts/ai-investigation-tasks.openapi.synthetic.json`：从实际测试宿主提取。
 - `docs/contracts/ai-investigation-tasks.http.synthetic.json`：实际 HTTP 状态、聚合事实、Trace、预算、待核查回执和源码指纹。没有原始工作簿、个人行、原评语或凭证。
-- 本机 JUnit：`D:/Temp/edu-durable-agent-1e7d5ab.xml`。
-- 本机完整 HTTP 记录：`D:/Temp/edu-durable-investigation-final-http.json`。
+- 本机 JUnit：`D:/Temp/edu-durable-agent-races-fixed.xml`。
+- 本机完整 HTTP 记录：`D:/Temp/edu-durable-investigation-races-fixed-http.json`。
 
 ```powershell
 # 仓库根目录，已有锁定依赖
@@ -60,4 +60,4 @@ uv run --project apps/api --locked python -m prototypes.durable_teacher_agent.de
 1. 第二个 worker 领取同一 running 任务被拒绝后，错误把活跃任务标为 failed。
 2. 证据回放期间撤销 AI 用途，长时回读仍返回 200；应拒绝为 403。
 
-对应复现：`D:/Temp/edu-durable-race-before.xml`。修复为“未取得领取权不改变任务”，并给所有只读来源回放绑定持续用途/旧凭证/到期检查；评分快照读取前后均复核用途。修复后的两项专项 **2 passed，61.89s**（`D:/Temp/edu-durable-race-after.xml`）。无用途准入时也在加载评分材料前拒绝。最终联合回归与 HTTP 记录会在本 PR 更新，不能将修复前记录当作当前安全结论。
+对应复现：`D:/Temp/edu-durable-race-before.xml`。修复为“未取得领取权不改变任务”，并给所有只读来源回放绑定持续用途/旧凭证/到期检查；评分快照读取前后均复核用途。修复后的两项专项 **2 passed，61.89s**（`D:/Temp/edu-durable-race-after.xml`）。无用途准入时也在加载评分材料前拒绝。修复后的最终联合回归为 **32 passed**，跨两个服务进程的 HTTP 检查 **83 项预期响应全部通过**。早期 `1e7d5ab` 的 31 项/82 HTTP 是历史记录，不作为当前安全结论。
