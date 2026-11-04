@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import asdict, replace
+from decimal import Decimal
 from time import perf_counter
 from uuid import uuid4
 
@@ -13,10 +14,32 @@ from prototypes.adaptive_assessment.agent import AdaptiveExecutor, Decision, wir
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
+from prototypes.adaptive_assessment.live.pricing import PRICE
 from prototypes.adaptive_assessment.synthetic import admit
 
 from .completeness import assess
 from .goals import Goal, reflect, understand
+
+
+def remaining_requests(budget: CampaignBudget, limit: int, *, reserve_current=False) -> int:
+    """Read-only conservative capacity, using the authoritative shared price and journal."""
+    snapshot = budget.snapshot()
+    if snapshot["blocked"]:
+        return 0
+    authorization = budget.authorization
+    tokens = PRICE.max_input_tokens + authorization.max_output_tokens
+    cost = PRICE.cost(PRICE.max_input_tokens, authorization.max_output_tokens)
+    pending = int(reserve_current)
+    return max(
+        0,
+        min(
+            limit,
+            authorization.max_requests - snapshot["request_count"] - pending,
+            (authorization.total_token_limit - snapshot["charged_tokens"]) // tokens - pending,
+            int((authorization.cost_cap_cny - Decimal(snapshot["charged_cny_upper_bound"])) / cost)
+            - pending,
+        ),
+    )
 
 
 class ResearchExecutor(AdaptiveExecutor):
@@ -73,13 +96,18 @@ class ResearchPlanner(QwenAdaptivePlanner):
             self.goal,
             self._executor,
             tools_remaining=view["remaining_tool_attempts"],
-            models_remaining=max(0, self._executor.limits.model_requests - self._requests),
+            models_remaining=remaining_requests(
+                self._budget,
+                self._executor.limits.model_requests - self._requests,
+                reserve_current=True,
+            ),
         )
         view["reflection"] = decision_context
         self.reflections.append(decision_context)
         message["content"] = json.dumps(view, ensure_ascii=False)
         view_remaining = min(
-            view["remaining_model_requests"], self._executor.limits.model_requests - self._requests
+            view["remaining_model_requests"],
+            decision_context["coverage"]["remaining_model_requests"],
         )
         view["remaining_model_requests"] = max(0, view_remaining)
         message["content"] = json.dumps(view, ensure_ascii=False)
@@ -200,7 +228,7 @@ async def investigate(
             goal,
             executor,
             tools_remaining=limits.tool_attempts - len(queries) - run.tool_attempts,
-            models_remaining=limits.model_requests - run.model_requests,
+            models_remaining=remaining_requests(budget, limits.model_requests - run.model_requests),
         )
         if run.status == "completed" and stop != "needs_external_evidence":
             if coverage["status"] in {"budget_limited", "evidence_limited"}:

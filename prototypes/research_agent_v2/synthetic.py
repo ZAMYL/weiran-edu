@@ -78,7 +78,7 @@ def decode_registered(raw: bytes):
             f"合成评价项 {item}",
             spec["kind"],
             Scale("scale-" + item, spec["minimum"], spec["maximum"], spec["step"], unit),
-            "ordinal" if prefix == "I" else "interval",
+            spec.get("measurement_level", "ordinal" if prefix == "I" else "interval"),
             "",
             None,
         )

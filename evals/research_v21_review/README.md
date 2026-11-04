@@ -3,7 +3,7 @@
 本材料由本轮未参与 EDU PR #66 策略调试的隔离上下文子代理审核者构造，**不是人类独立批准，也不是完全盲测**。未读取策略、既有案例、冻结 Oracle 或结果，未调用付费模型。已读取指定 canonical model、ItemSpec/_assemble；读取 analysis.py 时整文件输出包含统计 Kernel 实现，超出了最窄的“仅 I/O 契约”范围，因此如实记录此隔离局限。未执行或导入 Kernel/discover/Agent。
 
 ## 输入与答案隔离
-inputs.json 为运行适配器的唯一输入入口，仅含 case_id/kind/scale/items/rows/seed/生成说明；oracles.json 为封闭预期、来源和资格/拒绝条件。inputs/ 与 answers/ 是逐例审查副本。运行器可向规划器提供输入和产品允许的聚合视图，**不得将 oracles.json、answers/、本说明中的答案、生成脚本或 manifest 作为规划器上下文**。本材料不指定工具调用顺序，不提供参考策略。行索引为 1 起始，列顺序由 items 决定。null 是缺失，不是 0；rubric=null 表示未提供真实评分细则，不能虚构。
+inputs.json 为评分行的固定输入入口，仅含 case_id/kind/scale/items/rows/seed/生成说明；oracles.json 为封闭预期、来源和资格/拒绝条件。inputs/ 保留逐例明示的 measurement_level；适配器单独校验其固定指纹及与顶层评分、项目、量表的一致性后，只读取该元数据。answers/ 是逐例答案审查副本。运行器可向规划器提供输入和产品允许的聚合视图，**不得将 oracles.json、answers/、本说明中的答案、生成脚本或 manifest 作为规划器上下文**。本材料不指定工具调用顺序，不提供参考策略。行索引为 1 起始，列顺序由 items 决定。null 是缺失，不是 0；rubric=null 表示未提供真实评分细则，不能虚构。
 
 ## 固定生成与验证
 在本目录运行 Python generate_review_cases.py。无随机数、外部数据或项目依赖；三例分别为 40、30、40 人，每例 4 项。生成器只用标准库 Fraction 计算有理数均值、中位数、秩的平方和/交叉乘积；相关系数使用手推解析式并断言独立秩计算所得矩一致。JSON 与 SHA-256 清单可重复生成。原始输入是明确的分块设计，所有非空披露分组、配对来源、评分频数单元均至少 5 人；空来源只表示不存在可用数值，不能形成数值结论。

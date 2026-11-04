@@ -28,7 +28,7 @@ def test_early_finish_retains_new_verified_fact_and_reports_partial(tmp_path):
     assert result["investigation_status"] == "partial"
     assert result["investigation_coverage"]["can_continue"]
     assert result["findings"][0]["type"] == "item_relation"
-    assert len(executor.facts) == 2 and result["model_selected_fact_ids"] == ()
+    assert len(executor.facts) == 2 and result["model_selected_fact_ids"] == []
 
 
 def test_budget_stops_without_claiming_full_coverage(tmp_path):
@@ -145,3 +145,46 @@ def test_teacher_and_technical_projection_include_boundaries(tmp_path):
         assert "## " + key in technical
     assert result["stages"][1]["arguments"]["left"] == "I01"
     assert result["stages"][-1]["tool_attempts_used"] == result["tool_attempts"]
+
+
+def test_campaign_capacity_controls_continuation_and_retains_verified_result(tmp_path):
+    from prototypes.adaptive_assessment.live.budget import CampaignBudget
+    from prototypes.adaptive_assessment.live.demo import MOCK_DATE, mock_authorization
+    from prototypes.research_agent_v2.demo import mock_transport
+    from prototypes.research_agent_v2.runtime import investigate, remaining_requests
+
+    recipe = "research-v2-capability"
+
+    def last_request(chosen, view):
+        return {
+            "name": "query_dimension_relation",
+            "arguments": {"left": "I01", "right": "I03"},
+        }
+
+    async def run():
+        budget = CampaignBudget(
+            mock_authorization(recipe, max_requests=1),
+            tmp_path,
+            origin="http_mock",
+            today=MOCK_DATE,
+        )
+        try:
+            assert remaining_requests(budget, 6) == 1
+            result, executor = await investigate(
+                recipe,
+                "比较I01、I02的组合与I03的群体差异",
+                budget,
+                transport=mock_transport(fault=last_request),
+            )
+            assert len(executor.facts) == 2  # even when next reservation is refused
+            assert result["budget"]["request_count"] == 1
+            assert result["stop_reason"] == "authorized_request_limit"
+            coverage = result["investigation_coverage"]
+            assert coverage["remaining_model_requests"] == 0
+            assert coverage["status"] == "budget_limited" and not coverage["can_continue"]
+            assert coverage["uncovered_direction_ids"]
+            assert not result["reflections"][0]["coverage"]["can_continue"]
+        finally:
+            budget.close()
+
+    asyncio.run(run())
