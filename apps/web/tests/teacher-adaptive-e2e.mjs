@@ -48,7 +48,7 @@ const digest = (buffer) => createHash('sha256').update(buffer).digest('hex');
 const statistic = (value) => ({
   value,
   exact: null,
-  display: value.toFixed(2),
+  display: value === null ? '—' : value.toFixed(2),
 });
 const pageInfo = (returned, limit = returned, offset = 0, has_more = false) => ({
   offset,
@@ -89,12 +89,14 @@ function projectStatistics(item, inputScores) {
   return {
     item_id: item.item_id,
     valid_count: scores.length,
-    missing_count: 0,
+    missing_count: studentCount - scores.length,
     invalid_count: 0,
-    mean: statistic(scores.reduce((sum, score) => sum + score, 0) / scores.length),
-    median: statistic(scores[1]),
-    minimum: statistic(scores[0]),
-    maximum: statistic(scores.at(-1)),
+    mean: statistic(
+      scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null,
+    ),
+    median: statistic(scores[1] ?? null),
+    minimum: statistic(scores[0] ?? null),
+    maximum: statistic(scores.at(-1) ?? null),
     distribution: scores.map((score) => ({
       score,
       count: 1,
@@ -309,8 +311,13 @@ const upstream = createServer(async (request, response) => {
           return send(200, {
             batch_id: target.batch_id,
             snapshot_id: target.snapshot_id,
-            item_statistics: scenario.items.map((item) =>
-              projectStatistics(item, [0, item.scale.maximum / 2, item.scale.maximum]),
+            item_statistics: scenario.items.map((item, index) =>
+              projectStatistics(
+                item,
+                scenario.id === 'competency-mixed' && index === 2
+                  ? []
+                  : [0, item.scale.maximum / 2, item.scale.maximum],
+              ),
             ),
           });
         }
@@ -397,8 +404,7 @@ try {
   await page.getByRole('heading', { name: '选择 Excel 文件' }).waitFor();
   await page.locator('input[type=file]').setInputFiles(workbook);
   await page.getByText('文件检查通过').waitFor();
-  await page.getByText('评分预览', { exact: true }).click();
-  await page.getByText('评分项目与标准', { exact: true }).click();
+  await page.getByText('评分项目与量表', { exact: true }).click();
   await page.getByText('第 13 题 · 0–20 分', { exact: true }).waitFor();
   await page.screenshot({ path: path.join(artifacts, '13-upload-preview.png'), fullPage: true });
   await page.getByRole('button', { name: '下一步：确认导入' }).click();
@@ -472,6 +478,7 @@ try {
         await projectTable.getByRole('row', { name: /数据清洗/ }).innerText(),
         /0–20 分.*10\.00/s,
       );
+      await projectTable.getByRole('row', { name: /迭代反思.*暂无有效评分/ }).waitFor();
     }
     if (!scenario.statistics) {
       await page.getByText('当前测评尚未开放项目统计。').waitFor();
