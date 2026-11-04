@@ -46,7 +46,8 @@ def test_complete_goal_act_observe_reflect_finish_and_dynamic_paths(outcomes):
     metric = group["findings"][0]["metrics"]
     assert metric["target_count"] == 12 and metric["remainder_count"] == 36
     assert metric["difference"]["numerator"] == -8 and metric["difference"]["denominator"] == 3
-    assert [t["tool"] for t in quality["tool_ledger"]] == ["inspect_item_quality"]
+    assert quality["tool_ledger"][0]["tool"] == "inspect_item_quality"
+    assert any(t["tool"] == "compare_student_groups" for t in quality["tool_ledger"])
     assert cause["stop_reason"] == "needs_external_evidence"
     assert cause["missing_evidence"] == ["rubric_criteria", "original_task"]
     assert cause["findings"][0]["type"] == "item_relation"
@@ -200,7 +201,8 @@ def test_actual_request_budget_cannot_be_reset_or_overrun(tmp_path):
                 transport=mock_transport(),
                 limits=Limits(model_requests=1),
             )
-            assert r["status"] == "failed" and r["stop_reason"] == "model_budget_exhausted"
+            assert r["status"] == "completed" and r["stop_reason"] == "budget_limited"
+            assert r["investigation_status"] == "partial"
             assert budget.snapshot()["request_count"] == 1
             with pytest.raises(AgentError, match="campaign_run_already_claimed"):
                 await investigate(
@@ -262,8 +264,8 @@ def test_independent_comparison_preserves_omissions(tmp_path):
     interaction, relation, zero = result["cases"]
     assert interaction["added_correct_semantics"] == 1
     assert interaction["agent_target_met"]
-    # Agent stops sooner but omits a legitimate baseline group observation: don't hide it.
-    assert relation["missed_baseline_semantics"] == 1
+    # V2 omitted this observation; its original negative record remains unchanged.
+    assert relation["missed_baseline_semantics"] == 0
     assert zero["agent_target_met"] and zero["added_correct_semantics"] == 0
     assert len(result["restricted"]) == 2
     for row in result["cases"]:
@@ -284,6 +286,8 @@ def test_new_prototype_style_is_in_existing_ci():
                 str(root / "apps/api/pyproject.toml"),
                 str(root / "prototypes/research_agent_v2"),
                 str(root / "evals/research_agent_v2.py"),
+                str(root / "evals/research_v21.py"),
+                str(root / "evals/research_v21_review/generate_review_cases.py"),
             ],
             capture_output=True,
             text=True,

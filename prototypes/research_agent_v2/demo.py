@@ -14,96 +14,31 @@ from prototypes.adaptive_assessment.live.budget import CampaignBudget, Synthetic
 from prototypes.adaptive_assessment.live.demo import MOCK_DATE, mock_authorization, native_response
 from prototypes.adaptive_assessment.planners import AdaptiveFake
 
-from .runtime import investigate, markdown
+from .runtime import investigate, markdown, technical_markdown
 from .synthetic import RECIPES
 
 
 class ResearchMock:
-    """Data-driven offline mechanism policy, NOT evidence of Qwen reasoning."""
+    """First legal pending direction, explicitly a fixture policy, not model reasoning."""
 
     def choose(self, view: dict) -> dict:
-        goal, facts = view["research_goal"], view["facts"]
-        selected = [f["fact_id"] for f in facts if f["qualified"]]
-
-        def finish():
-            return {
-                "name": "finish",
-                "arguments": {
-                    "selected_fact_ids": selected[:3],
-                    "reason": "completed" if selected else "no_valid_findings",
-                },
-            }
-
-        if view["reflection"]["state"] != "needs_investigation":
-            return finish()
-        if view["last_result"] and view["last_result"]["status"] == "rejected":
-            return finish()
-        summary = next(f for f in facts if "items" in f)
-        available = {
-            i["item_id"]: i
-            for i in summary["items"]
-            if i.get("state") == "available"
-            and i.get("has_variance")
-            and len(i.get("exploration_thresholds", [])) > 1
-        }
-        if goal["type"] in ("relation", "explanation"):
-            return {
-                "name": "query_dimension_relation",
-                "arguments": dict(zip(("left", "right"), goal["items"], strict=True)),
-                "basis_fact_ids": [summary["fact_id"]],
-            }
-        if goal["type"] == "group":
-            items = goal["items"]
-            relations = [f for f in facts if f.get("type") == "item_relation"]
-            if not relations:
+        coverage = view["reflection"]["coverage"]
+        if coverage["can_continue"]:
+            pending = [d for d in coverage["directions"] if d["status"] == "uninvestigated"]
+            if pending:
+                direction = pending[0]
                 return {
-                    "name": "query_dimension_relation",
-                    "arguments": {"left": items[0], "right": items[-1]},
-                    "basis_fact_ids": [summary["fact_id"]],
+                    "name": direction["tool"],
+                    "arguments": direction["arguments"],
+                    "basis_fact_ids": direction["basis_fact_ids"],
                 }
-            conditions, outcome = items[:-1], items[-1]
-        else:
-            issues = [
-                i
-                for i in summary["items"]
-                if any(v > 0 for state, v in i.get("states", {}).items() if state != "valid")
-            ]
-            if issues and not any(f.get("type") == "item_quality_review" for f in facts):
-                return {
-                    "name": "inspect_item_quality",
-                    "arguments": {"item_id": issues[0]["item_id"]},
-                    "basis_fact_ids": [summary["fact_id"]],
-                }
-            items = list(available)
-            if len(items) < 2:
-                return finish()
-            relations = [f for f in facts if f.get("type") == "item_relation"]
-            if not relations:
-                return {
-                    "name": "query_dimension_relation",
-                    "arguments": {"left": items[0], "right": items[1]},
-                    "basis_fact_ids": [summary["fact_id"]],
-                }
-            if len(items) < 3:
-                return finish()
-            conditions = items[:2] if abs(relations[-1]["metrics"]["rho"] or 0) < 0.6 else items[:1]
-            outcome = items[2]
-        if any(i not in available for i in conditions):
-            return finish()
+        selected = [f["fact_id"] for f in view["facts"] if f["qualified"]]
         return {
-            "name": "compare_student_groups",
+            "name": "finish",
             "arguments": {
-                "conditions": [
-                    {
-                        "item_id": item,
-                        "operator": "<=",
-                        "threshold": available[item]["exploration_thresholds"][0],
-                    }
-                    for item in conditions
-                ],
-                "outcomes": [outcome],
+                "selected_fact_ids": selected[:3],
+                "reason": "completed" if selected else "no_valid_findings",
             },
-            "basis_fact_ids": [f["fact_id"] for f in facts[-2:]],
         }
 
 
@@ -162,7 +97,14 @@ def main() -> int:
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--authorization", type=Path)
     args = parser.parse_args()
-    if args.output.exists() or args.output.with_suffix(".md").exists():
+    if any(
+        p.exists()
+        for p in (
+            args.output,
+            args.output.with_suffix(".md"),
+            args.output.with_suffix(".technical.md"),
+        )
+    ):
         parser.error("new_output_paths_required")
     if args.execute and not args.authorization:
         parser.error("separate human authorization and --authorization required")
@@ -205,6 +147,9 @@ def main() -> int:
         json.dump(result, stream, ensure_ascii=False, indent=2)
     if "goal" in result:
         args.output.with_suffix(".md").write_text(markdown(result), encoding="utf-8")
+        args.output.with_suffix(".technical.md").write_text(
+            technical_markdown(result), encoding="utf-8"
+        )
     print(
         json.dumps(
             {

@@ -15,6 +15,7 @@ from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
 from prototypes.adaptive_assessment.synthetic import admit
 
+from .completeness import assess
 from .goals import Goal, reflect, understand
 
 
@@ -22,6 +23,21 @@ class ResearchExecutor(AdaptiveExecutor):
     """Replay committed queries, including summaries/support, through the same kernel."""
 
     replay_executions = 0
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attempt_ledger = []
+
+    def execute(self, name, args):
+        entry = {"tool": name, "arguments": args.model_dump(), "status": "attempted"}
+        self.attempt_ledger.append(entry)
+        try:
+            facts = super().execute(name, args)
+            entry.update(status="verified", fact_ids=[f.fact_id for f in facts])
+            return facts
+        except ValueError as error:
+            entry.update(status="rejected", error=str(error))
+            raise
 
     def _verify(self, fact):
         super()._verify(fact)
@@ -53,6 +69,12 @@ class ResearchPlanner(QwenAdaptivePlanner):
         view = json.loads(message["content"])
         decision_context = reflect(self.goal, self._executor)
         view["research_goal"] = self.goal.view()
+        decision_context["coverage"] = assess(
+            self.goal,
+            self._executor,
+            tools_remaining=view["remaining_tool_attempts"],
+            models_remaining=max(0, self._executor.limits.model_requests - self._requests),
+        )
         view["reflection"] = decision_context
         self.reflections.append(decision_context)
         message["content"] = json.dumps(view, ensure_ascii=False)
@@ -143,7 +165,15 @@ async def investigate(
         )
         # Preserve all verified initial observations independently of model's card selection.
         retained_cards = [i for i in seeds if executor.facts[i].view["qualified"]]
-        all_selected = tuple(dict.fromkeys((*retained_cards, *run.selected_ids)))
+        all_selected = tuple(
+            dict.fromkeys(
+                (
+                    *retained_cards,
+                    *run.selected_ids,
+                    *(i for i, f in executor.facts.items() if f.view["qualified"]),
+                )
+            )
+        )
         selected = all_selected[:3]
         cards = executor.finish(
             executor.parse(
@@ -166,7 +196,47 @@ async def investigate(
                 else "goal_unmet"
             )
         )
+        coverage = assess(
+            goal,
+            executor,
+            tools_remaining=limits.tool_attempts - len(queries) - run.tool_attempts,
+            models_remaining=limits.model_requests - run.model_requests,
+        )
+        if run.status == "completed" and stop != "needs_external_evidence":
+            if coverage["status"] in {"budget_limited", "evidence_limited"}:
+                stop = coverage["status"]
+            elif coverage["uncovered_direction_ids"]:
+                stop = "stopped_with_uncovered_directions"
+            elif goal.kind == "priority" and coverage["uninvestigated_pairs"]["count"]:
+                stop = "bounded_scope_stop"
         verified = [fact_record(executor, f) for f in executor.facts.values()]
+        indexed = {f["fact_id"]: f for f in verified}
+        tool_events = [
+            e for e in run.trace if e.phase == "tool_execution" and e.status == "attempted"
+        ]
+        stages = [
+            {
+                "phase": "initial_overview",
+                "tool": row["tool"],
+                "facts": [indexed[i] for i in row["fact_ids"]],
+                "tool_attempts_used": i + 1,
+                "model_requests_used": 0,
+            }
+            for i, row in enumerate(seed_ledger)
+        ]
+        stages += [
+            {
+                "phase": "investigation",
+                "tool": t.tool,
+                "status": t.status,
+                "arguments": t.arguments,
+                "error": t.error,
+                "facts": [indexed[i] for i in t.fact_ids],
+                "tool_attempts_used": len(queries) + t.attempt,
+                "model_requests_used": tool_events[i].round,
+            }
+            for i, t in enumerate(run.tools)
+        ]
         return wire(
             {
                 "origin": "offline_mechanism" if budget.origin == "http_mock" else "synthetic_live",
@@ -174,6 +244,11 @@ async def investigate(
                 "status": run.status,
                 "stop_reason": stop,
                 "observation_goal": verdict,
+                "investigation_coverage": coverage,
+                "investigation_status": "partial"
+                if coverage["uncovered_direction_ids"]
+                else "bounded_complete_not_exhaustive",
+                "attempt_ledger": executor.attempt_ledger,
                 "verified_observations": verified,
                 "retained_fact_ids": list(seeds),
                 "new_fact_ids": [f.fact_id for f in run.facts if f.fact_id not in seeds],
@@ -192,6 +267,8 @@ async def investigate(
                     else "按指标来源查询核对记录；群体差异不等于能力诊断。"
                 ),
                 "seed_ledger": seed_ledger,
+                "stages": stages,
+                "model_selected_fact_ids": run.selected_ids,
                 "tool_ledger": [asdict(t) for t in run.tools],
                 "trace": [asdict(t) for t in run.trace],
                 "reflections": planner.reflections,
@@ -228,35 +305,112 @@ async def investigate(
 
 
 def markdown(result: dict) -> str:
+    names = {
+        "priority": "优先核查评分模式",
+        "group": "核对指定能力组合的评分差异",
+        "relation": "调查指定评价项的统计关联",
+        "quality": "核查缺分和有效样本",
+        "explanation": "核查关联背后是否有足够教学依据",
+    }
+    coverage = result["investigation_coverage"]
+    stop_labels = {
+        "goal_satisfied": "明确问题已有对应统计证据",
+        "bounded_scope_stop": "完成本轮有限核查，未进行穷尽调查",
+        "stopped_with_uncovered_directions": "规划器主动结束，仍有未核查方向",
+        "budget_limited": "预算不足，保留结果并停止",
+        "evidence_limited": "资料或披露边界阻止继续",
+        "needs_external_evidence": "缺少量规或任务依据，不能解释原因",
+        "goal_unmet": "尚未满足调查目标",
+        "no_supported_findings": "本轮未发现合格评分模式",
+        "model_timeout": "请求超时，调查未完成",
+        "model_budget_exhausted": "请求预算用尽，调查未完成",
+    }
     rows = [
-        "# 合成教学数据调查",
+        "# 未然 EDU｜合成测评调查",
         "",
-        f"目标：{result['goal']['type']} {result['goal']['items']}",
-        f"停止：{result['stop_reason']}",
+        "教师问题（受控重述）："
+        + names[result["goal"]["type"]]
+        + "："
+        + "、".join(result["goal"]["items"]),
         "",
-        "## 已核验观察",
+        "## 已证实的观察",
     ]
-    for finding in result["findings"]:
-        rows += [f"- {finding['title']}：{finding['summary']}"]
-    if not result["findings"]:
-        rows += ["- 本轮没有合格发现；不代表没有任何学习问题。"]
-    rows += ["", "## 可复核统计概况", "|项目|有效/总数|均值|评分状态|", "|---|---|---|---|"]
     for fact in result["verified_observations"]:
-        for item in fact["values"].get("items", []):
-            value = item.get("mean") or {}
-            rows.append(
-                f"|{item['item_id']}|{item.get('valid_count', '未披露')}/"
-                f"{item.get('denominator', '未披露')}|"
-                f"{value.get('display', '不可计算')}|{item.get('states', item.get('state'))}|"
-            )
+        if fact["values"].get("type") == "item_relation" and not fact["values"]["qualified"]:
+            v = fact["values"]["metrics"]
+            rows += [
+                f"- 前置核查：{v['left']}与{v['right']}，有效配对{v['paired_count']}人，"
+                f"Spearman={v['rho']}；不可据此排除条件组合中的差异。"
+            ]
+    for card in result["findings"]:
+        rows += ["- " + card["title"] + "：" + card["summary"]]
+        v = card["metrics"]
+        if card["type"] == "item_group_difference":
+            rows += [
+                "  - 实际筛选条件："
+                + " 且 ".join(
+                    f"{p['item_id']} {p['operator']} {p['threshold']}" for p in v["conditions"]
+                ),
+                f"  - 目标{v['target_count']}人，其余{v['remainder_count']}人；"
+                f"总分母{v['denominator']}人，"
+                f"条件可判定{v['eligible_denominator']}人；目标/其余组有效评分"
+                f"{v['target_valid']}/{v['remainder_valid']}条；均值差{v['difference']['display']}。",
+            ]
+    if not result["findings"]:
+        rows += ["- 当前没有合格发现；不能据此判断没有学习问题。"]
+    if any(
+        f["values"].get("type") == "item_relation" and f["values"]["metrics"]["rho"] == 0
+        for f in result["verified_observations"]
+    ) and any(c["type"] == "item_group_difference" for c in result["findings"]):
+        rows += [
+            "",
+            "为什么继续核查：整体等级相关为0不能排除条件组合内的群体差异。"
+            "本轮进一步比较了实际筛选群体；这仍是描述性观察，不是因果证明。",
+        ]
     rows += [
+        "",
+        "## 调查边界",
+        "目标状态："
+        + (
+            "已有对应统计观察；这不等于调查充分。"
+            if result["observation_goal"]["matching_fact_ids"]
+            else "本轮尚无对应的合格观察，或评分模式不支持此项发现。"
+        ),
+        "本轮只覆盖声明的有限候选范围，不是全体项目/阈值的穷尽调查。",
+        f"前沿未覆盖{len(coverage['uncovered_direction_ids'])}个方向；"
+        f"另有{coverage['uninvestigated_pairs']['count']}对可分析项目尚未检验。",
+        "停止原因：" + stop_labels.get(result["stop_reason"], "安全停止，见技术记录") + "。",
         "",
         "## 下一步",
         result["next_check"],
+        "不得将相关或评分差异解释为教学因果、能力等级或学生心理。",
         "",
-        "相关不等于因果；离线Mock不证明真实模型的自主调查能力。",
-        f"模型请求 {result['model_requests']}；工具尝试 {result['tool_attempts']}。",
-        "实际Token和费用："
-        + ("未发生真实模型调用" if result["real_qwen"] == "not_run" else "见预算账本"),
+        "本记录为合成数据与HTTP Mock机制演示，不是实际Qwen推理效果。",
+        f"本轮模型协议请求{result['model_requests']}次，工具尝试{result['tool_attempts']}次；"
+        f"另有{result['verification_replay_executions']}次校验重放。实际费用未发生。",
     ]
     return "\n".join(rows) + "\n"
+
+
+def technical_markdown(result: dict) -> str:
+    sections = ["# Research Agent V2.1 技术执行记录", "", "仅合成HTTP Mock；非真实模型效果。"]
+    for key in (
+        "goal",
+        "stages",
+        "reflections",
+        "model_choices",
+        "model_selected_fact_ids",
+        "verified_observations",
+        "investigation_coverage",
+        "trace",
+        "budget",
+        "native_requests",
+    ):
+        sections += [
+            "",
+            "## " + key,
+            "```json",
+            json.dumps(result[key], ensure_ascii=False, indent=2),
+            "```",
+        ]
+    return "\n".join(sections) + "\n"

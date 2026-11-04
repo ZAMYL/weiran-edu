@@ -7,6 +7,9 @@ from docs.canonical_assessment.model import Scale
 from prototypes.adaptive_assessment.adapters import ItemSpec, _assemble
 from prototypes.adaptive_assessment.data import Envelope, PrototypeError
 
+from .review_sources import RECIPES as REVIEW_RECIPES
+from .review_sources import specification as review_specification
+
 # Evaluation inputs are separate fixed seeds; no planner sees these names or seeds.
 RECIPES = {
     "research-v2-capability": (48, 4, "competency", 701),
@@ -19,8 +22,12 @@ RECIPES = {
     "research-v2-final-empty": (36, 4, "competency", 9011),
 }
 
+RECIPES.update({name: None for name in REVIEW_RECIPES})
+
 
 def specification(recipe: str) -> dict:
+    if recipe in REVIEW_RECIPES:
+        return review_specification(recipe)
     try:
         n, count, kind, seed = RECIPES[recipe]
     except KeyError:
@@ -63,14 +70,14 @@ def decode_registered(raw: bytes):
     spec = specification(recipe)
     prefix = "I" if spec["kind"] == "competency" else "Q"
     count = len(spec["rows"][0])
-    ids = [f"{prefix}{i + 1:02}" for i in range(count)]
+    ids = spec.get("item_ids", [f"{prefix}{i + 1:02}" for i in range(count)])
     unit = "level" if prefix == "I" else "points"
     items = [
         ItemSpec(
             item,
             f"合成评价项 {item}",
             spec["kind"],
-            Scale("scale-" + item, spec["minimum"], spec["maximum"], "0.01", unit),
+            Scale("scale-" + item, spec["minimum"], spec["maximum"], spec["step"], unit),
             "ordinal" if prefix == "I" else "interval",
             "",
             None,
