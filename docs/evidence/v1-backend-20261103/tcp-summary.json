@@ -1,0 +1,381 @@
+{
+  "synthetic_only": true,
+  "transport": "httpx -> loopback TCP -> uvicorn/FastAPI -> temporary SQLite",
+  "status": "passed",
+  "registered_api_operations": 34,
+  "checks": [
+    "No duplicate method/path registrations or FastAPI operation IDs",
+    "File-only upload, structured quality totals, rename, stale preview, warning acknowledgement, created/duplicate/replayed references",
+    "105/525 exact statistics independently reconciled, pagination invariant, lossless ranking, real chart and authorized score provenance",
+    "Save/reopen both nested discoveries, teacher confirmed version2, stale-version rejection and actual MD/XLSX download/reopen with matching facts/references",
+    "Readonly access/write denial, revocation on subsequent queries/download and authentication before JSON parsing",
+    "17-person zero findings, new/old batch isolation and cross-snapshot rejection",
+    "53-person normal import/diagnosis remains compatible",
+    "Operator-initialized dedicated request trace store and owner-only diagnostic lookup"
+  ],
+  "request_count": 50,
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/imports/preview",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_47fe03d7d2a0449cb98a4d6d87154e21"
+    },
+    {
+      "method": "GET",
+      "path": "/imports/0a62330f-3ca8-4ae2-ab07-ff854110d327/quality-report",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_64248af25d274a7da892657fc8dc9095"
+    },
+    {
+      "method": "GET",
+      "path": "/imports/0a62330f-3ca8-4ae2-ab07-ff854110d327",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_64a4947704f24eff94c5a048b4e7ed1c"
+    },
+    {
+      "method": "PATCH",
+      "path": "/imports/0a62330f-3ca8-4ae2-ab07-ff854110d327",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_0b2b6235f3194c99b6bc1d6bb4e1f2e1"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/0a62330f-3ca8-4ae2-ab07-ff854110d327/commit",
+      "status": 409,
+      "expected": 409,
+      "request_id": "req_17eefa2f819a46e98f04d329ebf08851"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/0a62330f-3ca8-4ae2-ab07-ff854110d327/commit",
+      "status": 409,
+      "expected": 409,
+      "request_id": "req_a3304fd55ba44afab82bbe642db5b605"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/0a62330f-3ca8-4ae2-ab07-ff854110d327/commit",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_a181bb473b41410482e004ccb05efc8e"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_6e5e102282a0431ca73d09bcb0b16554"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/0a62330f-3ca8-4ae2-ab07-ff854110d327/commit",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_2ef34d2d1a8a4b0c9201c4744b38a3a4"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/preview",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_c7bb9d6cc5cd4d0992d53a2c47c8312f"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/1d769815-718f-4473-8d87-73b1f3fc3960/commit",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_5cc3a593fd4545bb9b51c121b6716723"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/statistics",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_b0538461300e449aad3a3bdd270fed5d"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_89b757c3943e443499e3add579e2240d"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_87fd6ef993874acca3ef446e1c3f3bb7"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/e7b7a7d010a63ada53ee61c1/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_d9d67b44ee1948529463fe2e7ddd2f0d"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/e7b7a7d010a63ada53ee61c1/chart/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_68bd0d6a469b45c2b5aad848591ef666"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/e7b7a7d010a63ada53ee61c1/records/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_48f91b4e5c5849e69c8c1a6149ab239b"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/evidence/6c1a6639-56ec-4c6a-b0ec-b0ed2cbf2ac7",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_5403f3ca3f184829988e6583d15022fa"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/evidence/d5d4d6b4-a623-4c17-9294-170f6cf23be6",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_c7de482fc8a9400ea0577adb010a8e0b"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/evidence/d35294a6-2dfd-4280-ba2f-eaf9d74b0371",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_926b4f9c5c6844e3b6024825a7c25542"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/evidence/cd007689-9a70-48a5-ab5f-04e6e6a76d92",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_5060612824664cde84219c56c0891544"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/e7b7a7d010a63ada53ee61c1/query",
+      "status": 409,
+      "expected": 409,
+      "request_id": "req_8e98977cadc24e84903ceda60c100b69"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_1c14b7dbe72945ddbd9aca4d10f023bc"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_7d7d322350504254a33a5c4613588906"
+    },
+    {
+      "method": "PATCH",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_3b89148301534508940dfc5922aaa703"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_1e8e94ac67144a029a425b43830bf978"
+    },
+    {
+      "method": "PATCH",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1",
+      "status": 409,
+      "expected": 409,
+      "request_id": "req_b6c97bc82ffa410abf9cb332800ed670"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1/export-check",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_89a831196a1d42d29079a34f5b71adb1"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1/export",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_babdc1c39e914b4b9dbd83988377831b"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1/export-check",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_0a33d02cd24e4320992d7bcc4d09e72a"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1/export",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_35f40f1098604f4e94c4e593a3d82d11"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1/export",
+      "status": 409,
+      "expected": 409,
+      "request_id": "req_8b0987861ba94635859f3a8b7d4db776"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_44557ea5d08e4c07af00e4b51ff98852"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_af0ac75eee394ab79f0faa15911c4bcf"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results",
+      "status": 403,
+      "expected": 403,
+      "request_id": "req_7aef0e5760d34a4cb964872d248009b3"
+    },
+    {
+      "method": "PATCH",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1",
+      "status": 403,
+      "expected": 403,
+      "request_id": "req_51961acd4f32413694aa21826094b2eb"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1",
+      "status": 404,
+      "expected": 404,
+      "request_id": "req_ffa10eab9d1f4e7b9c7f78286ab573c4"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/query",
+      "status": 404,
+      "expected": 404,
+      "request_id": "req_fe861710ae5b4eeaa3a9c327494ec867"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/analysis-results/d8b618a3-5b60-4788-8e7a-a69d6d921de1/export",
+      "status": 404,
+      "expected": 404,
+      "request_id": "req_ff485625cc90484d92986f95e7016775"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/query",
+      "status": 401,
+      "expected": 401,
+      "request_id": "req_8e0cba66e1dc4e9eb4c6cb6879147ad8"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/preview",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_28bbdd264143457d9588b838d2689e8a"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/0ff56cad-0e30-4a7b-8778-dd6a03c36ef7/commit",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_5a56fe57a9cd4c61b2cfea1aa66d8559"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/a5a3fc44-ae37-410f-a6d7-cbac1582a23a/discoveries/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_e028e9c036044602b810bfa8f8052178"
+    },
+    {
+      "method": "GET",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/statistics",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_6a08ccec7f3046ae99b776e774a645f2"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/aa291ce5-7c28-4663-8e28-e41c184d4cee/discoveries/e7b7a7d010a63ada53ee61c1/query",
+      "status": 409,
+      "expected": 409,
+      "request_id": "req_99f2e8f71aa14831b6e4064f28ab0d93"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/preview",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_029595366d254742a0d07c968f680068"
+    },
+    {
+      "method": "POST",
+      "path": "/imports/1c00ddbe-8763-45a8-9fcf-bacc5939496f/commit",
+      "status": 201,
+      "expected": 201,
+      "request_id": "req_4f4402f8303040b08744efdb6c73af0d"
+    },
+    {
+      "method": "POST",
+      "path": "/batches/9c9b3024-4123-4bfb-b1e7-7ebe8832197a/discoveries/query",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_c8ee0f666ef2417aad99f8ce725b0e5a"
+    },
+    {
+      "method": "GET",
+      "path": "/diagnostics/requests/req_c8ee0f666ef2417aad99f8ce725b0e5a",
+      "status": 200,
+      "expected": 200,
+      "request_id": "req_32ffa708ea7249fc890a41da728765ce"
+    },
+    {
+      "method": "GET",
+      "path": "/diagnostics/requests/req_c8ee0f666ef2417aad99f8ce725b0e5a",
+      "status": 404,
+      "expected": 404,
+      "request_id": "req_c660d9d99d324a17bb60b33674f70115"
+    }
+  ],
+  "students": 105,
+  "scores": 525,
+  "exact_ranking": {
+    "numerator": "24840307107174983",
+    "denominator": "25000000000000000",
+    "display": "0.9936"
+  },
+  "zero_findings_students": 17,
+  "normal_students": 53,
+  "unsafe_json_integers": 0,
+  "outbound_network": "Server and spawned workers limited to loopback by test-only guard",
+  "browser_executed": false
+}

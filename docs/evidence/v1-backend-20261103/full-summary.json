@@ -1,0 +1,398 @@
+{
+  "staged_source_tree": "caf750a3815c454619eb85e5d4b74b1501019e87",
+  "checks": [
+    {
+      "check": "ruff",
+      "exit_code": 0
+    },
+    {
+      "check": "format",
+      "exit_code": 0
+    },
+    {
+      "check": "pytest-full",
+      "exit_code": 0
+    }
+  ],
+  "totals": {
+    "passed": 1589,
+    "failed": 0,
+    "skipped": 1
+  },
+  "skips": [
+    {
+      "case": "tests.edu.test_demo_tools.test_symlink_output_rejected",
+      "reason": "OS does not grant symlink creation"
+    }
+  ],
+  "groups": {
+    "tests.adaptive_assessment.test_adapters": {
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.adaptive_assessment.test_agent": {
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.adaptive_assessment.test_analysis": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.adaptive_assessment.test_quality_gate": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.adaptive_assessment.test_qwen_live": {
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_boundaries": {
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_discovery_adapter": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_discovery_disclosure": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_discovery_projection": {
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_discovery_runtime": {
+      "passed": 71,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_evidence_sources": {
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_qwen": {
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_qwen_modes": {
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_qwen_recordings": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_security": {
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_validation": {
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.ai_edu.test_workflow": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.analysis.test_correlation": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.analysis.test_generality": {
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.analysis.test_provenance": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.analysis.test_scale_review": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.analysis.test_selection_profile": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.analysis.test_statistics": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.analysis.test_validation": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.comments.test_classification": {
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.comments.test_config_privacy": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.comments.test_duplicates_scope": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.comments.test_review": {
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.discovery.test_discovery": {
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_admin_cli": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_analysis_api": {
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_database": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_demo_tools": {
+      "passed": 37,
+      "failed": 0,
+      "skipped": 1
+    },
+    "tests.edu.test_diagnostics": {
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_direct_upload": {
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_discovery_api": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_discovery_bridge": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_discovery_cancellation": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_discovery_report_limits": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_discovery_results": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_discovery_worker": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_exact_contract": {
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_exact_json": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_export_check": {
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_http": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_import_handoff": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_insights_api": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_insights_security": {
+      "passed": 49,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_lifecycle": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_permissions": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_printer_import": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_report_download": {
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_request_traces": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_result_id_reads": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_reviewed_results": {
+      "passed": 41,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_snapshot_integrity": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.edu.test_worker": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.importing.test_cli": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.importing.test_parser": {
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.importing.test_preview": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.importing.test_printer_review": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.importing.test_printer_settings": {
+      "passed": 73,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.importing.test_quality": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.importing.test_report": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.insights.test_discovery": {
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.insights.test_projection": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.reporting.test_adapters": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.reporting.test_exports": {
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.reporting.test_readability": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.reporting.test_reviewed": {
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.test_config": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.test_http": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "tests.test_offline": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "locked": true,
+  "offline": true,
+  "synthetic_only": true
+}
