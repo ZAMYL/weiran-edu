@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
-const artifacts = path.join(web, 'artifacts', 'teacher-adaptive');
+const artifacts = path.join(web, 'artifacts', 'teacher-adaptive-projects');
 const python =
   process.env.EDU_TEST_PYTHON ??
   path.resolve(
@@ -84,8 +84,8 @@ const quality = {
   issue_groups: [],
   issues: [],
 };
-const item_statistics = questions.map((item, index) => {
-  const scores = participants.map((row) => row[index + 1]).sort((a, b) => a - b);
+function projectStatistics(item, inputScores) {
+  const scores = [...inputScores].sort((a, b) => a - b);
   return {
     item_id: item.item_id,
     valid_count: scores.length,
@@ -102,6 +102,56 @@ const item_statistics = questions.map((item, index) => {
       ratio: statistic(1 / scores.length),
     })),
   };
+}
+const item_statistics = questions.map((item, index) =>
+  projectStatistics(
+    item,
+    participants.map((row) => row[index + 1]),
+  ),
+);
+const competencies = ['迭代反思', '数据清洗', '证据取舍', '条件验证', '代码解释'].map(
+  (display_name, index) => ({
+    item_id: `custom-${index}`,
+    display_name,
+    kind: 'competency',
+    scale: { minimum: 0, maximum: 10, step: 1, unit: '分' },
+  }),
+);
+const threeCompetencies = [competencies[4], competencies[1], competencies[0]];
+const cases = [
+  { id: 'competency-five', title: '五项能力', items: competencies, radar: true, statistics: true },
+  {
+    id: 'competency-three',
+    title: '三项能力',
+    items: threeCompetencies,
+    radar: true,
+    statistics: true,
+  },
+  {
+    id: 'competency-mixed',
+    title: '混合量表',
+    items: threeCompetencies.map((item, index) =>
+      index === 1 ? { ...item, scale: { ...item.scale, maximum: 20 } } : item,
+    ),
+    radar: false,
+    statistics: true,
+  },
+  {
+    id: 'competency-unavailable',
+    title: '未开放统计',
+    items: threeCompetencies,
+    radar: false,
+    statistics: false,
+  },
+];
+const fixtureBatch = (scenario) => ({
+  ...batch,
+  batch_id: scenario.id,
+  snapshot_id: `snapshot-${scenario.id}`,
+  title: scenario.title,
+  evaluation_count: studentCount * scenario.items.length,
+  recognized_items: scenario.items,
+  available_analyses: scenario.statistics ? ['item_statistics'] : [],
 });
 
 const upstream = createServer(async (request, response) => {
@@ -123,12 +173,14 @@ const upstream = createServer(async (request, response) => {
         return send(200, {
           items: [{ data_scope_id: 'synthetic-scope', label: '合成验收', can_import: true }],
         });
-      case 'GET /batches':
+      case 'GET /batches': {
+        const items = saved ? [batch, ...cases.map(fixtureBatch)] : [];
         return send(200, {
-          items: saved ? [batch] : [],
-          total_count: Number(saved),
-          page: pageInfo(Number(saved)),
+          items,
+          total_count: items.length,
+          page: pageInfo(items.length),
         });
+      }
       case 'POST /imports/preview': {
         const body = await new Response(request, {
           headers: { 'content-type': request.headers['content-type'] },
@@ -246,8 +298,24 @@ const upstream = createServer(async (request, response) => {
           snapshot_id: batch.snapshot_id,
           item_statistics,
         });
-      default:
+      default: {
+        const match = /^\/batches\/([^/]+)(\/statistics)?$/.exec(route);
+        const scenario = match && cases.find(({ id }) => id === match[1]);
+        if (saved && request.method === 'GET' && scenario) {
+          const target = fixtureBatch(scenario);
+          if (!match[2]) return send(200, target);
+          assert.ok(scenario.statistics, 'unadvertised analysis must not be requested');
+          assert.deepEqual([...url.searchParams], [['snapshot_id', target.snapshot_id]]);
+          return send(200, {
+            batch_id: target.batch_id,
+            snapshot_id: target.snapshot_id,
+            item_statistics: scenario.items.map((item) =>
+              projectStatistics(item, [0, item.scale.maximum / 2, item.scale.maximum]),
+            ),
+          });
+        }
         throw new Error(`Unexpected route ${request.method} ${route}`);
+      }
     }
   } catch (error) {
     unexpected.push(error.message);
@@ -364,8 +432,58 @@ try {
   await page.getByRole('link', { name: '学情诊断' }).click();
   await table.waitFor();
   assert.equal(await table.getByRole('row').count(), 14);
-  assert.deepEqual(unexpected, []);
   summaries.push('unavailable report has no action / reload retains the recognized items');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('link', { name: '画像探索' }).click();
+  const question = page.getByRole('combobox', { name: '选择题目' });
+  await question.fill('第 12 题');
+  await question.press('Enter');
+  await page.getByRole('heading', { name: '第 12 题', exact: true }).waitFor();
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({ path: path.join(artifacts, '13-mobile-keyboard.png'), fullPage: true });
+  summaries.push('390px question explorer / keyboard search and selection');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole('link', { name: '学情诊断' }).click();
+  await table.waitFor();
+
+  for (const scenario of cases) {
+    await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
+    await page.getByText(scenario.title, { exact: true }).click();
+    const projectTable = page.getByRole('table', { name: '评分项目统计' });
+    await projectTable.waitFor();
+    const names = scenario.items.map((item) => item.display_name);
+    assert.deepEqual(
+      await projectTable.locator('tbody tr[data-row-key] td:first-child').allTextContents(),
+      names,
+    );
+    const radar = page.getByRole('img', { name: /均值/ });
+    if (scenario.radar) {
+      await radar.locator('svg').waitFor();
+      assert.deepEqual(
+        (await radar.getAttribute('aria-label')).split('，').map((label) => label.split('均值')[0]),
+        names,
+      );
+    } else {
+      assert.equal(await radar.count(), 0);
+    }
+    if (scenario.id === 'competency-mixed') {
+      assert.match(
+        await projectTable.getByRole('row', { name: /数据清洗/ }).innerText(),
+        /0–20 分.*10\.00/s,
+      );
+    }
+    if (!scenario.statistics) {
+      await page.getByText('当前测评尚未开放项目统计。').waitFor();
+      assert.equal(await projectTable.getByRole('columnheader', { name: '平均分' }).count(), 0);
+      assert.ok(!calls.includes(`GET /batches/${scenario.id}/statistics`));
+    }
+    await page.screenshot({ path: path.join(artifacts, `${scenario.id}.png`), fullPage: true });
+  }
+  summaries.push(
+    'five and three custom competency axes / mixed scales / no unadvertised statistics',
+  );
+  assert.deepEqual(unexpected, []);
   await writeFile(
     path.join(artifacts, 'result.json'),
     JSON.stringify(
