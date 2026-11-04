@@ -1,0 +1,2387 @@
+{
+  "origin": "http_mock",
+  "real_qwen": "not_run",
+  "actual_remote_requests": 0,
+  "process_restart_verified": true,
+  "checks": [
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/preview",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/dd606426-fa86-436a-b441-075758f9cba0/commit",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/preview",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/03b51673-a33a-488c-b80c-c76882258b29/commit",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/preview",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/81238ed7-49ac-4713-ab39-6b3e4dfdc4b1/commit",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/evidence/ef2c4dab-b126-484b-9ff9-69fa1738701a",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/evidence/0e204f03-f557-43d5-8d78-47239dd75af9",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/review-submissions",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66",
+      "expected": 403,
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "expected": 401,
+      "status": 401
+    }
+  ],
+  "runs": {
+    "normal": {
+      "task_id": "66a35834-8aed-47e3-a37d-753a1d287b66",
+      "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
+      "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+      "campaign_id": "durable-3daf578901599e4017dd254d256278ae1755f05c",
+      "state": "completed",
+      "error_code": null,
+      "stop_reason": "goal_satisfied",
+      "execution_origin": "http_mock",
+      "real_qwen": "not_run",
+      "production_enabled": false,
+      "tool_attempts": 3,
+      "model_requests": 3,
+      "max_tool_attempts": 5,
+      "max_model_requests": 6,
+      "result": {
+        "run_id": "66a35834-8aed-47e3-a37d-753a1d287b66",
+        "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
+        "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+        "source_manifest_sha256": "df68bbd0c1a482fa650f1b918c2e2b86382baf6e8b71405a634f7fadfad336a7",
+        "scope_kind": "whole_authorized_batch",
+        "batch_record_count": 53,
+        "execution_origin": "http_mock",
+        "strategy": "adaptive",
+        "real_qwen": "not_run",
+        "production_enabled": false,
+        "status": "completed",
+        "stop_reason": "goal_satisfied",
+        "controlled_goal": "group",
+        "goal_items": [
+          "algorithm_data_structure",
+          "code_implementation",
+          "problem_modeling"
+        ],
+        "missing_evidence": [],
+        "facts": [
+          {
+            "fact_id": "research-dac959e4b93e-f001",
+            "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
+            "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+            "method": "get_dimension_statistics",
+            "rule_version": "edu-adaptive-prototype-0.1-draft",
+            "qualified": false,
+            "source_verified": true,
+            "conditions": [],
+            "metrics": [
+              {
+                "key": "items.I01.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I01.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I01.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I01.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I01.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I01.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              },
+              {
+                "key": "items.I02.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I02.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I02.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I02.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I02.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I02.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              },
+              {
+                "key": "items.I03.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I03.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I03.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I03.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I03.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I03.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              },
+              {
+                "key": "items.I04.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I04.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I04.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I04.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I04.mean",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I04.median",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I05.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I05.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I05.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I05.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I05.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I05.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              }
+            ],
+            "source_refs": [
+              {
+                "metric_key": "I01.valid",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I01.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I01.state.valid",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I01.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I02.valid",
+                "dimension_code": "code_implementation",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I02.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I02.state.valid",
+                "dimension_code": "code_implementation",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I02.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I03.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I03.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I03.state.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I03.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I04.valid",
+                "dimension_code": "efficiency_awareness",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I04.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I04.state.valid",
+                "dimension_code": "efficiency_awareness",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I04.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I05.valid",
+                "dimension_code": "solution_strategy",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I05.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I05.state.valid",
+                "dimension_code": "solution_strategy",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f001",
+                  "metric_key": "I05.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              }
+            ],
+            "limitation_codes": [],
+            "exploration_query": null,
+            "save_group_analysis_request": null
+          },
+          {
+            "fact_id": "research-dac959e4b93e-f002",
+            "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
+            "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+            "method": "query_dimension_relation",
+            "rule_version": "edu-adaptive-prototype-0.1-draft",
+            "qualified": true,
+            "source_verified": true,
+            "conditions": [],
+            "metrics": [
+              {
+                "key": "metrics.rho",
+                "exact": null,
+                "number": 1.0,
+                "display": "1.0"
+              },
+              {
+                "key": "metrics.paired_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "metrics.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "metrics.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              }
+            ],
+            "source_refs": [
+              {
+                "metric_key": "left.paired",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f002",
+                  "metric_key": "left.paired",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "right.paired",
+                "dimension_code": "problem_modeling",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f002",
+                  "metric_key": "right.paired",
+                  "offset": 0,
+                  "limit": 20
+                }
+              }
+            ],
+            "limitation_codes": [
+              "correlation_not_causation",
+              "ties_use_existing_average_ranks"
+            ],
+            "exploration_query": null,
+            "save_group_analysis_request": null
+          },
+          {
+            "fact_id": "research-dac959e4b93e-f003",
+            "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
+            "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+            "method": "compare_student_groups",
+            "rule_version": "edu-adaptive-prototype-0.1-draft",
+            "qualified": true,
+            "source_verified": true,
+            "conditions": [
+              {
+                "dimension_code": "algorithm_data_structure",
+                "operator": "lte",
+                "value": 1.0
+              },
+              {
+                "dimension_code": "code_implementation",
+                "operator": "lte",
+                "value": 1.0
+              }
+            ],
+            "metrics": [
+              {
+                "key": "metrics.target_count",
+                "exact": null,
+                "number": 26,
+                "display": "26"
+              },
+              {
+                "key": "metrics.remainder_count",
+                "exact": null,
+                "number": 27,
+                "display": "27"
+              },
+              {
+                "key": "metrics.unevaluable_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "metrics.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "metrics.eligible_denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "metrics.share_total",
+                "exact": {
+                  "numerator": 26,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "0.4906"
+              },
+              {
+                "key": "metrics.share_eligible",
+                "exact": {
+                  "numerator": 26,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "0.4906"
+              },
+              {
+                "key": "metrics.target_valid",
+                "exact": null,
+                "number": 26,
+                "display": "26"
+              },
+              {
+                "key": "metrics.remainder_valid",
+                "exact": null,
+                "number": 27,
+                "display": "27"
+              },
+              {
+                "key": "metrics.target_mean",
+                "exact": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "1.0000"
+              },
+              {
+                "key": "metrics.remainder_mean",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              },
+              {
+                "key": "metrics.difference",
+                "exact": {
+                  "numerator": -4,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "-4.0000"
+              }
+            ],
+            "source_refs": [
+              {
+                "metric_key": "target.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 26,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f003",
+                  "metric_key": "target.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "remainder.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 27,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f003",
+                  "metric_key": "remainder.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "target.condition.I01",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 26,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f003",
+                  "metric_key": "target.condition.I01",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "remainder.condition.I01",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 27,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f003",
+                  "metric_key": "remainder.condition.I01",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "target.condition.I02",
+                "dimension_code": "code_implementation",
+                "participant_count": 26,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f003",
+                  "metric_key": "target.condition.I02",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "remainder.condition.I02",
+                "dimension_code": "code_implementation",
+                "participant_count": 27,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f003",
+                  "metric_key": "remainder.condition.I02",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "unevaluable.rows",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 0,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/ai-investigation-tasks/66a35834-8aed-47e3-a37d-753a1d287b66/records/query",
+                "records_query": {
+                  "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+                  "fact_id": "research-dac959e4b93e-f003",
+                  "metric_key": "unevaluable.rows",
+                  "offset": 0,
+                  "limit": 20
+                }
+              }
+            ],
+            "limitation_codes": [
+              "condition_dimensions_not_discoveries",
+              "disjoint_remainder",
+              "ordinal_mean_is_descriptive",
+              "no_cross_item_score_sum"
+            ],
+            "exploration_query": {
+              "conditions": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "operator": "lte",
+                  "value": 1.0
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "operator": "lte",
+                  "value": 1.0
+                }
+              ],
+              "offset": 0,
+              "limit": 20,
+              "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+              "include_statistics": false
+            },
+            "save_group_analysis_request": {
+              "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+              "conditions": [
+                {
+                  "dimension_code": "algorithm_data_structure",
+                  "operator": "lte",
+                  "value": 1.0
+                },
+                {
+                  "dimension_code": "code_implementation",
+                  "operator": "lte",
+                  "value": 1.0
+                }
+              ],
+              "include_dimensions": true,
+              "title": "AI调查后的群体核对",
+              "note": "",
+              "candidate_ids": [],
+              "discovery": null
+            }
+          }
+        ],
+        "selected_fact_ids": [
+          "research-dac959e4b93e-f002",
+          "research-dac959e4b93e-f003"
+        ],
+        "retained_fact_ids": [
+          "research-dac959e4b93e-f001"
+        ],
+        "trace": [
+          {
+            "tool": null,
+            "round": 1,
+            "phase": "planning",
+            "status": "requested",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "model_selection",
+            "status": "accepted",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "computed",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "fact_ids": [
+              "research-dac959e4b93e-f002"
+            ]
+          },
+          {
+            "tool": null,
+            "round": 2,
+            "phase": "planning",
+            "status": "requested",
+            "fact_ids": []
+          },
+          {
+            "tool": "compare_student_groups",
+            "round": 2,
+            "phase": "model_selection",
+            "status": "accepted",
+            "fact_ids": []
+          },
+          {
+            "tool": "compare_student_groups",
+            "round": 2,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "fact_ids": []
+          },
+          {
+            "tool": "compare_student_groups",
+            "round": 2,
+            "phase": "tool_execution",
+            "status": "computed",
+            "fact_ids": []
+          },
+          {
+            "tool": "compare_student_groups",
+            "round": 2,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "fact_ids": [
+              "research-dac959e4b93e-f003"
+            ]
+          },
+          {
+            "tool": null,
+            "round": 3,
+            "phase": "planning",
+            "status": "requested",
+            "fact_ids": []
+          },
+          {
+            "tool": "finish",
+            "round": 3,
+            "phase": "model_selection",
+            "status": "accepted",
+            "fact_ids": []
+          },
+          {
+            "tool": "finish",
+            "round": 3,
+            "phase": "final_selection",
+            "status": "accepted",
+            "fact_ids": [
+              "research-dac959e4b93e-f002",
+              "research-dac959e4b93e-f003"
+            ]
+          }
+        ],
+        "budget": {
+          "model_requests": 3,
+          "max_model_requests": 6,
+          "tool_attempts": 3,
+          "max_tool_attempts": 5,
+          "verification_replays": 67,
+          "actual_remote_requests": 0,
+          "actual_tokens": null,
+          "invoice_cost_cny": null
+        },
+        "uncovered_direction_count": 0,
+        "investigation_exhaustive": false,
+        "report_integration": "eligible_facts_require_formal_recomputation"
+      },
+      "review_result_path": null,
+      "expires_at": 1793811228.065889
+    },
+    "evidence": {
+      "task_id": "d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+      "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
+      "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+      "campaign_id": "durable-5d9ee3e0c6574f5358f0ea78f354ad3f09f1f74e",
+      "state": "completed",
+      "error_code": null,
+      "stop_reason": "needs_external_evidence",
+      "execution_origin": "http_mock",
+      "real_qwen": "not_run",
+      "production_enabled": false,
+      "tool_attempts": 2,
+      "model_requests": 2,
+      "max_tool_attempts": 5,
+      "max_model_requests": 6,
+      "result": {
+        "run_id": "d4222aad-5be9-4ad1-b1b2-c5b15a6a2695",
+        "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
+        "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+        "source_manifest_sha256": "8e0246195118656272b46e9151def1c2c690251ffb5b0cbc4432ffb396262b81",
+        "scope_kind": "whole_authorized_batch",
+        "batch_record_count": 53,
+        "execution_origin": "http_mock",
+        "strategy": "adaptive",
+        "real_qwen": "not_run",
+        "production_enabled": false,
+        "status": "completed",
+        "stop_reason": "needs_external_evidence",
+        "controlled_goal": "explanation",
+        "goal_items": [
+          "algorithm_data_structure",
+          "code_implementation"
+        ],
+        "missing_evidence": [
+          "rubric_criteria",
+          "original_task"
+        ],
+        "facts": [
+          {
+            "fact_id": "research-00de59d23bfe-f001",
+            "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
+            "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+            "method": "get_dimension_statistics",
+            "rule_version": "edu-adaptive-prototype-0.1-draft",
+            "qualified": false,
+            "source_verified": true,
+            "conditions": [],
+            "metrics": [
+              {
+                "key": "items.I01.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I01.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I01.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I01.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I01.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I01.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              },
+              {
+                "key": "items.I02.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I02.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I02.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I02.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I02.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I02.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              },
+              {
+                "key": "items.I03.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I03.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I03.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I03.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I03.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I03.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              },
+              {
+                "key": "items.I04.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I04.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I04.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I04.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I04.mean",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I04.median",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I05.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I05.valid_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I05.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I05.states.valid",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "items.I05.mean",
+                "exact": {
+                  "numerator": 161,
+                  "denominator": 53
+                },
+                "number": null,
+                "display": "3.0377"
+              },
+              {
+                "key": "items.I05.median",
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "5.0000"
+              }
+            ],
+            "source_refs": [
+              {
+                "metric_key": "I01.valid",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I01.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I01.state.valid",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I01.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I02.valid",
+                "dimension_code": "code_implementation",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I02.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I02.state.valid",
+                "dimension_code": "code_implementation",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I02.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I03.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I03.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I03.state.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I03.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I04.valid",
+                "dimension_code": "efficiency_awareness",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I04.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I04.state.valid",
+                "dimension_code": "efficiency_awareness",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I04.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I05.valid",
+                "dimension_code": "solution_strategy",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I05.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I05.state.valid",
+                "dimension_code": "solution_strategy",
+                "participant_count": 53,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f001",
+                  "metric_key": "I05.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              }
+            ],
+            "limitation_codes": [],
+            "exploration_query": null,
+            "save_group_analysis_request": null
+          },
+          {
+            "fact_id": "research-00de59d23bfe-f002",
+            "batch_id": "b805bfc6-8c04-46bd-994d-711ebccb7b12",
+            "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+            "method": "query_dimension_relation",
+            "rule_version": "edu-adaptive-prototype-0.1-draft",
+            "qualified": true,
+            "source_verified": true,
+            "conditions": [],
+            "metrics": [
+              {
+                "key": "metrics.rho",
+                "exact": null,
+                "number": 1.0,
+                "display": "1.0"
+              },
+              {
+                "key": "metrics.paired_count",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              },
+              {
+                "key": "metrics.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "metrics.denominator",
+                "exact": null,
+                "number": 53,
+                "display": "53"
+              }
+            ],
+            "source_refs": [
+              {
+                "metric_key": "left.paired",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f002",
+                  "metric_key": "left.paired",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "right.paired",
+                "dimension_code": "code_implementation",
+                "participant_count": 53,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/b805bfc6-8c04-46bd-994d-711ebccb7b12/ai-investigation-tasks/d4222aad-5be9-4ad1-b1b2-c5b15a6a2695/records/query",
+                "records_query": {
+                  "snapshot_id": "85ed4e3d-a3e4-411f-8fb1-5f516278dca8",
+                  "fact_id": "research-00de59d23bfe-f002",
+                  "metric_key": "right.paired",
+                  "offset": 0,
+                  "limit": 20
+                }
+              }
+            ],
+            "limitation_codes": [
+              "correlation_not_causation",
+              "ties_use_existing_average_ranks"
+            ],
+            "exploration_query": null,
+            "save_group_analysis_request": null
+          }
+        ],
+        "selected_fact_ids": [
+          "research-00de59d23bfe-f002"
+        ],
+        "retained_fact_ids": [
+          "research-00de59d23bfe-f001"
+        ],
+        "trace": [
+          {
+            "tool": null,
+            "round": 1,
+            "phase": "planning",
+            "status": "requested",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "model_selection",
+            "status": "accepted",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "attempted",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "tool_execution",
+            "status": "computed",
+            "fact_ids": []
+          },
+          {
+            "tool": "query_dimension_relation",
+            "round": 1,
+            "phase": "fact_validation",
+            "status": "accepted",
+            "fact_ids": [
+              "research-00de59d23bfe-f002"
+            ]
+          },
+          {
+            "tool": null,
+            "round": 2,
+            "phase": "planning",
+            "status": "requested",
+            "fact_ids": []
+          },
+          {
+            "tool": "finish",
+            "round": 2,
+            "phase": "model_selection",
+            "status": "accepted",
+            "fact_ids": []
+          },
+          {
+            "tool": "finish",
+            "round": 2,
+            "phase": "final_selection",
+            "status": "accepted",
+            "fact_ids": [
+              "research-00de59d23bfe-f002"
+            ]
+          }
+        ],
+        "budget": {
+          "model_requests": 2,
+          "max_model_requests": 6,
+          "tool_attempts": 2,
+          "max_tool_attempts": 5,
+          "verification_replays": 26,
+          "actual_remote_requests": 0,
+          "actual_tokens": null,
+          "invoice_cost_cny": null
+        },
+        "uncovered_direction_count": 0,
+        "investigation_exhaustive": false,
+        "report_integration": "eligible_facts_require_formal_recomputation"
+      },
+      "review_result_path": null,
+      "expires_at": 1793811298.3325853
+    },
+    "empty": {
+      "task_id": "08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+      "batch_id": "84a28528-1609-4425-b419-1230a54e9423",
+      "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+      "campaign_id": "durable-c8bbea95fc0dd3af81800e8e735ebfbd00596282",
+      "state": "completed",
+      "error_code": null,
+      "stop_reason": "no_supported_findings",
+      "execution_origin": "http_mock",
+      "real_qwen": "not_run",
+      "production_enabled": false,
+      "tool_attempts": 1,
+      "model_requests": 1,
+      "max_tool_attempts": 5,
+      "max_model_requests": 6,
+      "result": {
+        "run_id": "08aabc82-fa12-43d4-9dbc-15682f3f74fa",
+        "batch_id": "84a28528-1609-4425-b419-1230a54e9423",
+        "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+        "source_manifest_sha256": "911eb206c8b7bfd2c42b0681c096a67c4743f0ea9174a1ff14ad69a55a292c78",
+        "scope_kind": "whole_authorized_batch",
+        "batch_record_count": 17,
+        "execution_origin": "http_mock",
+        "strategy": "adaptive",
+        "real_qwen": "not_run",
+        "production_enabled": false,
+        "status": "completed",
+        "stop_reason": "no_supported_findings",
+        "controlled_goal": "priority",
+        "goal_items": [],
+        "missing_evidence": [],
+        "facts": [
+          {
+            "fact_id": "research-b4e67b7a67a5-f001",
+            "batch_id": "84a28528-1609-4425-b419-1230a54e9423",
+            "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+            "method": "get_dimension_statistics",
+            "rule_version": "edu-adaptive-prototype-0.1-draft",
+            "qualified": false,
+            "source_verified": true,
+            "conditions": [],
+            "metrics": [
+              {
+                "key": "items.I01.denominator",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I01.valid_count",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I01.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I01.states.valid",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I01.mean",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I01.median",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I02.denominator",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I02.valid_count",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I02.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I02.states.valid",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I02.mean",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I02.median",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I03.denominator",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I03.valid_count",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I03.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I03.states.valid",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I03.mean",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I03.median",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I04.denominator",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I04.valid_count",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I04.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I04.states.valid",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I04.mean",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I04.median",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I05.denominator",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I05.valid_count",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I05.excluded_count",
+                "exact": null,
+                "number": 0,
+                "display": "0"
+              },
+              {
+                "key": "items.I05.states.valid",
+                "exact": null,
+                "number": 17,
+                "display": "17"
+              },
+              {
+                "key": "items.I05.mean",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              },
+              {
+                "key": "items.I05.median",
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "number": null,
+                "display": "3.0000"
+              }
+            ],
+            "source_refs": [
+              {
+                "metric_key": "I01.valid",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 17,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I01.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I01.state.valid",
+                "dimension_code": "algorithm_data_structure",
+                "participant_count": 17,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I01.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I02.valid",
+                "dimension_code": "code_implementation",
+                "participant_count": 17,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I02.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I02.state.valid",
+                "dimension_code": "code_implementation",
+                "participant_count": 17,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I02.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I03.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 17,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I03.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I03.state.valid",
+                "dimension_code": "problem_modeling",
+                "participant_count": 17,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I03.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I04.valid",
+                "dimension_code": "efficiency_awareness",
+                "participant_count": 17,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I04.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I04.state.valid",
+                "dimension_code": "efficiency_awareness",
+                "participant_count": 17,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I04.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I05.valid",
+                "dimension_code": "solution_strategy",
+                "participant_count": 17,
+                "witness_kind": "score",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I05.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              },
+              {
+                "metric_key": "I05.state.valid",
+                "dimension_code": "solution_strategy",
+                "participant_count": 17,
+                "witness_kind": "row",
+                "records_path": "/api/v1/edu/batches/84a28528-1609-4425-b419-1230a54e9423/ai-investigation-tasks/08aabc82-fa12-43d4-9dbc-15682f3f74fa/records/query",
+                "records_query": {
+                  "snapshot_id": "76db5b34-c993-4f05-828a-483fd7474ca1",
+                  "fact_id": "research-b4e67b7a67a5-f001",
+                  "metric_key": "I05.state.valid",
+                  "offset": 0,
+                  "limit": 20
+                }
+              }
+            ],
+            "limitation_codes": [],
+            "exploration_query": null,
+            "save_group_analysis_request": null
+          }
+        ],
+        "selected_fact_ids": [],
+        "retained_fact_ids": [
+          "research-b4e67b7a67a5-f001"
+        ],
+        "trace": [
+          {
+            "tool": null,
+            "round": 1,
+            "phase": "planning",
+            "status": "requested",
+            "fact_ids": []
+          },
+          {
+            "tool": "finish",
+            "round": 1,
+            "phase": "model_selection",
+            "status": "accepted",
+            "fact_ids": []
+          },
+          {
+            "tool": "finish",
+            "round": 1,
+            "phase": "final_selection",
+            "status": "accepted",
+            "fact_ids": []
+          }
+        ],
+        "budget": {
+          "model_requests": 1,
+          "max_model_requests": 6,
+          "tool_attempts": 1,
+          "max_tool_attempts": 5,
+          "verification_replays": 5,
+          "actual_remote_requests": 0,
+          "actual_tokens": null,
+          "invoice_cost_cny": null
+        },
+        "uncovered_direction_count": 0,
+        "investigation_exhaustive": false,
+        "report_integration": "eligible_facts_require_formal_recomputation"
+      },
+      "review_result_path": null,
+      "expires_at": 1793811342.091016
+    }
+  },
+  "review_receipt": {
+    "task_id": "66a35834-8aed-47e3-a37d-753a1d287b66",
+    "batch_id": "ee667d4e-d002-42be-a262-4de4c7f6a4a6",
+    "snapshot_id": "7305a446-5a16-4ee2-8472-232e9d0f6d3b",
+    "result_id": "7701bd58-3eda-4549-97fe-98bf2aeb7372",
+    "version": 1,
+    "candidate_ids": [
+      "2f8236b191185abf9f7cb329",
+      "995d4639ec8e685541e81da4"
+    ],
+    "fact_candidate_map": {
+      "research-dac959e4b93e-f002": "2f8236b191185abf9f7cb329",
+      "research-dac959e4b93e-f003": "995d4639ec8e685541e81da4"
+    },
+    "agent_rule_version": "edu-adaptive-prototype-0.1-draft",
+    "formal_rule_version": "edu-discovery-0.1.1-draft",
+    "status": "pending_teacher_review",
+    "result_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
+    "review_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372",
+    "export_path": "/api/v1/edu/batches/ee667d4e-d002-42be-a262-4de4c7f6a4a6/analysis-results/7701bd58-3eda-4549-97fe-98bf2aeb7372/export",
+    "notice": "候选已按正式规则重新计算；教师确认不等于因果证明。"
+  },
+  "report_version": 2,
+  "implementation_sha256": "5f4bf4ac1ca67211fb8ec3c0eb8980c615268a3ecd2d639ec9764e4cb5da1e16"
+}
