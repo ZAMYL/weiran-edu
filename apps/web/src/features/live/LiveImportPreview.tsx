@@ -303,6 +303,18 @@ export default function LiveImportPreview({
             </div>
             <ImportSummary view={view} quality={quality} />
             <div className="import-preview-grid compact-import">
+              {!!view.recognized_items?.length && (
+                <details className="panel original-records-section workflow-recognized-items">
+                  <summary>评分项目与量表</summary>
+                  <ul>
+                    {view.recognized_items.map((item) => (
+                      <li key={item.item_id}>
+                        {item.display_name} · {itemScaleLabel(item.scale)}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
               <details
                 className="panel original-records-section"
                 open={recordsOpen}
@@ -310,16 +322,6 @@ export default function LiveImportPreview({
               >
                 <summary>评分预览</summary>
                 <p className="muted small">评语仅在审核后展示，未审核原文不会在此显示。</p>
-                {!!view.recognized_items?.length && (
-                  <details className="workflow-recognized-items">
-                    <summary>评分项目与标准</summary>
-                    {view.recognized_items.map((item) => (
-                      <p key={item.item_id}>
-                        {item.display_name} · {itemScaleLabel(item.scale)}
-                      </p>
-                    ))}
-                  </details>
-                )}
                 <Table
                   rowKey="row_key"
                   size="small"
@@ -336,7 +338,8 @@ export default function LiveImportPreview({
                       render: (_, row) =>
                         view.recognized_items?.find(
                           (item) => item.item_id === (row.item_id ?? row.dimension_code),
-                        )?.display_name ?? dimensionName(row.dimension_code),
+                        )?.display_name ??
+                        (row.item_id ? '未识别项目' : dimensionName(row.dimension_code)),
                     },
                     {
                       title: '原始评分',

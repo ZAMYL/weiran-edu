@@ -136,7 +136,11 @@ export default function AssessmentItemPage({
                   {
                     title: '平均分',
                     render: (_: unknown, item: (typeof rows)[number]) =>
-                      item.stats?.mean.value == null ? '—' : item.stats.mean.display,
+                      item.stats?.valid_count === 0
+                        ? '暂无有效评分'
+                        : item.stats?.mean.value == null
+                          ? '—'
+                          : item.stats.mean.display,
                   },
                   {
                     title: '中位数',
