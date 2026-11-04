@@ -629,9 +629,12 @@ def test_database_rejects_published_null_text(runtime, flow):
 
 
 def test_three_migration_database_upgrade_keeps_existing_facts(runtime, stage):
+    from .conftest import remove_empty_question_schema
+
     batch = commit(runtime, stage())
     before = runtime.reader.students(runtime.p, batch.batch_id)
     with runtime.db.transaction(write=True) as connection:
+        remove_empty_question_schema(connection)
         for table in ("analysis_result_versions", "analysis_results", "text_reviews"):
             connection.execute("DROP TABLE " + table)
         connection.execute("DROP INDEX batches_snapshot_reference")

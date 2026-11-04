@@ -37,9 +37,17 @@ from app.edu.models import (
     StudentList,
 )
 from app.edu.query import group_query, group_schema, read_query, request_schema
+from app.edu.questions import (
+    MixedBatchList,
+    QuestionEvidence,
+    QuestionPreview,
+    QuestionService,
+    QuestionStatistics,
+)
 from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
+from app.importing.edu.questions import has_question_marker
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
 from app.schemas.common import ErrorResponse
@@ -73,6 +81,16 @@ type Backend = Annotated[EduService, Depends(service)]
 
 
 def _parse_failure(exc: ImportFileError) -> APIError:
+    question_errors = {
+        "QUESTION_STRUCTURE_UNSUPPORTED": "当前暂不支持此逐题文件结构，未创建测评批次",
+        "QUESTION_DEFINITION_REQUIRED": "题号或题目名称不完整，请修正文件后重新上传",
+        "QUESTION_SCALE_REQUIRED": "缺少明确且合法的逐题量表，请修正文件后重新上传",
+        "QUESTION_SCORE_COLUMNS_REQUIRED": "评分列与题目定义不一致，请修正文件后重新上传",
+        "QUESTION_PARTICIPANT_REQUIRED": "缺少受支持的参评记录键，请修正文件后重新上传",
+        "QUESTION_PARTICIPANT_DUPLICATE": "参评记录键重复，请修正文件后重新上传",
+    }
+    if exc.code in question_errors:
+        return APIError(422, exc.code, question_errors[exc.code])
     if exc.code == "UNSUPPORTED_SHEETS":
         return APIError(422, "IMPORT_FORMAT_UNSUPPORTED", "当前暂不支持此文件结构，未创建测评批次")
     printing_errors = {
@@ -187,7 +205,7 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
 
 @router.post(
     "/imports/preview",
-    response_model=ImportView,
+    response_model=ImportView | QuestionPreview,
     status_code=201,
     openapi_extra={
         "requestBody": {
@@ -222,7 +240,7 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
         },
     },
 )
-async def preview(request: Request, actor: Actor, backend: Backend) -> ImportView:
+async def preview(request: Request, actor: Actor, backend: Backend) -> ImportView | QuestionPreview:
     data, uploaded = await _upload(request)
     metadata = await run_in_threadpool(
         resolve_upload_metadata,
@@ -232,12 +250,14 @@ async def preview(request: Request, actor: Actor, backend: Backend) -> ImportVie
         now=stamp(backend.clock()),
     )
     try:
+        if await run_in_threadpool(has_question_marker, data):
+            return await run_in_threadpool(QuestionService(backend).create, actor, data, metadata)
         return await run_in_threadpool(backend.create_import, actor, data, metadata)
     except ImportFileError as exc:
         raise _parse_failure(exc) from None
 
 
-@router.get("/imports/{import_id}", response_model=ImportView)
+@router.get("/imports/{import_id}", response_model=ImportView | QuestionPreview)
 def get_import(
     import_id: str,
     actor: Actor,
@@ -248,7 +268,10 @@ def get_import(
     student_limit: Limit = 20,
     issue_offset: Offset = 0,
     issue_limit: Limit = 50,
-) -> ImportView:
+) -> ImportView | QuestionPreview:
+    questions = QuestionService(backend)
+    if questions.contains(import_id):
+        return questions.get(actor, import_id)
     return backend.get_import(
         actor,
         import_id,
@@ -261,8 +284,13 @@ def get_import(
     )
 
 
-@router.patch("/imports/{import_id}", response_model=ImportView)
-def patch_import(import_id: str, patch: ImportPatch, actor: Actor, backend: Backend) -> ImportView:
+@router.patch("/imports/{import_id}", response_model=ImportView | QuestionPreview)
+def patch_import(
+    import_id: str, patch: ImportPatch, actor: Actor, backend: Backend
+) -> ImportView | QuestionPreview:
+    questions = QuestionService(backend)
+    if questions.contains(import_id):
+        return questions.patch(actor, import_id, patch)
     return backend.patch_import(actor, import_id, patch)
 
 
@@ -275,7 +303,12 @@ def commit_import(
     response: Response,
 ) -> CommitResult:
     try:
-        result = backend.commit(actor, import_id, body)
+        questions = QuestionService(backend)
+        result = (
+            questions.commit(actor, import_id, body)
+            if questions.contains(import_id)
+            else backend.commit(actor, import_id, body)
+        )
     except ImportFileError as exc:
         raise _parse_failure(exc) from None
     response.status_code = 201 if result.result == "created" else 200
@@ -286,22 +319,36 @@ def commit_import(
 def quality_report(
     import_id: str, actor: Actor, backend: Backend, format: Literal["json", "markdown"] = "json"
 ) -> Response:
+    questions = QuestionService(backend)
+    if questions.contains(import_id):
+        if format != "json":
+            raise APIError(422, "FORMAT_UNSUPPORTED", "逐题质量报告当前支持JSON")
+        return ExactJSONResponse(questions.get(actor, import_id).model_dump())
     report = backend.quality_report(actor, import_id)
     if format == "markdown":
         return PlainTextResponse(render_quality_report(report), media_type="text/markdown")
     return Response(report.model_dump_json(), media_type="application/json")
 
 
-@router.get("/batches", response_model=BatchList)
+@router.get("/batches", response_model=BatchList | MixedBatchList)
 def batches(
     actor: Actor,
     backend: Backend,
     data_scope_id: str | None = None,
     include_revisions: bool = False,
+    include_dynamic: bool = False,
     offset: Offset = 0,
     limit: Limit = 20,
-) -> BatchList:
-    return backend.list_batches(
+) -> BatchList | MixedBatchList:
+    if not include_dynamic:
+        return backend.list_batches(
+            actor,
+            data_scope_id=data_scope_id,
+            include_revisions=include_revisions,
+            offset=offset,
+            limit=limit,
+        )
+    return QuestionService(backend).list_batches(
         actor,
         data_scope_id=data_scope_id,
         include_revisions=include_revisions,
@@ -310,8 +357,11 @@ def batches(
     )
 
 
-@router.get("/batches/{batch_id}", response_model=Batch)
-def batch(batch_id: str, actor: Actor, backend: Backend) -> Batch:
+@router.get("/batches/{batch_id}", response_model=Batch | QuestionStatistics)
+def batch(batch_id: str, actor: Actor, backend: Backend) -> Batch | QuestionStatistics:
+    questions = QuestionService(backend)
+    if questions.contains(batch_id, batch=True):
+        return questions.statistics(actor, batch_id)
     return backend.get_batch(actor, batch_id)
 
 
@@ -346,20 +396,25 @@ def student_evidence(
     )
 
 
-@router.get("/batches/{batch_id}/evidence/{evidence_id}", response_model=Evidence)
+@router.get(
+    "/batches/{batch_id}/evidence/{evidence_id}", response_model=Evidence | QuestionEvidence
+)
 def evidence(
     batch_id: str,
     evidence_id: str,
     actor: Actor,
     backend: Backend,
     snapshot_id: str | None = None,
-) -> Evidence:
+) -> Evidence | QuestionEvidence:
+    questions = QuestionService(backend)
+    if questions.contains(batch_id, batch=True):
+        return questions.evidence(actor, batch_id, evidence_id, snapshot_id)
     return BatchReader(backend.database, clock=backend.clock).evidence(
         actor, batch_id, evidence_id, snapshot_id=snapshot_id
     )
 
 
-@router.get("/batches/{batch_id}/statistics", response_model=Statistics)
+@router.get("/batches/{batch_id}/statistics", response_model=Statistics | QuestionStatistics)
 def statistics(
     batch_id: str,
     actor: Actor,
@@ -367,7 +422,15 @@ def statistics(
     snapshot_id: str | None = None,
     x_dimension: DimensionCode | None = None,
     y_dimension: DimensionCode | None = None,
-) -> Statistics:
+    item_id: str | None = None,
+) -> Statistics | QuestionStatistics:
+    questions = QuestionService(backend)
+    if questions.contains(batch_id, batch=True):
+        if x_dimension is not None or y_dimension is not None:
+            raise APIError(422, "ANALYSIS_UNSUPPORTED", "逐题测评不适用五维分析参数")
+        return questions.statistics(actor, batch_id, snapshot_id, item_id)
+    if item_id is not None:
+        raise APIError(422, "ANALYSIS_UNSUPPORTED", "五维批次请使用原维度接口")
     return AnalysisReader(backend.database, clock=backend.clock).statistics(
         actor,
         batch_id,
