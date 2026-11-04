@@ -181,9 +181,26 @@ def test_unknown_and_unqualified_fact_not_promoted(completed):
         assert response.status_code == 422
 
 
-def test_readback_rejects_revoked_ai_purpose(completed):
+def test_readback_rejects_purpose_revoked_during_witness_replay(completed, monkeypatch):
     fixture, service, client, b, gid, base, path, body, view = completed
-    service.store.revoke(gid)
+    group = next(f for f in view["result"]["facts"] if f["method"] == "compare_student_groups")
+    original = service.provider.replay_witnesses
+
+    def revoke_during_replay(source, references):
+        witnesses = original(source, references)
+        service.store.revoke(gid)
+        return witnesses
+
+    monkeypatch.setattr(service.provider, "replay_witnesses", revoke_during_replay)
+    response = client.post(
+        path + "/records/query",
+        json={
+            "snapshot_id": b["snapshot_id"],
+            "fact_id": group["fact_id"],
+            "metric_key": "target.valid",
+        },
+    )
+    assert response.status_code == 403
     response = client.get(path, params={"snapshot_id": b["snapshot_id"]})
     assert response.status_code == 403
     response = client.post(base, json=body)

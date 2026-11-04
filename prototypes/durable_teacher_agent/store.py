@@ -146,6 +146,11 @@ class TaskStore:
             if row["deadline"] <= self.clock():
                 blocked("AI_TASK_TIMEOUT")
 
+    def authorize(self, task_id: str, actor: Principal, *, running: bool = False) -> bool:
+        with self.database.transaction() as c:
+            self.check(c, self._row(c, task_id), actor, running=running)
+        return False
+
     def guard(self, task_id: str) -> bool:
         with self.database.transaction() as c:
             row = self._row(c, task_id)
@@ -157,6 +162,17 @@ class TaskStore:
     ) -> tuple[dict, bool]:
         if not 1 <= timeout <= 120:
             raise ValueError("invalid_synthetic_task_timeout")
+        # Purpose preflight happens before loading any score material. Repeat the
+        # same checks under the write lock before a task can actually be claimed.
+        with self.database.transaction() as c:
+            self.reader._batch(c, actor, batch_id, body.snapshot_id)
+            grant = c.execute(
+                "SELECT revoked,expires FROM ai_synthetic_grants WHERE teacher_id=? "
+                "AND batch_id=? AND snapshot_id=?",
+                (actor.teacher_id, batch_id, body.snapshot_id),
+            ).fetchone()
+            if grant is None or grant["revoked"] or grant["expires"] <= self.clock():
+                blocked("AI_PURPOSE_REQUIRED", 403)
         material, _ = self.provider.capture(actor, batch_id, body.snapshot_id)
         question = body.question
         for alias, item in zip(ALIASES, material.data.items, strict=True):

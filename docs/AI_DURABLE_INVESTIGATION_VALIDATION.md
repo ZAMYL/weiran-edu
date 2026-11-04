@@ -51,3 +51,13 @@ uv run --project apps/api --locked python -m prototypes.durable_teacher_agent.de
 - 单机后台任务不自动恢复/续查；进程崩溃后在途任务等 deadline 安全超时，已用额度不退还。
 - 教师核查承接 preparing 阶段若进程崩溃，需 operator 核对，不自动再写一份结果。
 - 正式用途授权、跨真实会话累计披露、正式动态 Provider、真实模型及独立人工审核仍是阻断。当前可供前端联调的是合成宿主 API，不是已上线产品能力。
+
+
+## 收尾自查的真实失败与最小修复
+
+在 `815adf5` 执行代码不变的阶段，追加两项竞态回归，**先得到 2 failed**：
+
+1. 第二个 worker 领取同一 running 任务被拒绝后，错误把活跃任务标为 failed。
+2. 证据回放期间撤销 AI 用途，长时回读仍返回 200；应拒绝为 403。
+
+对应复现：`D:/Temp/edu-durable-race-before.xml`。修复为“未取得领取权不改变任务”，并给所有只读来源回放绑定持续用途/旧凭证/到期检查；评分快照读取前后均复核用途。修复后的两项专项 **2 passed，61.89s**（`D:/Temp/edu-durable-race-after.xml`）。无用途准入时也在加载评分材料前拒绝。最终联合回归与 HTTP 记录会在本 PR 更新，不能将修复前记录当作当前安全结论。

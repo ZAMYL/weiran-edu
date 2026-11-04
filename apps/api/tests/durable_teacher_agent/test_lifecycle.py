@@ -204,7 +204,7 @@ def test_insufficient_evidence_and_zero_findings(tmp_path, case, question, expec
             assert result["missing_evidence"]
 
 
-def test_no_purpose_and_no_client_authorization(tmp_path):
+def test_no_purpose_and_no_client_authorization(tmp_path, monkeypatch):
     fixture, service = setup(tmp_path)
     with TestClient(fixture.app) as client:
         client.headers["Authorization"] = "Bearer " + fixture.token
@@ -215,8 +215,17 @@ def test_no_purpose_and_no_client_authorization(tmp_path):
             "question": QUESTION,
             "idempotency_key": "no-purpose-01",
         }
+        captured = []
+        original = service.provider.capture
+
+        def record_capture(*args):
+            captured.append(True)
+            return original(*args)
+
+        monkeypatch.setattr(service.provider, "capture", record_capture)
         response = client.post(path, json=body)
         assert response.status_code == 403
+        assert captured == []
         for field, value in (
             ("authorized", True),
             ("facts", []),
@@ -242,3 +251,12 @@ def test_invalid_mock_response_never_publishes_partial_facts(pending, monkeypatc
     assert current["state"] == "failed" and current["result_json"] is None
     assert current["error_code"] == "AI_EXECUTION_INCOMPLETE"
     assert json.loads(current["budget_json"])["request_count"] == 1
+
+
+def test_duplicate_worker_does_not_fail_the_running_owner(pending):
+    _, service, _, _, a, _, _, row = pending
+    service.store.start(row["task_id"])
+    service.execute(row["task_id"])
+    current = service.store.get(a, row["task_id"])
+    assert current["state"] == "running"
+    assert current["tool_attempts"] == 0

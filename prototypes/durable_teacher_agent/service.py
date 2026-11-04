@@ -110,19 +110,30 @@ class Invocation(InvestigationHost):
         self.service.store.finish(self.row["task_id"], actor, result, proof(executor))
 
 
+class AuthorizedEnvelope(DatabaseEnvelope):
+    def validate(self):
+        super().validate()
+        # A potentially expensive DB capture must not be the final operation after
+        # a stale purpose check. Recheck immediately after it, before any disclosure.
+        if self.cancelled is not None:
+            self.cancelled()
+
+
 class TaskService:
     def __init__(self, provider, store: TaskStore, directory: Path):
         self.provider, self.store, self.directory = provider, store, directory
 
     def source(self, row: dict, actor: Principal, *, running: bool = False) -> DatabaseSource:
-        if running:
-            self.store.guard(row["task_id"])
+        def current_authorization():
+            return self.store.authorize(row["task_id"], actor, running=running)
+
+        current_authorization()
         material, manifest = self.provider.capture(actor, row["batch_id"], row["snapshot_id"])
         if sha256(manifest).hexdigest() != row["source_sha"]:
             blocked("AI_SOURCE_CONFLICT")
         return DatabaseSource(
             "authorized-db-" + row["batch_id"],
-            DatabaseEnvelope(
+            AuthorizedEnvelope(
                 material,
                 manifest,
                 "authorized_database",
@@ -130,7 +141,7 @@ class TaskService:
                 actor,
                 row["batch_id"],
                 row["snapshot_id"],
-                (lambda: self.store.guard(row["task_id"])) if running else None,
+                current_authorization,
             ),
             row["source_sha"],
         )
@@ -138,6 +149,11 @@ class TaskService:
     def execute(self, task_id: str) -> None:
         try:
             row = self.store.start(task_id)
+        except APIError:
+            # Another worker/cancellation may already own this task. A failed claim
+            # must never mutate the live owner's state or its consumed budget.
+            return
+        try:
             actor = Principal(row["teacher_id"], row["credential_sha"])
             body = json.loads(row["request_json"])
             body.pop("idempotency_key")
