@@ -1,0 +1,1924 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Durable AI synthetic-only integration",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks": {
+      "post": {
+        "tags": [
+          "Durable AI synthetic integration"
+        ],
+        "summary": "Start",
+        "operationId": "start_api_v1_edu_batches__batch_id__ai_investigation_tasks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskView"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "499": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Additional Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "snapshot_id": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "question": {
+                    "maxLength": 300,
+                    "minLength": 1,
+                    "title": "Question",
+                    "type": "string"
+                  },
+                  "mode": {
+                    "const": "http_mock",
+                    "default": "http_mock",
+                    "title": "Mode",
+                    "type": "string"
+                  },
+                  "strategy": {
+                    "default": "adaptive",
+                    "enum": [
+                      "adaptive",
+                      "fixed"
+                    ],
+                    "title": "Strategy",
+                    "type": "string"
+                  },
+                  "idempotency_key": {
+                    "maxLength": 64,
+                    "minLength": 8,
+                    "pattern": "^[A-Za-z0-9_-]+$",
+                    "title": "Idempotency Key",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "snapshot_id",
+                  "question",
+                  "idempotency_key"
+                ],
+                "title": "TaskCreate",
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "Durable AI synthetic integration"
+        ],
+        "summary": "Status",
+        "operationId": "status_api_v1_edu_batches__batch_id__ai_investigation_tasks__task_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskView"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "499": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Additional Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks/{task_id}/cancel": {
+      "post": {
+        "tags": [
+          "Durable AI synthetic integration"
+        ],
+        "summary": "Cancel",
+        "operationId": "cancel_api_v1_edu_batches__batch_id__ai_investigation_tasks__task_id__cancel_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskView"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "499": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Additional Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks/{task_id}/records/query": {
+      "post": {
+        "tags": [
+          "Durable AI synthetic integration"
+        ],
+        "summary": "Records",
+        "operationId": "records_api_v1_edu_batches__batch_id__ai_investigation_tasks__task_id__records_query_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "499": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Additional Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "snapshot_id": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fact_id": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "metric_key": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "title": "Metric Key",
+                    "type": "string"
+                  },
+                  "offset": {
+                    "default": 0,
+                    "minimum": 0,
+                    "title": "Offset",
+                    "type": "integer"
+                  },
+                  "limit": {
+                    "default": 20,
+                    "maximum": 100,
+                    "minimum": 1,
+                    "title": "Limit",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "snapshot_id",
+                  "fact_id",
+                  "metric_key"
+                ],
+                "title": "SourceRequest",
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks/{task_id}/review-submissions": {
+      "post": {
+        "tags": [
+          "Durable AI synthetic integration"
+        ],
+        "summary": "Review",
+        "operationId": "review_api_v1_edu_batches__batch_id__ai_investigation_tasks__task_id__review_submissions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "499": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Additional Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "snapshot_id": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "title": "Snapshot Id",
+                    "type": "string"
+                  },
+                  "fact_ids": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 3,
+                    "minItems": 1,
+                    "title": "Fact Ids",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "snapshot_id",
+                  "fact_ids"
+                ],
+                "title": "ReviewSubmission",
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalysisCreate": {
+        "properties": {
+          "snapshot_id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/FilterCondition"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Conditions",
+            "default": []
+          },
+          "include_dimensions": {
+            "type": "boolean",
+            "title": "Include Dimensions",
+            "default": true
+          },
+          "title": {
+            "$ref": "#/components/schemas/Title"
+          },
+          "note": {
+            "$ref": "#/components/schemas/Note",
+            "default": ""
+          },
+          "candidate_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Identifier"
+                },
+                "type": "array",
+                "maxItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate Ids"
+          },
+          "discovery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DiscoverySelection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "title"
+        ],
+        "title": "AnalysisCreate"
+      },
+      "Comparison": {
+        "type": "string",
+        "enum": [
+          "lt",
+          "lte",
+          "eq",
+          "gte",
+          "gt"
+        ]
+      },
+      "DimensionCode": {
+        "type": "string",
+        "enum": [
+          "algorithm_data_structure",
+          "code_implementation",
+          "problem_modeling",
+          "efficiency_awareness",
+          "solution_strategy"
+        ]
+      },
+      "DiscoverySelection": {
+        "properties": {
+          "input_key": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Input Key"
+          },
+          "discovery_ids": {
+            "items": {
+              "$ref": "#/components/schemas/Identifier"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Discovery Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "input_key",
+          "discovery_ids"
+        ],
+        "title": "DiscoverySelection"
+      },
+      "ErrorDetails": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorDetails"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetails"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse"
+      },
+      "EvidenceLink": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "title": "Student Id"
+          },
+          "evidence_id": {
+            "type": "string",
+            "title": "Evidence Id"
+          },
+          "dimension_code": {
+            "type": "string",
+            "title": "Dimension Code"
+          },
+          "evidence_path": {
+            "type": "string",
+            "title": "Evidence Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "student_id",
+          "evidence_id",
+          "dimension_code",
+          "evidence_path"
+        ],
+        "title": "EvidenceLink"
+      },
+      "ExactDenominator": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "maximum": 9007199254740991.0,
+            "minimum": 1.0
+          },
+          {
+            "type": "string",
+            "maxLength": 1024,
+            "pattern": "^(?:9007199254740992|[1-9][0-9]{16,1023}|9[1-9][0-9]{14}|90[1-9][0-9]{13}|900[8-9][0-9]{12}|9007[2-9][0-9]{11}|9007199[3-9][0-9]{8}|90071992[6-9][0-9]{7}|900719925[5-9][0-9]{6}|9007199254[8-9][0-9]{5}|90071992547[5-9][0-9]{4}|900719925474[1-9][0-9]{3}|900719925474099[3-9])$"
+          }
+        ]
+      },
+      "ExactNumerator": {
+        "anyOf": [
+          {
+            "type": "integer",
+            "maximum": 9007199254740991.0,
+            "minimum": -9007199254740991.0
+          },
+          {
+            "type": "string",
+            "maxLength": 1025,
+            "pattern": "^-?(?:9007199254740992|[1-9][0-9]{16,1023}|9[1-9][0-9]{14}|90[1-9][0-9]{13}|900[8-9][0-9]{12}|9007[2-9][0-9]{11}|9007199[3-9][0-9]{8}|90071992[6-9][0-9]{7}|900719925[5-9][0-9]{6}|9007199254[8-9][0-9]{5}|90071992547[5-9][0-9]{4}|900719925474[1-9][0-9]{3}|900719925474099[3-9])$"
+          }
+        ]
+      },
+      "ExactRational": {
+        "properties": {
+          "numerator": {
+            "$ref": "#/components/schemas/ExactNumerator"
+          },
+          "denominator": {
+            "$ref": "#/components/schemas/ExactDenominator"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "numerator",
+          "denominator"
+        ],
+        "title": "ExactRational"
+      },
+      "FactResult": {
+        "properties": {
+          "fact_id": {
+            "type": "string",
+            "title": "Fact Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "rule_version": {
+            "type": "string",
+            "title": "Rule Version"
+          },
+          "qualified": {
+            "type": "boolean",
+            "title": "Qualified"
+          },
+          "source_verified": {
+            "type": "boolean",
+            "title": "Source Verified"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/FilterCondition"
+            },
+            "type": "array",
+            "title": "Conditions",
+            "default": []
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/Metric"
+            },
+            "type": "array",
+            "title": "Metrics"
+          },
+          "source_refs": {
+            "items": {
+              "$ref": "#/components/schemas/SourceReference"
+            },
+            "type": "array",
+            "title": "Source Refs"
+          },
+          "limitation_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitation Codes"
+          },
+          "exploration_query": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "save_group_analysis_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisCreate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fact_id",
+          "batch_id",
+          "snapshot_id",
+          "method",
+          "rule_version",
+          "qualified",
+          "source_verified",
+          "metrics",
+          "source_refs",
+          "limitation_codes"
+        ],
+        "title": "FactResult"
+      },
+      "FilterCondition": {
+        "properties": {
+          "dimension_code": {
+            "$ref": "#/components/schemas/DimensionCode"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/Comparison"
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dimension_code",
+          "operator",
+          "value"
+        ],
+        "title": "FilterCondition"
+      },
+      "GroupQuery": {
+        "properties": {
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/FilterCondition"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Conditions"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 20
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "include_statistics": {
+            "type": "boolean",
+            "title": "Include Statistics",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "conditions"
+        ],
+        "title": "GroupQuery"
+      },
+      "Identifier": {
+        "type": "string",
+        "maxLength": 128,
+        "minLength": 1
+      },
+      "InvestigationResult": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "source_manifest_sha256": {
+            "type": "string",
+            "title": "Source Manifest Sha256"
+          },
+          "scope_kind": {
+            "type": "string",
+            "const": "whole_authorized_batch",
+            "title": "Scope Kind",
+            "default": "whole_authorized_batch"
+          },
+          "batch_record_count": {
+            "type": "integer",
+            "title": "Batch Record Count"
+          },
+          "execution_origin": {
+            "type": "string",
+            "const": "http_mock",
+            "title": "Execution Origin",
+            "default": "http_mock"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "adaptive",
+              "fixed"
+            ],
+            "title": "Strategy"
+          },
+          "real_qwen": {
+            "type": "string",
+            "const": "not_run",
+            "title": "Real Qwen",
+            "default": "not_run"
+          },
+          "production_enabled": {
+            "type": "boolean",
+            "const": false,
+            "title": "Production Enabled",
+            "default": false
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "stop_reason": {
+            "type": "string",
+            "title": "Stop Reason"
+          },
+          "controlled_goal": {
+            "type": "string",
+            "title": "Controlled Goal"
+          },
+          "goal_items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Goal Items"
+          },
+          "missing_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Evidence"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/FactResult"
+            },
+            "type": "array",
+            "title": "Facts"
+          },
+          "selected_fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Selected Fact Ids"
+          },
+          "retained_fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Retained Fact Ids"
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/ToolStep"
+            },
+            "type": "array",
+            "title": "Trace"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/InvocationBudget"
+          },
+          "uncovered_direction_count": {
+            "type": "integer",
+            "title": "Uncovered Direction Count"
+          },
+          "investigation_exhaustive": {
+            "type": "boolean",
+            "const": false,
+            "title": "Investigation Exhaustive",
+            "default": false
+          },
+          "report_integration": {
+            "type": "string",
+            "enum": [
+              "group_statistics_only_agent_facts_not_persisted",
+              "eligible_facts_require_formal_recomputation"
+            ],
+            "title": "Report Integration",
+            "default": "group_statistics_only_agent_facts_not_persisted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "batch_id",
+          "snapshot_id",
+          "source_manifest_sha256",
+          "batch_record_count",
+          "strategy",
+          "status",
+          "stop_reason",
+          "controlled_goal",
+          "goal_items",
+          "missing_evidence",
+          "facts",
+          "selected_fact_ids",
+          "retained_fact_ids",
+          "trace",
+          "budget",
+          "uncovered_direction_count"
+        ],
+        "title": "InvestigationResult"
+      },
+      "InvocationBudget": {
+        "properties": {
+          "model_requests": {
+            "type": "integer",
+            "title": "Model Requests"
+          },
+          "max_model_requests": {
+            "type": "integer",
+            "const": 6,
+            "title": "Max Model Requests",
+            "default": 6
+          },
+          "tool_attempts": {
+            "type": "integer",
+            "title": "Tool Attempts"
+          },
+          "max_tool_attempts": {
+            "type": "integer",
+            "const": 5,
+            "title": "Max Tool Attempts",
+            "default": 5
+          },
+          "verification_replays": {
+            "type": "integer",
+            "title": "Verification Replays"
+          },
+          "actual_remote_requests": {
+            "type": "integer",
+            "const": 0,
+            "title": "Actual Remote Requests",
+            "default": 0
+          },
+          "actual_tokens": {
+            "type": "null",
+            "title": "Actual Tokens"
+          },
+          "invoice_cost_cny": {
+            "type": "null",
+            "title": "Invoice Cost Cny"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model_requests",
+          "tool_attempts",
+          "verification_replays"
+        ],
+        "title": "InvocationBudget"
+      },
+      "Metric": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "exact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExactRational"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "display": {
+            "type": "string",
+            "title": "Display"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "display"
+        ],
+        "title": "Metric"
+      },
+      "Note": {
+        "type": "string",
+        "maxLength": 2000
+      },
+      "ReviewReceipt": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "result_id": {
+            "type": "string",
+            "title": "Result Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "candidate_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Candidate Ids"
+          },
+          "fact_candidate_map": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Fact Candidate Map"
+          },
+          "agent_rule_version": {
+            "type": "string",
+            "title": "Agent Rule Version"
+          },
+          "formal_rule_version": {
+            "type": "string",
+            "title": "Formal Rule Version"
+          },
+          "status": {
+            "type": "string",
+            "const": "pending_teacher_review",
+            "title": "Status",
+            "default": "pending_teacher_review"
+          },
+          "result_path": {
+            "type": "string",
+            "title": "Result Path"
+          },
+          "review_path": {
+            "type": "string",
+            "title": "Review Path"
+          },
+          "export_path": {
+            "type": "string",
+            "title": "Export Path"
+          },
+          "notice": {
+            "type": "string",
+            "title": "Notice",
+            "default": "候选已按正式规则重新计算；教师确认不等于因果证明。"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "task_id",
+          "batch_id",
+          "snapshot_id",
+          "result_id",
+          "version",
+          "candidate_ids",
+          "fact_candidate_map",
+          "agent_rule_version",
+          "formal_rule_version",
+          "result_path",
+          "review_path",
+          "export_path"
+        ],
+        "title": "ReviewReceipt"
+      },
+      "SourceReference": {
+        "properties": {
+          "metric_key": {
+            "type": "string",
+            "title": "Metric Key"
+          },
+          "dimension_code": {
+            "type": "string",
+            "title": "Dimension Code"
+          },
+          "participant_count": {
+            "type": "integer",
+            "title": "Participant Count"
+          },
+          "witness_kind": {
+            "type": "string",
+            "enum": [
+              "score",
+              "row"
+            ],
+            "title": "Witness Kind"
+          },
+          "records_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Records Path"
+          },
+          "records_query": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceRequest"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "metric_key",
+          "dimension_code",
+          "participant_count",
+          "witness_kind",
+          "records_path",
+          "records_query"
+        ],
+        "title": "SourceReference"
+      },
+      "SourceRequest": {
+        "properties": {
+          "snapshot_id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "fact_id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "metric_key": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Metric Key"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "default": 0
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 20
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "fact_id",
+          "metric_key"
+        ],
+        "title": "SourceRequest"
+      },
+      "SourceResult": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "fact_id": {
+            "type": "string",
+            "title": "Fact Id"
+          },
+          "metric_key": {
+            "type": "string",
+            "title": "Metric Key"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceLink"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "batch_id",
+          "snapshot_id",
+          "run_id",
+          "fact_id",
+          "metric_key",
+          "total_count",
+          "offset",
+          "items"
+        ],
+        "title": "SourceResult"
+      },
+      "TaskView": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "batch_id": {
+            "type": "string",
+            "title": "Batch Id"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "campaign_id": {
+            "type": "string",
+            "title": "Campaign Id"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Reason"
+          },
+          "execution_origin": {
+            "type": "string",
+            "const": "http_mock",
+            "title": "Execution Origin",
+            "default": "http_mock"
+          },
+          "real_qwen": {
+            "type": "string",
+            "const": "not_run",
+            "title": "Real Qwen",
+            "default": "not_run"
+          },
+          "production_enabled": {
+            "type": "boolean",
+            "const": false,
+            "title": "Production Enabled",
+            "default": false
+          },
+          "tool_attempts": {
+            "type": "integer",
+            "title": "Tool Attempts"
+          },
+          "model_requests": {
+            "type": "integer",
+            "title": "Model Requests"
+          },
+          "max_tool_attempts": {
+            "type": "integer",
+            "const": 5,
+            "title": "Max Tool Attempts",
+            "default": 5
+          },
+          "max_model_requests": {
+            "type": "integer",
+            "const": 6,
+            "title": "Max Model Requests",
+            "default": 6
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestigationResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "review_result_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Result Path"
+          },
+          "expires_at": {
+            "type": "number",
+            "title": "Expires At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "task_id",
+          "batch_id",
+          "snapshot_id",
+          "campaign_id",
+          "state",
+          "error_code",
+          "stop_reason",
+          "tool_attempts",
+          "model_requests",
+          "expires_at"
+        ],
+        "title": "TaskView"
+      },
+      "Title": {
+        "type": "string",
+        "maxLength": 100,
+        "minLength": 1,
+        "pattern": "^[^\\x00-\\x1f\\x7f]+$"
+      },
+      "ToolStep": {
+        "properties": {
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool"
+          },
+          "round": {
+            "type": "integer",
+            "title": "Round"
+          },
+          "phase": {
+            "type": "string",
+            "title": "Phase"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fact Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tool",
+          "round",
+          "phase",
+          "status",
+          "fact_ids"
+        ],
+        "title": "ToolStep"
+      }
+    }
+  }
+}

@@ -53,12 +53,19 @@ class ResearchExecutor(AdaptiveExecutor):
     def execute(self, name, args):
         entry = {"tool": name, "arguments": args.model_dump(), "status": "attempted"}
         self.attempt_ledger.append(entry)
+        audit = getattr(self, "durable_audit", None)
+        if audit is not None:
+            audit("attempt", self, entry)
         try:
             facts = super().execute(name, args)
             entry.update(status="verified", fact_ids=[f.fact_id for f in facts])
+            if audit is not None:
+                audit("verified", self, entry)
             return facts
         except ValueError as error:
             entry.update(status="rejected", error=str(error))
+            if audit is not None:
+                audit("rejected", self, entry)
             raise
 
     def _verify(self, fact):
@@ -210,6 +217,7 @@ async def _investigate(
     source.validate()
     limits = limits or Limits(timeout_seconds=30)
     executor = ResearchExecutor(source, "research-" + uuid4().hex[:12], limits)
+    executor.durable_audit = getattr(budget, "audit_tool", None)
     goal = understand(question, executor.kernel.catalog())
     # Seed only recomputed current-run server queries, not #59 or imported historical Fact IDs.
     # Every attempt is charged; retained facts survive model selection and failures.

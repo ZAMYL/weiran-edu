@@ -50,7 +50,7 @@ class FixtureHost:
     books: dict = field(repr=False)
 
 
-def build_host(directory: Path) -> FixtureHost:
+def build_host(directory: Path, *, install_bridge: bool = True) -> FixtureHost:
     directory.mkdir(parents=True, exist_ok=True)
     database = Database(directory / "synthetic.sqlite3")
     database.migrate()
@@ -62,5 +62,6 @@ def build_host(directory: Path) -> FixtureHost:
     app = create_app(Settings(environment="test", database_path=database.path))
     books = {case: workbook(case) for case in CASES}
     provider = DatabaseProvider(app.state.edu_service, tuple(books.values()))
-    install(app, provider, directory / "campaigns")
+    if install_bridge:
+        install(app, provider, directory / "campaigns")
     return FixtureHost(app, admin, teacher, token, books)

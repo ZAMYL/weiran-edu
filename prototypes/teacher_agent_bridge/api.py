@@ -84,6 +84,21 @@ class InvestigationHost:
         self.provider, self.state = provider, state
         self.runs = {}
 
+    def acquire(self, actor, batch_id, snapshot_id, cancelled):
+        return self.provider.acquire(actor, batch_id, snapshot_id, cancelled)
+
+    def campaign(self, actor, batch_id, snapshot_id):
+        return "db-agent-" + digest((actor.teacher_id, batch_id, snapshot_id))[:40]
+
+    def open_budget(self, permit):
+        return CampaignBudget(permit, self.state, origin="http_mock", today=date(2026, 11, 4))
+
+    def result_id(self):
+        return str(uuid4())
+
+    def completed(self, actor, source, executor, result):
+        self.runs[result.run_id] = (actor.teacher_id, source, executor, result)
+
     def execute(
         self,
         actor: Principal,
@@ -91,7 +106,7 @@ class InvestigationHost:
         body: InvestigationRequest,
         cancelled: CancelCheck | None,
     ) -> InvestigationResult:
-        source = self.provider.acquire(actor, batch_id, body.snapshot_id, cancelled)
+        source = self.acquire(actor, batch_id, body.snapshot_id, cancelled)
         # Never send arbitrary question text. Existing mapper handles only controlled goals.
         question = body.question
         for alias, spec in zip(ALIASES, source.envelope.data.items, strict=True):
@@ -100,10 +115,10 @@ class InvestigationHost:
             understand(question, Kernel(source.envelope).catalog())
         except ValueError:
             raise APIError(422, "AI_GOAL_UNSUPPORTED", "当前目标不受支持或缺少合法项目") from None
-        campaign = "db-agent-" + digest((actor.teacher_id, batch_id, body.snapshot_id))[:40]
+        campaign = self.campaign(actor, batch_id, body.snapshot_id)
         permit = OfflineSnapshotPermit(source, campaign, PRICE.fingerprint)
         try:
-            budget = CampaignBudget(permit, self.state, origin="http_mock", today=date(2026, 11, 4))
+            budget = self.open_budget(permit)
         except AgentError:
             raise APIError(
                 409, "AI_CAMPAIGN_ALREADY_USED", "该合成调查额度已使用或不可用"
@@ -123,7 +138,7 @@ class InvestigationHost:
             source.validate()
             if cancelled is not None and cancelled():
                 raise APIError(499, "AI_CANCELLED", "调查请求已取消")
-            run_id = str(uuid4())
+            run_id = self.result_id()
             facts = []
             witness_by_id = {w.reference_id: w for w in source.envelope.material.witnesses}
             for f in executor.facts.values():
@@ -217,7 +232,7 @@ class InvestigationHost:
             source.validate()
             executor.source = source
             executor.kernel = Kernel(source.envelope)
-            self.runs[run_id] = (actor.teacher_id, source, executor, result)
+            self.completed(actor, source, executor, result)
             return result
         except AgentError:
             raise APIError(
