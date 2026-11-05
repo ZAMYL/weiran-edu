@@ -16,6 +16,7 @@ from pydantic import Field, field_validator
 
 from ..synthetic import AdmittedSynthetic, admit
 from .pricing import reviewed_price
+from .safety import deny_live
 
 
 class SyntheticLiveAuthorization(Strict):
@@ -131,6 +132,11 @@ class CampaignBudget:
         origin: Literal["synthetic_live", "http_mock"],
         today: date | None = None,
     ):
+        # Preserve the existing DB-only permit rejection and error contract.
+        if type(authorization) is OfflineSnapshotPermit and origin != "http_mock":
+            raise AgentError("invalid_live_authorization")
+        if origin == "synthetic_live":
+            deny_live()
         if not (
             type(authorization) is SyntheticLiveAuthorization
             and origin in ("synthetic_live", "http_mock")

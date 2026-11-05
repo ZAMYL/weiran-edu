@@ -393,19 +393,18 @@ def test_new_prototype_style_is_included_in_ci():
         )
 
 
-def test_live_budget_cannot_reset_by_changing_report_path(tmp_path, monkeypatch):
-    from datetime import UTC, datetime
-
-    from prototypes.adaptive_assessment.live import budget as budget_module
+def test_live_budget_is_refused_and_report_path_cannot_change_fixed_root(tmp_path, monkeypatch):
+    from prototypes.adaptive_assessment.live.safety import LIVE_DISABLED
     from prototypes.research_agent_v22 import pilot
 
-    class Clock:
-        @staticmethod
-        def now(zone):
-            return datetime(2026, 11, 4, tzinfo=UTC)
+    from app.ai.edu.qwen_config import QwenSettings
 
-    monkeypatch.setattr(budget_module, "datetime", Clock)
-    monkeypatch.setattr(pilot, "LIVE_LEDGER_ROOT", tmp_path / "fixed-live-journals")
+    def prohibited():
+        raise AssertionError("must_not_read_credentials")
+
+    monkeypatch.setattr(QwenSettings, "from_env", prohibited)
+    root = tmp_path / "fixed-live-journals"
+    monkeypatch.setattr(pilot, "LIVE_LEDGER_ROOT", root)
     mock = mock_budget(tmp_path / "mock", "shared-live-campaign")
     try:
         approval = pilot.PilotApproval(
@@ -413,16 +412,21 @@ def test_live_budget_cannot_reset_by_changing_report_path(tmp_path, monkeypatch)
         )
     finally:
         mock.close()
+    calls = []
+    original = pilot.CampaignBudget
+
+    def checked_budget(auth, state, *, origin):
+        calls.append((auth.campaign_id, state, origin))
+        return original(auth, state, origin=origin)
+
+    monkeypatch.setattr(pilot, "CampaignBudget", checked_budget)
     for report in (tmp_path / "report-A", tmp_path / "report-B"):
         report.mkdir()
-        if report.name == "report-A":
-            journal = pilot.open_live_budget(approval)
-            assert journal.snapshot()["request_count"] == 0  # no model request
-            journal.close()
-        else:
-            with pytest.raises(AgentError, match="campaign_already_consumed"):
-                pilot.open_live_budget(approval)
-    assert len(list((tmp_path / "fixed-live-journals").glob("*.jsonl"))) == 1
+        with pytest.raises(AgentError, match=LIVE_DISABLED):
+            pilot.open_live_budget(approval)
+    assert calls == [(approval.authorization.campaign_id, root, "synthetic_live")] * 2
+    assert not root.exists()
+    assert not list(tmp_path.rglob("fixed-live-journals/*.jsonl"))
 
 
 def test_cli_does_not_attribute_stale_failure_to_new_rejected_run(tmp_path, monkeypatch):
