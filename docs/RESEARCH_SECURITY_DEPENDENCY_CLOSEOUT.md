@@ -8,7 +8,7 @@
 |---|---|
 |#66 445f3e2|Live 全封禁，准确提交 CI 已成功；Peng-Kai789 对新 SHA 尚无正式 APPROVED，代码冻结，不代批。|
 |#67 c64a614 原分支|仍带旧 Research/adaptive Live 路径，尚未同步安全补丁，不得放行 Live。|
-|本隔离候选（基于 c64a614）|已选择性同步封禁，更新依赖审核目标为445f3e2；封禁专项通过，但原测试两处正例与新政策冲突，**不是可直接合并候选**。|
+|本隔离候选（基于 c64a614）|已选择性同步封禁，更新依赖审核目标为445f3e2；已依负责人明确要求迁移两处旧 Live 正例，联合专项78通过；尚待独立审核，不是Live放行。|
 |#70 fa49f6e|仅合成 DB+HTTP Mock；仍需后续选择性同步，不能把源 SHA/CI 当成独立授权。原分支不改。|
 |#72 bda5d37|持久任务/报告闭环冻结；仍需同步上游封禁与处理 Windows CI。临时副本验证可保持32项闭环通过，不代表冻结分支已同步。|
 
@@ -22,7 +22,7 @@
 - `research_agent_v2/runtime.py`：保留按 `budget.price` 计算容量的改进，不重新引入旧全局 PRICE，只加入封禁。
 - 原 Research CLI、adaptive CLI、Planner、预算、runtime 均拒绝 Live；固定错误 `synthetic_live_disabled_pending_independent_review`，在 Key/Live ledger 之前停止。
 - `review.DEPENDENCY_SHA` 从 f3799a1 更新到445f3e2。真实最新 APPROVED、准确 head、干净工作树检查逻辑保留；没有自动批准或伪造批准回执。
-- `PilotApproval`、Pilot固定账本根、价格快照、PLAN及哈希、全部原测试文件逐字节不改。Live入口数仍为0；不是新建了一个可用的Live服务。
+- `PilotApproval`、Pilot固定账本根、价格快照、PLAN及哈希、Oracle与业务测试未改；两处旧Live正例按下述政策迁移。Live入口数仍为0；不是新建了一个可用的Live服务。
 
 ### 实际离线结果
 
@@ -34,7 +34,14 @@
 - 原三组离线入口实际执行：固定 **5/9**、HTTP Mock **6/9**、真实Qwen **not_run**；原量规/Oracle未改。
 - 原测试的价格、预算未知usage、精确审核状态、Provider权限/来源/撤权、52次重放等检查通过。没有新增xfail/skip、裁剪评分分母或放宽断言。
 
-待仲楷确认的是两个测试的安全政策迁移，不能为了让它们通过重新允许Live构造。建议保留历史结果，新增“固定根参数不受报告路径影响”的无消费检查及“即使名义批准也不得打开Live”检查；获准后再更新原正例，不在本轮擅改。
+负责人本轮明确批准迁移上述两个与新安全政策冲突的正例。历史75/2结果继续保留：
+
+- network测试：显式opt-in和名义授权仍必须拒绝；禁止环境Key读取，拒绝前不能创建账本根。
+- pilot测试：保留真实PilotApproval和两个报告路径，以包装器记录后调用真实CampaignBudget构造器，两次均必须拒绝；确认campaign、固定根、origin完全一致，且根和journal均不存在。
+- 没有删除、skip、xfail或允许Live成功的替代分支。
+- 实际命令：`python -m pytest tests/research_v22 tests/adaptive_assessment/test_qwen_live.py -q --junitxml=D:/Temp/edu-safety-policy-green.xml`（apps/api，PYTHONPATH含repo）。**78 passed / 143.24s**。真实远程请求及真实Key读取仍为0。
+
+此测试政策迁移不代替Peng-Kai789对准确提交的独立复审。
 
 ## #70/#72 具体接点与兼容证明
 
