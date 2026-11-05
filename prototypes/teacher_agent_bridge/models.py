@@ -97,9 +97,10 @@ class InvestigationResult(Model):
     budget: InvocationBudget
     uncovered_direction_count: int
     investigation_exhaustive: Literal[False] = False
-    report_integration: Literal["group_statistics_only_agent_facts_not_persisted"] = (
-        "group_statistics_only_agent_facts_not_persisted"
-    )
+    report_integration: Literal[
+        "group_statistics_only_agent_facts_not_persisted",
+        "eligible_facts_require_formal_recomputation",
+    ] = "group_statistics_only_agent_facts_not_persisted"
 
 
 class EvidenceLink(Model):
