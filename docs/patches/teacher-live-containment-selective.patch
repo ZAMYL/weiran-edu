@@ -1,0 +1,181 @@
+diff --git a/prototypes/adaptive_assessment/live/budget.py b/prototypes/adaptive_assessment/live/budget.py
+index a130a2e..17d2ab6 100644
+--- a/prototypes/adaptive_assessment/live/budget.py
++++ b/prototypes/adaptive_assessment/live/budget.py
+@@ -18,0 +19 @@ from .pricing import reviewed_price
++from .safety import deny_live
+@@ -133,0 +135,5 @@ class CampaignBudget:
++        # Preserve the existing DB-only permit rejection and error contract.
++        if type(authorization) is OfflineSnapshotPermit and origin != "http_mock":
++            raise AgentError("invalid_live_authorization")
++        if origin == "synthetic_live":
++            deny_live()
+diff --git a/prototypes/adaptive_assessment/live/cli.py b/prototypes/adaptive_assessment/live/cli.py
+index ae2afd5..10ce5a8 100644
+--- a/prototypes/adaptive_assessment/live/cli.py
++++ b/prototypes/adaptive_assessment/live/cli.py
+@@ -1 +1 @@
+-"""Default dry-run; only explicit local operator authorization can create a live client."""
++"""Read-only dry-run; legacy paid execution is unconditionally disabled."""
+@@ -4 +3,0 @@ import argparse
+-import asyncio
+@@ -6 +4,0 @@ import json
+-import os
+@@ -8,5 +5,0 @@ from dataclasses import asdict
+-from pathlib import Path
+-
+-from app.ai.edu.discovery.models import AgentError
+-from app.ai.edu.models import InsightError
+-from pydantic import ValidationError
+@@ -17,2 +9,0 @@ from ..synthetic import admit
+-from .budget import CampaignBudget, SyntheticLiveAuthorization
+-from .planner import render_result, run_synthetic_live
+@@ -19,0 +11 @@ from .pricing import PRICE
++from .safety import LIVE_DISABLED, deny_live
+@@ -65 +57 @@ def preflight(recipe):
+-            "explicit --execute --authorization PATH",
++            "Live disabled: requires separately reviewed code-bound service and shared ledger",
+@@ -72,23 +64,2 @@ async def execute(recipe, authorization_path):
+-    path = Path(authorization_path)
+-    if path.stat().st_size > 16384:
+-        raise AgentError("authorization_file_limit")
+-    authorization = SyntheticLiveAuthorization.model_validate_json(path.read_bytes())
+-    state = Path(os.environ.get("LOCALAPPDATA") or Path.home() / ".local" / "state")
+-    budget = CampaignBudget(
+-        authorization,
+-        state / "weiran-edu" / "adaptive-live-budgets",
+-        origin="synthetic_live",
+-    )
+-    try:
+-        return await run_synthetic_live(recipe, budget, allow_network=True)
+-    except asyncio.CancelledError:
+-        return {"status": "cancelled", "cards": [], "budget": budget.snapshot()}
+-    except (AgentError, InsightError) as exc:
+-        return {
+-            "status": "failed",
+-            "reason": str(exc),
+-            "cards": [],
+-            "budget": budget.snapshot(),
+-        }
+-    finally:
+-        budget.close()
++    """Compatibility entry, closed before reading any authorization or credentials."""
++    deny_live()
+@@ -103 +74 @@ def main(argv=None):
+-        help="paid calls, separate human approval required",
++        help="disabled pending exact-code independent review and a shared Live ledger",
+@@ -113,12 +84 @@ def main(argv=None):
+-    if not args.authorization:
+-        parser.error("--execute requires --authorization and separate human approval")
+-    try:
+-        result = asyncio.run(execute(args.recipe, args.authorization))
+-    except (ValidationError, OSError, ValueError):
+-        result = {
+-            "status": "failed",
+-            "reason": "invalid_local_authorization_or_configuration",
+-            "cards": [],
+-        }
+-    print(render_result(result))
+-    return 0 if result["status"] == "completed" else 1
++    parser.error(LIVE_DISABLED)
+diff --git a/prototypes/adaptive_assessment/live/planner.py b/prototypes/adaptive_assessment/live/planner.py
+index 447cab9..fbbb964 100644
+--- a/prototypes/adaptive_assessment/live/planner.py
++++ b/prototypes/adaptive_assessment/live/planner.py
+@@ -18,0 +19 @@ from .budget import CampaignBudget
++from .safety import deny_live
+@@ -34,12 +35,8 @@ class QwenAdaptivePlanner(NativeDialogue):
+-        # Network and test transport identities cannot be swapped after authorization.
+-        if budget.origin == "http_mock":
+-            if type(transport) is not httpx.MockTransport or allow_network:
+-                raise AgentError("mock_transport_required")
+-            settings = settings or QwenSettings(
+-                SecretStr("synthetic-mock-placeholder"),
+-                "https://dashscope.aliyuncs.com/compatible-mode/v1",
+-            )
+-        elif allow_network is True and transport is None and settings is None:
+-            settings = QwenSettings.from_env()  # Server environment only, never CLI key input.
+-        else:
+-            raise AgentError("synthetic_live_opt_in_required")
++        if budget.origin != "http_mock":
++            deny_live()  # Never load credentials, even with a forged/future budget.
++        if type(transport) is not httpx.MockTransport or allow_network:
++            raise AgentError("mock_transport_required")
++        settings = settings or QwenSettings(
++            SecretStr("synthetic-mock-placeholder"),
++            "https://dashscope.aliyuncs.com/compatible-mode/v1",
++        )
+@@ -178 +175 @@ async def run_synthetic_live(
+-    """The only live entry: closed recipe + fingerprint + scoped durable operator budget.
++    """Existing synthetic runner, restricted to HTTP Mock until a reviewed Live service.
+@@ -180,2 +177,2 @@ async def run_synthetic_live(
+-    Passing mode=production is deliberately impossible. The old public offline entries
+-    continue to reject remote planners. No teacher API exposes this prototype.
++    Neither a caller flag nor a nominal approval reference enables remote execution.
++    No teacher API exposes this prototype.
+@@ -182,0 +180,2 @@ async def run_synthetic_live(
++    if allow_network or budget.origin != "http_mock":
++        deny_live()
+diff --git a/prototypes/adaptive_assessment/live/safety.py b/prototypes/adaptive_assessment/live/safety.py
+new file mode 100644
+index 0000000..a3317c4
+--- /dev/null
++++ b/prototypes/adaptive_assessment/live/safety.py
+@@ -0,0 +1,14 @@
++"""Fail-closed containment until one code-reviewed, operator-ledger Live service exists."""
++
++from typing import NoReturn
++
++from app.ai.edu.discovery.models import AgentError
++
++LIVE_DISABLED = "synthetic_live_disabled_pending_independent_review"
++
++
++def deny_live() -> NoReturn:
++    # No CLI flag, authorization reference, date or path can enable this gate.
++    # Reopening requires a separately reviewed service with exact-code approval and
++    # one server-owned campaign ledger independent of request/input/report paths.
++    raise AgentError(LIVE_DISABLED)
+diff --git a/prototypes/research_agent_v2/demo.py b/prototypes/research_agent_v2/demo.py
+index 165c4e2..40df2da 100644
+--- a/prototypes/research_agent_v2/demo.py
++++ b/prototypes/research_agent_v2/demo.py
+@@ -1 +1 @@
+-"""Real Function Calling HTTP Mock, or explicit separately authorized Synthetic Live."""
++"""Native Function Calling HTTP Mock; legacy paid execution is disabled."""
+@@ -13 +13 @@ from pydantic import ValidationError
+-from prototypes.adaptive_assessment.live.budget import CampaignBudget, SyntheticLiveAuthorization
++from prototypes.adaptive_assessment.live.budget import CampaignBudget
+@@ -14,0 +15 @@ from prototypes.adaptive_assessment.live.demo import MOCK_DATE, mock_authorizati
++from prototypes.adaptive_assessment.live.safety import LIVE_DISABLED
+@@ -99,0 +101,2 @@ def main() -> int:
++    if args.execute:
++        parser.error(LIVE_DISABLED)
+@@ -109,2 +111,0 @@ def main() -> int:
+-    if args.execute and not args.authorization:
+-        parser.error("separate human authorization and --authorization required")
+@@ -114,14 +115 @@ def main() -> int:
+-            if not args.execute:
+-                return await offline(args.recipe, args.question, Path(temporary))
+-            if args.authorization.stat().st_size > 16384:
+-                raise AgentError("authorization_file_limit")
+-            authorization = SyntheticLiveAuthorization.model_validate_json(
+-                args.authorization.read_bytes()
+-            )
+-            # Durable operator-supplied authorization state. No key is read by offline runs.
+-            state = args.authorization.parent / "research-v2-budgets"
+-            budget = CampaignBudget(authorization, state, origin="synthetic_live")
+-            try:
+-                return await investigate(args.recipe, args.question, budget, allow_network=True)
+-            finally:
+-                budget.close()
++            return await offline(args.recipe, args.question, Path(temporary))
+diff --git a/prototypes/research_agent_v2/runtime.py b/prototypes/research_agent_v2/runtime.py
+index 3832507..8fa0a17 100644
+--- a/prototypes/research_agent_v2/runtime.py
++++ b/prototypes/research_agent_v2/runtime.py
+@@ -16,0 +17 @@ from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
++from prototypes.adaptive_assessment.live.safety import deny_live
+@@ -208,0 +210,2 @@ async def _investigate(
++    if allow_network or budget.origin != "http_mock":
++        deny_live()
