@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -53,8 +54,10 @@ def main():
     args = parser.parse_args()
     if not 0 <= args.seconds <= 3600:
         parser.error("invalid_lifetime")
-    # OS per-user temp; token/SQLite/journals never enter the checkout or stdout.
-    with TemporaryDirectory(prefix="edu-ai-local-handoff-") as temporary:
+    # Avoid a shared TEMP override: credentials/DB stay inside the OS user profile.
+    private_root = Path(os.environ["LOCALAPPDATA"]) / "weiran-edu-ai-integration"
+    private_root.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix="handoff-", dir=private_root) as temporary:
         directory = Path(temporary)
         host = build_host(directory, install_bridge=False)
         provider = DatabaseProvider(host.app.state.edu_service, tuple(host.books.values()))
