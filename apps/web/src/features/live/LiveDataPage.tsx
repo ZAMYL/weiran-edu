@@ -14,6 +14,8 @@ import LiveImportPreview from './LiveImportPreview';
 import { assessmentNameFromFilename } from '../../services/assessment-name';
 import UploadWorkflow from './UploadWorkflow';
 import AssessmentItemPage from './AssessmentItemPage';
+import QuestionImportPreview from './QuestionImportPreview';
+import { isQuestionPreview } from '../../services/edu-api/question-types';
 
 export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'history' }) {
   const { client, scopes, batch, selectBatch, revision, uploadDraft, setUploadDraft } =
@@ -99,8 +101,13 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     selectBatch(target);
     router.push('/insights');
   };
-  if (view === 'upload' && preview)
-    return <LiveImportPreview initial={preview} onCancel={() => setUploadDraft(null)} />;
+  if (view === 'upload' && preview) {
+    return isQuestionPreview(preview) ? (
+      <QuestionImportPreview initial={preview} onCancel={() => setUploadDraft(null)} />
+    ) : (
+      <LiveImportPreview initial={preview} onCancel={() => setUploadDraft(null)} />
+    );
+  }
   return (
     <div className="page-stack data-page live-data">
       {view === 'upload' && (
