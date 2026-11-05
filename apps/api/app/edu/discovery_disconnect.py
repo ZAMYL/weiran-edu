@@ -33,6 +33,7 @@ class DiscoveryDisconnectMiddleware:
             path.startswith("/api/v1/edu/batches/")
             and (
                 "/discoveries/" in path
+                or (scope.get("method") == "POST" and "/ai-investigations" in path)
                 or (scope.get("method") == "POST" and path.endswith("/analysis-results"))
                 or (scope.get("method") == "GET" and path.endswith("/export"))
                 or (scope.get("method") == "POST" and path.endswith("/export-check"))

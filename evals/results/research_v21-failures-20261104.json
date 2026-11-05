@@ -1,0 +1,28 @@
+{
+  "origin": "actual_offline_runs_before_adapter_fix",
+  "review_preparation": {
+    "status": "failed",
+    "error": "KeyError: measurement_level",
+    "review_cases_executed": 0,
+    "reason": "combined input omitted metadata already present in per-case input"
+  },
+  "first_specialized": {
+    "passed": 30,
+    "failed": 2,
+    "elapsed_seconds": 246.19,
+    "failures": [
+      {
+        "test": "test_early_finish_retains_new_verified_fact_and_reports_partial",
+        "reason": "new assertion compared JSON list [] to tuple ()"
+      },
+      {
+        "test": "test_reviewer_input_scale_and_witness_binding_are_preserved",
+        "reason": "KeyError: measurement_level"
+      }
+    ]
+  },
+  "oracle_modified": false,
+  "strategy_changed_after_review_answers": false,
+  "real_qwen": "not_run",
+  "note": "Do not replace historical V2 negative-correlation omission record; these failures are additional."
+}

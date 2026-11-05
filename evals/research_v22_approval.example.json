@@ -1,0 +1,20 @@
+{
+  "plan_sha256": "9cfa1c1ab0a3ece3e2c35b21d536dd3b3f9bcfe8fb16550936596a08c7d16763",
+  "code_revision": "<Peng-Kai789审核通过的准确SHA>",
+  "authorization": {
+    "campaign_id": "<批准后生成唯一campaign>",
+    "human_approval_reference": "<负责人另行批准引用>",
+    "purpose": "synthetic_live",
+    "model": "qwen3.8-flash",
+    "endpoint_sha256": "1e042810c44cc1da66251d585b13683b8fa3c2388fd8de431500ae37640302b4",
+    "source_fingerprints": {
+      "research-v21-review-decimal": "bd079206ade2dd521e2043b391ce43418f6fa75de21ce5b53d8e9820d31bb495"
+    },
+    "price_fingerprint": "39c5c9e2caa9b7635d1dcd3d2a9dc34d3846528f1754c96680511a3ba13a2cfe",
+    "valid_until": "2026-11-11",
+    "max_requests": 6,
+    "max_output_tokens": 800,
+    "total_token_limit": 5955648,
+    "cost_cap_cny": "4.78"
+  }
+}

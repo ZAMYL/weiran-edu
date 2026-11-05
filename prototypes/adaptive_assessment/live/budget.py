@@ -2,7 +2,7 @@
 
 import json
 import os
-from dataclasses import asdict
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from hashlib import sha256
@@ -15,7 +15,8 @@ from app.ai.edu.qwen_config import QwenSettings
 from pydantic import Field, field_validator
 
 from ..synthetic import AdmittedSynthetic, admit
-from .pricing import PRICE
+from .pricing import reviewed_price
+from .safety import deny_live
 
 
 class SyntheticLiveAuthorization(Strict):
@@ -45,10 +46,11 @@ class SyntheticLiveAuthorization(Strict):
             expiry = date.fromisoformat(self.valid_until)
         except ValueError:
             raise AgentError("invalid_authorization_expiry") from None
+        price = reviewed_price(self.price_fingerprint)
         if (
             expiry < today
-            or expiry > date.fromisoformat(PRICE.valid_until)
-            or self.price_fingerprint != PRICE.fingerprint
+            or expiry > date.fromisoformat(price.valid_until)
+            or today < date.fromisoformat(price.checked_on)
         ):
             raise AgentError("stale_authorization_or_price")
         for recipe, fingerprint in self.source_fingerprints.items():
@@ -56,6 +58,62 @@ class SyntheticLiveAuthorization(Strict):
             source.validate()
             if source.fingerprint != fingerprint:
                 raise AgentError("synthetic_fingerprint_mismatch")
+
+
+@dataclass(frozen=True)
+class OfflineSnapshotPermit:
+    """Operator-owned DB proof, usable ONLY by the existing HTTP Mock ledger.
+
+    Not JSON, not a Synthetic Live approval, and never accepted by the network origin.
+    The proof rechecks actual current teacher/snapshot access on every budget check.
+    """
+
+    source: object = field(repr=False)
+    campaign_id: str
+    price_fingerprint: str
+    max_requests: int = 6
+    max_output_tokens: int = 800
+    total_token_limit: int = 5_955_648
+    cost_cap_cny: Decimal = Decimal("4.78")
+    model: str = "qwen3.8-flash"
+    endpoint_sha256: str = sha256(b"https://dashscope.aliyuncs.com/compatible-mode/v1").hexdigest()
+
+    @property
+    def source_fingerprints(self):
+        return {self.source.recipe: self.source.fingerprint}
+
+    def check(self, today):
+        from prototypes.teacher_agent_bridge.provider import DatabaseSource
+
+        if type(self.source) is not DatabaseSource:
+            raise AgentError("offline_database_proof_required")
+        self.source.validate()
+        if (
+            not 1 <= self.max_requests <= 6
+            or self.max_output_tokens != 800
+            or not 1 <= self.total_token_limit <= 5_955_648
+            or not Decimal(0) < self.cost_cap_cny <= Decimal("4.78")
+        ):
+            raise AgentError("invalid_offline_budget")
+        price = reviewed_price(self.price_fingerprint)
+        price.check(self.model, "https://dashscope.aliyuncs.com/compatible-mode/v1", today)
+
+    def model_dump_json(self):
+        return json.dumps(
+            {
+                "origin": "http_mock",
+                "campaign_id": self.campaign_id,
+                "source_fingerprints": self.source_fingerprints,
+                "price_fingerprint": self.price_fingerprint,
+                "max_requests": self.max_requests,
+                "max_output_tokens": self.max_output_tokens,
+                "total_token_limit": self.total_token_limit,
+                "cost_cap_cny": str(self.cost_cap_cny),
+                "model": self.model,
+                "endpoint_sha256": self.endpoint_sha256,
+            },
+            sort_keys=True,
+        )
 
 
 class CampaignBudget:
@@ -68,21 +126,31 @@ class CampaignBudget:
 
     def __init__(
         self,
-        authorization: SyntheticLiveAuthorization,
+        authorization: SyntheticLiveAuthorization | OfflineSnapshotPermit,
         state_dir: Path,
         *,
         origin: Literal["synthetic_live", "http_mock"],
         today: date | None = None,
     ):
-        if type(authorization) is not SyntheticLiveAuthorization or origin not in (
-            "synthetic_live",
-            "http_mock",
+        # Preserve the existing DB-only permit rejection and error contract.
+        if type(authorization) is OfflineSnapshotPermit and origin != "http_mock":
+            raise AgentError("invalid_live_authorization")
+        if origin == "synthetic_live":
+            deny_live()
+        if not (
+            type(authorization) is SyntheticLiveAuthorization
+            and origin in ("synthetic_live", "http_mock")
+            or type(authorization) is OfflineSnapshotPermit
+            and origin == "http_mock"
         ):
             raise AgentError("invalid_live_authorization")
         self._today = today if origin == "http_mock" else None
-        self.authorization = SyntheticLiveAuthorization.model_validate_json(
-            authorization.model_dump_json()
+        self.authorization = (
+            authorization
+            if type(authorization) is OfflineSnapshotPermit
+            else SyntheticLiveAuthorization.model_validate_json(authorization.model_dump_json())
         )
+        self._bound_price = reviewed_price(self.authorization.price_fingerprint)
         self._authorization_fingerprint = sha256(
             self.authorization.model_dump_json().encode()
         ).hexdigest()
@@ -106,6 +174,10 @@ class CampaignBudget:
         except AgentError:
             self.close()
             raise
+
+    @property
+    def price(self):
+        return self._bound_price
 
     @property
     def origin(self):
@@ -147,8 +219,10 @@ class CampaignBudget:
         if self._closed or self._blocked:
             raise AgentError(self._blocked or "budget_closed")
         a = self.authorization
+        if type(a) is OfflineSnapshotPermit and source is not a.source:
+            raise AgentError("offline_source_identity_mismatch")
         self._check_authorization()
-        PRICE.check(settings.model, settings.base_url, self.today)
+        self.price.check(settings.model, settings.base_url, self.today)
         if (
             settings.model != a.model
             or sha256(settings.base_url.rstrip("/").encode()).hexdigest() != a.endpoint_sha256
@@ -175,8 +249,8 @@ class CampaignBudget:
             raise AgentError("request_already_in_flight")
         if len(self._entries) >= a.max_requests:
             raise AgentError("authorized_request_limit")
-        tokens = PRICE.max_input_tokens + a.max_output_tokens
-        cost = PRICE.cost(PRICE.max_input_tokens, a.max_output_tokens)
+        tokens = self.price.max_input_tokens + a.max_output_tokens
+        cost = self.price.cost(self.price.max_input_tokens, a.max_output_tokens)
         used_tokens = sum(e["charged_tokens"] for e in self._entries)
         used_cost = sum((Decimal(e["charged_cny_upper_bound"]) for e in self._entries), Decimal(0))
         if used_tokens + tokens > a.total_token_limit:
@@ -202,6 +276,7 @@ class CampaignBudget:
         return len(self._entries)
 
     def settle(self, ticket: int, metric: CallMetric | None, *, failed: bool):
+        self._check_authorization()
         if ticket != len(self._entries) or self._entries[-1]["state"] != "reserved":
             raise AgentError("invalid_budget_ticket")
         entry = self._entries[-1]
@@ -216,7 +291,7 @@ class CampaignBudget:
         if valid:
             valid = (
                 metric.input_tokens + metric.output_tokens == metric.total_tokens
-                and metric.input_tokens <= PRICE.max_input_tokens
+                and metric.input_tokens <= self.price.max_input_tokens
                 and metric.output_tokens <= self.authorization.max_output_tokens
                 and (
                     metric.cached_input_tokens is None
@@ -231,7 +306,7 @@ class CampaignBudget:
             self._blocked = "unverifiable_usage"
             self._persist()
             raise AgentError("unverifiable_usage")
-        cost = PRICE.cost(
+        cost = self.price.cost(
             metric.input_tokens, metric.output_tokens, metric.cached_input_tokens or 0
         )
         entry.update(
@@ -258,8 +333,8 @@ class CampaignBudget:
             "source_fingerprints": dict(a.source_fingerprints),
             "origin": self.origin,
             "billing_basis": "verified_list_price_upper_bound_not_invoice",
-            "price": asdict(PRICE),
-            "price_fingerprint": PRICE.fingerprint,
+            "price": asdict(self.price),
+            "price_fingerprint": self.price.fingerprint,
             "max_requests": a.max_requests,
             "total_token_limit": a.total_token_limit,
             "cost_cap_cny": str(a.cost_cap_cny),
