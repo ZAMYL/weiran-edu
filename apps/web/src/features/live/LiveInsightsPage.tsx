@@ -30,6 +30,7 @@ import LiveDataPage from './LiveDataPage';
 import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
 import AssessmentItemPage from './AssessmentItemPage';
+import AiInvestigationPanel from './AiInvestigationPanel';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
@@ -46,7 +47,7 @@ export default function LiveInsightsPage() {
   );
 }
 function Insights({ batch }: { batch: ApiBatch }) {
-  const { client, conditions, reportDraft, setReportDraft } = useDataMode();
+  const { client, conditions, reportDraft, setReportDraft, syntheticAi } = useDataMode();
   const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
@@ -211,7 +212,10 @@ function Insights({ batch }: { batch: ApiBatch }) {
                 )}
               </Panel>
               <div className="insights-right">
-                <div hidden={rightView !== 'focus'}>{focusPanel}</div>
+                <div hidden={rightView !== 'focus'}>
+                  {syntheticAi && <AiInvestigationPanel batch={batch} />}
+                  {focusPanel}
+                </div>
                 <div hidden={rightView !== 'statistics'}>
                   <Panel
                     title="学情分析"
