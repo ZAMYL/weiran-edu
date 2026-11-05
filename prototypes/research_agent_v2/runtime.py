@@ -14,6 +14,7 @@ from prototypes.adaptive_assessment.agent import AdaptiveExecutor, Decision, wir
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
+from prototypes.adaptive_assessment.live.safety import deny_live
 from prototypes.adaptive_assessment.synthetic import admit
 
 from .completeness import assess
@@ -159,6 +160,8 @@ async def investigate(
     access="synthetic_full",
     seed_queries: tuple = (),
 ) -> tuple[dict, ResearchExecutor]:
+    if allow_network or budget.origin != "http_mock":
+        deny_live()
     return await _investigate(
         admit(recipe),
         question,
@@ -199,6 +202,8 @@ async def _investigate(
     access="synthetic_full",
     seed_queries=(),
 ):
+    if allow_network or budget.origin != "http_mock":
+        deny_live()
     started = perf_counter()
     if allow_network:
         from prototypes.adaptive_assessment.synthetic import AdmittedSynthetic
