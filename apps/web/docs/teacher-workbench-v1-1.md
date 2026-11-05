@@ -11,9 +11,9 @@
 
 ## 接口与当前范围
 
-前端按 [发给仲楷的最小契约](https://github.com/ZAMYL/weiran-edu/pull/65#issuecomment-6598545064) 接入。批次列表和详情成对提供 `recognized_items`、`available_analyses`。声明 `item_statistics` 后，工作台读取同批次、同快照的 `/statistics`，响应每个项目提供一条统计及原始分值分布。诊断、探索和历史评分概况使用同一客户端。十三题验收使用隔离合成 HTTP 上游，经真实 Next.js 转发和正式页面运行。
+前端已按 #71 `82f64651eb8c157ae9a9da1c2664e32321a1c4c2` 的实际契约接入。上传以 `format=edu-question-xlsx.v1` 分流，保留原题名和十进制字符串量表。批次列表显式请求 `include_dynamic=true`，同时支持逐题批次列表与详情的不同响应形状。诊断使用同批次、同快照的 `item_statistics`；画像探索按 `item_id` 筛选。分布比例以服务端全体参评人数为分母。评分依据抽屉显示服务端记录键、质量状态和原文件单元格，来源摘要按需展开。
 
-十三题正式解析和 API 联调待后端确认。逐题正式报告和导出、发现、学生级逐题记录、答卷复核与 AI 均未接通。已提供的分数统计无需答卷或量规即可查看。V1 旧批次仍使用原来的授权、发现、报告与导出。
+真实 Next + #71 FastAPI + 临时 SQLite 的 20 人 13 题已通过上传、质量确认、入库、统计、分布、依据、刷新重开与切换测评。260 条观测中 256 有效、1 缺分、1 非法数值、1 超量表、1 步长不合法。逐题发现、报告、答卷复核、任意 Excel 布局和动态题数仍未开放。V1 旧批次继续使用原授权、发现、报告与导出。
 
 ## 学情诊断内的 Research Agent
 
@@ -33,3 +33,4 @@
 
 - V1 最终组合固定前端 `1b46e8cbde648e0f561305f79b7c78e2f8277dae` 和后端 `f8e13f1f54394813dc8622c8a47c5b03069a1aa9`。原 `teacher-integer-e2e.mjs` 和 `teacher-product-e2e.mjs` 均通过，覆盖 105 人精度、53 人正常、17 人零发现、真实 MD/XLSX、冲突、只读、撤权和凭据失效。该范围内未发现新增 P0/P1。隔离运行产物位于工作区 `.local/qa/v1-final-f8e13f1/frontend/apps/web/artifacts/`。
 - 在新版分支构建前端后，从 `apps/web` 执行 `node tests/teacher-adaptive-e2e.mjs`。脚本只接受本次生成的合成工作簿，使用安装了 openpyxl 的 Python。可通过 `EDU_TEST_PYTHON` 指定解释器。验收包括十三题上传与逐题探索、390px 键盘选题，以及新版 DTO 下的五项和三项能力画像、混合量表和未开放统计。浏览器截图与 HTTP 结果保存在 `artifacts/teacher-adaptive-projects/`。
+- #71 实际联合验收设置 `EDU_TEST_API_ROOT` 指向准确候选的 `apps/api`、`EDU_TEST_PYTHON` 指向锁定 Python 环境后执行 `node tests/question-api-e2e.mjs`。准确前后端提交可通过 `EDU_TEST_FRONTEND_REVISION` 和 `EDU_TEST_BACKEND_REVISION` 记录。截图与实际响应在 `artifacts/question-api/`，全部使用合成工作簿和临时 SQLite。

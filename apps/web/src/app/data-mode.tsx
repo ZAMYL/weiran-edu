@@ -20,6 +20,7 @@ import {
 } from '../services/edu-api/discovery-navigation';
 
 import type { DiscoverySelection } from '../services/edu-api/analysis-types';
+import type { QuestionPreview } from '../services/edu-api/question-types';
 export interface ReportDraft {
   key: string;
   spec: InsightSpec;
@@ -34,7 +35,7 @@ export interface UploadDraft {
   course: string;
   date: string;
   scope: string;
-  preview: ApiImport | null;
+  preview: ApiImport | QuestionPreview | null;
   committed: ApiCommit | null;
 }
 interface SessionState {

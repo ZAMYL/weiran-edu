@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Select, Table } from 'antd';
+import { Button, Select, Table } from 'antd';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { itemScaleLabel } from '../../services/edu-api/assessment-items';
@@ -10,6 +10,7 @@ import { ratioDisplay } from '../../services/edu-api/view-model';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { ProjectAbilityRadar } from './ServerCharts';
 import { useRemote } from './useRemote';
+import QuestionEvidenceDrawer from './QuestionEvidenceDrawer';
 
 export default function AssessmentItemPage({
   batch,
@@ -20,14 +21,20 @@ export default function AssessmentItemPage({
 }) {
   const { client } = useDataMode();
   const [selection, setSelection] = useState<string>();
+  const [evidence, setEvidence] = useState<{ itemId: string; ids: string[] } | null>(null);
   const items = batch.recognized_items ?? [];
   const load = useCallback(
-    (signal: AbortSignal) => client.itemStatistics(batch, signal),
-    [client, batch],
+    (signal: AbortSignal) =>
+      client.itemStatistics(
+        batch,
+        signal,
+        batch.format && view === 'explorer' ? selection : undefined,
+      ),
+    [client, batch, selection, view],
   );
   const canReadStats = batch.available_analyses?.includes('item_statistics') && items.length > 0;
   const resource = useRemote(
-    canReadStats ? `items:${batch.batch_id}:${batch.snapshot_id}` : null,
+    canReadStats ? `items:${batch.batch_id}:${batch.snapshot_id}:${selection ?? ''}` : null,
     load,
   );
   if (resource.loading) return <LoadingPanel />;
@@ -47,7 +54,7 @@ export default function AssessmentItemPage({
   const scale = competencies[0]?.scale;
   const radar =
     scale &&
-    scale.minimum < scale.maximum &&
+    Number(scale.minimum) < Number(scale.maximum) &&
     competencies.length >= 3 &&
     competencies.every(
       (item) =>
@@ -59,8 +66,8 @@ export default function AssessmentItemPage({
       ? competencies.map((item) => ({
           label: item.display_name,
           value: item.stats!.mean.value!,
-          minimum: scale.minimum,
-          maximum: scale.maximum,
+          minimum: Number(scale.minimum),
+          maximum: Number(scale.maximum),
         }))
       : null;
 
@@ -90,8 +97,25 @@ export default function AssessmentItemPage({
           <p className="muted">
             {itemScaleLabel(selected.scale)} · {selected.stats.valid_count} 人有有效得分
           </p>
-          <ItemDistribution stats={selected.stats} />
+          <ItemDistribution stats={selected.stats} allParticipants={!!batch.format} />
+          {!!selected.stats.evidence_ids?.length && (
+            <Button
+              onClick={() =>
+                setEvidence({ itemId: selected.item_id, ids: selected.stats!.evidence_ids! })
+              }
+            >
+              查看评分依据
+            </Button>
+          )}
         </Panel>
+        {evidence && (
+          <QuestionEvidenceDrawer
+            batch={batch}
+            itemId={evidence.itemId}
+            evidenceIds={evidence.ids}
+            onClose={() => setEvidence(null)}
+          />
+        )}
       </div>
     );
   }
@@ -114,7 +138,7 @@ export default function AssessmentItemPage({
           size="small"
           pagination={false}
           dataSource={rows}
-          scroll={{ x: resource.data ? 720 : 360 }}
+          scroll={{ x: resource.data ? 880 : 360 }}
           columns={[
             { title: questions === items.length ? '题目' : '项目', dataIndex: 'display_name' },
             ...(questions > 0 && questions < items.length
@@ -132,6 +156,14 @@ export default function AssessmentItemPage({
                   {
                     title: '有效人数',
                     render: (_: unknown, item: (typeof rows)[number]) => item.stats?.valid_count,
+                  },
+                  {
+                    title: '缺分',
+                    render: (_: unknown, item: (typeof rows)[number]) => item.stats?.missing_count,
+                  },
+                  {
+                    title: '无效',
+                    render: (_: unknown, item: (typeof rows)[number]) => item.stats?.invalid_count,
                   },
                   {
                     title: '平均分',
@@ -154,16 +186,55 @@ export default function AssessmentItemPage({
                         ? '—'
                         : `${item.stats.minimum.display}–${item.stats.maximum.display}`,
                   },
+                  {
+                    title: '操作',
+                    render: (_: unknown, item: (typeof rows)[number]) => (
+                      <div className="batch-actions">
+                        <Button size="small" onClick={() => setSelection(item.item_id)}>
+                          分布
+                        </Button>
+                        {!!item.stats?.evidence_ids?.length && (
+                          <Button
+                            size="small"
+                            onClick={() =>
+                              setEvidence({ itemId: item.item_id, ids: item.stats!.evidence_ids! })
+                            }
+                          >
+                            评分依据
+                          </Button>
+                        )}
+                      </div>
+                    ),
+                  },
                 ]
               : []),
           ]}
         />
       </Panel>
+      {selection && rows.find((item) => item.item_id === selection)?.stats && (
+        <Panel title={rows.find((item) => item.item_id === selection)?.display_name}>
+          <ItemDistribution stats={statistics.get(selection)!} allParticipants={!!batch.format} />
+        </Panel>
+      )}
+      {evidence && (
+        <QuestionEvidenceDrawer
+          batch={batch}
+          itemId={evidence.itemId}
+          evidenceIds={evidence.ids}
+          onClose={() => setEvidence(null)}
+        />
+      )}
     </div>
   );
 }
 
-function ItemDistribution({ stats }: { stats: ItemStatistics }) {
+function ItemDistribution({
+  stats,
+  allParticipants = false,
+}: {
+  stats: ItemStatistics;
+  allParticipants?: boolean;
+}) {
   return (
     <>
       {stats.missing_count + stats.invalid_count > 0 && (
@@ -181,7 +252,10 @@ function ItemDistribution({ stats }: { stats: ItemStatistics }) {
         columns={[
           { title: '得分', dataIndex: 'score' },
           { title: '人数', dataIndex: 'count' },
-          { title: '有效样本占比', render: (_, bucket) => ratioDisplay(bucket.ratio.value) },
+          {
+            title: allParticipants ? '参评人数占比' : '有效样本占比',
+            render: (_, bucket) => ratioDisplay(bucket.ratio.value),
+          },
         ]}
       />
     </>

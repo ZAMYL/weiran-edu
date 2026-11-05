@@ -2,6 +2,7 @@ import {
   count,
   checked,
   type Decoder,
+  ContractError,
   empty,
   flag,
   list,
@@ -13,8 +14,9 @@ import {
   text,
   type Decoded,
 } from './schema';
-import { exactRationalDto } from './exact';
-import { batchItemsDto, previewItemsDto } from './assessment-items';
+import { batchItemsDto, previewItemsDto, statValueDto } from './assessment-items';
+import { isQuestionResponse, questionBatchDto } from './question-types';
+export { statValueDto } from './assessment-items';
 
 export const DIMENSIONS = [
   { code: 'algorithm_data_structure', name: '算法与数据结构' },
@@ -33,11 +35,6 @@ export const conditionDto = object({
 });
 export type ApiCondition = Decoded<typeof conditionDto>;
 export const pageDto = object({ offset: count, limit: count, returned: count, has_more: flag });
-export const statValueDto = object({
-  value: nullable(numeric),
-  exact: nullable(exactRationalDto),
-  display: text,
-});
 const frequencyDto = object({ score: numeric, count, denominator: count, ratio: statValueDto });
 const itemStatisticFields = {
   valid_count: count,
@@ -53,7 +50,11 @@ const dimensionStatsDto = object({
   dimension_code: dimensionCode,
   ...itemStatisticFields,
 });
-const itemStatisticsDto = object({ item_id: text, ...itemStatisticFields });
+const itemStatisticsDto = object({
+  item_id: text,
+  ...itemStatisticFields,
+  evidence_ids: optional(list(text)),
+});
 export type ItemStatistics = Decoded<typeof itemStatisticsDto>;
 export const assessmentStatisticsDto = object({
   batch_id: text,
@@ -100,8 +101,19 @@ const batchFieldsDto = object({
   is_current: flag,
   created_at: text,
 });
-export type ApiBatch = Decoded<typeof batchFieldsDto> & Partial<Decoded<typeof batchItemsDto>>;
+export type ApiBatch = Pick<
+  Decoded<typeof batchFieldsDto>,
+  'batch_id' | 'snapshot_id' | 'title' | 'student_count'
+> &
+  Partial<Decoded<typeof batchFieldsDto>> &
+  Partial<Decoded<typeof batchItemsDto>> & { format?: 'edu-question-xlsx.v1' };
 export const batchDto: Decoder<ApiBatch> = (value) => {
+  if (isQuestionResponse(value)) {
+    const batch = questionBatchDto(value);
+    const students = batch.student_count ?? batch.participant_count;
+    if (students === undefined) throw new ContractError();
+    return { ...batch, student_count: students };
+  }
   const batch = batchFieldsDto(value);
   const items = batchItemsDto(value);
   return items.recognized_items === undefined ? batch : { ...batch, ...items };

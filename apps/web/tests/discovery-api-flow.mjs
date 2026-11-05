@@ -15,6 +15,7 @@ import { teacherProductFlow, credentialRelayFlow } from './teacher-product-flow.
 import { renameImport } from './upload-workflow-utils.mjs';
 import { teacherDiscoveryCopyFlow } from './teacher-discovery-copy-flow.mjs';
 import { teacherIntegerFlow } from './teacher-integer-flow.mjs';
+import { questionApiFlow } from './question-api-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const repo = path.resolve(web, '../..');
@@ -32,17 +33,19 @@ const database = path.join(temporary, 'synthetic.sqlite3');
 const credentialFile = path.join(temporary, 'test-session.private.json');
 const artifacts = path.join(
   web,
-  process.env.EDU_AUTH_RELAY_ONLY === '1'
-    ? 'artifacts/auth-relay'
-    : process.env.EDU_PRODUCT_FLOW === '1'
-      ? 'artifacts/teacher-product'
-      : process.env.EDU_INTEGER_FLOW === '1'
-        ? process.env.EDU_INTEGER_CONTROL === '1'
-          ? 'artifacts/integer-control'
-          : 'artifacts/integer-browser'
-        : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
-          ? 'artifacts/teacher-copy'
-          : 'artifacts/discovery-flow',
+  process.env.EDU_QUESTION_FLOW === '1'
+    ? 'artifacts/question-api'
+    : process.env.EDU_AUTH_RELAY_ONLY === '1'
+      ? 'artifacts/auth-relay'
+      : process.env.EDU_PRODUCT_FLOW === '1'
+        ? 'artifacts/teacher-product'
+        : process.env.EDU_INTEGER_FLOW === '1'
+          ? process.env.EDU_INTEGER_CONTROL === '1'
+            ? 'artifacts/integer-control'
+            : 'artifacts/integer-browser'
+          : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
+            ? 'artifacts/teacher-copy'
+            : 'artifacts/discovery-flow',
 );
 await mkdir(artifacts, { recursive: true });
 const env = {
@@ -375,7 +378,20 @@ try {
     await page.getByTestId('discovery-record-count').waitFor();
     return result;
   }
-  if (process.env.EDU_INTEGER_FLOW === '1') {
+  if (process.env.EDU_QUESTION_FLOW === '1') {
+    checks.push(
+      ...(await questionApiFlow({
+        page,
+        origin,
+        artifacts,
+        temporary,
+        python,
+        env,
+        importThroughPage,
+        selectBatch,
+      })),
+    );
+  } else if (process.env.EDU_INTEGER_FLOW === '1') {
     checks.push(
       ...(await teacherIntegerFlow({
         page,

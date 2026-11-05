@@ -10,11 +10,30 @@ import {
   text,
   type Decoded,
 } from './schema';
+import { exactRationalDto } from './exact';
+
+export const statValueDto = object({
+  value: nullable(numeric),
+  exact: nullable(exactRationalDto),
+  display: text,
+});
 
 const nonBlank = checked(text, (value) => value.trim().length > 0);
-const itemScaleDto = checked(
-  object({ minimum: numeric, maximum: numeric, step: numeric, unit: optional(nonBlank) }),
-  ({ minimum, maximum, step }) => minimum <= maximum && step > 0,
+const decimal = checked(
+  text,
+  (value) =>
+    value.length <= 128 && /^-?\d+(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value)),
+);
+const scaleNumber = (value: unknown) =>
+  typeof value === 'string' ? decimal(value) : numeric(value);
+export const itemScaleDto = checked(
+  object({
+    minimum: scaleNumber,
+    maximum: scaleNumber,
+    step: scaleNumber,
+    unit: optional(nonBlank),
+  }),
+  ({ minimum, maximum, step }) => Number(minimum) <= Number(maximum) && Number(step) > 0,
 );
 const itemShape = {
   item_id: nonBlank,
@@ -25,6 +44,7 @@ const itemShape = {
 const uniqueItems = <T extends { item_id: string }>(items: T[]) =>
   new Set(items.map((item) => item.item_id)).size === items.length;
 const itemDto = object(itemShape);
+export const assessmentItemDto = itemDto;
 export type AssessmentItem = Decoded<typeof itemDto>;
 export const previewItemsDto = checked(
   list(object({ ...itemShape, score_row_count: count })),
