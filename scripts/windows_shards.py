@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -69,18 +70,34 @@ def execute(name):
     return code
 
 
+# This exact existing parametrization constructs uuid4() during module import.
+# Keep the raw audit; canonicalize only its two UUID cases, preserving reader=True/False.
+DYNAMIC_ID = re.compile(
+    r"^(tests/edu/test_result_id_reads\.py::"
+    r"test_missing_result_patch_checks_access_without_requesting_a_write_lock"
+    r"\[(?:False|True)-)[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\])$"
+)
+
+
+def identities(nodes):
+    mapped = [DYNAMIC_ID.sub(r"\1<import-time-uuid4>\2", n) for n in nodes]
+    if len(mapped) != len(set(mapped)):
+        raise ValueError("duplicate_canonical_test_identity")
+    return mapped
+
+
 def verify(folder, expected_revision):
     records = [json.loads(p.read_text(encoding="utf-8")) for p in folder.rglob("result.json")]
     if Counter(r["shard"] for r in records) != Counter(GROUPS.keys()):
         raise ValueError("missing_or_duplicate_shards")
-    suite = records[0]["suite"]
+    suite = identities(records[0]["suite"])
     all_expected = []
     summary = []
     for record in records:
         if (
             record["source_sha"] != expected_revision
             or record["test_baseline_sha"] != BASE
-            or record["suite"] != suite
+            or identities(record["suite"]) != suite
             or record["pytest_exit_code"] != 0
         ):
             raise ValueError("revision_collection_or_execution_failed")
@@ -89,13 +106,16 @@ def verify(folder, expected_revision):
         ]["node_ids"]
         execution = record["execution"]
         if (
-            record["expected"] != expected
+            identities(record["expected"]) != expected
             or execution is None
             or execution["exitstatus"] != 0
-            or Counter(execution["nodes"]) != Counter(expected)
+            or Counter(identities(execution["nodes"])) != Counter(expected)
         ):
             raise ValueError("incomplete_selected_tests")
-        events = execution["reports"]
+        events = [
+            e | {"nodeid": DYNAMIC_ID.sub(r"\1<import-time-uuid4>\2", e["nodeid"])}
+            for e in execution["reports"]
+        ]
         if any(e["nodeid"] not in expected or e["xfail"] for e in events):
             raise ValueError("unexpected_or_xfailed_case")
         for node in expected:

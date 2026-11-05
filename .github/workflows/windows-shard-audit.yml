@@ -1,0 +1,35 @@
+name: Audit completed Windows shards
+on:
+  push:
+    branches: [codex/edu-windows-shard-validation]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version-file: apps/api/.python-version
+      - name: Confirm immutable test source
+        run: git diff --exit-code da29f3d390ccc92522a28c818479452f527a7303 -- apps/api apps/web prototypes evals docs .github/workflows/ci.yml
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          run-id: 41954489204
+          github-token: ${{ github.token }}
+          pattern: windows-*
+          path: downloaded
+      - name: Verify original outcomes without rerunning tests
+        run: python scripts/windows_shards.py verify --artifacts downloaded --revision da29f3d390ccc92522a28c818479452f527a7303 --output windows-summary.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-summary
+          path: windows-summary.json
+          if-no-files-found: error
+          retention-days: 7

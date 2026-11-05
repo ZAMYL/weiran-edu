@@ -1,7 +1,5 @@
 name: Windows shard validation
 on:
-  push:
-    branches: [codex/edu-windows-shard-validation]
   workflow_dispatch:
 permissions:
   contents: read
