@@ -1,0 +1,2315 @@
+{
+  "synthetic_only": true,
+  "real_qwen": "not_run",
+  "actual_remote_requests": 0,
+  "http_source_sha": "bb73d4fb2dc1e3b7fa7e5ea966685a400b89765a",
+  "server_lifecycle_source_sha": "11128429d139cfb65fe51f44d3b16e62a5694884",
+  "implementation_sha256": "5d2fb8fdd01eb7b806c23c8f975da3beabfcf85757d156394e0961912a23a77f",
+  "process_restart_verified": true,
+  "http_checks": [
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/preview",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/8d46960a-bfef-48eb-8dcc-972137d8504b/commit",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/preview",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/fec88a85-9677-4221-a56e-04f88174e4db/commit",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/preview",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/imports/747efe93-1808-4de6-bc8c-9c1df4a25842/commit",
+      "expected": 201,
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks",
+      "expected": 202,
+      "status": 202
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/evidence/0f2e2c2e-eb10-4a48-a160-149fcf51e1d2",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/evidence/cc301cc4-3dce-483a-9bda-d9d44327bcd7",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/review-submissions",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/analysis-results/c1bc805b-b879-47f2-ab2a-6ff0d5fcadef",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/analysis-results/c1bc805b-b879-47f2-ab2a-6ff0d5fcadef",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/analysis-results/c1bc805b-b879-47f2-ab2a-6ff0d5fcadef/export",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/analysis-results/c1bc805b-b879-47f2-ab2a-6ff0d5fcadef/export",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/analysis-results/c1bc805b-b879-47f2-ab2a-6ff0d5fcadef/export",
+      "expected": 409,
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f",
+      "expected": 403,
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c",
+      "expected": 401,
+      "status": 401
+    }
+  ],
+  "report_version": 2,
+  "runs": {
+    "normal": {
+      "state": "completed",
+      "stop_reason": "goal_satisfied",
+      "execution_origin": "http_mock",
+      "real_qwen": "not_run",
+      "production_enabled": false,
+      "facts": [
+        {
+          "fact_id": "research-ab74195f3b9a-f001",
+          "batch_id": "c0e72a5d-9f53-48b3-817a-37b346c63616",
+          "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+          "method": "get_dimension_statistics",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "qualified": false,
+          "source_verified": true,
+          "conditions": [],
+          "metrics": [
+            {
+              "key": "items.I01.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I01.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I01.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I01.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I01.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I01.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            },
+            {
+              "key": "items.I02.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I02.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I02.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I02.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I02.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I02.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            },
+            {
+              "key": "items.I03.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I03.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I03.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I03.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I03.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I03.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            },
+            {
+              "key": "items.I04.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I04.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I04.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I04.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I04.mean",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I04.median",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I05.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I05.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I05.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I05.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I05.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I05.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            }
+          ],
+          "source_refs": [
+            {
+              "metric_key": "I01.valid",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I01.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I01.state.valid",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I01.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I02.valid",
+              "dimension_code": "code_implementation",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I02.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I02.state.valid",
+              "dimension_code": "code_implementation",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I02.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I03.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I03.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I03.state.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I03.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I04.valid",
+              "dimension_code": "efficiency_awareness",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I04.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I04.state.valid",
+              "dimension_code": "efficiency_awareness",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I04.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I05.valid",
+              "dimension_code": "solution_strategy",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I05.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I05.state.valid",
+              "dimension_code": "solution_strategy",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f001",
+                "metric_key": "I05.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            }
+          ],
+          "limitation_codes": [],
+          "exploration_query": null,
+          "save_group_analysis_request": null
+        },
+        {
+          "fact_id": "research-ab74195f3b9a-f002",
+          "batch_id": "c0e72a5d-9f53-48b3-817a-37b346c63616",
+          "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+          "method": "query_dimension_relation",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "qualified": true,
+          "source_verified": true,
+          "conditions": [],
+          "metrics": [
+            {
+              "key": "metrics.rho",
+              "exact": null,
+              "number": 1.0,
+              "display": "1.0"
+            },
+            {
+              "key": "metrics.paired_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "metrics.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "metrics.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            }
+          ],
+          "source_refs": [
+            {
+              "metric_key": "left.paired",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f002",
+                "metric_key": "left.paired",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "right.paired",
+              "dimension_code": "problem_modeling",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f002",
+                "metric_key": "right.paired",
+                "offset": 0,
+                "limit": 20
+              }
+            }
+          ],
+          "limitation_codes": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "exploration_query": null,
+          "save_group_analysis_request": null
+        },
+        {
+          "fact_id": "research-ab74195f3b9a-f003",
+          "batch_id": "c0e72a5d-9f53-48b3-817a-37b346c63616",
+          "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+          "method": "compare_student_groups",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "qualified": true,
+          "source_verified": true,
+          "conditions": [
+            {
+              "dimension_code": "algorithm_data_structure",
+              "operator": "lte",
+              "value": 1.0
+            },
+            {
+              "dimension_code": "code_implementation",
+              "operator": "lte",
+              "value": 1.0
+            }
+          ],
+          "metrics": [
+            {
+              "key": "metrics.target_count",
+              "exact": null,
+              "number": 26,
+              "display": "26"
+            },
+            {
+              "key": "metrics.remainder_count",
+              "exact": null,
+              "number": 27,
+              "display": "27"
+            },
+            {
+              "key": "metrics.unevaluable_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "metrics.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "metrics.eligible_denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "metrics.share_total",
+              "exact": {
+                "numerator": 26,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "0.4906"
+            },
+            {
+              "key": "metrics.share_eligible",
+              "exact": {
+                "numerator": 26,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "0.4906"
+            },
+            {
+              "key": "metrics.target_valid",
+              "exact": null,
+              "number": 26,
+              "display": "26"
+            },
+            {
+              "key": "metrics.remainder_valid",
+              "exact": null,
+              "number": 27,
+              "display": "27"
+            },
+            {
+              "key": "metrics.target_mean",
+              "exact": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "1.0000"
+            },
+            {
+              "key": "metrics.remainder_mean",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            },
+            {
+              "key": "metrics.difference",
+              "exact": {
+                "numerator": -4,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "-4.0000"
+            }
+          ],
+          "source_refs": [
+            {
+              "metric_key": "target.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 26,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f003",
+                "metric_key": "target.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "remainder.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 27,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f003",
+                "metric_key": "remainder.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "target.condition.I01",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 26,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f003",
+                "metric_key": "target.condition.I01",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "remainder.condition.I01",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 27,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f003",
+                "metric_key": "remainder.condition.I01",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "target.condition.I02",
+              "dimension_code": "code_implementation",
+              "participant_count": 26,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f003",
+                "metric_key": "target.condition.I02",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "remainder.condition.I02",
+              "dimension_code": "code_implementation",
+              "participant_count": 27,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f003",
+                "metric_key": "remainder.condition.I02",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "unevaluable.rows",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 0,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c0e72a5d-9f53-48b3-817a-37b346c63616/ai-investigation-tasks/154b1b85-ce46-45cd-8c79-a9e1e78bab5f/records/query",
+              "records_query": {
+                "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+                "fact_id": "research-ab74195f3b9a-f003",
+                "metric_key": "unevaluable.rows",
+                "offset": 0,
+                "limit": 20
+              }
+            }
+          ],
+          "limitation_codes": [
+            "condition_dimensions_not_discoveries",
+            "disjoint_remainder",
+            "ordinal_mean_is_descriptive",
+            "no_cross_item_score_sum"
+          ],
+          "exploration_query": {
+            "conditions": [
+              {
+                "dimension_code": "algorithm_data_structure",
+                "operator": "lte",
+                "value": 1.0
+              },
+              {
+                "dimension_code": "code_implementation",
+                "operator": "lte",
+                "value": 1.0
+              }
+            ],
+            "offset": 0,
+            "limit": 20,
+            "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+            "include_statistics": false
+          },
+          "save_group_analysis_request": {
+            "snapshot_id": "9ec071ed-eb9f-4e4c-9a22-edc6b4c0f7ac",
+            "conditions": [
+              {
+                "dimension_code": "algorithm_data_structure",
+                "operator": "lte",
+                "value": 1.0
+              },
+              {
+                "dimension_code": "code_implementation",
+                "operator": "lte",
+                "value": 1.0
+              }
+            ],
+            "include_dimensions": true,
+            "title": "AI调查后的群体核对",
+            "note": "",
+            "candidate_ids": [],
+            "discovery": null
+          }
+        }
+      ],
+      "trace": [
+        {
+          "tool": null,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "fact_ids": [
+            "research-ab74195f3b9a-f002"
+          ]
+        },
+        {
+          "tool": null,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "fact_ids": []
+        },
+        {
+          "tool": "compare_student_groups",
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "fact_ids": []
+        },
+        {
+          "tool": "compare_student_groups",
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "fact_ids": []
+        },
+        {
+          "tool": "compare_student_groups",
+          "round": 2,
+          "phase": "tool_execution",
+          "status": "computed",
+          "fact_ids": []
+        },
+        {
+          "tool": "compare_student_groups",
+          "round": 2,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "fact_ids": [
+            "research-ab74195f3b9a-f003"
+          ]
+        },
+        {
+          "tool": null,
+          "round": 3,
+          "phase": "planning",
+          "status": "requested",
+          "fact_ids": []
+        },
+        {
+          "tool": "finish",
+          "round": 3,
+          "phase": "model_selection",
+          "status": "accepted",
+          "fact_ids": []
+        },
+        {
+          "tool": "finish",
+          "round": 3,
+          "phase": "final_selection",
+          "status": "accepted",
+          "fact_ids": [
+            "research-ab74195f3b9a-f002",
+            "research-ab74195f3b9a-f003"
+          ]
+        }
+      ],
+      "budget": {
+        "model_requests": 3,
+        "max_model_requests": 6,
+        "tool_attempts": 3,
+        "max_tool_attempts": 5,
+        "verification_replays": 67,
+        "actual_remote_requests": 0,
+        "actual_tokens": null,
+        "invoice_cost_cny": null
+      },
+      "selected_fact_ids": [
+        "research-ab74195f3b9a-f002",
+        "research-ab74195f3b9a-f003"
+      ],
+      "uncovered_direction_count": 0,
+      "investigation_exhaustive": false,
+      "missing_evidence": []
+    },
+    "evidence": {
+      "state": "completed",
+      "stop_reason": "needs_external_evidence",
+      "execution_origin": "http_mock",
+      "real_qwen": "not_run",
+      "production_enabled": false,
+      "facts": [
+        {
+          "fact_id": "research-432b4557e8c3-f001",
+          "batch_id": "c5ce8c07-fe72-4417-b370-7c9f44b096d7",
+          "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+          "method": "get_dimension_statistics",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "qualified": false,
+          "source_verified": true,
+          "conditions": [],
+          "metrics": [
+            {
+              "key": "items.I01.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I01.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I01.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I01.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I01.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I01.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            },
+            {
+              "key": "items.I02.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I02.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I02.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I02.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I02.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I02.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            },
+            {
+              "key": "items.I03.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I03.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I03.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I03.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I03.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I03.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            },
+            {
+              "key": "items.I04.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I04.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I04.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I04.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I04.mean",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I04.median",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I05.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I05.valid_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I05.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I05.states.valid",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "items.I05.mean",
+              "exact": {
+                "numerator": 161,
+                "denominator": 53
+              },
+              "number": null,
+              "display": "3.0377"
+            },
+            {
+              "key": "items.I05.median",
+              "exact": {
+                "numerator": 5,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "5.0000"
+            }
+          ],
+          "source_refs": [
+            {
+              "metric_key": "I01.valid",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I01.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I01.state.valid",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I01.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I02.valid",
+              "dimension_code": "code_implementation",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I02.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I02.state.valid",
+              "dimension_code": "code_implementation",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I02.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I03.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I03.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I03.state.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I03.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I04.valid",
+              "dimension_code": "efficiency_awareness",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I04.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I04.state.valid",
+              "dimension_code": "efficiency_awareness",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I04.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I05.valid",
+              "dimension_code": "solution_strategy",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I05.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I05.state.valid",
+              "dimension_code": "solution_strategy",
+              "participant_count": 53,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f001",
+                "metric_key": "I05.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            }
+          ],
+          "limitation_codes": [],
+          "exploration_query": null,
+          "save_group_analysis_request": null
+        },
+        {
+          "fact_id": "research-432b4557e8c3-f002",
+          "batch_id": "c5ce8c07-fe72-4417-b370-7c9f44b096d7",
+          "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+          "method": "query_dimension_relation",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "qualified": true,
+          "source_verified": true,
+          "conditions": [],
+          "metrics": [
+            {
+              "key": "metrics.rho",
+              "exact": null,
+              "number": 1.0,
+              "display": "1.0"
+            },
+            {
+              "key": "metrics.paired_count",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            },
+            {
+              "key": "metrics.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "metrics.denominator",
+              "exact": null,
+              "number": 53,
+              "display": "53"
+            }
+          ],
+          "source_refs": [
+            {
+              "metric_key": "left.paired",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f002",
+                "metric_key": "left.paired",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "right.paired",
+              "dimension_code": "code_implementation",
+              "participant_count": 53,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/c5ce8c07-fe72-4417-b370-7c9f44b096d7/ai-investigation-tasks/b62d8a2c-5b97-47f7-ab16-1fa48ca6e22c/records/query",
+              "records_query": {
+                "snapshot_id": "eec4be09-89ab-4a97-8803-ede0dfb7c3d2",
+                "fact_id": "research-432b4557e8c3-f002",
+                "metric_key": "right.paired",
+                "offset": 0,
+                "limit": 20
+              }
+            }
+          ],
+          "limitation_codes": [
+            "correlation_not_causation",
+            "ties_use_existing_average_ranks"
+          ],
+          "exploration_query": null,
+          "save_group_analysis_request": null
+        }
+      ],
+      "trace": [
+        {
+          "tool": null,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "attempted",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "tool_execution",
+          "status": "computed",
+          "fact_ids": []
+        },
+        {
+          "tool": "query_dimension_relation",
+          "round": 1,
+          "phase": "fact_validation",
+          "status": "accepted",
+          "fact_ids": [
+            "research-432b4557e8c3-f002"
+          ]
+        },
+        {
+          "tool": null,
+          "round": 2,
+          "phase": "planning",
+          "status": "requested",
+          "fact_ids": []
+        },
+        {
+          "tool": "finish",
+          "round": 2,
+          "phase": "model_selection",
+          "status": "accepted",
+          "fact_ids": []
+        },
+        {
+          "tool": "finish",
+          "round": 2,
+          "phase": "final_selection",
+          "status": "accepted",
+          "fact_ids": [
+            "research-432b4557e8c3-f002"
+          ]
+        }
+      ],
+      "budget": {
+        "model_requests": 2,
+        "max_model_requests": 6,
+        "tool_attempts": 2,
+        "max_tool_attempts": 5,
+        "verification_replays": 26,
+        "actual_remote_requests": 0,
+        "actual_tokens": null,
+        "invoice_cost_cny": null
+      },
+      "selected_fact_ids": [
+        "research-432b4557e8c3-f002"
+      ],
+      "uncovered_direction_count": 0,
+      "investigation_exhaustive": false,
+      "missing_evidence": [
+        "rubric_criteria",
+        "original_task"
+      ]
+    },
+    "empty": {
+      "state": "completed",
+      "stop_reason": "no_supported_findings",
+      "execution_origin": "http_mock",
+      "real_qwen": "not_run",
+      "production_enabled": false,
+      "facts": [
+        {
+          "fact_id": "research-2886ca088ecc-f001",
+          "batch_id": "d0494acb-aac6-471b-aaa6-38d6281c5144",
+          "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+          "method": "get_dimension_statistics",
+          "rule_version": "edu-adaptive-prototype-0.1-draft",
+          "qualified": false,
+          "source_verified": true,
+          "conditions": [],
+          "metrics": [
+            {
+              "key": "items.I01.denominator",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I01.valid_count",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I01.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I01.states.valid",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I01.mean",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I01.median",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I02.denominator",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I02.valid_count",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I02.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I02.states.valid",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I02.mean",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I02.median",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I03.denominator",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I03.valid_count",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I03.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I03.states.valid",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I03.mean",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I03.median",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I04.denominator",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I04.valid_count",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I04.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I04.states.valid",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I04.mean",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I04.median",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I05.denominator",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I05.valid_count",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I05.excluded_count",
+              "exact": null,
+              "number": 0,
+              "display": "0"
+            },
+            {
+              "key": "items.I05.states.valid",
+              "exact": null,
+              "number": 17,
+              "display": "17"
+            },
+            {
+              "key": "items.I05.mean",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            },
+            {
+              "key": "items.I05.median",
+              "exact": {
+                "numerator": 3,
+                "denominator": 1
+              },
+              "number": null,
+              "display": "3.0000"
+            }
+          ],
+          "source_refs": [
+            {
+              "metric_key": "I01.valid",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 17,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I01.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I01.state.valid",
+              "dimension_code": "algorithm_data_structure",
+              "participant_count": 17,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I01.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I02.valid",
+              "dimension_code": "code_implementation",
+              "participant_count": 17,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I02.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I02.state.valid",
+              "dimension_code": "code_implementation",
+              "participant_count": 17,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I02.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I03.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 17,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I03.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I03.state.valid",
+              "dimension_code": "problem_modeling",
+              "participant_count": 17,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I03.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I04.valid",
+              "dimension_code": "efficiency_awareness",
+              "participant_count": 17,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I04.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I04.state.valid",
+              "dimension_code": "efficiency_awareness",
+              "participant_count": 17,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I04.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I05.valid",
+              "dimension_code": "solution_strategy",
+              "participant_count": 17,
+              "witness_kind": "score",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I05.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            },
+            {
+              "metric_key": "I05.state.valid",
+              "dimension_code": "solution_strategy",
+              "participant_count": 17,
+              "witness_kind": "row",
+              "records_path": "/api/v1/edu/batches/d0494acb-aac6-471b-aaa6-38d6281c5144/ai-investigation-tasks/f966dfed-5766-4a78-9046-61a05d59ef93/records/query",
+              "records_query": {
+                "snapshot_id": "c74246a7-8ba2-411e-8e92-8439ef975f11",
+                "fact_id": "research-2886ca088ecc-f001",
+                "metric_key": "I05.state.valid",
+                "offset": 0,
+                "limit": 20
+              }
+            }
+          ],
+          "limitation_codes": [],
+          "exploration_query": null,
+          "save_group_analysis_request": null
+        }
+      ],
+      "trace": [
+        {
+          "tool": null,
+          "round": 1,
+          "phase": "planning",
+          "status": "requested",
+          "fact_ids": []
+        },
+        {
+          "tool": "finish",
+          "round": 1,
+          "phase": "model_selection",
+          "status": "accepted",
+          "fact_ids": []
+        },
+        {
+          "tool": "finish",
+          "round": 1,
+          "phase": "final_selection",
+          "status": "accepted",
+          "fact_ids": []
+        }
+      ],
+      "budget": {
+        "model_requests": 1,
+        "max_model_requests": 6,
+        "tool_attempts": 1,
+        "max_tool_attempts": 5,
+        "verification_replays": 5,
+        "actual_remote_requests": 0,
+        "actual_tokens": null,
+        "invoice_cost_cny": null
+      },
+      "selected_fact_ids": [],
+      "uncovered_direction_count": 0,
+      "investigation_exhaustive": false,
+      "missing_evidence": []
+    }
+  }
+}
