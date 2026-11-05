@@ -79,7 +79,25 @@
 
 后续经后端/CI负责人审核再应用：保留Ubuntu全量与Frontend已选配置，将Windows单作业拆成五作业，每个仍15分钟、同SHA/Python3.12/锁依赖/原环境；静态检查不删。各片从apps/api运行原pytest，增加`--durations=30`与JUnit采集，不使用缩范围的-k、排除、skip或xfail。最终聚合门禁须核对收集与实际执行nodeid并集完整、无重复，全部片通过才算Windows通过；缺片/取消/断言失败均阻断。
 
-**分片仅完成清单与方案验证，未执行分片CI、未证明每片耗时；没有放宽15分钟，也未重复运行已知超时的全量任务。** 新增测试后的正式候选需重新收集清单，1675仅是bda5d37基线，不是永久配置。
+### 本轮实际 Windows 分片结果
+
+冻结测试源码仍为bda5d37；运行基础设施SHA `da29f3d390ccc92522a28c818479452f527a7303`。真实运行 [41954489204](https://github.com/ZAMYL/weiran-edu/actions/runs/41954489204)，五片全部成功：
+
+|分片|实际通过|收集+执行秒数|
+|---|---:|---:|
+|core|300|74.87|
+|ai_research|517|86.19|
+|edu_import|723|483.91|
+|reporting|103|17.45|
+|teacher_bridge|32|67.35|
+
+该运行的最初汇总失败，不是测试失败：既有 `test_missing_result_patch_checks_access_without_requesting_a_write_lock` 的两个reader参数分支在导入时调用uuid4，完整收集进程与执行进程的原始nodeid不同。原测试逐字节未改；仅对这个准确函数的两个合法v4 UUID参数映射稳定身份，保留reader分支和全部原始工件，拒绝映射碰撞，其余ID完全匹配。
+
+审计修复SHA `ac3782d6b791d456e53afb0083395c29128b739e`；独立远端汇总 [41957300195](https://github.com/ZAMYL/weiran-edu/actions/runs/41957300195) **success**，只下载前述运行的真实工件，无测试重跑。先核实apps/api/apps/web/prototypes/evals/docs/原ci.yml与执行SHA无差异，再校验源码SHA、完整清单、选中集合、每项setup/call/teardown恰好一次且passed、无skip/xfail、五片并集无遗漏无重复。真实结论：**1675 passed / missing=0 / duplicates=0**。
+
+负向聚合检查实际拒绝缺片、重复片、skip、错SHA、虚构nodeid。没有放宽15分钟，没有重跑已成功的Ubuntu/Frontend，没有修改统计或任何原断言。旧汇总失败及原Windows超时均保留，不把审计修复SHA冒充原测试执行SHA。
+
+新增测试后的正式安全候选仍需重新收集、独立审核及其准确SHA的全量CI；1675只是冻结bda5d37基线，不是永久配置。
 
 ## 复现与复审顺序
 
