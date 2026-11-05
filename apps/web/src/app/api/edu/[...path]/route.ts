@@ -46,6 +46,8 @@ const queryNames = new Set([
   'student_limit',
   'data_scope_id',
   'include_revisions',
+  'include_dynamic',
+  'item_id',
   'expected_version',
   'format',
 ]);

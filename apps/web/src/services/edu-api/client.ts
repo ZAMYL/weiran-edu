@@ -16,8 +16,16 @@ import {
   type ReportFormat,
 } from './analysis-types';
 import { readReportFile, ReportFileError, type ReportFile } from './report-file';
+import {
+  isQuestionResponse,
+  questionPreviewDto,
+  questionStatisticsDto,
+  questionEvidenceDto,
+  type QuestionPreview,
+} from './question-types';
 
 import {
+  assessmentStatisticsDto,
   batchDto,
   batchListDto,
   commitDto,
@@ -34,6 +42,7 @@ import {
   studentEvidenceDto,
   studentListDto,
   type ApiBatch,
+  type ApiImport,
   type ApiCondition,
   type InsightSpec,
 } from './types';
@@ -294,9 +303,47 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     me: (signal?: AbortSignal) => get('/me', meDto, signal),
     scopes: (signal?: AbortSignal) => get('/scopes', scopesDto, signal),
     batches: (offset = 0, limit = 20, signal?: AbortSignal) =>
-      get(`/batches?offset=${offset}&limit=${limit}`, batchListDto, signal),
+      get(`/batches?offset=${offset}&limit=${limit}&include_dynamic=true`, batchListDto, signal),
     batch: (batchId: string, signal?: AbortSignal) =>
       get(`/batches/${id(batchId)}`, batchDto, signal),
+    itemStatistics: async (batch: ApiBatch, signal?: AbortSignal, itemId?: string) => {
+      const result = assertSnapshot(
+        await get(
+          `${base(batch)}/statistics?${snapshot(batch)}${itemId ? '&item_id=' + id(itemId) : ''}`,
+          (value) => (batch.format ? questionStatisticsDto(value) : assessmentStatisticsDto(value)),
+          signal,
+        ),
+        batch,
+      );
+      const ids = new Set(
+        batch.recognized_items
+          ?.filter((item) => !itemId || item.item_id === itemId)
+          .map((item) => item.item_id),
+      );
+      for (const item of result.item_statistics) {
+        if (!ids.delete(item.item_id)) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      }
+      if (ids.size) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return result;
+    },
+    itemEvidence: async (
+      batch: ApiBatch,
+      evidenceId: string,
+      itemId: string,
+      signal?: AbortSignal,
+    ) => {
+      const value = assertSnapshot(
+        await get(
+          `${base(batch)}/evidence/${id(evidenceId)}?${snapshot(batch)}`,
+          questionEvidenceDto,
+          signal,
+        ),
+        batch,
+      );
+      if (value.evidence_id !== evidenceId || value.item_id !== itemId)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
     statistics: async (
       batch: ApiBatch,
       x = 'algorithm_data_structure',
@@ -481,7 +528,26 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
         (response) => readReportFile(response, { resultId, version, format }),
       ),
     preview: (form: FormData, signal?: AbortSignal) =>
-      request('/imports/preview', importDto, { method: 'POST', body: form }, signal),
+      request<ApiImport | QuestionPreview>(
+        '/imports/preview',
+        (value) => (isQuestionResponse(value) ? questionPreviewDto(value) : importDto(value)),
+        { method: 'POST', body: form },
+        signal,
+      ),
+    questionImport: (importId: string, signal?: AbortSignal) =>
+      get(`/imports/${id(importId)}/quality-report`, questionPreviewDto, signal),
+    patchQuestionImport: (
+      importId: string,
+      previewVersion: string,
+      title: string,
+      signal?: AbortSignal,
+    ) =>
+      request(
+        `/imports/${id(importId)}`,
+        questionPreviewDto,
+        { method: 'PATCH', body: JSON.stringify({ preview_version: previewVersion, title }) },
+        signal,
+      ),
     import: (importId: string, rowOffset = 0, issueOffset = 0, signal?: AbortSignal) =>
       get(
         `/imports/${id(importId)}?row_offset=${rowOffset}&row_limit=10&issue_offset=${issueOffset}&issue_limit=10`,

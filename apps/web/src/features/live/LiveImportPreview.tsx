@@ -6,12 +6,18 @@ import { FileExcelTwoTone } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
-import { type ApiImport, type ApiIssue, type ApiQuality } from '../../services/edu-api/types';
+import {
+  DIMENSIONS,
+  type ApiImport,
+  type ApiIssue,
+  type ApiQuality,
+} from '../../services/edu-api/types';
 import { dimensionName } from '../../services/edu-api/view-model';
 import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import UploadWorkflow from './UploadWorkflow';
 import { assessmentNameFromFilename } from '../../services/assessment-name';
+import { itemScaleLabel } from '../../services/edu-api/assessment-items';
 
 export default function LiveImportPreview({
   initial,
@@ -132,6 +138,30 @@ export default function LiveImportPreview({
       if (controller.signal.aborted) return;
       if (result.snapshot_id && result.snapshot_id !== batch.snapshot_id)
         throw new ApiError(409, 'SNAPSHOT_MISMATCH');
+      const previewItems = initial.recognized_items ?? [];
+      if (
+        !batch.recognized_items &&
+        previewItems.some(
+          (item) =>
+            item.kind !== 'competency' ||
+            item.scale?.minimum !== 1 ||
+            item.scale.maximum !== 5 ||
+            !DIMENSIONS.some(({ code }) => code === item.item_id),
+        )
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      if (
+        batch.recognized_items &&
+        previewItems.length &&
+        (batch.recognized_items.length !== previewItems.length ||
+          previewItems.some(
+            (item) =>
+              !batch.recognized_items?.some(
+                (saved) => saved.item_id === item.item_id && saved.kind === item.kind,
+              ),
+          ))
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
       batchChanged(batch);
       router.replace('/insights');
       message.success(
@@ -273,6 +303,18 @@ export default function LiveImportPreview({
             </div>
             <ImportSummary view={view} quality={quality} />
             <div className="import-preview-grid compact-import">
+              {!!view.recognized_items?.length && (
+                <details className="panel original-records-section workflow-recognized-items">
+                  <summary>评分项目与量表</summary>
+                  <ul>
+                    {view.recognized_items.map((item) => (
+                      <li key={item.item_id}>
+                        {item.display_name} · {itemScaleLabel(item.scale)}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
               <details
                 className="panel original-records-section"
                 open={recordsOpen}
@@ -280,16 +322,6 @@ export default function LiveImportPreview({
               >
                 <summary>评分预览</summary>
                 <p className="muted small">评语仅在审核后展示，未审核原文不会在此显示。</p>
-                {!!view.recognized_items?.length && (
-                  <details className="workflow-recognized-items">
-                    <summary>评分项目与标准</summary>
-                    {view.recognized_items.map((item) => (
-                      <p key={item.item_id}>
-                        {item.display_name} · {item.scale.minimum}–{item.scale.maximum} 分
-                      </p>
-                    ))}
-                  </details>
-                )}
                 <Table
                   rowKey="row_key"
                   size="small"
@@ -301,7 +333,14 @@ export default function LiveImportPreview({
                   pagination={false}
                   columns={[
                     { title: '匿名学生', dataIndex: 'display_label' },
-                    { title: '能力维度', dataIndex: 'dimension_code', render: dimensionName },
+                    {
+                      title: '评分项目',
+                      render: (_, row) =>
+                        view.recognized_items?.find(
+                          (item) => item.item_id === (row.item_id ?? row.dimension_code),
+                        )?.display_name ??
+                        (row.item_id ? '未识别项目' : dimensionName(row.dimension_code)),
+                    },
                     {
                       title: '原始评分',
                       dataIndex: 'score_raw',
@@ -465,9 +504,9 @@ function ImportSummary({ view, quality }: { view: ApiImport; quality: ApiQuality
           </dd>
         </div>
         <div>
-          <dt>能力维度</dt>
+          <dt>评分项目</dt>
           <dd>
-            <strong>{quality.dimensions.length}</strong> 项
+            <strong>{view.recognized_items?.length ?? quality.dimensions.length}</strong> 项
           </dd>
         </div>
       </dl>

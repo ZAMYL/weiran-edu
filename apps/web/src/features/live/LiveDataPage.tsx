@@ -13,6 +13,9 @@ import { LoadingPanel, RequestError } from './LiveStatus';
 import LiveImportPreview from './LiveImportPreview';
 import { assessmentNameFromFilename } from '../../services/assessment-name';
 import UploadWorkflow from './UploadWorkflow';
+import AssessmentItemPage from './AssessmentItemPage';
+import QuestionImportPreview from './QuestionImportPreview';
+import { isQuestionPreview } from '../../services/edu-api/question-types';
 
 export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'history' }) {
   const { client, scopes, batch, selectBatch, revision, uploadDraft, setUploadDraft } =
@@ -98,8 +101,13 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     selectBatch(target);
     router.push('/insights');
   };
-  if (view === 'upload' && preview)
-    return <LiveImportPreview initial={preview} onCancel={() => setUploadDraft(null)} />;
+  if (view === 'upload' && preview) {
+    return isQuestionPreview(preview) ? (
+      <QuestionImportPreview initial={preview} onCancel={() => setUploadDraft(null)} />
+    ) : (
+      <LiveImportPreview initial={preview} onCancel={() => setUploadDraft(null)} />
+    );
+  }
   return (
     <div className="page-stack data-page live-data">
       {view === 'upload' && (
@@ -238,10 +246,14 @@ function BatchOverview({ batch, onClose }: { batch: ApiBatch; onClose: () => voi
     (signal: AbortSignal) => client.statistics(batch, undefined, undefined, signal),
     [client, batch],
   );
-  const resource = useRemote(`batch-overview:${batch.batch_id}:${batch.snapshot_id}`, load);
+  const resource = useRemote(
+    batch.recognized_items ? null : `batch-overview:${batch.batch_id}:${batch.snapshot_id}`,
+    load,
+  );
   return (
     <Drawer title="测评评分概况" open onClose={onClose} size={550}>
       <AssessmentContext title={batch.title} course={batch.course} date={batch.assessment_date} />
+      {batch.recognized_items && <AssessmentItemPage batch={batch} view="overview" />}
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {resource.data && (
