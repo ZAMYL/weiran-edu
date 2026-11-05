@@ -16,6 +16,7 @@ from ..agent import AdaptiveExecutor, Decision, wire
 from ..planners import bound_schemas
 from ..synthetic import admit
 from .budget import CampaignBudget
+from .safety import deny_live
 
 
 class QwenAdaptivePlanner(NativeDialogue):
@@ -31,18 +32,14 @@ class QwenAdaptivePlanner(NativeDialogue):
         transport: httpx.MockTransport | None = None,
         settings: QwenSettings | None = None,
     ):
-        # Network and test transport identities cannot be swapped after authorization.
-        if budget.origin == "http_mock":
-            if type(transport) is not httpx.MockTransport or allow_network:
-                raise AgentError("mock_transport_required")
-            settings = settings or QwenSettings(
-                SecretStr("synthetic-mock-placeholder"),
-                "https://dashscope.aliyuncs.com/compatible-mode/v1",
-            )
-        elif allow_network is True and transport is None and settings is None:
-            settings = QwenSettings.from_env()  # Server environment only, never CLI key input.
-        else:
-            raise AgentError("synthetic_live_opt_in_required")
+        if budget.origin != "http_mock":
+            deny_live()  # Never load credentials, even with a forged/future budget.
+        if type(transport) is not httpx.MockTransport or allow_network:
+            raise AgentError("mock_transport_required")
+        settings = settings or QwenSettings(
+            SecretStr("synthetic-mock-placeholder"),
+            "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        )
         budget.claim(settings, executor.source)
         self._executor = executor
         self._budget = budget
@@ -175,11 +172,13 @@ async def run_synthetic_live(
     settings: QwenSettings | None = None,
     limits: Limits | None = None,
 ):
-    """The only live entry: closed recipe + fingerprint + scoped durable operator budget.
+    """Existing synthetic runner, restricted to HTTP Mock until a reviewed Live service.
 
-    Passing mode=production is deliberately impossible. The old public offline entries
-    continue to reject remote planners. No teacher API exposes this prototype.
+    Neither a caller flag nor a nominal approval reference enables remote execution.
+    No teacher API exposes this prototype.
     """
+    if allow_network or budget.origin != "http_mock":
+        deny_live()
     source = admit(recipe)
     source.validate()
     limits = limits or Limits(model_requests=budget.authorization.max_requests, timeout_seconds=30)
