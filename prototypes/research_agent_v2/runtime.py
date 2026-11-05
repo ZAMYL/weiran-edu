@@ -14,7 +14,6 @@ from prototypes.adaptive_assessment.agent import AdaptiveExecutor, Decision, wir
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
-from prototypes.adaptive_assessment.live.pricing import PRICE
 from prototypes.adaptive_assessment.live.safety import deny_live
 from prototypes.adaptive_assessment.synthetic import admit
 
@@ -28,8 +27,8 @@ def remaining_requests(budget: CampaignBudget, limit: int, *, reserve_current=Fa
     if snapshot["blocked"]:
         return 0
     authorization = budget.authorization
-    tokens = PRICE.max_input_tokens + authorization.max_output_tokens
-    cost = PRICE.cost(PRICE.max_input_tokens, authorization.max_output_tokens)
+    tokens = budget.price.max_input_tokens + authorization.max_output_tokens
+    cost = budget.price.cost(budget.price.max_input_tokens, authorization.max_output_tokens)
     pending = int(reserve_current)
     return max(
         0,
@@ -87,6 +86,10 @@ class ResearchPlanner(QwenAdaptivePlanner):
         )
 
     async def _post(self, payload: dict) -> dict:
+        if set(payload) != {"messages", "tools", "tool_choice", "parallel_tool_calls"}:
+            raise AgentError("unsafe_request_profile")
+        if payload["tool_choice"] != "required" or payload["parallel_tool_calls"] is not False:
+            raise AgentError("unsafe_request_profile")
         # Base planner has already reconstructed/replayed all safe aggregates.
         payload = json.loads(json.dumps(payload))
         message = payload["messages"][-1]

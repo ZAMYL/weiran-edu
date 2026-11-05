@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
     defaults:
       run:
         working-directory: apps/api
@@ -51,6 +51,65 @@ jobs:
         run: uv run --locked --no-sync ruff format --check .
       - name: Offline pytest
         run: uv run --locked --no-sync pytest -q -ra
+
+
+  windows_tests:
+    name: Windows tests (${{ matrix.shard }})
+    runs-on: windows-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [core, ai_research, edu_import, reporting, teacher_bridge]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version-file: apps/api/.python-version
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
+        with:
+          version: "0.11.14"
+          enable-cache: false
+      - run: uv sync --project apps/api --locked --group dev
+      - run: uv run --locked --no-sync ruff check .
+        working-directory: apps/api
+      - run: uv run --locked --no-sync ruff format --check .
+        working-directory: apps/api
+      - name: Whole-file shard with full current collection
+        run: uv run --project apps/api --locked --no-sync python scripts/windows_shards.py run --shard ${{ matrix.shard }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: windows-${{ matrix.shard }}
+          path: artifacts/${{ matrix.shard }}/
+          if-no-files-found: error
+          retention-days: 14
+  windows:
+    name: Backend (windows-latest)
+    needs: windows_tests
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version-file: apps/api/.python-version
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: windows-*
+          path: downloaded
+      - run: python scripts/windows_shards.py verify --artifacts downloaded --revision ${{ github.sha }} --output windows-summary.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-summary
+          path: windows-summary.json
+          if-no-files-found: error
+          retention-days: 14
 
   frontend:
     name: Frontend

@@ -427,16 +427,17 @@ def test_midrun_missing_usage_does_not_return_earlier_valid_facts_as_cards(tmp_p
     assert result["budget"]["entries"][2]["state"] == "usage_unknown_reservation_held"
 
 
-def test_real_network_is_closed_until_reviewed_service_not_merely_cli_optin(tmp_path, monkeypatch):
+def test_real_network_must_be_rejected_even_with_explicit_optin(tmp_path, monkeypatch):
     from prototypes.adaptive_assessment.live.safety import LIVE_DISABLED
 
     def prohibited():
         raise AssertionError("must_not_read_credentials")
 
     monkeypatch.setattr(QwenSettings, "from_env", prohibited)
+    root = tmp_path / "live-ledger"
     with pytest.raises(AgentError, match=LIVE_DISABLED):
-        CampaignBudget(mock_authorization("five"), tmp_path / "live", origin="synthetic_live")
-    assert not (tmp_path / "live").exists()
+        CampaignBudget(mock_authorization("five"), root, origin="synthetic_live")
+    assert not root.exists()
 
 
 def test_unsafe_caller_prompt_cannot_be_forwarded(tmp_path):
