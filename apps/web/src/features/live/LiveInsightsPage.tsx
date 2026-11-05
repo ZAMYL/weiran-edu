@@ -174,6 +174,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
       >
         {(focusPanel) => (
           <>
+            {syntheticAi && <AiInvestigationPanel batch={batch} />}
             <div className="insights-grid">
               <Panel
                 title="评分画像"
@@ -212,10 +213,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
                 )}
               </Panel>
               <div className="insights-right">
-                <div hidden={rightView !== 'focus'}>
-                  {syntheticAi && <AiInvestigationPanel batch={batch} />}
-                  {focusPanel}
-                </div>
+                <div hidden={rightView !== 'focus'}>{focusPanel}</div>
                 <div hidden={rightView !== 'statistics'}>
                   <Panel
                     title="学情分析"

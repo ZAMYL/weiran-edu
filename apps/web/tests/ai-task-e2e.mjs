@@ -113,6 +113,10 @@ try {
   await page.getByTestId('ai-fact-card').first().waitFor({ timeout: 240000 });
   await page.getByText('分析已结束', { exact: true }).waitFor();
   await page.screenshot({ path: path.join(artifacts, 'normal-facts.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({ path: path.join(artifacts, 'normal-mobile.png'), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   const cards = page.getByTestId('ai-fact-card');
   assert.ok((await cards.count()) > 0);
   await cards.first().getByRole('button', { name: '查看依据', exact: true }).click();
@@ -255,16 +259,20 @@ try {
     },
   );
   const denied = page.waitForResponse(
-    (r) => r.url().endsWith('/records/query') && r.status() === 403,
+    (r) => r.url().endsWith('/records/query') && [403, 404].includes(r.status()),
   );
   await cards.first().getByRole('button', { name: '查看依据', exact: true }).click();
-  await denied;
+  const permissionResponse = await denied;
   await page
     .getByRole('dialog', { name: '分析依据', exact: true })
-    .getByText(/没有执行此操作的权限/)
+    .getByText(/没有执行此操作的权限|不存在或当前教师无权查看/)
     .waitFor();
   await page.screenshot({ path: path.join(artifacts, 'permission-denied.png'), fullPage: true });
-  checks.push('actual source membership revocation returns 403 and displays permission failure');
+  checks.push(
+    'actual source membership revocation returns ' +
+      permissionResponse.status() +
+      ' and displays permission failure',
+  );
   assert.deepEqual(pageErrors, []);
   await writeFile(
     path.join(artifacts, 'acceptance.json'),

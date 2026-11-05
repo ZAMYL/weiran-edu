@@ -145,6 +145,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       action={<Tag color="cyan">合成 HTTP Mock · Qwen 未调用</Tag>}
       className="ai-investigation-panel"
     >
+      <p className="muted small">分析范围：本次测评全部 {batch.student_count} 名授权参评者</p>
       <label htmlFor="ai-question">想了解什么？</label>
       <Input.TextArea
         id="ai-question"
@@ -224,60 +225,62 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                 .join('、')}
             />
           )}
-          {facts.map((fact) => (
-            <section className="discovery-card" data-testid="ai-fact-card" key={fact.fact_id}>
-              <h3>{methodLabels[fact.method] ?? '分析结果'}</h3>
-              <p>
-                {[
-                  ...new Set(fact.source_refs.map((ref) => dimensionName(ref.dimension_code))),
-                ].join('、')}
-              </p>
-              {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
-              <dl className="focus-metrics" aria-label="AI 发现指标">
-                {fact.metrics
-                  .filter((metric) => metricLabels[metric.key])
-                  .map((metric) => (
-                    <div key={metric.key}>
-                      <dt>{metricLabels[metric.key]}</dt>
-                      <dd>
-                        <strong>{metric.display}</strong>
-                      </dd>
-                    </div>
-                  ))}
-              </dl>
-              <p className="muted small">评分现象用于核查，不直接解释学习成因。</p>
-              <div className="batch-actions">
-                {!!fact.source_refs.length && fact.source_verified && (
-                  <Button onClick={() => setSources(fact)}>查看依据</Button>
-                )}
-                {fact.exploration_query && fact.source_verified && (
-                  <Button
-                    onClick={() => {
-                      setConditions(fact.exploration_query!.conditions);
-                      router.push('/explorer');
-                    }}
-                  >
-                    继续探索
-                  </Button>
-                )}
-                {fact.qualified && fact.source_verified && (
-                  <Checkbox
-                    checked={selected.includes(fact.fact_id)}
-                    disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
-                    onChange={(e) =>
-                      setSelected((ids) =>
-                        e.target.checked
-                          ? [...ids, fact.fact_id]
-                          : ids.filter((id) => id !== fact.fact_id),
-                      )
-                    }
-                  >
-                    加入待核查
-                  </Checkbox>
-                )}
-              </div>
-            </section>
-          ))}
+          <div className="ai-fact-grid">
+            {facts.map((fact) => (
+              <section className="discovery-card" data-testid="ai-fact-card" key={fact.fact_id}>
+                <h3>{methodLabels[fact.method] ?? '分析结果'}</h3>
+                <p>
+                  {[
+                    ...new Set(fact.source_refs.map((ref) => dimensionName(ref.dimension_code))),
+                  ].join('、')}
+                </p>
+                {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
+                <dl className="focus-metrics" aria-label="AI 发现指标">
+                  {fact.metrics
+                    .filter((metric) => metricLabels[metric.key])
+                    .map((metric) => (
+                      <div key={metric.key}>
+                        <dt>{metricLabels[metric.key]}</dt>
+                        <dd>
+                          <strong>{metric.display}</strong>
+                        </dd>
+                      </div>
+                    ))}
+                </dl>
+                <p className="muted small">评分现象用于核查，不直接解释学习成因。</p>
+                <div className="batch-actions">
+                  {!!fact.source_refs.length && fact.source_verified && (
+                    <Button onClick={() => setSources(fact)}>查看依据</Button>
+                  )}
+                  {fact.exploration_query && fact.source_verified && (
+                    <Button
+                      onClick={() => {
+                        setConditions(fact.exploration_query!.conditions);
+                        router.push('/explorer');
+                      }}
+                    >
+                      继续探索
+                    </Button>
+                  )}
+                  {fact.qualified && fact.source_verified && (
+                    <Checkbox
+                      checked={selected.includes(fact.fact_id)}
+                      disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
+                      onChange={(e) =>
+                        setSelected((ids) =>
+                          e.target.checked
+                            ? [...ids, fact.fact_id]
+                            : ids.filter((id) => id !== fact.fact_id),
+                        )
+                      }
+                    >
+                      加入待核查
+                    </Checkbox>
+                  )}
+                </div>
+              </section>
+            ))}
+          </div>
           {!!selected.length && (
             <Button type="primary" loading={busy} onClick={review}>
               提交待核查（{selected.length}）
