@@ -47,6 +47,7 @@ interface SessionState {
   ready: boolean;
   reportDraft: ReportDraft | null;
   testMode: boolean;
+  syntheticAi: boolean;
   connected: boolean;
   teacherId: string | null;
   scopes: ApiScope[];
@@ -66,6 +67,7 @@ const initial: SessionState = {
   ready: false,
   reportDraft: null,
   testMode: false,
+  syntheticAi: false,
   connected: false,
   teacherId: null,
   scopes: [],
@@ -229,7 +231,11 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           'enabled' in config &&
           config.enabled === true
         ) {
-          setState((s) => ({ ...s, testMode: true }));
+          setState((s) => ({
+            ...s,
+            testMode: true,
+            syntheticAi: 'ai_synthetic_enabled' in config && config.ai_synthetic_enabled === true,
+          }));
           await connect(null);
         }
       } catch {

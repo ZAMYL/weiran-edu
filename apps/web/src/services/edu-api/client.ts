@@ -16,6 +16,7 @@ import {
   type ReportFormat,
 } from './analysis-types';
 import { readReportFile, ReportFileError, type ReportFile } from './report-file';
+import { aiTaskDto, aiSourcesDto, aiReviewDto, type AiTask } from './ai-task-types';
 import {
   isQuestionResponse,
   questionPreviewDto,
@@ -60,6 +61,10 @@ const STATUS_MESSAGES: Record<number, string> = {
   504: '请求超时，请检查连接后重试。',
 };
 const FILE_MESSAGES: Record<string, string> = {
+  AI_GOAL_UNSUPPORTED:
+    '当前合成服务不支持这个问题，请使用优先核查、评分关联或群体差异等已支持的问法。',
+  AI_PURPOSE_REQUIRED: '这份测评尚未获得合成 AI 分析授权。',
+  AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
   IMPORT_FORMAT_UNSUPPORTED: '当前暂不支持此文件结构，未创建测评批次。请核对文件结构后重新选择。',
   IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
   IMPORT_FILE_INVALID:
@@ -238,6 +243,91 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     return result;
   };
   return {
+    startAiTask: async (batch: ApiBatch, question: string, key: string, signal?: AbortSignal) =>
+      assertSnapshot(
+        await post(
+          `${base(batch)}/ai-investigation-tasks`,
+          aiTaskDto,
+          { snapshot_id: batch.snapshot_id, question, idempotency_key: key },
+          signal,
+        ),
+        batch,
+      ),
+    aiTask: async (batch: ApiBatch, taskId: string, signal?: AbortSignal) => {
+      const task = assertSnapshot(
+        await get(
+          `${base(batch)}/ai-investigation-tasks/${id(taskId)}?${snapshot(batch)}`,
+          aiTaskDto,
+          signal,
+        ),
+        batch,
+      );
+      if (task.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return task;
+    },
+    cancelAiTask: async (batch: ApiBatch, taskId: string, signal?: AbortSignal) => {
+      const task = assertSnapshot(
+        await post(
+          `${base(batch)}/ai-investigation-tasks/${id(taskId)}/cancel?${snapshot(batch)}`,
+          aiTaskDto,
+          {},
+          signal,
+        ),
+        batch,
+      );
+      if (task.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return task;
+    },
+    aiSources: async (
+      batch: ApiBatch,
+      task: AiTask,
+      factId: string,
+      metricKey: string,
+      offset: number,
+      signal?: AbortSignal,
+    ) => {
+      const value = assertSnapshot(
+        await post(
+          `${base(batch)}/ai-investigation-tasks/${id(task.task_id)}/records/query`,
+          aiSourcesDto,
+          {
+            snapshot_id: batch.snapshot_id,
+            fact_id: factId,
+            metric_key: metricKey,
+            offset,
+            limit: 10,
+          },
+          signal,
+        ),
+        batch,
+      );
+      if (
+        value.run_id !== task.result?.run_id ||
+        value.fact_id !== factId ||
+        value.metric_key !== metricKey ||
+        value.offset !== offset
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    submitAiReview: async (
+      batch: ApiBatch,
+      taskId: string,
+      factIds: string[],
+      signal?: AbortSignal,
+    ) => {
+      const receipt = assertSnapshot(
+        await post(
+          `${base(batch)}/ai-investigation-tasks/${id(taskId)}/review-submissions`,
+          aiReviewDto,
+          { snapshot_id: batch.snapshot_id, fact_ids: factIds },
+          signal,
+        ),
+        batch,
+      );
+      if (receipt.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return receipt;
+    },
     discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal) =>
       discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal),
     discoveryDetail: async (

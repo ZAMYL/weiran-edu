@@ -148,6 +148,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </header>
       <main className={`workspace${uploadWorkspace ? ' upload-workspace' : ''}`}>
+        {dataMode.syntheticAi && (
+          <p className="internal-demo-notice" role="status">
+            隔离合成 HTTP Mock · 未调用真实 Qwen
+          </p>
+        )}
         {dataMode.mode === 'demo' && (
           <p className="internal-demo-notice" role="status">
             内部 Demo · 当前全部数据均为合成样例，不用于正式分析。
