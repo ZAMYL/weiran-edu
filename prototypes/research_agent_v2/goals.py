@@ -6,6 +6,18 @@ from typing import Literal
 from app.ai.edu.discovery.models import AgentError, Strict
 from pydantic import Field
 
+# Whole-question aliases only: "关注" alone must not admit arbitrary requests.
+_PRIORITY_QUESTIONS = frozenset(
+    {
+        "有哪些值得关注的问题",
+        "有什么值得关注的问题",
+        "哪些问题值得关注",
+        "有哪些需要关注的问题",
+        "有什么需要关注的问题",
+        "哪些问题需要关注",
+    }
+)
+
 
 class Goal(Strict):
     kind: Literal["priority", "relation", "group", "quality", "explanation"]
@@ -40,7 +52,10 @@ def understand(question: str, catalog: dict) -> Goal:
         kind = "group"
     elif any(t in question.lower() for t in ("关联", "相关", "relation", "correlation")):
         kind = "relation"
-    elif any(t in question for t in ("优先", "异常", "核查")):
+    elif (
+        any(t in question for t in ("优先", "异常", "核查"))
+        or question.strip().rstrip("？?。").strip() in _PRIORITY_QUESTIONS
+    ):
         kind = "priority"
     else:
         raise AgentError("unsupported_goal")
