@@ -7,7 +7,7 @@ from pathlib import Path
 from app.ai.edu.discovery.models import AgentError
 
 REPOSITORY = "ZAMYL/weiran-edu"
-DEPENDENCY_SHA = "f3799a1f1d9abb0520f38b8dec6780217e3cbd5f"
+DEPENDENCY_SHA = "445f3e2086c90fc0ba8c7271a15d433ffa0c2689"
 REVIEWER = "Peng-Kai789"
 ROOT = Path(__file__).resolve().parents[2]
 

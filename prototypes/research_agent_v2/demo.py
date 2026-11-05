@@ -1,4 +1,4 @@
-"""Real Function Calling HTTP Mock, or explicit separately authorized Synthetic Live."""
+"""Native Function Calling HTTP Mock; legacy paid execution is disabled."""
 
 import argparse
 import asyncio
@@ -10,8 +10,9 @@ import httpx
 from app.ai.edu.discovery.models import AgentError, Limits
 from pydantic import ValidationError
 
-from prototypes.adaptive_assessment.live.budget import CampaignBudget, SyntheticLiveAuthorization
+from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.demo import MOCK_DATE, mock_authorization, native_response
+from prototypes.adaptive_assessment.live.safety import LIVE_DISABLED
 from prototypes.adaptive_assessment.planners import AdaptiveFake
 
 from .runtime import investigate, markdown, technical_markdown
@@ -97,6 +98,8 @@ def main() -> int:
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--authorization", type=Path)
     args = parser.parse_args()
+    if args.execute:
+        parser.error(LIVE_DISABLED)
     if any(
         p.exists()
         for p in (
@@ -106,25 +109,10 @@ def main() -> int:
         )
     ):
         parser.error("new_output_paths_required")
-    if args.execute and not args.authorization:
-        parser.error("separate human authorization and --authorization required")
 
     async def run():
         with TemporaryDirectory(prefix="research-v2-offline-") as temporary:
-            if not args.execute:
-                return await offline(args.recipe, args.question, Path(temporary))
-            if args.authorization.stat().st_size > 16384:
-                raise AgentError("authorization_file_limit")
-            authorization = SyntheticLiveAuthorization.model_validate_json(
-                args.authorization.read_bytes()
-            )
-            # Durable operator-supplied authorization state. No key is read by offline runs.
-            state = args.authorization.parent / "research-v2-budgets"
-            budget = CampaignBudget(authorization, state, origin="synthetic_live")
-            try:
-                return await investigate(args.recipe, args.question, budget, allow_network=True)
-            finally:
-                budget.close()
+            return await offline(args.recipe, args.question, Path(temporary))
 
     try:
         result, _ = asyncio.run(run())

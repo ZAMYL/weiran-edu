@@ -427,29 +427,17 @@ def test_midrun_missing_usage_does_not_return_earlier_valid_facts_as_cards(tmp_p
     assert result["budget"]["entries"][2]["state"] == "usage_unknown_reservation_held"
 
 
-def test_real_network_requires_explicit_optin_and_environment_only_settings(tmp_path, monkeypatch):
-    from prototypes.adaptive_assessment.live import budget as module
+def test_real_network_must_be_rejected_even_with_explicit_optin(tmp_path, monkeypatch):
+    from prototypes.adaptive_assessment.live.safety import LIVE_DISABLED
 
-    monkeypatch.setattr(
-        module,
-        "datetime",
-        type(
-            "Clock",
-            (),
-            {"now": staticmethod(lambda _: type("D", (), {"date": lambda _: MOCK_DATE})())},
-        ),
-    )
-    b = CampaignBudget(mock_authorization("five"), tmp_path, origin="synthetic_live")
-    e = AdaptiveExecutor(admit("five"), "test-run", Limits())
-    for kwargs in (
-        {},
-        {"allow_network": True, "transport": protocol_mock()},
-        {"allow_network": True, "settings": object()},
-    ):
-        with pytest.raises(AgentError, match="synthetic_live_opt_in_required"):
-            QwenAdaptivePlanner(e, b, **kwargs)
-    assert b.snapshot()["request_count"] == 0
-    b.close()
+    def prohibited():
+        raise AssertionError("must_not_read_credentials")
+
+    monkeypatch.setattr(QwenSettings, "from_env", prohibited)
+    root = tmp_path / "live-ledger"
+    with pytest.raises(AgentError, match=LIVE_DISABLED):
+        CampaignBudget(mock_authorization("five"), root, origin="synthetic_live")
+    assert not root.exists()
 
 
 def test_unsafe_caller_prompt_cannot_be_forwarded(tmp_path):
