@@ -1,6 +1,6 @@
 # 学情诊断的隔离 AI 任务联调
 
-前端沿用动态测评 PR #73，第二阶段仅在本机合成宿主中开放。后端固定 `0c73569f3159ba499d89f60ffda415da8e46072c`，DTO 来自其 `docs/contracts/ai-investigation-tasks.openapi.synthetic.json`。全程使用 HTTP Mock，真实 Qwen 未调用。
+前端沿用动态测评 PR #73。统一候选使用 #72 `757bfd86cdd890e47d9e91fdc52c0742a39c2795` 的本机合成宿主和 #75 `babd36e5b2f15fd42d0b5e714e3d06c73122a2a1` 的问句补丁，DTO 见 `docs/contracts/ai-investigation-tasks.openapi.synthetic.json`。全程使用 HTTP Mock。
 
 ## 启动与边界
 
@@ -14,9 +14,9 @@
 
 展示服务端选择且核验后的事实及原指标。依据查询使用 task/fact/metric 引用，打开原评分证据抽屉。继续探索使用返回的原条件。勾选至多三项事实后，后端重算正式发现并生成 pending 待核查结果，前端进入现有分析报告页面。教师确认和 MD/XLSX 导出复用原版本控制与文件检查。
 
-## 已发现的接口差异
+## 问句验收
 
-原目标问句「有哪些值得关注的问题？」在此候选返回 `422 AI_GOAL_UNSUPPORTED`。服务端目前支持优先核查、关联、群体差异、缺分核查和解释类受控意图。前端保留真实错误，不改写教师问题。已在 [#72](https://github.com/ZAMYL/weiran-edu/pull/72#issuecomment-6654275833) 请后端与组长确认。
+「有哪些值得关注的问题？」通过 #75 的完整问句白名单进入已有优先核查目标，追加自由查询仍返回 `422 AI_GOAL_UNSUPPORTED`。浏览器用 empty 批次验证该问句返回 202，并把 normal 批次留给原报告闭环。
 
 正式教师产品和动态逐题 AI 准入仍关闭。此环境的 completed 是合成任务完成状态，不表示真实模型执行或因果解释成立。
 

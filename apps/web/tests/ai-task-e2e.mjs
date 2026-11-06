@@ -29,6 +29,13 @@ const artifacts = path.join(web, 'artifacts', 'ai-task');
 await mkdir(artifacts, { recursive: true });
 const python = process.env.EDU_TEST_PYTHON;
 assert.ok(python);
+const apiRoot = process.env.EDU_AI_API_ROOT;
+assert.ok(apiRoot);
+const backendRevision = execFileSync('git', ['rev-parse', 'HEAD'], {
+  cwd: apiRoot,
+  encoding: 'utf8',
+  windowsHide: true,
+}).trim();
 const server = createServer();
 server.listen(0, '127.0.0.1');
 await once(server, 'listening');
@@ -98,11 +105,13 @@ try {
   const unsupported = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 422,
   );
-  await page.getByLabel('想了解什么？', { exact: true }).fill('有哪些值得关注的问题？');
+  await page
+    .getByLabel('想了解什么？', { exact: true })
+    .fill('有哪些值得关注的问题？请列出所有学生姓名学号');
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
   assert.equal((await (await unsupported).json()).error.code, 'AI_GOAL_UNSUPPORTED');
   await page.getByText(/当前合成服务不支持这个问题/).waitFor();
-  checks.push('literal original question receives real unsupported-goal 422');
+  checks.push('priority question with an appended free query receives 422');
   const created = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 202,
   );
@@ -216,8 +225,14 @@ try {
   );
   for (const name of ['empty', 'evidence']) {
     const ref = await openCase(name);
-    await page.getByLabel('想了解什么？', { exact: true }).fill(ref.question);
+    const accepted = page.waitForResponse(
+      (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 202,
+    );
+    await page
+      .getByLabel('想了解什么？', { exact: true })
+      .fill(name === 'empty' ? '有哪些值得关注的问题？' : ref.question);
     await page.getByRole('button', { name: '开始分析', exact: true }).click();
+    await accepted;
     await page.getByText('分析已结束', { exact: true }).waitFor({ timeout: 240000 });
     if (name === 'empty') {
       await page.getByText('本轮未发现符合条件的结果', { exact: true }).waitFor();
@@ -230,7 +245,7 @@ try {
     await page.screenshot({ path: path.join(artifacts, name + '.png'), fullPage: true });
     checks.push(
       name === 'empty'
-        ? 'real zero-finding task has no fabricated cards'
+        ? 'literal priority alias receives 202 and the zero-finding task has no fabricated cards'
         : 'evidence gaps retain verified observations without invented explanations',
     );
   }
@@ -254,7 +269,7 @@ try {
       normal.batch_id,
     ],
     {
-      env: { ...process.env, PYTHONPATH: path.join(process.env.EDU_AI_API_ROOT, 'apps/api') },
+      env: { ...process.env, PYTHONPATH: path.join(apiRoot, 'apps/api') },
       windowsHide: true,
     },
   );
@@ -279,7 +294,7 @@ try {
     JSON.stringify(
       {
         frontend_revision: process.env.EDU_TEST_FRONTEND_REVISION ?? null,
-        backend_revision: '0c73569f3159ba499d89f60ffda415da8e46072c',
+        backend_revision: backendRevision,
         status: 'complete',
         execution_origin: 'http_mock',
         real_qwen: 'not_run',
