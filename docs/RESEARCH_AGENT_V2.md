@@ -1,5 +1,7 @@
 # Evidence-Driven Research Agent V2（隔离合成原型）
 
+> 安全收口：旧 `--execute` 和底层 Synthetic Live 现已全部封禁；下文历史 Live 说明不再是可执行授权。仅 HTTP Mock 可运行。见 [P1 修复与依赖说明](RESEARCH_LIVE_P1_CONTAINMENT.md)。
+
 基于main 5218af4的#49/#56/#58；不依赖未合并#47/#59运行代码。没有HTTP路由、前端、数据库或正式教师权限改动。唯一共享变化是synthetic.materialize对封闭V2配方的分派，原配方不变。不是生产安全能力。
 
 ## 可运行链路
