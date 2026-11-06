@@ -297,7 +297,7 @@ try {
   await crossBatch;
   await page
     .locator('.ai-investigation-panel')
-    .getByText(/数据版本或操作状态已变化/)
+    .getByText('批次快照已变化，请刷新批次后重新查询。', { exact: true })
     .waitFor();
   assert.equal(await cards.count(), 0);
   await page.screenshot({ path: path.join(artifacts, 'cross-batch-rejected.png'), fullPage: true });
