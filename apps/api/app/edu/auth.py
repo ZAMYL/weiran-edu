@@ -148,6 +148,12 @@ class TeacherAdmin:
     def remove_member(self, teacher_id: str, scope_id: str) -> None:
         with self.database.transaction(write=True) as connection:
             connection.execute(
+                "DELETE FROM question_access WHERE teacher_id=? AND batch_id IN "
+                "(SELECT b.batch_id FROM question_batches b JOIN question_imports i "
+                "ON i.import_id=b.source_import_id WHERE i.data_scope_id=?)",
+                (teacher_id, scope_id),
+            )
+            connection.execute(
                 "DELETE FROM batch_access WHERE teacher_id=? AND batch_id IN "
                 "(SELECT batch_id FROM batches WHERE data_scope_id=?)",
                 (teacher_id, scope_id),
@@ -159,6 +165,24 @@ class TeacherAdmin:
 
     def grant_read(self, teacher_id: str, batch_id: str) -> None:
         with self.database.transaction(write=True) as connection:
+            question = connection.execute(
+                "SELECT i.data_scope_id FROM question_batches b JOIN question_imports i "
+                "ON i.import_id=b.source_import_id WHERE b.batch_id=?",
+                (batch_id,),
+            ).fetchone()
+            if question is not None:
+                if (
+                    connection.execute(
+                        "SELECT 1 FROM scope_members WHERE teacher_id=? AND data_scope_id=?",
+                        (teacher_id, question["data_scope_id"]),
+                    ).fetchone()
+                    is None
+                ):
+                    raise ValueError("SCOPE_MEMBERSHIP_REQUIRED")
+                connection.execute(
+                    "INSERT OR IGNORE INTO question_access VALUES (?,?)", (batch_id, teacher_id)
+                )
+                return
             row = connection.execute(
                 "SELECT data_scope_id FROM batches WHERE batch_id=?", (batch_id,)
             ).fetchone()
@@ -178,6 +202,10 @@ class TeacherAdmin:
 
     def revoke_read(self, teacher_id: str, batch_id: str) -> None:
         with self.database.transaction(write=True) as connection:
+            connection.execute(
+                "DELETE FROM question_access WHERE teacher_id=? AND batch_id=?",
+                (teacher_id, batch_id),
+            )
             connection.execute(
                 "DELETE FROM batch_access WHERE teacher_id=? AND batch_id=?", (teacher_id, batch_id)
             )

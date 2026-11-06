@@ -1,0 +1,1353 @@
+{
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/imports/preview",
+      "status": 201,
+      "expected_status": 201,
+      "request_id": "req_e2463d853df14b62bda094eaee9fdfc8",
+      "response": {
+        "format": "edu-question-xlsx.v1",
+        "import_id": "40e8a565-2555-4ef2-aac6-18d963320eb3",
+        "preview_version": "be588f6cd06a157b26bcc2047542642c290054c6867b6bcc017fe433cf02b814",
+        "title": "synthetic",
+        "participant_count": 20,
+        "observation_count": 260,
+        "recognized_items": [
+          {
+            "item_id": "Q01",
+            "original_name": "合成题目1",
+            "minimum": "0",
+            "maximum": "10",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A2:F2",
+            "kind": "question",
+            "display_name": "合成题目1",
+            "scale": {
+              "minimum": "0",
+              "maximum": "10",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q02",
+            "original_name": "合成题目2",
+            "minimum": "0",
+            "maximum": "20",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A3:F3",
+            "kind": "question",
+            "display_name": "合成题目2",
+            "scale": {
+              "minimum": "0",
+              "maximum": "20",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q03",
+            "original_name": "合成题目3",
+            "minimum": "0",
+            "maximum": "30",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A4:F4",
+            "kind": "question",
+            "display_name": "合成题目3",
+            "scale": {
+              "minimum": "0",
+              "maximum": "30",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q04",
+            "original_name": "合成题目4",
+            "minimum": "0",
+            "maximum": "40",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A5:F5",
+            "kind": "question",
+            "display_name": "合成题目4",
+            "scale": {
+              "minimum": "0",
+              "maximum": "40",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q05",
+            "original_name": "合成题目5",
+            "minimum": "0",
+            "maximum": "50",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A6:F6",
+            "kind": "question",
+            "display_name": "合成题目5",
+            "scale": {
+              "minimum": "0",
+              "maximum": "50",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q06",
+            "original_name": "合成题目6",
+            "minimum": "0",
+            "maximum": "60",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A7:F7",
+            "kind": "question",
+            "display_name": "合成题目6",
+            "scale": {
+              "minimum": "0",
+              "maximum": "60",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q07",
+            "original_name": "合成题目7",
+            "minimum": "0",
+            "maximum": "70",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A8:F8",
+            "kind": "question",
+            "display_name": "合成题目7",
+            "scale": {
+              "minimum": "0",
+              "maximum": "70",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q08",
+            "original_name": "合成题目8",
+            "minimum": "0",
+            "maximum": "80",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A9:F9",
+            "kind": "question",
+            "display_name": "合成题目8",
+            "scale": {
+              "minimum": "0",
+              "maximum": "80",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q09",
+            "original_name": "合成题目9",
+            "minimum": "0",
+            "maximum": "90",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A10:F10",
+            "kind": "question",
+            "display_name": "合成题目9",
+            "scale": {
+              "minimum": "0",
+              "maximum": "90",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q10",
+            "original_name": "合成题目10",
+            "minimum": "0",
+            "maximum": "100",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A11:F11",
+            "kind": "question",
+            "display_name": "合成题目10",
+            "scale": {
+              "minimum": "0",
+              "maximum": "100",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q11",
+            "original_name": "合成题目11",
+            "minimum": "0",
+            "maximum": "110",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A12:F12",
+            "kind": "question",
+            "display_name": "合成题目11",
+            "scale": {
+              "minimum": "0",
+              "maximum": "110",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q12",
+            "original_name": "合成题目12",
+            "minimum": "0",
+            "maximum": "120",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A13:F13",
+            "kind": "question",
+            "display_name": "合成题目12",
+            "scale": {
+              "minimum": "0",
+              "maximum": "120",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q13",
+            "original_name": "合成题目13",
+            "minimum": "0",
+            "maximum": "130",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A14:F14",
+            "kind": "question",
+            "display_name": "合成题目13",
+            "scale": {
+              "minimum": "0",
+              "maximum": "130",
+              "step": "0.01",
+              "unit": "分"
+            }
+          }
+        ],
+        "available_analyses": [
+          "item_statistics"
+        ],
+        "quality_counts": {
+          "missing": 1,
+          "valid": 257,
+          "out_of_range": 1,
+          "off_step": 1
+        },
+        "quality_issues": [
+          {
+            "category": "missing",
+            "count": 1,
+            "sheet": "Sheet2",
+            "cell": "B2",
+            "item_id": "Q01",
+            "severity": "warning"
+          },
+          {
+            "category": "out_of_range",
+            "count": 1,
+            "sheet": "Sheet2",
+            "cell": "B3",
+            "item_id": "Q01",
+            "severity": "warning"
+          },
+          {
+            "category": "off_step",
+            "count": 1,
+            "sheet": "Sheet2",
+            "cell": "C4",
+            "item_id": "Q02",
+            "severity": "warning"
+          }
+        ],
+        "confirmable": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/imports/40e8a565-2555-4ef2-aac6-18d963320eb3/commit",
+      "status": 201,
+      "expected_status": 201,
+      "request_id": "req_38bbd27e35094b3aa513cc94b131cae5",
+      "response": {
+        "import_id": "40e8a565-2555-4ef2-aac6-18d963320eb3",
+        "batch_id": "e84e6615-655e-4117-99e6-cc12e03d19fe",
+        "snapshot_id": "42b777ad3f86b07016379cf053948a895afa99c9cc36c68d77a0843cb28d36a2",
+        "result": "created"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/batches/e84e6615-655e-4117-99e6-cc12e03d19fe/statistics?snapshot_id=42b777ad3f86b07016379cf053948a895afa99c9cc36c68d77a0843cb28d36a2&item_id=Q01",
+      "status": 200,
+      "expected_status": 200,
+      "request_id": "req_0a9dc9c885c044f48c00a53fdd62c2fe",
+      "response": {
+        "format": "edu-question-xlsx.v1",
+        "batch_id": "e84e6615-655e-4117-99e6-cc12e03d19fe",
+        "snapshot_id": "42b777ad3f86b07016379cf053948a895afa99c9cc36c68d77a0843cb28d36a2",
+        "title": "synthetic",
+        "participant_count": 20,
+        "recognized_items": [
+          {
+            "item_id": "Q01",
+            "original_name": "合成题目1",
+            "minimum": "0",
+            "maximum": "10",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A2:F2",
+            "kind": "question",
+            "display_name": "合成题目1",
+            "scale": {
+              "minimum": "0",
+              "maximum": "10",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q02",
+            "original_name": "合成题目2",
+            "minimum": "0",
+            "maximum": "20",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A3:F3",
+            "kind": "question",
+            "display_name": "合成题目2",
+            "scale": {
+              "minimum": "0",
+              "maximum": "20",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q03",
+            "original_name": "合成题目3",
+            "minimum": "0",
+            "maximum": "30",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A4:F4",
+            "kind": "question",
+            "display_name": "合成题目3",
+            "scale": {
+              "minimum": "0",
+              "maximum": "30",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q04",
+            "original_name": "合成题目4",
+            "minimum": "0",
+            "maximum": "40",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A5:F5",
+            "kind": "question",
+            "display_name": "合成题目4",
+            "scale": {
+              "minimum": "0",
+              "maximum": "40",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q05",
+            "original_name": "合成题目5",
+            "minimum": "0",
+            "maximum": "50",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A6:F6",
+            "kind": "question",
+            "display_name": "合成题目5",
+            "scale": {
+              "minimum": "0",
+              "maximum": "50",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q06",
+            "original_name": "合成题目6",
+            "minimum": "0",
+            "maximum": "60",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A7:F7",
+            "kind": "question",
+            "display_name": "合成题目6",
+            "scale": {
+              "minimum": "0",
+              "maximum": "60",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q07",
+            "original_name": "合成题目7",
+            "minimum": "0",
+            "maximum": "70",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A8:F8",
+            "kind": "question",
+            "display_name": "合成题目7",
+            "scale": {
+              "minimum": "0",
+              "maximum": "70",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q08",
+            "original_name": "合成题目8",
+            "minimum": "0",
+            "maximum": "80",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A9:F9",
+            "kind": "question",
+            "display_name": "合成题目8",
+            "scale": {
+              "minimum": "0",
+              "maximum": "80",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q09",
+            "original_name": "合成题目9",
+            "minimum": "0",
+            "maximum": "90",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A10:F10",
+            "kind": "question",
+            "display_name": "合成题目9",
+            "scale": {
+              "minimum": "0",
+              "maximum": "90",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q10",
+            "original_name": "合成题目10",
+            "minimum": "0",
+            "maximum": "100",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A11:F11",
+            "kind": "question",
+            "display_name": "合成题目10",
+            "scale": {
+              "minimum": "0",
+              "maximum": "100",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q11",
+            "original_name": "合成题目11",
+            "minimum": "0",
+            "maximum": "110",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A12:F12",
+            "kind": "question",
+            "display_name": "合成题目11",
+            "scale": {
+              "minimum": "0",
+              "maximum": "110",
+              "step": "0.01",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q12",
+            "original_name": "合成题目12",
+            "minimum": "0",
+            "maximum": "120",
+            "step": "0.5",
+            "unit": "分",
+            "source_cell": "A13:F13",
+            "kind": "question",
+            "display_name": "合成题目12",
+            "scale": {
+              "minimum": "0",
+              "maximum": "120",
+              "step": "0.5",
+              "unit": "分"
+            }
+          },
+          {
+            "item_id": "Q13",
+            "original_name": "合成题目13",
+            "minimum": "0",
+            "maximum": "130",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A14:F14",
+            "kind": "question",
+            "display_name": "合成题目13",
+            "scale": {
+              "minimum": "0",
+              "maximum": "130",
+              "step": "0.01",
+              "unit": "分"
+            }
+          }
+        ],
+        "available_analyses": [
+          "item_statistics"
+        ],
+        "item_statistics": [
+          {
+            "item_id": "Q01",
+            "original_name": "合成题目1",
+            "minimum": {
+              "value": 1.0,
+              "exact": {
+                "numerator": 1,
+                "denominator": 1
+              },
+              "display": "1.00"
+            },
+            "maximum": {
+              "value": 9.5,
+              "exact": {
+                "numerator": 19,
+                "denominator": 2
+              },
+              "display": "9.50"
+            },
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A2:F2",
+            "kind": "question",
+            "denominator": 20,
+            "valid_count": 18,
+            "missing_count": 1,
+            "invalid_count": 1,
+            "quality_counts": {
+              "missing": 1,
+              "out_of_range": 1,
+              "valid": 18
+            },
+            "statistics_status": "available",
+            "mean": {
+              "value": 5.25,
+              "exact": {
+                "numerator": 21,
+                "denominator": 4
+              },
+              "display": "5.25"
+            },
+            "distribution": [
+              {
+                "score": 1.0,
+                "exact": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 1.5,
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 2.0,
+                "exact": {
+                  "numerator": 2,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 2.5,
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 3.0,
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 3.5,
+                "exact": {
+                  "numerator": 7,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 4.0,
+                "exact": {
+                  "numerator": 4,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 4.5,
+                "exact": {
+                  "numerator": 9,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 5.0,
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 5.5,
+                "exact": {
+                  "numerator": 11,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 6.0,
+                "exact": {
+                  "numerator": 6,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 6.5,
+                "exact": {
+                  "numerator": 13,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 7.0,
+                "exact": {
+                  "numerator": 7,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 7.5,
+                "exact": {
+                  "numerator": 15,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 8.0,
+                "exact": {
+                  "numerator": 8,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 8.5,
+                "exact": {
+                  "numerator": 17,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 9.0,
+                "exact": {
+                  "numerator": 9,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 9.5,
+                "exact": {
+                  "numerator": 19,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              }
+            ],
+            "evidence_ids": [
+              "7c151c1122e9c1b6f362acd6875f8ee4c2a78433d4bafc3121c312f56f529ee4",
+              "59cfbe215ef3ec3dce98cec05e5e08de8bd164a1964004ecc0f0e9f51c3fc359",
+              "6864f4ac5783cd6daf6f70385b6595b97d78b2f6305a45c3aa28f33e9edb64e3",
+              "47efb2b65152c343ceda4fb7ce267a46d58d8be6584aa52f5615d5ccea71b35b",
+              "3854a42bc048e37021f0c44c75154d9bbc524125222f8089fe5f6c2678ea0377",
+              "7ce76407eb34f24788768ba6ca27dbcf0e9438f8125a460d47ecccb252088b22",
+              "c86de15420838f6b76f86dca201b23dac040e5d4ae7a5b15f7aa37db6ada8c1e",
+              "0046e5a8bd46020d5b641e6a9d3e0ae14c239831aaba43d2877db3202c30fe8e",
+              "2ec9543fb7fa5d013375d0b0ba2fc35357460b20d5247b1697ca5eacea348238",
+              "9b46897bf15f5488f5b562a02d1155dc3f939723160ab2a0fc1676c8a2422466",
+              "383783dc6a2f7961386ea715ee905dbce8c49521225f5ba70bf490f0c3412aaa",
+              "d65cdbdf3d0b8c90d7c8eb70be266f583c1042bd27f5c6a4ce3f9cd166114f17",
+              "e8bb04bcca0774a8c1f57398ea14c23b947e2d74633eb7a70b0e7c1feffaffa3",
+              "9279865f83758a572b00558e1a5496524702a16155f2d7617d7760b410213415",
+              "cd4aa36c4cce024bbdf0ca6123cdd6906842d365ff5b89392d1e01bbc6f0d5b9",
+              "c27b7fbf7c0c0ce100b8c8975a8756274b41cab5f36814acc4f06cbb25f61b95",
+              "7a996139a1623f7e73d5735a01763d74b29228ee91d316641d64a736291da9e3",
+              "ab7a10b43de9ed8df471a80291d04e9953beffae8459b36191f57d444a8d39ea",
+              "06f56c39e6159872076136117a51435132d8ca20939c8f80c2fb0e793db22511",
+              "b65e17e7a849f51902708b59df01d53e6d8fbbb51c2d8faec7b16b8dbce479ef"
+            ],
+            "display_name": "合成题目1",
+            "scale": {
+              "minimum": "0",
+              "maximum": "10",
+              "step": "0.01",
+              "unit": "分"
+            },
+            "median": {
+              "value": 5.25,
+              "exact": {
+                "numerator": 21,
+                "denominator": 4
+              },
+              "display": "5.25"
+            }
+          }
+        ],
+        "items": [
+          {
+            "item_id": "Q01",
+            "original_name": "合成题目1",
+            "minimum": "0",
+            "maximum": "10",
+            "step": "0.01",
+            "unit": "分",
+            "source_cell": "A2:F2",
+            "kind": "question",
+            "denominator": 20,
+            "valid_count": 18,
+            "missing_count": 1,
+            "invalid_count": 1,
+            "quality_counts": {
+              "missing": 1,
+              "out_of_range": 1,
+              "valid": 18
+            },
+            "statistics_status": "available",
+            "mean": {
+              "numerator": 21,
+              "denominator": 4
+            },
+            "distribution": [
+              {
+                "score": 1.0,
+                "exact": {
+                  "numerator": 1,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 1.5,
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 2.0,
+                "exact": {
+                  "numerator": 2,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 2.5,
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 3.0,
+                "exact": {
+                  "numerator": 3,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 3.5,
+                "exact": {
+                  "numerator": 7,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 4.0,
+                "exact": {
+                  "numerator": 4,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 4.5,
+                "exact": {
+                  "numerator": 9,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 5.0,
+                "exact": {
+                  "numerator": 5,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 5.5,
+                "exact": {
+                  "numerator": 11,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 6.0,
+                "exact": {
+                  "numerator": 6,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 6.5,
+                "exact": {
+                  "numerator": 13,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 7.0,
+                "exact": {
+                  "numerator": 7,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 7.5,
+                "exact": {
+                  "numerator": 15,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 8.0,
+                "exact": {
+                  "numerator": 8,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 8.5,
+                "exact": {
+                  "numerator": 17,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 9.0,
+                "exact": {
+                  "numerator": 9,
+                  "denominator": 1
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              },
+              {
+                "score": 9.5,
+                "exact": {
+                  "numerator": 19,
+                  "denominator": 2
+                },
+                "count": 1,
+                "denominator": 20,
+                "ratio": {
+                  "value": 0.05,
+                  "exact": {
+                    "numerator": 1,
+                    "denominator": 20
+                  },
+                  "display": "0.05"
+                }
+              }
+            ],
+            "evidence_ids": [
+              "7c151c1122e9c1b6f362acd6875f8ee4c2a78433d4bafc3121c312f56f529ee4",
+              "59cfbe215ef3ec3dce98cec05e5e08de8bd164a1964004ecc0f0e9f51c3fc359",
+              "6864f4ac5783cd6daf6f70385b6595b97d78b2f6305a45c3aa28f33e9edb64e3",
+              "47efb2b65152c343ceda4fb7ce267a46d58d8be6584aa52f5615d5ccea71b35b",
+              "3854a42bc048e37021f0c44c75154d9bbc524125222f8089fe5f6c2678ea0377",
+              "7ce76407eb34f24788768ba6ca27dbcf0e9438f8125a460d47ecccb252088b22",
+              "c86de15420838f6b76f86dca201b23dac040e5d4ae7a5b15f7aa37db6ada8c1e",
+              "0046e5a8bd46020d5b641e6a9d3e0ae14c239831aaba43d2877db3202c30fe8e",
+              "2ec9543fb7fa5d013375d0b0ba2fc35357460b20d5247b1697ca5eacea348238",
+              "9b46897bf15f5488f5b562a02d1155dc3f939723160ab2a0fc1676c8a2422466",
+              "383783dc6a2f7961386ea715ee905dbce8c49521225f5ba70bf490f0c3412aaa",
+              "d65cdbdf3d0b8c90d7c8eb70be266f583c1042bd27f5c6a4ce3f9cd166114f17",
+              "e8bb04bcca0774a8c1f57398ea14c23b947e2d74633eb7a70b0e7c1feffaffa3",
+              "9279865f83758a572b00558e1a5496524702a16155f2d7617d7760b410213415",
+              "cd4aa36c4cce024bbdf0ca6123cdd6906842d365ff5b89392d1e01bbc6f0d5b9",
+              "c27b7fbf7c0c0ce100b8c8975a8756274b41cab5f36814acc4f06cbb25f61b95",
+              "7a996139a1623f7e73d5735a01763d74b29228ee91d316641d64a736291da9e3",
+              "ab7a10b43de9ed8df471a80291d04e9953beffae8459b36191f57d444a8d39ea",
+              "06f56c39e6159872076136117a51435132d8ca20939c8f80c2fb0e793db22511",
+              "b65e17e7a849f51902708b59df01d53e6d8fbbb51c2d8faec7b16b8dbce479ef"
+            ]
+          }
+        ],
+        "analysis_status": {
+          "item_statistics": "available",
+          "five_dimension_discovery": "unsupported",
+          "evaluation_review": "missing_rubric_and_response",
+          "cross_assessment_growth": "unsupported"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/batches/e84e6615-655e-4117-99e6-cc12e03d19fe/evidence/6864f4ac5783cd6daf6f70385b6595b97d78b2f6305a45c3aa28f33e9edb64e3?snapshot_id=42b777ad3f86b07016379cf053948a895afa99c9cc36c68d77a0843cb28d36a2",
+      "status": 200,
+      "expected_status": 200,
+      "request_id": "req_6121c592a24341a0b886c4d6ffcbc546",
+      "response": {
+        "format": "edu-question-xlsx.v1",
+        "batch_id": "e84e6615-655e-4117-99e6-cc12e03d19fe",
+        "snapshot_id": "42b777ad3f86b07016379cf053948a895afa99c9cc36c68d77a0843cb28d36a2",
+        "evidence_id": "6864f4ac5783cd6daf6f70385b6595b97d78b2f6305a45c3aa28f33e9edb64e3",
+        "participant_id": "S0002",
+        "item_id": "Q01",
+        "quality_state": "valid",
+        "exact": {
+          "numerator": 1,
+          "denominator": 1
+        },
+        "source": {
+          "file_sha256": "62fdcd59409d37e23e38f314b767f72743b83e6a53f792375da49b4af9dde98b",
+          "sheet": "Sheet2",
+          "cell": "B4"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/batches/e84e6615-655e-4117-99e6-cc12e03d19fe/statistics?snapshot_id=wrong",
+      "status": 409,
+      "expected_status": 409,
+      "request_id": "req_085807f733ae457198c6c8a78db35e3a",
+      "response": {
+        "error": {
+          "code": "SNAPSHOT_MISMATCH",
+          "message": "数据快照已变化，请重新读取",
+          "request_id": "req_085807f733ae457198c6c8a78db35e3a"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/batches/e84e6615-655e-4117-99e6-cc12e03d19fe/statistics",
+      "status": 404,
+      "expected_status": 404,
+      "request_id": "req_42064edee4224010bb3b6b90992da4d7",
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "资源不存在",
+          "request_id": "req_42064edee4224010bb3b6b90992da4d7"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/batches/e84e6615-655e-4117-99e6-cc12e03d19fe/statistics",
+      "status": 401,
+      "expected_status": 401,
+      "request_id": "req_76fa542e3e2b4c07a1f216c2cfcfa420",
+      "response": {
+        "error": {
+          "code": "UNAUTHORIZED",
+          "message": "需要有效的教师凭证",
+          "request_id": "req_76fa542e3e2b4c07a1f216c2cfcfa420"
+        }
+      }
+    }
+  ],
+  "original_sha256": "152d0b73f56b2fc7cd0e8dc7ef4a0d03e9c0ee35023b9e75364e6888f7e16a40",
+  "source_commit": "af00cb07ecf6accdc66ceaa818591014658ea4f1",
+  "original_receipt": "http.synthetic.json",
+  "excerpt_only": true
+}

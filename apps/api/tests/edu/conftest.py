@@ -17,6 +17,20 @@ from app.main import create_app
 from app.storage.database import Database
 
 
+def remove_empty_question_schema(connection):
+    """Reconstruct pre-V1.1 schema in disposable upgrade fixtures, including tables."""
+    for table in (
+        "question_observations",
+        "question_items",
+        "question_access",
+        "question_batches",
+        "question_imports",
+    ):
+        assert connection.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0
+        connection.execute(f"DROP TABLE {table}")
+    connection.execute("DELETE FROM schema_migrations WHERE version='005_question_slice.sql'")
+
+
 @pytest.fixture
 def runtime(tmp_path):
     database = Database(tmp_path / "synthetic.sqlite3")
