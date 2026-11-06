@@ -25,10 +25,12 @@ await writeFile(
   sessionFile,
   JSON.stringify({ synthetic_only: true, access_token: connection.bearer_token }),
 );
-const artifacts = path.join(web, 'artifacts', 'ai-task');
+const artifacts = path.join(web, 'artifacts', 'ai-task-priority');
 await mkdir(artifacts, { recursive: true });
 const python = process.env.EDU_TEST_PYTHON;
 assert.ok(python);
+const backendRevision = process.env.EDU_TEST_BACKEND_REVISION;
+assert.match(backendRevision ?? '', /^[a-f0-9]{40}$/);
 const server = createServer();
 server.listen(0, '127.0.0.1');
 await once(server, 'listening');
@@ -98,20 +100,75 @@ try {
   const unsupported = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 422,
   );
-  await page.getByLabel('想了解什么？', { exact: true }).fill('有哪些值得关注的问题？');
+  await page.getByLabel('想了解什么？', { exact: true }).fill('帮我分析一下');
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
   assert.equal((await (await unsupported).json()).error.code, 'AI_GOAL_UNSUPPORTED');
   await page.getByText(/当前合成服务不支持这个问题/).waitFor();
-  checks.push('literal original question receives real unsupported-goal 422');
+  const database = path.join(path.dirname(process.env.EDU_AI_CONNECTION), 'synthetic.sqlite3');
+  const taskCount = Number(
+    execFileSync(
+      python,
+      [
+        '-c',
+        'import sqlite3,sys; c=sqlite3.connect(sys.argv[1]); print(c.execute("SELECT count(*) FROM ai_synthetic_tasks t JOIN ai_synthetic_grants g USING(grant_id) WHERE g.batch_id=?",(sys.argv[2],)).fetchone()[0]); c.close()',
+        database,
+        normal.batch_id,
+      ],
+      { encoding: 'utf8', windowsHide: true },
+    ).trim(),
+  );
+  assert.equal(taskCount, 0, 'rejected question must not consume the unique campaign');
+  checks.push(
+    'unsupported question receives 422 without creating a task or consuming the batch campaign',
+  );
   const created = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 202,
   );
-  await page.getByLabel('想了解什么？', { exact: true }).fill(normal.question);
+  const originalQuestion = '有哪些值得关注的问题？';
+  await page.getByLabel('想了解什么？', { exact: true }).fill(originalQuestion);
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
-  const start = await (await created).json();
+  const createdResponse = await created;
+  assert.equal(createdResponse.request().postDataJSON().question, originalQuestion);
+  const start = await createdResponse.json();
   assert.equal(start.execution_origin, 'http_mock');
   await page.getByTestId('ai-fact-card').first().waitFor({ timeout: 240000 });
   await page.getByText('分析已结束', { exact: true }).waitFor();
+  const completed = await page.evaluate(
+    async ({ batch, task }) =>
+      (
+        await fetch(
+          '/api/edu/batches/' +
+            batch.batch_id +
+            '/ai-investigation-tasks/' +
+            task.task_id +
+            '?snapshot_id=' +
+            batch.snapshot_id,
+        )
+      ).json(),
+    { batch: normal, task: start },
+  );
+  assert.equal(completed.state, 'completed');
+  assert.equal(completed.result.controlled_goal, 'priority');
+  assert.equal(completed.result.execution_origin, 'http_mock');
+  assert.equal(completed.result.real_qwen, 'not_run');
+  assert.equal(completed.result.production_enabled, false);
+  assert.equal(completed.result.budget.actual_remote_requests, 0);
+  if (completed.result.stop_reason === 'bounded_scope_stop')
+    await page.getByText('本轮有限核查已结束，未穷尽所有问题', { exact: true }).waitFor();
+  const stale = await page.evaluate(
+    async ({ batch, task }) =>
+      (
+        await fetch(
+          '/api/edu/batches/' +
+            batch.batch_id +
+            '/ai-investigation-tasks/' +
+            task.task_id +
+            '?snapshot_id=stale',
+        )
+      ).status,
+    { batch: normal, task: start },
+  );
+  assert.equal(stale, 409);
   await page.screenshot({ path: path.join(artifacts, 'normal-facts.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
@@ -136,12 +193,15 @@ try {
   await page.locator('.ant-drawer-open').last().locator('.ant-drawer-close').click();
   await sources.locator('.ant-drawer-close').click();
   const explore = cards.getByRole('button', { name: '继续探索', exact: true }).first();
-  if (await explore.count()) {
-    await explore.click();
-    await page.getByText('应用筛选', { exact: true }).waitFor();
-    await page.getByRole('link', { name: '学情诊断', exact: true }).click();
-    await page.getByTestId('ai-fact-card').first().waitFor();
-  }
+  assert.equal(
+    await explore.count(),
+    1,
+    'verified result must support the required exploration path',
+  );
+  await explore.click();
+  await page.getByText('应用筛选', { exact: true }).waitFor();
+  await page.getByRole('link', { name: '学情诊断', exact: true }).click();
+  await page.getByTestId('ai-fact-card').first().waitFor();
   for (const checkbox of await cards
     .getByRole('checkbox', { name: '加入待核查', exact: true })
     .all())
@@ -214,6 +274,43 @@ try {
   checks.push(
     '202 creation / real task polling / verified facts / original evidence / exploration / pending / teacher confirmation / original MD and XLSX reopened',
   );
+  const evidenceBatch = await openCase('evidence');
+  await page.evaluate(
+    ({ teacher, batch, task }) =>
+      sessionStorage.setItem(
+        'weiran.edu.ai-task.' + teacher + '.' + batch.batch_id + '.' + batch.snapshot_id,
+        task.task_id,
+      ),
+    { teacher: me.teacher_id, batch: evidenceBatch, task: start },
+  );
+  const crossBatch = page.waitForResponse(
+    (r) =>
+      r.request().method() === 'GET' &&
+      r
+        .url()
+        .includes(
+          '/batches/' + evidenceBatch.batch_id + '/ai-investigation-tasks/' + start.task_id,
+        ) &&
+      r.status() === 409,
+  );
+  await page.reload();
+  await crossBatch;
+  await page
+    .locator('.ai-investigation-panel')
+    .getByText(/数据版本或操作状态已变化/)
+    .waitFor();
+  assert.equal(await cards.count(), 0);
+  await page.screenshot({ path: path.join(artifacts, 'cross-batch-rejected.png'), fullPage: true });
+  await page.evaluate(
+    ({ teacher, batch }) =>
+      sessionStorage.removeItem(
+        'weiran.edu.ai-task.' + teacher + '.' + batch.batch_id + '.' + batch.snapshot_id,
+      ),
+    { teacher: me.teacher_id, batch: evidenceBatch },
+  );
+  checks.push(
+    'original question sent unchanged, priority completed; stale snapshot and cross-batch task both preserve 409',
+  );
   for (const name of ['empty', 'evidence']) {
     const ref = await openCase(name);
     await page.getByLabel('想了解什么？', { exact: true }).fill(ref.question);
@@ -236,7 +333,6 @@ try {
   }
   await openCase('normal');
   await cards.first().waitFor();
-  const database = path.join(path.dirname(process.env.EDU_AI_CONNECTION), 'synthetic.sqlite3');
   execFileSync(
     python,
     [
@@ -279,12 +375,22 @@ try {
     JSON.stringify(
       {
         frontend_revision: process.env.EDU_TEST_FRONTEND_REVISION ?? null,
-        backend_revision: '0c73569f3159ba499d89f60ffda415da8e46072c',
+        backend_revision: backendRevision,
         status: 'complete',
         execution_origin: 'http_mock',
         real_qwen: 'not_run',
         production_enabled: false,
         checks,
+        original_question: originalQuestion,
+        priority_task: {
+          task_id: start.task_id,
+          state: completed.state,
+          controlled_goal: completed.result.controlled_goal,
+          stop_reason: completed.result.stop_reason,
+          actual_remote_requests: completed.result.budget.actual_remote_requests,
+        },
+        rejected_question_task_count: taskCount,
+        stale_snapshot_status: stale,
         requests,
         page_errors: pageErrors,
         receipt,
