@@ -18,6 +18,11 @@ _PRIORITY_QUESTIONS = frozenset(
     }
 )
 
+# Preserve current canonical commands, but a keyword alone is not a supported request.
+_PRIORITY_COMMANDS = frozenset(
+    {"优先核查", "优先核查评分异常", "核查评分异常", "识别值得优先核查的评分异常"}
+)
+
 
 class Goal(Strict):
     kind: Literal["priority", "relation", "group", "quality", "explanation"]
@@ -38,12 +43,25 @@ def understand(question: str, catalog: dict) -> Goal:
         raise AgentError("unsupported_goal")
     if re.search(r"忽略|ignore|SQL|https?://|[/\\]|改分|修改成绩|其他批次", question, re.I):
         raise AgentError("unsafe_or_unsupported_goal")
+    if re.search(
+        r"姓名|学号|真实身份|身份证|手机号|联系方式|学生名单|别的批次|其它批次|另一批次"
+        r"|其他老师|导致|因果|造成|引起|\bcause\b|\bcausal\b|\bcausation\b",
+        question,
+        re.I,
+    ) or (
+        re.search(r"修改|调整|更改|删除|覆盖|更新|重置|改为|改成|设为|调高|调低", question)
+        and re.search(r"评分|分数|成绩", question)
+    ):
+        raise AgentError("unsafe_or_unsupported_goal")
     items = tuple(
         dict.fromkeys(re.findall(r"(?<![A-Za-z0-9_])[IQ]\d{2,3}(?![A-Za-z0-9_])", question))
     )
     allowed = {i["item_id"] for i in catalog["items"]}
     if not set(items) <= allowed:
         raise AgentError("goal_item_outside_scope")
+    priority_request = re.sub(r"(?<![A-Za-z0-9_])[IQ]\d{2,3}(?![A-Za-z0-9_])", "", question).strip(
+        " \t\r\n，,、？?。"
+    )
     if any(t in question.lower() for t in ("为什么", "原因", "导致", "why", "cause")):
         kind = "explanation"
     elif any(t in question.lower() for t in ("缺分", "缺失", "样本", "missing", "证据不足")):
@@ -53,7 +71,7 @@ def understand(question: str, catalog: dict) -> Goal:
     elif any(t in question.lower() for t in ("关联", "相关", "relation", "correlation")):
         kind = "relation"
     elif (
-        any(t in question for t in ("优先", "异常", "核查"))
+        priority_request in _PRIORITY_COMMANDS
         or question.strip().rstrip("？?。").strip() in _PRIORITY_QUESTIONS
     ):
         kind = "priority"
