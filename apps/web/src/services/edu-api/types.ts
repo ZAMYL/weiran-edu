@@ -1,6 +1,8 @@
 import {
   count,
   checked,
+  type Decoder,
+  ContractError,
   empty,
   flag,
   list,
@@ -12,7 +14,9 @@ import {
   text,
   type Decoded,
 } from './schema';
-import { exactRationalDto } from './exact';
+import { batchItemsDto, previewItemsDto, statValueDto } from './assessment-items';
+import { isQuestionResponse, questionBatchDto } from './question-types';
+export { statValueDto } from './assessment-items';
 
 export const DIMENSIONS = [
   { code: 'algorithm_data_structure', name: '算法与数据结构' },
@@ -31,14 +35,8 @@ export const conditionDto = object({
 });
 export type ApiCondition = Decoded<typeof conditionDto>;
 export const pageDto = object({ offset: count, limit: count, returned: count, has_more: flag });
-export const statValueDto = object({
-  value: nullable(numeric),
-  exact: nullable(exactRationalDto),
-  display: text,
-});
 const frequencyDto = object({ score: numeric, count, denominator: count, ratio: statValueDto });
-const dimensionStatsDto = object({
-  dimension_code: dimensionCode,
+const itemStatisticFields = {
   valid_count: count,
   missing_count: count,
   invalid_count: count,
@@ -47,6 +45,21 @@ const dimensionStatsDto = object({
   minimum: statValueDto,
   maximum: statValueDto,
   distribution: list(frequencyDto),
+};
+const dimensionStatsDto = object({
+  dimension_code: dimensionCode,
+  ...itemStatisticFields,
+});
+const itemStatisticsDto = object({
+  item_id: text,
+  ...itemStatisticFields,
+  evidence_ids: optional(list(text)),
+});
+export type ItemStatistics = Decoded<typeof itemStatisticsDto>;
+export const assessmentStatisticsDto = object({
+  batch_id: text,
+  snapshot_id: text,
+  item_statistics: list(itemStatisticsDto),
 });
 const matrixDto = object({
   scope: literal('batch'),
@@ -70,7 +83,7 @@ export const statisticsDto = object({
   matrix: nullable(matrixDto),
 });
 export type ApiStatistics = Decoded<typeof statisticsDto>;
-export const batchDto = object({
+const batchFieldsDto = object({
   batch_id: text,
   data_scope_id: text,
   snapshot_id: text,
@@ -79,7 +92,7 @@ export const batchDto = object({
   assessment_date: nullable(text),
   student_count: count,
   evaluation_count: count,
-  rubric_version: text,
+  rubric_version: nullable(text),
   parser_version: text,
   file_sha256: text,
   content_sha256: text,
@@ -88,7 +101,23 @@ export const batchDto = object({
   is_current: flag,
   created_at: text,
 });
-export type ApiBatch = Decoded<typeof batchDto>;
+export type ApiBatch = Pick<
+  Decoded<typeof batchFieldsDto>,
+  'batch_id' | 'snapshot_id' | 'title' | 'student_count'
+> &
+  Partial<Decoded<typeof batchFieldsDto>> &
+  Partial<Decoded<typeof batchItemsDto>> & { format?: 'edu-question-xlsx.v1' };
+export const batchDto: Decoder<ApiBatch> = (value) => {
+  if (isQuestionResponse(value)) {
+    const batch = questionBatchDto(value);
+    const students = batch.student_count ?? batch.participant_count;
+    if (students === undefined) throw new ContractError();
+    return { ...batch, student_count: students };
+  }
+  const batch = batchFieldsDto(value);
+  const items = batchItemsDto(value);
+  return items.recognized_items === undefined ? batch : { ...batch, ...items };
+};
 export const batchListDto = object({ total_count: count, items: list(batchDto), page: pageDto });
 export const scoreDto = object({
   dimension_code: dimensionCode,
@@ -259,6 +288,7 @@ const summaryDto = object({
 });
 const previewScoreShape = {
   dimension_code: nullable(dimensionCode),
+  item_id: optional(nullable(text)),
   score: nullable(numeric),
   score_raw: nullable(text),
   score_state: literal('valid', 'invalid', 'missing'),
@@ -278,7 +308,7 @@ export const issueDto = object({
   severity: literal('error', 'warning'),
   code: text,
   message: text,
-  sheet_name: literal('Sheet1', 'Sheet2'),
+  sheet_name: text,
   row_number: count,
   cell: text,
   row_key: nullable(text),
@@ -309,19 +339,7 @@ export const importDto = object({
     committed_batch_id: nullable(text),
   }),
   preview_available: flag,
-  recognized_items: optional(
-    nullable(
-      list(
-        object({
-          item_id: text,
-          display_name: text,
-          kind: text,
-          scale: object({ minimum: numeric, maximum: numeric, step: numeric }),
-          score_row_count: count,
-        }),
-      ),
-    ),
-  ),
+  recognized_items: optional(nullable(previewItemsDto)),
   summary: summaryDto,
   student_samples: nullable(
     list(

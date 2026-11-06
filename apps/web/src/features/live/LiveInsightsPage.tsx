@@ -29,6 +29,8 @@ import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
 import LiveDataPage from './LiveDataPage';
 import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
+import AssessmentItemPage from './AssessmentItemPage';
+import AiInvestigationPanel from './AiInvestigationPanel';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
@@ -38,12 +40,14 @@ export default function LiveInsightsPage() {
       key={`${assessmentPanel}:${assessmentRevision}`}
       view={assessmentPanel ?? 'upload'}
     />
+  ) : batch.recognized_items ? (
+    <AssessmentItemPage key={batch.snapshot_id} batch={batch} view="diagnosis" />
   ) : (
     <Insights key={`${batch.batch_id}:${batch.snapshot_id}`} batch={batch} />
   );
 }
 function Insights({ batch }: { batch: ApiBatch }) {
-  const { client, conditions, reportDraft, setReportDraft } = useDataMode();
+  const { client, conditions, reportDraft, setReportDraft, syntheticAi } = useDataMode();
   const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
@@ -170,6 +174,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
       >
         {(focusPanel) => (
           <>
+            {syntheticAi && <AiInvestigationPanel batch={batch} />}
             <div className="insights-grid">
               <Panel
                 title="评分画像"

@@ -18,6 +18,7 @@ const routes: Record<string, RegExp[]> = {
     /^batches\/[^/]+\/evidence\/[^/]+$/,
     /^imports\/[^/]+$/,
     /^imports\/[^/]+\/quality-report$/,
+    /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+$/,
   ],
   POST: [
     /^batches\/[^/]+\/discoveries\/query$/,
@@ -29,6 +30,10 @@ const routes: Record<string, RegExp[]> = {
     /^batches\/[^/]+\/insights\/[^/]+\/records\/query$/,
     /^batches\/[^/]+\/analysis-results$/,
     /^batches\/[^/]+\/analysis-results\/[^/]+\/export-check$/,
+    /^batches\/[^/]+\/ai-investigation-tasks$/,
+    /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/cancel$/,
+    /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/records\/query$/,
+    /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/review-submissions$/,
   ],
   PATCH: [/^imports\/[^/]+$/, /^batches\/[^/]+\/analysis-results\/[^/]+$/],
 };
@@ -46,6 +51,8 @@ const queryNames = new Set([
   'student_limit',
   'data_scope_id',
   'include_revisions',
+  'include_dynamic',
+  'item_id',
   'expected_version',
   'format',
 ]);
@@ -109,8 +116,13 @@ async function relay(
     return fail(503, 'BACKEND_NOT_CONFIGURED');
   }
   const testMode = testSessionEnabled(request, origin);
+  const aiEnabled = testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1';
+  if (path[2] === 'ai-investigation-tasks' && !aiEnabled) return fail(404, 'NOT_FOUND');
   if (route === 'test-session')
-    return Response.json({ enabled: testMode }, { headers: { 'Cache-Control': 'no-store' } });
+    return Response.json(
+      { enabled: testMode, ...(aiEnabled ? { ai_synthetic_enabled: true } : {}) },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
   let authorization = request.headers.get('authorization');
   if (!authorization && testMode) {
     try {

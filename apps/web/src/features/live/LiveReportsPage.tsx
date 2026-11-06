@@ -8,6 +8,7 @@ import AnalysisActions from './AnalysisActions';
 export default function LiveReportsPage() {
   const { batch, conditions, reportDraft, setReportDraft } = useDataMode();
   if (!batch) return <NoBatch />;
+  if (batch.recognized_items) return <Panel>当前测评暂不支持生成或导出分析报告。</Panel>;
   const key = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
   const draft = reportDraft?.key === key ? reportDraft : null;
   const spec = draft?.spec ?? {

@@ -20,6 +20,7 @@ import {
 } from '../services/edu-api/discovery-navigation';
 
 import type { DiscoverySelection } from '../services/edu-api/analysis-types';
+import type { QuestionPreview } from '../services/edu-api/question-types';
 export interface ReportDraft {
   key: string;
   spec: InsightSpec;
@@ -34,7 +35,7 @@ export interface UploadDraft {
   course: string;
   date: string;
   scope: string;
-  preview: ApiImport | null;
+  preview: ApiImport | QuestionPreview | null;
   committed: ApiCommit | null;
 }
 interface SessionState {
@@ -46,6 +47,7 @@ interface SessionState {
   ready: boolean;
   reportDraft: ReportDraft | null;
   testMode: boolean;
+  syntheticAi: boolean;
   connected: boolean;
   teacherId: string | null;
   scopes: ApiScope[];
@@ -65,6 +67,7 @@ const initial: SessionState = {
   ready: false,
   reportDraft: null,
   testMode: false,
+  syntheticAi: false,
   connected: false,
   teacherId: null,
   scopes: [],
@@ -228,7 +231,11 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           'enabled' in config &&
           config.enabled === true
         ) {
-          setState((s) => ({ ...s, testMode: true }));
+          setState((s) => ({
+            ...s,
+            testMode: true,
+            syntheticAi: 'ai_synthetic_enabled' in config && config.ai_synthetic_enabled === true,
+          }));
           await connect(null);
         }
       } catch {

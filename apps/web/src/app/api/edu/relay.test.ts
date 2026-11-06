@@ -8,6 +8,49 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 it.each([
+  ['POST', 'batches/b/ai-investigation-tasks'],
+  ['GET', 'batches/b/ai-investigation-tasks/t'],
+  ['POST', 'batches/b/ai-investigation-tasks/t/cancel'],
+  ['POST', 'batches/b/ai-investigation-tasks/t/records/query'],
+  ['POST', 'batches/b/ai-investigation-tasks/t/review-submissions'],
+])('gates synthetic AI %s %s behind the loopback development switches', async (method, route) => {
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json({ state: 'queued' }, { status: 202 }));
+  vi.stubGlobal('fetch', fetcher);
+  const run = () =>
+    (method === 'GET' ? GET : POST)(
+      new Request('http://127.0.0.1:3000/api/edu/' + route, {
+        method,
+        headers: { authorization: bearer },
+        ...(method === 'POST' ? { body: '{}' } : {}),
+      }),
+      context(route),
+    );
+  expect((await run()).status).toBe(404);
+  expect(fetcher).not.toHaveBeenCalled();
+  vi.stubEnv('EDU_TEST_MODE', '1');
+  vi.stubEnv('EDU_AI_SYNTHETIC_MODE', '1');
+  expect((await run()).status).toBe(202);
+  const before = fetcher.mock.calls.length;
+  const wrong = route + '/unknown';
+  expect(
+    (
+      await POST(
+        new Request('http://127.0.0.1:3000/api/edu/' + wrong, {
+          method: 'POST',
+          headers: { authorization: bearer },
+          body: '{}',
+        }),
+        context(wrong),
+      )
+    ).status,
+  ).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(before);
+  vi.stubEnv('EDU_API_ORIGIN', 'https://example.invalid');
+  expect((await run()).status).toBe(404);
+});
+it.each([
   'batches/b/discoveries/query',
   'batches/b/discoveries/012345678901234567890123/query',
   'batches/b/discoveries/012345678901234567890123/chart/query',
