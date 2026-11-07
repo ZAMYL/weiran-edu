@@ -7,12 +7,13 @@ from fractions import Fraction
 
 import pytest
 from prototypes.adaptive_assessment.synthetic import admit
-from prototypes.capability_profiles.agent import project_selected, run_profiles
+from prototypes.capability_profiles.agent import ProfileExecutor, project_selected, run_profiles
 from prototypes.capability_profiles.demo import teacher_markdown
 from prototypes.capability_profiles.engine import (
     DIMS,
     ProfileBook,
     build_profiles,
+    query,
     resolve,
     teacher_view,
 )
@@ -212,6 +213,12 @@ def test_real_http_protocol_selection_values_sources_and_zero_findings(runs):
             assert "profile_investigation" in text
         assert project_selected(book, r, executor) == r["profiles"]
     assert len(runs["five"][0]["profiles"]) == 1
+    assert runs["five"][0]["profile_stop"] == "investigated_candidates_complete"
+    overlap = runs[RECIPES[1]][0]
+    assert len(overlap["profiles"]) == 3 and overlap["uninvestigated_candidates"] == 3
+    assert overlap["profile_stop"] == "bounded_profiles_selected"
+    assert overlap["investigation_status"] == "display_limited_not_exhaustive"
+    assert "三张画像展示上限" in teacher_markdown(overlap)
     assert runs[RECIPES[2]][0]["profiles"] == []
     assert runs[RECIPES[2]][0]["profile_stop"] == "no_eligible_profiles"
     assert "暂无符合展示条件" in teacher_markdown(runs[RECIPES[2]][0])
@@ -226,7 +233,9 @@ def test_failed_budget_run_never_becomes_successful_profile(tmp_path):
     result, _, _ = asyncio.run(
         run_profiles("five", tmp_path, limits=Limits(model_requests=1, tool_attempts=2))
     )
-    assert result["status"] == "failed" and result["profiles"] == []
+    assert result["status"] == "failed"
+    assert len(result["profiles"]) == 1  # Budget-limited partial result, never a successful run.
+    assert result["retained_fact_ids"] == [result["profiles"][0]["verified_fact_ids"][0]]
     assert result["stop_reason"] == "model_budget_exhausted"
     assert "调查未完成" in teacher_markdown(result)
     assert "暂无符合展示条件" not in teacher_markdown(result)
@@ -268,3 +277,33 @@ def test_projection_rejects_cross_snapshot_unknown_and_tampered_fact(runs):
             project_selected(book, result, executor)
     finally:
         fact.view["metrics"]["target_count"] = original
+
+
+def test_runtime_executor_rejects_unsafe_overlap_without_publishing_state(books):
+    book = books[RECIPES[1]]
+    pairs = [
+        (a, b)
+        for a in book.candidates
+        for b in book.candidates
+        if len(
+            set(a.discovery.payload.selection.matches) & set(b.discovery.payload.selection.matches)
+        )
+        == 24
+        and len(a.discovery.payload.selection.matches)
+        == len(b.discovery.payload.selection.matches)
+        == 48
+    ]
+    assert pairs
+    executor = ProfileExecutor(book.source, "overlap-policy-test", Limits(minimum_cell=25))
+    a, b = pairs[0]
+    args = query(a.discovery)
+    executor.execute("compare_student_groups", executor.parse("compare_student_groups", args))
+    before = (dict(executor.facts), list(executor.released), executor.output_bytes)
+    with pytest.raises(AgentError, match="privacy_limited"):
+        executor.execute(
+            "compare_student_groups", executor.parse("compare_student_groups", query(b.discovery))
+        )
+    assert (executor.facts, executor.released, executor.output_bytes) == before
+    assert executor.attempt_ledger[-1]["status"] == "rejected"
+    with pytest.raises(AgentError, match="disclosure_policy"):
+        project_selected(book, {"status": "completed", "findings": []}, executor)

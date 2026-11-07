@@ -77,3 +77,18 @@ python -m prototypes.capability_profiles.demo --output-dir D:/Temp/edu-profile-d
 - AiInvestigationPanel：已只读核对#74准确364e648的ai-task-types：Task→Fact→source_refs/exploration_query及pending回执。当前schema没有profiles，本输出不能直接塞进Task.facts；需后端审查后增量投影。主结果Fact可经原正式重算匹配后成为pending，整张新画像尚不能保存为confirmed或导出。本轮无接口改动，林明无需立即改页面。
 
 后端最小接线仍需获授权的五维评分Snapshot Provider：Principal与AI用途、batch/snapshot/source绑定、真实量表/维度映射、逐评分Witness重放、当前撤权、共享持久预算和跨请求累计披露。当前只接受AdmittedSynthetic；不能把recipe换成客户端JSON或真实教师原件。正式来源/用途与核验承接未审前入口保持关闭，等待非作者独立审核，不合并、不部署。
+
+
+## #78 独立审核修复：预算与最小披露（2026-11-07）
+
+审核基线578b0b2的历史结果保留，不能当作修复后结果：原B96默认三张画像、还有三候选；低工具额度2/2、以及默认5/5额度被支持度查询用尽时，曾错误输出completed。新增完整HTTP Mock反例先实际失败3项（含k=25披露反例）；离线日志保留在授权本机，不涉及教师资料。
+
+- 服务端在画像投影前核对包含统计种子的工具次数、模型次数及未调查候选。预算耗尽返回failed及tool_budget_exhausted/model_budget_exhausted，investigation_status=incomplete。仍保留经重放的同会话合格事实和部分画像，retained_fact_ids独立于model_selected_fact_ids；失败不会再被解释成正常零发现。
+- 正常核查完所有准入候选为investigated_candidates_complete；达到三张上限且仍有候选为bounded_profiles_selected/display_limited_not_exhaustive；无准入候选为no_eligible_profiles。模型主动提前结束仍标记stopped_with_uninvestigated_candidates。以上均不代表穷尽全部条件搜索。
+- 运行时minimum_cell传入候选预筛、Planner候选白名单、实际画像执行器门禁及最终投影；不再在预筛写死5。画像层保留原check_disclosure，并额外逐次细分已披露/暂存集合，检查交集、相对差集及多重集合可推导的全部非空单元。拒绝不会修改事实、已发布集合或输出计量；尝试本身仍计入预算。
+- 最终五维评分桶依据实际参与评分的成员构造，使用相同门禁累计检查。任何一侧分布不安全时，整维两侧distribution均为空，distribution_state=privacy_limited，不能只隐藏小桶。教师输出与技术JSON使用同一清洗后的投影，没有未清洗分布备份；Planner仍只接收原聚合Fact和准入方向。
+- k=25不能并列披露两个交集24人的48人组；8/16/24人的评分桶必须隐藏。k=5原本合法的群体重叠继续允许。该门禁只解决本原型声明的集合最小披露规则，不是差分隐私、正式教师用途授权或跨会话持久披露实现。
+
+正式API、数据库、前端、统计公式、Witness生成、6/5硬上限、冻结Oracle和Live封禁均不改变。#79仍冻结a16308d；等待本修复准确SHA经独立审核后再选择性同步，不强推覆盖其原始教师可读性证据。
+
+本次最终本机定向验证：画像原四组、审核反例、priority问句及Live封禁共54 passed（258.20s）；后端Ruff/format（225文件）及画像原型Ruff/format通过。完整CI必须以修复提交自己的运行结果为准，不能沿用578b0b2的旧绿灯。

@@ -7,7 +7,6 @@ from time import perf_counter
 from uuid import uuid4
 
 import httpx
-from app.ai.edu.discovery.disclosure import check_disclosure
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.ai.edu.discovery.session import _run_session
 
@@ -18,9 +17,45 @@ from prototypes.adaptive_assessment.synthetic import admit
 from prototypes.research_agent_v2.completeness import query_key
 from prototypes.research_agent_v2.demo import mock_transport
 from prototypes.research_agent_v2.goals import Goal
-from prototypes.research_agent_v2.runtime import ResearchExecutor, ResearchPlanner, fact_record
+from prototypes.research_agent_v2.runtime import (
+    ResearchExecutor,
+    ResearchPlanner,
+    fact_record,
+)
 
+from .disclosure import check_profile_disclosure
 from .engine import ProfileBook, build_profiles, query, source_sets, teacher_view
+
+
+class ProfileExecutor(ResearchExecutor):
+    def _gate(self, sources, staged):
+        return check_profile_disclosure(
+            [s.participants for s in sources],
+            released=self.released,
+            staged=staged,
+            minimum_cell=self.limits.minimum_cell,
+        )
+
+
+def available_candidates(book, executor, *, verify=True):
+    if book.minimum_cell != executor.limits.minimum_cell:
+        raise AgentError("profile_disclosure_policy_mismatch")
+    admitted, staged = [], []
+    for candidate in book.candidates:
+        if verify:
+            book.verify(candidate.profile_id)
+        try:
+            checked = check_profile_disclosure(
+                source_sets(candidate.discovery),
+                released=executor.released,
+                staged=staged,
+                minimum_cell=book.minimum_cell,
+            )
+        except AgentError:
+            continue
+        staged.extend(checked)
+        admitted.append(candidate)
+    return admitted
 
 
 class ProfilePlanner(ResearchPlanner):
@@ -44,26 +79,16 @@ class ProfilePlanner(ResearchPlanner):
         if decision.name == "compare_student_groups" and query_key(
             decision.name, decision.arguments
         ) not in {
-            query_key("compare_student_groups", query(c.discovery)) for c in self.book.candidates
+            query_key("compare_student_groups", query(c.discovery))
+            for c in available_candidates(self.book, self._executor, verify=False)
         }:
             raise AgentError("profile_query_outside_candidates")
 
     async def _post(self, payload: dict) -> dict:
         view = json.loads(payload["messages"][-1]["content"])
         attempted = {query_key(a["tool"], a["arguments"]) for a in self._executor.attempt_ledger}
-        directions, staged = [], []
-        for c in self.book.candidates:
-            self.book.verify(c.profile_id)
-            try:
-                checked = check_disclosure(
-                    source_sets(c.discovery),
-                    released=self._executor.released,
-                    staged=staged,
-                    minimum_cell=self._executor.limits.minimum_cell,
-                )
-            except AgentError:
-                continue
-            staged.extend(checked)
+        directions = []
+        for c in available_candidates(self.book, self._executor):
             args = query(c.discovery)
             directions.append(
                 {
@@ -109,7 +134,12 @@ class ProfileMockPolicy:
 def project_selected(book: ProfileBook, result: dict, executor) -> list[dict]:
     if book.source.fingerprint != executor.source.fingerprint:
         raise AgentError("profile_scope_mismatch")
-    if result["status"] != "completed":
+    if book.minimum_cell != executor.limits.minimum_cell:
+        raise AgentError("profile_disclosure_policy_mismatch")
+    if result["status"] != "completed" and result["stop_reason"] not in {
+        "tool_budget_exhausted",
+        "model_budget_exhausted",
+    }:
         return []  # Never disguise a failed run as successfully chosen profiles.
     profiles = []
     staged = []
@@ -169,14 +199,7 @@ def project_selected(book: ProfileBook, result: dict, executor) -> list[dict]:
             }
             if actual != expected:
                 raise AgentError("profile_fact_sources_mismatch")
-        checked = check_disclosure(
-            source_sets(original),
-            released=executor.released,
-            staged=staged,
-            minimum_cell=executor.limits.minimum_cell,
-        )
-        staged.extend(checked)
-        view = teacher_view(book, candidate.profile_id)
+        view = teacher_view(book, candidate.profile_id, released=executor.released, staged=staged)
         view["verified_fact_ids"] = [fact.fact_id]
         view["selection_origin"] = "http_mock_offline_mechanism"
         profiles.append(view)
@@ -192,7 +215,8 @@ async def run_profiles(
 ) -> tuple:
     total_started = perf_counter()
     source = admit(recipe)
-    book = build_profiles(source)
+    limits = limits or Limits(timeout_seconds=30)
+    book = build_profiles(source, minimum_cell=limits.minimum_cell)
     search_seconds = perf_counter() - total_started
     budget = CampaignBudget(
         mock_authorization(recipe, campaign_id="profiles-" + recipe),
@@ -204,10 +228,9 @@ async def run_profiles(
     planner = None
     started = perf_counter()
     try:
-        limits = limits or Limits(timeout_seconds=30)
         if limits.tool_attempts <= 1:
             raise AgentError("seed_budget_exhausted")
-        executor = ResearchExecutor(source, "profiles-" + uuid4().hex[:12], limits)
+        executor = ProfileExecutor(source, "profiles-" + uuid4().hex[:12], limits)
         seed = executor.execute(
             "get_dimension_statistics", executor.parse("get_dimension_statistics", {})
         )
@@ -237,7 +260,10 @@ async def run_profiles(
                     fact_record(executor, f) for f in executor.facts.values()
                 ],
                 "seed_ledger": [
-                    {"tool": "get_dimension_statistics", "fact_ids": [f.fact_id for f in seed]}
+                    {
+                        "tool": "get_dimension_statistics",
+                        "fact_ids": [f.fact_id for f in seed],
+                    }
                 ],
                 "tool_ledger": [asdict(t) for t in run.tools],
                 "attempt_ledger": executor.attempt_ledger,
@@ -257,21 +283,74 @@ async def run_profiles(
                 "production_enabled": False,
             }
         )
+        investigated = {
+            query_key(f.tool, f.query["arguments"])
+            for f in executor.facts.values()
+            if f.tool == "compare_student_groups"
+        }
+        result["uninvestigated_candidates"] = sum(
+            query_key("compare_student_groups", query(c.discovery)) not in investigated
+            for c in book.candidates
+        )
+        remaining = result["uninvestigated_candidates"]
+        if result["status"] == "completed" and remaining and len(run.cards) < 3:
+            if result["tool_attempts"] >= limits.tool_attempts:
+                result.update(status="failed", stop_reason="tool_budget_exhausted")
+            elif result["model_requests"] >= limits.model_requests:
+                result.update(status="failed", stop_reason="model_budget_exhausted")
+            else:
+                result["stop_reason"] = "stopped_with_uninvestigated_candidates"
+        # Budget failure does not revoke already verified, same-session observations.
+        # Retention is a server action, recorded separately from model selection.
+        result["retained_fact_ids"] = []
+        if result["stop_reason"] in {"tool_budget_exhausted", "model_budget_exhausted"}:
+            retained = [
+                f.fact_id
+                for f in executor.facts.values()
+                if f.tool == "compare_student_groups" and f.view["qualified"]
+            ][:3]
+            result["findings"] = wire(
+                executor.finish(
+                    executor.parse(
+                        "finish",
+                        {
+                            "selected_fact_ids": retained,
+                            "reason": "completed" if retained else "no_valid_findings",
+                        },
+                    )
+                )
+            )
+            result["retained_fact_ids"] = retained
         result["profiles"] = project_selected(book, result, executor)
         result["profile_search"] = book.audit
         result["candidate_search_seconds"] = search_seconds
         result["profile_stop"] = (
-            "no_eligible_profiles"
+            result["stop_reason"]
+            if result["status"] != "completed"
+            else "no_eligible_profiles"
             if not book.candidates
             else "bounded_profiles_selected"
-            if result["profiles"]
-            else "no_verified_profile_selected"
+            if len(result["profiles"]) == 3 and remaining
+            else "stopped_with_uninvestigated_candidates"
+            if remaining
+            else "investigated_candidates_complete"
         )
-        result["uninvestigated_candidates"] = len(book.candidates) - len(
+        result["investigation_status"] = (
+            "incomplete"
+            if result["status"] != "completed" or remaining
+            else "bounded_complete_not_exhaustive"
+        )
+        if result["profile_stop"] == "bounded_profiles_selected":
+            result["investigation_status"] = "display_limited_not_exhaustive"
+            result["stop_reason"] = "bounded_profiles_selected"
+        result["verification_replay_executions"] = executor.replay_executions
+        result["trace"].append(
             {
-                query_key(f.tool, f.query["arguments"])
-                for f in executor.facts.values()
-                if f.tool == "compare_student_groups"
+                "sequence": len(result["trace"]) + 1,
+                "round": run.model_requests,
+                "phase": "profile_finalization",
+                "status": result["status"],
+                "error": result["stop_reason"] if result["status"] != "completed" else None,
             }
         )
         result["elapsed_total_seconds"] = perf_counter() - total_started
