@@ -550,9 +550,17 @@
   min-height: 44px;
   font-size: 14px;
 }
+.ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
+  margin-inline-start: auto;
+}
 @media (max-width: 960px) {
   .ai-fact-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
+    margin-inline-start: 0;
   }
 }
 .focus-metrics {
@@ -597,6 +605,13 @@
   margin-top: 4px;
   font-size: 14px;
   color: #536480;
+}
+.ai-fact-grid .focus-metrics {
+  margin: 14px 0 12px;
+  gap: 8px 12px;
+}
+.ai-fact-grid .focus-metrics > div {
+  padding-block: 4px;
 }
 .focus-interpretation {
   font-size: 14px;
@@ -3871,6 +3886,9 @@ h1 {
 }
 .is-report-page .page-title-group h1 {
   font-size: 30px;
+}
+.is-report-page .fullscreen-title .ant-tag {
+  margin-inline-start: 12px;
 }
 .is-report-page .assessment-toolbar {
   flex: 1;
