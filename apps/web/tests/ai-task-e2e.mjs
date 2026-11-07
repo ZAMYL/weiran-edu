@@ -92,7 +92,7 @@ try {
       { teacher: me.teacher_id, id: ref.batch_id },
     );
     await page.reload();
-    await page.getByRole('heading', { name: 'AI 辅助分析', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'AI 分析演示', exact: true }).waitFor();
     await page.getByLabel('想了解什么？', { exact: true }).waitFor();
     return ref;
   }

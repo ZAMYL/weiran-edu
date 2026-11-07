@@ -681,7 +681,6 @@ function AnalysisEditor({
         <div className="report-editor-findings">
           <div className="review-section-heading">
             <h2>发现核验</h2>
-            <span className="muted small">仅已确认发现进入报告</span>
           </div>
           {!reviewItems.length && (
             <Empty description="本次分析没有保存候选发现，仍可导出测评报告。" />
