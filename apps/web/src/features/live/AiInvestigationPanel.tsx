@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Button, Checkbox, Drawer, Input, Pagination, Select, Table, Tag } from 'antd';
+import { Alert, Button, Checkbox, Drawer, Input, Pagination, Select, Table } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useDataMode } from '../../app/data-mode';
 import type { ApiBatch } from '../../services/edu-api/types';
@@ -140,15 +140,16 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
     task?.result?.facts.filter((fact) => task.result!.selected_fact_ids.includes(fact.fact_id)) ??
     [];
   return (
-    <Panel
-      title="AI 辅助分析"
-      action={<Tag color="cyan">合成 HTTP Mock · Qwen 未调用</Tag>}
-      className="ai-investigation-panel"
-    >
-      <p className="muted small">分析范围：本次测评全部 {batch.student_count} 名授权参评者</p>
-      <label htmlFor="ai-question">想了解什么？</label>
+    <Panel title="AI 分析演示" className="ai-investigation-panel">
+      <div className="ai-question-heading">
+        <label htmlFor="ai-question">想了解什么？</label>
+        <span id="ai-scope" className="muted">
+          全体参评者 · {batch.student_count} 人
+        </span>
+      </div>
       <Input.TextArea
         id="ai-question"
+        aria-describedby="ai-scope"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         maxLength={300}
@@ -247,38 +248,35 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                       </div>
                     ))}
                 </dl>
-                <div className="ai-fact-footer">
-                  <p className="muted">评分现象用于核查，不直接解释学习成因。</p>
-                  <div className="ai-fact-actions">
-                    {!!fact.source_refs.length && fact.source_verified && (
-                      <Button onClick={() => setSources(fact)}>查看依据</Button>
-                    )}
-                    {fact.exploration_query && fact.source_verified && (
-                      <Button
-                        onClick={() => {
-                          setConditions(fact.exploration_query!.conditions);
-                          router.push('/explorer');
-                        }}
-                      >
-                        继续探索
-                      </Button>
-                    )}
-                    {fact.qualified && fact.source_verified && (
-                      <Checkbox
-                        checked={selected.includes(fact.fact_id)}
-                        disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
-                        onChange={(e) =>
-                          setSelected((ids) =>
-                            e.target.checked
-                              ? [...ids, fact.fact_id]
-                              : ids.filter((id) => id !== fact.fact_id),
-                          )
-                        }
-                      >
-                        加入待核查
-                      </Checkbox>
-                    )}
-                  </div>
+                <div className="ai-fact-actions">
+                  {!!fact.source_refs.length && fact.source_verified && (
+                    <Button onClick={() => setSources(fact)}>查看依据</Button>
+                  )}
+                  {fact.exploration_query && fact.source_verified && (
+                    <Button
+                      onClick={() => {
+                        setConditions(fact.exploration_query!.conditions);
+                        router.push('/explorer');
+                      }}
+                    >
+                      继续探索
+                    </Button>
+                  )}
+                  {fact.qualified && fact.source_verified && (
+                    <Checkbox
+                      checked={selected.includes(fact.fact_id)}
+                      disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
+                      onChange={(e) =>
+                        setSelected((ids) =>
+                          e.target.checked
+                            ? [...ids, fact.fact_id]
+                            : ids.filter((id) => id !== fact.fact_id),
+                        )
+                      }
+                    >
+                      加入待核查
+                    </Checkbox>
+                  )}
                 </div>
               </section>
             ))}
