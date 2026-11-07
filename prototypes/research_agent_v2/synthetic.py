@@ -6,6 +6,8 @@ from hashlib import sha256
 from docs.canonical_assessment.model import Scale
 from prototypes.adaptive_assessment.adapters import ItemSpec, _assemble
 from prototypes.adaptive_assessment.data import Envelope, PrototypeError
+from prototypes.capability_profiles.synthetic import RECIPES as PROFILE_RECIPES
+from prototypes.capability_profiles.synthetic import specification as profile_specification
 
 from .review_sources import RECIPES as REVIEW_RECIPES
 from .review_sources import specification as review_specification
@@ -22,10 +24,12 @@ RECIPES = {
     "research-v2-final-empty": (36, 4, "competency", 9011),
 }
 
-RECIPES.update({name: None for name in REVIEW_RECIPES})
+RECIPES.update({name: None for name in (*REVIEW_RECIPES, *PROFILE_RECIPES)})
 
 
 def specification(recipe: str) -> dict:
+    if recipe in PROFILE_RECIPES:
+        return profile_specification(recipe)
     if recipe in REVIEW_RECIPES:
         return review_specification(recipe)
     try:
@@ -75,7 +79,7 @@ def decode_registered(raw: bytes):
     items = [
         ItemSpec(
             item,
-            f"合成评价项 {item}",
+            spec.get("item_names", {}).get(item, f"合成评价项 {item}"),
             spec["kind"],
             Scale("scale-" + item, spec["minimum"], spec["maximum"], spec["step"], unit),
             spec.get("measurement_level", "ordinal" if prefix == "I" else "interval"),
