@@ -20,7 +20,7 @@ const task = {
   expires_at: 1,
 };
 it('describes a bounded stop without implying exhaustive discovery', () => {
-  expect(stopLabels.bounded_scope_stop).toContain('未穷尽');
+  expect(stopLabels.bounded_scope_stop).toContain('未覆盖所有问题');
 });
 it('accepts actual queued and stopped states without manufacturing progress', () => {
   expect(aiRunning(aiTaskDto(task))).toBe(true);

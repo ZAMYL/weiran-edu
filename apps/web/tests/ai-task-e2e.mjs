@@ -132,7 +132,6 @@ try {
   const start = await createdResponse.json();
   assert.equal(start.execution_origin, 'http_mock');
   await page.getByTestId('ai-fact-card').first().waitFor({ timeout: 240000 });
-  await page.getByText('分析已结束', { exact: true }).waitFor();
   const completed = await page.evaluate(
     async ({ batch, task }) =>
       (
@@ -153,8 +152,11 @@ try {
   assert.equal(completed.result.real_qwen, 'not_run');
   assert.equal(completed.result.production_enabled, false);
   assert.equal(completed.result.budget.actual_remote_requests, 0);
-  if (completed.result.stop_reason === 'bounded_scope_stop')
-    await page.getByText('本轮有限核查已结束，未穷尽所有问题', { exact: true }).waitFor();
+  if (completed.result.stop_reason === 'bounded_scope_stop') {
+    const status = page.locator('.ai-task-actions').getByRole('status');
+    assert.equal(await status.innerText(), '核查未覆盖所有问题');
+    assert.equal(await page.getByText('分析已结束', { exact: true }).count(), 0);
+  }
   const stale = await page.evaluate(
     async ({ batch, task }) =>
       (
@@ -315,13 +317,14 @@ try {
     const ref = await openCase(name);
     await page.getByLabel('想了解什么？', { exact: true }).fill(ref.question);
     await page.getByRole('button', { name: '开始分析', exact: true }).click();
-    await page.getByText('分析已结束', { exact: true }).waitFor({ timeout: 240000 });
     if (name === 'empty') {
-      await page.getByText('本轮未发现符合条件的结果', { exact: true }).waitFor();
+      await page
+        .getByText('本轮未发现符合条件的结果', { exact: true })
+        .waitFor({ timeout: 240000 });
       assert.equal(await cards.count(), 0);
       assert.equal(await page.getByRole('button', { name: /提交待核查/ }).count(), 0);
     } else {
-      await page.getByText('进一步解释需要补充资料', { exact: true }).waitFor();
+      await page.getByText('进一步解释需要补充资料', { exact: true }).waitFor({ timeout: 240000 });
       assert.ok((await cards.count()) > 0);
     }
     await page.screenshot({ path: path.join(artifacts, name + '.png'), fullPage: true });

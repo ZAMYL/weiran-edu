@@ -134,9 +134,9 @@ export const taskStateLabels: Record<AiTask['state'], string> = {
   timed_out: '分析超时',
 };
 export const stopLabels: Record<string, string> = {
-  bounded_scope_stop: '本轮有限核查已结束，未穷尽所有问题',
+  bounded_scope_stop: '核查未覆盖所有问题',
   goal_satisfied: '本轮问题已完成核查',
-  needs_external_evidence: '已保留有效发现，进一步解释还需要量规或答卷等资料',
+  needs_external_evidence: '已保留可核验结果',
   no_supported_findings: '本轮未发现符合条件的结果',
   budget_limited: '本轮分析额度已用尽',
   stopped_with_uncovered_directions: '本轮已结束，仍有方向未核查',

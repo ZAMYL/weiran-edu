@@ -139,6 +139,9 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const facts =
     task?.result?.facts.filter((fact) => task.result!.selected_fact_ids.includes(fact.fact_id)) ??
     [];
+  const taskLabel = task ? taskStateLabels[task.state] : undefined;
+  const resultLabel = task?.result && stopLabels[task.result.stop_reason];
+  const status = restoring ? '正在读取分析任务…' : (resultLabel ?? taskLabel);
   return (
     <Panel title="AI 分析演示" className="ai-investigation-panel">
       <div className="ai-question-heading">
@@ -157,7 +160,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
         placeholder="有哪些值得关注的问题？"
         disabled={busy || restoring || aiRunning(task)}
       />
-      <div className="batch-actions" style={{ marginTop: 12 }}>
+      <div className="ai-task-actions">
         <Button
           type="primary"
           disabled={!question.trim() || busy || restoring || aiRunning(task)}
@@ -179,9 +182,12 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             停止分析
           </Button>
         )}
-        {task && <span role="status">{taskStateLabels[task.state]}</span>}
+        {status && !task?.error_code && (
+          <span className="ai-task-status" role="status">
+            {status}
+          </span>
+        )}
       </div>
-      {restoring && <p className="muted">正在读取本测评的分析任务…</p>}
       {error && (
         <RequestError
           error={error}
@@ -200,7 +206,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
         <Alert
           showIcon
           type="warning"
-          title={taskStateLabels[task.state]}
+          title={taskLabel}
           description={
             <details>
               <summary>技术详情</summary>
@@ -211,7 +217,6 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       )}
       {task?.result && (
         <>
-          <p>{stopLabels[task.result.stop_reason] ?? '本轮分析已结束，请查看结果范围。'}</p>
           {task.result.missing_evidence.length > 0 && (
             <Alert
               type="warning"
@@ -282,7 +287,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             ))}
           </div>
           {!!selected.length && (
-            <Button type="primary" loading={busy} onClick={review}>
+            <Button className="ai-review-submit" type="primary" loading={busy} onClick={review}>
               提交待核查（{selected.length}）
             </Button>
           )}
