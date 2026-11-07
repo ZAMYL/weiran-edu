@@ -8,6 +8,7 @@ from fractions import Fraction
 import pytest
 from prototypes.adaptive_assessment.synthetic import admit
 from prototypes.capability_profiles.agent import project_selected, run_profiles
+from prototypes.capability_profiles.demo import teacher_markdown
 from prototypes.capability_profiles.engine import (
     DIMS,
     ProfileBook,
@@ -213,6 +214,7 @@ def test_real_http_protocol_selection_values_sources_and_zero_findings(runs):
     assert len(runs["five"][0]["profiles"]) == 1
     assert runs[RECIPES[2]][0]["profiles"] == []
     assert runs[RECIPES[2]][0]["profile_stop"] == "no_eligible_profiles"
+    assert "暂无符合展示条件" in teacher_markdown(runs[RECIPES[2]][0])
     assert runs[RECIPES[2]][0]["tool_attempts"] == 1  # Only trusted overview, then stop.
     assert (
         runs[RECIPES[0]][0]["tool_ledger"][0]["arguments"]
@@ -226,6 +228,8 @@ def test_failed_budget_run_never_becomes_successful_profile(tmp_path):
     )
     assert result["status"] == "failed" and result["profiles"] == []
     assert result["stop_reason"] == "model_budget_exhausted"
+    assert "调查未完成" in teacher_markdown(result)
+    assert "暂无符合展示条件" not in teacher_markdown(result)
     assert result["model_requests"] == 1 and result["tool_attempts"] == 2
     with pytest.raises(AgentError, match="campaign_already_consumed"):
         asyncio.run(run_profiles("five", tmp_path))

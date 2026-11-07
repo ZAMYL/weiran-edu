@@ -25,8 +25,24 @@ def _display(value):
 
 def teacher_markdown(result: dict) -> str:
     lines = ["# 本次测评的典型评分画像", "", "合成演示；选择由HTTP Mock完成，真实Qwen未运行。", ""]
-    if not result["profiles"]:
-        lines += ["暂无经本轮选择核验的典型群体。", "当前状态：" + result["profile_stop"]]
+    if result["status"] != "completed":
+        reasons = {
+            "model_budget_exhausted": "模型请求额度已用尽",
+            "tool_budget_exhausted": "工具调用额度已用尽",
+            "model_timeout": "规划请求超时",
+            "run_timeout": "本轮执行超时",
+        }
+        lines += [
+            "本轮调查未完成，不能据此判断有没有典型群体。",
+            reasons.get(result["stop_reason"], "本轮未成功完成，请核对技术记录。"),
+        ]
+    elif not result["profiles"]:
+        lines += [
+            "本轮搜索范围内暂无符合展示条件的群体。"
+            if result["profile_stop"] == "no_eligible_profiles"
+            else "本轮尚未选择已核验画像，仍可核查候选。",
+            "这不代表所有人的表现完全相同，也不代表已经穷尽所有组合。",
+        ]
     for profile in result["profiles"]:
         lines += [
             "## " + profile["title"],
@@ -89,6 +105,9 @@ async def demonstrate(output: Path) -> dict:
         )
         result, book, _ = await run_profiles(name, output / "state" / name)
         old, _ = await offline(name, "优先核查", output / "old-research-state" / name)
+        (output / (name + ".baseline-research.json")).write_text(
+            json.dumps(old, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         (output / (name + ".teacher.md")).write_text(teacher_markdown(result), encoding="utf-8")
         (output / (name + ".technical.json")).write_text(
             json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -118,6 +137,7 @@ async def demonstrate(output: Path) -> dict:
                     "model_requests": old["model_requests"],
                     "tool_attempts": old["tool_attempts"],
                     "stop_reason": old["stop_reason"],
+                    "elapsed_session_seconds": old["elapsed_seconds"],
                 },
                 "profile_http_mock": {
                     "status": result["status"],

@@ -35,7 +35,7 @@ $env:PYTHONUTF8='1'
 python -m prototypes.capability_profiles.demo --output-dir D:/Temp/edu-profile-demo-new
 ```
 
-需全新输出目录。产生四份教师Markdown、四份技术JSON与comparison.json（含源码SHA）；state中只有Mock合成预算记录，不得把它当正式授权。技术JSON记录原始协议请求、工具参数、执行/校验Trace、实际Fact与来源查询、模型/工具计数、预算、未调查数量、候选扫描和投影重放；教师版不显示工程字段。没有新Web页面、HTTP路由或真实文件读取入口。
+需全新输出目录。产生四份教师Markdown、四份技术JSON、原Research对照JSON与comparison.json（含源码SHA）；state中只有Mock合成预算记录，不得把它当正式授权。技术JSON记录原始协议请求、工具参数、执行/校验Trace、实际Fact与来源查询、模型/工具计数、预算、未调查数量、候选扫描和投影重放；教师版不显示工程字段。没有新Web页面、HTTP路由或真实文件读取入口。
 
 |合成输入|独立设计/预期|固定Discovery默认20|原Research HTTP Mock|画像HTTP Mock|
 |---|---|---|---|---|
