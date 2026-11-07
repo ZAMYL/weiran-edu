@@ -24,7 +24,12 @@ def _display(value):
 
 
 def teacher_markdown(result: dict) -> str:
-    lines = ["# 本次测评的典型评分画像", "", "合成演示；选择由HTTP Mock完成，真实Qwen未运行。", ""]
+    lines = [
+        "# 本次测评的典型评分画像",
+        "",
+        "合成演示：解读由已核验评分按规则生成；群体选择由HTTP Mock完成，真实Qwen未运行。",
+        "",
+    ]
     if result["status"] != "completed":
         reasons = {
             "model_budget_exhausted": "模型请求额度已用尽",
@@ -47,11 +52,7 @@ def teacher_markdown(result: dict) -> str:
         lines += [
             "## " + profile["title"],
             "",
-            profile["common_pattern"],
-            "",
             profile["summary"],
-            "",
-            "分析范围：" + str(profile["metrics"]["student_denominator"]) + "人。",
             "",
             "|评价维度|本组均值|其他可判定参评者|差值（本组减其他）|",
             "|---|---:|---:|---:|",
@@ -75,6 +76,7 @@ def teacher_markdown(result: dict) -> str:
         ]
     lines += [
         "",
+        "相对高低描述本次群体均分，不是固定能力类型，也不代表每位成员都相同。",
         "群体可以重叠，人数不能相加；评分与原始评价依据需在正式授权接口中核对。",
         "本原型未读取任何教师文件或文字评语，不提供因果或综合能力等级。",
     ]

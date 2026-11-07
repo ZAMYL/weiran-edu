@@ -268,3 +268,181 @@ def test_projection_rejects_cross_snapshot_unknown_and_tampered_fact(runs):
             project_selected(book, result, executor)
     finally:
         fact.view["metrics"]["target_count"] = original
+
+
+@pytest.mark.parametrize("name", ("five", *RECIPES[:2]))
+def test_readable_titles_and_numeric_claims_follow_verified_summary(runs, name):
+    result, book, _ = runs[name]
+    for profile in result["profiles"]:
+        assert not any(op in profile["title"] for op in ("<", ">", "≤", "≥", "="))
+        assert "评分相对" in profile["title"]
+        assert "分的参评群体" not in profile["title"]
+        verified = book.verify(profile["profile_id"]).discovery
+        c = verified.payload
+        source_keys = {s.metric_key for s in verified.sources}
+        details = profile["explanation"]
+        assert details["origin"] == "rule_generated_from_verified_statistics"
+        assert details["model_generated"] is False
+        assert 1 <= len(details["highlights"]) <= 2
+        assert (
+            f"本次{c.selection.scope.student_count}人中，{len(c.selection.matches)}人"
+            in profile["summary"]
+        )
+        assert f"其余可判定的{len(c.remainder)}人" in profile["summary"]
+        for f in details["highlights"]:
+            d = next(d for d in c.dimensions if d.dimension.name == f["dimension"])
+            assert not d.condition_defined
+            assert f["role"] == "non_condition_difference" and not f["new_agent_fact"]
+            for key, expected in (
+                ("target_mean", d.target.mean),
+                ("remainder_mean", d.remainder.mean),
+                ("difference", d.difference),
+            ):
+                assert Fraction(f[key]["numerator"], f[key]["denominator"]) == expected
+            assert f"{float(d.target.mean):.2f}分" in profile["summary"]
+            assert f"{float(d.remainder.mean):.2f}分" in profile["summary"]
+            sign = "高" if d.difference > 0 else "低"
+            assert f"{sign}{float(abs(d.difference)):.2f}分" in profile["summary"]
+            assert set(f["source_metric_keys"]) <= source_keys
+        if details["anchor"] is not None:
+            f = details["anchor"]
+            assert f["role"] == "group_definition" and not f["new_agent_fact"]
+            assert next(
+                d for d in c.dimensions if d.dimension.name == f["dimension"]
+            ).condition_defined
+
+
+def test_group_definition_is_not_promoted_to_extra_finding(runs):
+    profile = runs["five"][0]["profiles"][0]
+    assert profile["explanation"]["anchor"]["dimension"] == "ALGORITHMS"
+    assert [f["dimension"] for f in profile["explanation"]["highlights"]] == ["IMPLEMENTATION"]
+    assert "代码实现" in profile["why_show"] and "算法" not in profile["why_show"]
+    assert "未用于分组" in profile["why_show"]
+    assert "26人共同满足" in profile["summary"]
+    assert "5.00分" in profile["summary"] and "1.00分" in profile["summary"]
+    assert "高4.00分" in profile["summary"]
+
+
+def test_balanced_cohort_has_opposite_meaningful_explanations(runs):
+    profiles = runs[RECIPES[0]][0]["profiles"]
+    assert len(profiles) == 2 and len({p["title"] for p in profiles}) == 2
+    assert {p["explanation"]["highlights"][0]["direction"] for p in profiles} == {-1, 1}
+    for p in profiles:
+        assert "24人共同满足" in p["summary"] and "本次72人" in p["summary"]
+        assert "1.50分" in p["summary"]
+
+
+def test_overlapping_groups_emphasize_new_direction_without_changing_members(runs):
+    result, book, _ = runs[RECIPES[1]]
+    assert [p["metrics"]["target_count"] for p in result["profiles"]] == [48, 48, 32]
+    third = result["profiles"][2]
+    assert third["explanation"]["overlaps_previous"]
+    assert [f["dimension"] for f in third["explanation"]["highlights"]] == ["IMPLEMENTATION"]
+    assert set(third["explanation"]["omitted_repeated_dimensions"]) == {"MODELING", "EFFICIENCY"}
+    assert "代码实现均分2.75分，其余3.50分，低0.75分" in third["summary"]
+    assert "人数不能相加" in third["summary"]
+    assert "解题策略评分相对较高" in third["title"]
+    assert len({p["title"] for p in result["profiles"]}) == 3
+    assert book.verify(third["profile_id"]).discovery.payload.selection.scope.student_count == 96
+
+
+def test_explanations_make_no_unsupported_student_or_teaching_claims(runs):
+    for result, _, _ in runs.values():
+        for p in result["profiles"]:
+            positive_text = " ".join(
+                p[k]
+                for k in ("title", "summary", "common_pattern", "why_show", "suggested_next_action")
+            )
+            for phrase in (
+                "心理",
+                "懒惰",
+                "粗心",
+                "具体代码错误",
+                "导致",
+                "优秀型",
+                "薄弱型",
+                "依赖AI",
+                "提高成绩",
+                "教学效果",
+                "已经掌握",
+            ):
+                assert phrase not in positive_text
+            assert "原始评分记录" in p["suggested_next_action"]
+            assert "经授权的评价依据" in p["suggested_next_action"]
+        text = teacher_markdown(result)
+        assert "按规则生成" in text and "真实Qwen未运行" in text
+    assert "暂无符合展示条件" in teacher_markdown(runs[RECIPES[2]][0])
+
+
+def test_all_repeated_directions_are_disclosed_and_not_claimed_as_new(books):
+    from prototypes.capability_profiles.explanations import PreviousDescription, description_context
+
+    book = books["five"]
+    c = book.candidates[0]
+    first = teacher_view(book, c.profile_id)
+    second = teacher_view(
+        book, c.profile_id, previous=(description_context(c.discovery.payload, first),)
+    )
+    assert second["explanation"]["only_repeated_directions"]
+    assert "不重复作为新增调查结论" in second["summary"]
+    assert "条件不同" not in second["why_show"]
+    assert second["dimensions"] == first["dimensions"] and second["metrics"] == first["metrics"]
+    context = description_context(c.discovery.payload, first)
+    p = c.discovery.payload
+    weak = PreviousDescription(
+        frozenset((*p.selection.matches[:1], *p.remainder[:19])), context.features
+    )
+    separate = teacher_view(book, c.profile_id, previous=(weak,))
+    assert separate["explanation"]["overlaps_previous"]
+    assert not separate["explanation"]["substantial_overlap_for_narrative_dedup"]
+    assert not separate["explanation"]["only_repeated_directions"]
+    assert "人数不能相加" in separate["summary"]
+
+
+def test_neutral_fallback_requires_no_fabricated_difference():
+    from prototypes.capability_profiles.engine import POLICY, dataset_from_source
+    from prototypes.capability_profiles.explanations import explain
+
+    from app.analysis.edu.discovery import compare_groups
+    from app.analysis.edu.models import Condition, Dimension, Operator
+
+    dataset, kernel = dataset_from_source(admit("constant17"))
+    comparison = compare_groups(
+        dataset,
+        batch_id=kernel.data.batch.batch_id,
+        conditions=(Condition(Dimension.ALGORITHMS, Operator.LE, 3),),
+    )
+    content = explain(comparison, POLICY, "算法与数据结构≤3分")
+    assert content["title"] == "本次测评的一组参评者"
+    assert content["explanation"]["highlights"] == []
+    assert "暂缺足够有效" in content["why_show"]
+    assert "均分" not in content["summary"]
+
+
+def test_before_after_comparator_accepts_text_change_but_rejects_fact_change(runs, tmp_path):
+    from prototypes.capability_profiles.readability_demo import compare
+
+    before, after = tmp_path / "before", tmp_path / "after"
+    before.mkdir()
+    after.mkdir()
+    for name, (result, _, _) in runs.items():
+        (before / (name + ".technical.json")).write_text(json.dumps(result), encoding="utf-8")
+        edited = json.loads(json.dumps(result))
+        for profile in edited["profiles"]:
+            profile["title"] = "only text changed"
+        (after / (name + ".technical.json")).write_text(json.dumps(edited), encoding="utf-8")
+    assert len(compare(before, after)) == 4
+    path = after / "five.technical.json"
+    edited = json.loads(path.read_text(encoding="utf-8"))
+    edited["profiles"][0]["metrics"]["target_count"] += 1
+    path.write_text(json.dumps(edited), encoding="utf-8")
+    with pytest.raises(ValueError, match="profile_facts_changed"):
+        compare(before, after)
+
+    path.write_text((before / "five.technical.json").read_text(encoding="utf-8"), encoding="utf-8")
+    empty_path = after / (RECIPES[2] + ".technical.json")
+    empty = json.loads(empty_path.read_text(encoding="utf-8"))
+    empty["verified_observations"][0]["values"]["items"][0]["mean"]["numerator"] += 1
+    empty_path.write_text(json.dumps(empty), encoding="utf-8")
+    with pytest.raises(ValueError, match="verified_tool_observations_changed"):
+        compare(before, after)
