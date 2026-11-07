@@ -529,30 +529,58 @@
   display: flex;
   flex-direction: column;
 }
-.ai-fact-footer {
-  margin-top: auto;
-  padding-top: 4px;
-  font-size: 14px;
+.ai-question-heading {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 8px;
 }
-.ai-fact-footer > p {
-  margin: 0 0 8px;
-}
+.ai-task-actions,
 .ai-fact-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 10px 12px;
 }
+.ai-task-actions {
+  margin-top: 12px;
+}
+.ai-task-status {
+  flex: 1 1 160px;
+  color: #536480;
+  font-size: 16px;
+}
+.ai-fact-actions {
+  margin-top: auto;
+  padding-top: 4px;
+}
+.ai-task-actions .ant-btn,
 .ai-fact-actions .ant-btn,
+.ai-investigation-panel .ai-review-submit {
+  min-height: 52px;
+  min-inline-size: 112px;
+  padding-inline: 16px;
+  font-size: 16px;
+}
+.ai-task-actions > .ant-btn-primary {
+  min-inline-size: 132px;
+}
 .ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  font-size: 14px;
+  min-height: 52px;
+  font-size: 16px;
+  margin-inline-start: auto;
 }
 @media (max-width: 960px) {
   .ai-fact-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
+    margin-inline-start: 0;
   }
 }
 .focus-metrics {
@@ -597,6 +625,13 @@
   margin-top: 4px;
   font-size: 14px;
   color: #536480;
+}
+.ai-fact-grid .focus-metrics {
+  margin: 14px 0 12px;
+  gap: 8px 12px;
+}
+.ai-fact-grid .focus-metrics > div {
+  padding-block: 4px;
 }
 .focus-interpretation {
   font-size: 14px;

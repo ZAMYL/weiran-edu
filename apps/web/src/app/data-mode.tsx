@@ -461,7 +461,7 @@ export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
   );
 }
 export function LiveBatchSelect() {
-  const { client, batch, connected, revision, selectBatch } = useDataMode();
+  const { client, batch, connected, revision, selectBatch, syntheticAi } = useDataMode();
   const [offset, setOffset] = useState(0);
   const load = useCallback(
     (signal: AbortSignal) => client.batches(offset, 20, signal),
@@ -469,14 +469,16 @@ export function LiveBatchSelect() {
   );
   const resource = useRemote(connected ? `batch-list:${revision}:${offset}` : null, load);
   const { message } = App.useApp();
-  const options = resource.data?.items.map((b) => ({ label: b.title, value: b.batch_id })) ?? [];
+  const batchLabel = (title: string) => (syntheticAi ? `合成测评 · ${title}` : title);
+  const options =
+    resource.data?.items.map((b) => ({ label: batchLabel(b.title), value: b.batch_id })) ?? [];
   if (batch && !options.some((option) => option.value === batch.batch_id))
-    options.unshift({ label: batch.title, value: batch.batch_id });
+    options.unshift({ label: batchLabel(batch.title), value: batch.batch_id });
   return (
     <div className="live-batch-picker">
       <Select
         className="batch-select"
-        aria-label="当前正式测评批次"
+        aria-label={syntheticAi ? '当前合成测评批次' : '当前正式测评批次'}
         value={batch?.batch_id}
         placeholder={connected ? '选择授权测评批次' : '连接教师后选择批次'}
         disabled={!connected}
