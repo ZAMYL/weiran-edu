@@ -619,6 +619,7 @@ function AnalysisEditor({
             <Input.TextArea
               id="review-analysis-note"
               aria-label="分析备注"
+              classNames={{ root: 'report-note-input', count: 'report-note-count' }}
               value={note}
               autoSize={{ minRows: 2, maxRows: 5 }}
               maxLength={2000}
@@ -776,6 +777,7 @@ function AnalysisEditor({
                   </label>
                   <Input.TextArea
                     id={`finding-note-${index}`}
+                    classNames={{ root: 'report-note-input', count: 'report-note-count' }}
                     value={decision.note}
                     maxLength={2000}
                     showCount
