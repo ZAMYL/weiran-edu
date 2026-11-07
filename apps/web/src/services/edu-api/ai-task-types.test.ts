@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { aiTaskDto, aiRunning } from './ai-task-types';
+import { aiTaskDto, aiRunning, stopLabels } from './ai-task-types';
 const task = {
   execution_origin: 'http_mock',
   real_qwen: 'not_run',
@@ -19,6 +19,9 @@ const task = {
   review_result_path: null,
   expires_at: 1,
 };
+it('describes a bounded stop without implying exhaustive discovery', () => {
+  expect(stopLabels.bounded_scope_stop).toContain('未穷尽');
+});
 it('accepts actual queued and stopped states without manufacturing progress', () => {
   expect(aiRunning(aiTaskDto(task))).toBe(true);
   expect(
