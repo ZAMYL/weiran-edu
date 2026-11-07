@@ -247,36 +247,38 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                       </div>
                     ))}
                 </dl>
-                <p className="muted small">评分现象用于核查，不直接解释学习成因。</p>
-                <div className="batch-actions">
-                  {!!fact.source_refs.length && fact.source_verified && (
-                    <Button onClick={() => setSources(fact)}>查看依据</Button>
-                  )}
-                  {fact.exploration_query && fact.source_verified && (
-                    <Button
-                      onClick={() => {
-                        setConditions(fact.exploration_query!.conditions);
-                        router.push('/explorer');
-                      }}
-                    >
-                      继续探索
-                    </Button>
-                  )}
-                  {fact.qualified && fact.source_verified && (
-                    <Checkbox
-                      checked={selected.includes(fact.fact_id)}
-                      disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
-                      onChange={(e) =>
-                        setSelected((ids) =>
-                          e.target.checked
-                            ? [...ids, fact.fact_id]
-                            : ids.filter((id) => id !== fact.fact_id),
-                        )
-                      }
-                    >
-                      加入待核查
-                    </Checkbox>
-                  )}
+                <div className="ai-fact-footer">
+                  <p className="muted">评分现象用于核查，不直接解释学习成因。</p>
+                  <div className="ai-fact-actions">
+                    {!!fact.source_refs.length && fact.source_verified && (
+                      <Button onClick={() => setSources(fact)}>查看依据</Button>
+                    )}
+                    {fact.exploration_query && fact.source_verified && (
+                      <Button
+                        onClick={() => {
+                          setConditions(fact.exploration_query!.conditions);
+                          router.push('/explorer');
+                        }}
+                      >
+                        继续探索
+                      </Button>
+                    )}
+                    {fact.qualified && fact.source_verified && (
+                      <Checkbox
+                        checked={selected.includes(fact.fact_id)}
+                        disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
+                        onChange={(e) =>
+                          setSelected((ids) =>
+                            e.target.checked
+                              ? [...ids, fact.fact_id]
+                              : ids.filter((id) => id !== fact.fact_id),
+                          )
+                        }
+                      >
+                        加入待核查
+                      </Checkbox>
+                    )}
+                  </div>
                 </div>
               </section>
             ))}
