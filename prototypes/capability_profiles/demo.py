@@ -5,6 +5,7 @@ import asyncio
 import json
 import subprocess
 from collections import Counter
+from fractions import Fraction
 from pathlib import Path
 
 from app.analysis.edu.discovery import discover
@@ -16,11 +17,14 @@ from prototypes.research_agent_v2.demo import offline
 
 from .agent import run_profiles
 from .engine import DIMS, dataset_from_source
+from .explanations import display_score
 from .synthetic import RECIPES
 
 
 def _display(value):
-    return "未提供" if value is None else f"{value['numerator'] / value['denominator']:.2f}"
+    return display_score(
+        None if value is None else Fraction(value["numerator"], value["denominator"])
+    )
 
 
 def teacher_markdown(result: dict) -> str:
@@ -48,6 +52,12 @@ def teacher_markdown(result: dict) -> str:
             else "本轮尚未选择已核验画像，仍可核查候选。",
             "这不代表所有人的表现完全相同，也不代表已经穷尽所有组合。",
         ]
+    if result.get("profile_stop") == "bounded_profiles_selected":
+        lines += ["已达到三张画像展示上限；仍有未调查候选，本轮并非完整调查。"]
+    elif result.get("profile_stop") == "stopped_with_uninvestigated_candidates":
+        lines += ["本轮已主动结束，但仍有未调查候选，不能视为完整调查。"]
+    if result["status"] != "completed" and result["profiles"]:
+        lines += [f"以下保留{len(result['profiles'])}项已经核验的部分发现；调查仍未完成。"]
     for profile in result["profiles"]:
         lines += [
             "## " + profile["title"],

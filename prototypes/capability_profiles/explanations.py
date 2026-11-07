@@ -1,12 +1,14 @@
 """Rule text over replayed comparisons; no model prose, new statistic or signed Fact."""
 
 from dataclasses import dataclass, field
+from fractions import Fraction
 
-from app.analysis.edu.discovery.models import DimensionDifference, GroupComparison, Policy
+from app.analysis.edu.discovery.models import GroupComparison, Policy
 from app.analysis.edu.discovery.presentation import exact
 from app.analysis.edu.models import Dimension, RecordRef
+from app.edu.analysis import stat
 
-VERSION = "edu-profile-explanation-0.1-draft"
+VERSION = "edu-profile-explanation-0.1.1-draft"
 NAMES = {
     Dimension.ALGORITHMS: "算法",
     Dimension.IMPLEMENTATION: "代码实现",
@@ -23,54 +25,107 @@ class PreviousDescription:
     features: frozenset[tuple[str, Dimension, int]]
 
 
-def _sign(d: DimensionDifference) -> int:
+@dataclass(frozen=True)
+class DisplayDifference:
+    dimension: Dimension
+    condition_defined: bool
+    target_mean: Fraction | None
+    remainder_mean: Fraction | None
+    difference: Fraction | None
+    target_valid: int
+    remainder_valid: int
+
+
+@dataclass(frozen=True)
+class ExplanationInput:
+    total: int
+    target: int
+    remainder: int
+    unknown: int
+    dimensions: tuple[DisplayDifference, ...]
+    overlaps_previous: bool = False
+    relevant_previous: bool = False
+    repeated_features: frozenset[tuple[str, Dimension, int]] = frozenset()
+
+
+def display_score(value: Fraction | None) -> str:
+    """Same exact HALF_UP policy as formal statistics; never round before filtering."""
+    return "未提供" if value is None else stat(value).display
+
+
+def explanation_input(
+    view: dict, *, overlaps=False, relevant=False, repeated_features=frozenset()
+) -> ExplanationInput:
+    """Whitelist a POST-disclosure view, not an admission or authorization API.
+
+    No histogram, member, Witness, source locator or raw comparison crosses this seam.
+    The engine must replay and disclose the statistics before calling this projector.
+    """
+
+    def number(value):
+        return None if value is None else Fraction(value["numerator"], value["denominator"])
+
+    metrics = view["metrics"]
+    return ExplanationInput(
+        metrics["student_denominator"],
+        metrics["target_count"],
+        metrics["remainder_count"],
+        metrics["unevaluable_count"],
+        tuple(
+            DisplayDifference(
+                Dimension[row["dimension"]],
+                row["condition_defined"],
+                number(row["target"]["mean"]),
+                number(row["remainder"]["mean"]),
+                number(row["difference"]),
+                row["target"]["valid_count"],
+                row["remainder"]["valid_count"],
+            )
+            for row in view["chart"]
+        ),
+        overlaps,
+        relevant,
+        repeated_features,
+    )
+
+
+def _sign(d: DisplayDifference) -> int:
     return 1 if d.difference > 0 else -1
 
 
-def _phrase(d: DimensionDifference) -> str:
+def _phrase(d: DisplayDifference) -> str:
     return NAMES[d.dimension] + ("评分相对较高" if d.difference > 0 else "评分相对偏低")
 
 
-def _feature(d: DimensionDifference, role: str) -> dict:
+def _feature(d: DisplayDifference, role: str) -> dict:
     return {
         "dimension": d.dimension.name,
         "role": role,
         "direction": _sign(d),
-        "target_mean": exact(d.target.mean),
-        "remainder_mean": exact(d.remainder.mean),
+        "target_mean": exact(d.target_mean),
+        "remainder_mean": exact(d.remainder_mean),
         "difference": exact(d.difference),
-        "target_valid": d.target.valid_count,
-        "remainder_valid": d.remainder.valid_count,
+        "target_valid": d.target_valid,
+        "remainder_valid": d.remainder_valid,
         "source_metric_keys": [f"target.{d.dimension.name}", f"remainder.{d.dimension.name}"],
         "source": "verified_five_dimension_summary",
         "new_agent_fact": False,
     }
 
 
-def explain(
-    comparison: GroupComparison,
-    policy: Policy,
-    label: str,
-    previous: tuple[PreviousDescription, ...] = (),
-) -> dict:
-    """Caller must replay the complete comparison first; this is not an admission API."""
-    members = frozenset(comparison.selection.matches)
-    overlaps = any(p.members & members for p in previous)
-    relevant = [
-        p
-        for p in previous
-        if members
-        and p.members
-        and len(p.members & members) * 2 >= min(len(p.members), len(members))
-    ]
+def explain(comparison: ExplanationInput, policy: Policy, label: str) -> dict:
+    """Render only whitelisted permitted aggregates; no raw comparison is accepted."""
+    if type(comparison) is not ExplanationInput:
+        raise TypeError("permitted_explanation_input_required")
+    overlaps = comparison.overlaps_previous
 
     def repeated(d, role):
-        return any((role, d.dimension, _sign(d)) in p.features for p in relevant)
+        return (role, d.dimension, _sign(d)) in comparison.repeated_features
 
     supported = [
         d
         for d in comparison.dimensions
-        if min(d.target.valid_count, d.remainder.valid_count) >= policy.minimum_samples
+        if min(d.target_valid, d.remainder_valid) >= policy.minimum_samples
         and d.difference is not None
         and abs(d.difference) >= policy.mean_difference
     ]
@@ -95,20 +150,19 @@ def explain(
     title = "、".join(title_parts) + "的一组参评者" if title_parts else "本次测评的一组参评者"
     if only_repeated:
         title = _phrase(highlights[0]) + "的参评者（方向与前述群体相近）"
-    m, r = len(members), len(comparison.remainder)
-    n = comparison.selection.scope.student_count
-    unknown = len(comparison.selection.unevaluable_records)
+    m, r = comparison.target, comparison.remainder
+    n, unknown = comparison.total, comparison.unknown
     summary = f"本次{n}人中，{m}人共同满足“{label}”；对照其余可判定的{r}人。"
     if unknown:
         summary += f"另有{unknown}人无法按分组条件判定，未纳入这组对照。"
     for d in highlights:
         direction = "高" if d.difference > 0 else "低"
         summary += (
-            f"{NAMES[d.dimension]}均分{float(d.target.mean):.2f}分，"
-            f"其余{float(d.remainder.mean):.2f}分，{direction}{float(abs(d.difference)):.2f}分。"
+            f"{NAMES[d.dimension]}均分{display_score(d.target_mean)}分，"
+            f"其余{display_score(d.remainder_mean)}分，{direction}{display_score(abs(d.difference))}分。"
         )
-        if d.target.valid_count != m or d.remainder.valid_count != r:
-            summary += f"该项有效评分分别为{d.target.valid_count}人和{d.remainder.valid_count}人。"
+        if d.target_valid != m or d.remainder_valid != r:
+            summary += f"该项有效评分分别为{d.target_valid}人和{d.remainder_valid}人。"
     if overlaps:
         summary += "与已展示群体有成员重叠，人数不能相加。"
     if only_repeated:
@@ -142,7 +196,7 @@ def explain(
             "anchor": _feature(anchor, "group_definition") if anchor is not None else None,
             "highlights": [_feature(d, "non_condition_difference") for d in highlights],
             "overlaps_previous": overlaps,
-            "substantial_overlap_for_narrative_dedup": bool(relevant),
+            "substantial_overlap_for_narrative_dedup": comparison.relevant_previous,
             "only_repeated_directions": only_repeated,
             "omitted_repeated_dimensions": [
                 d.dimension.name for d in contrasts if d not in fresh and d not in highlights

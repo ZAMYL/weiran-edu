@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .synthetic import RECIPES
 
-BASE_SHA = "578b0b20c80510ade792c0fb02af2e6b1968a3dd"
+BASE_SHA = "75332bb16e409eb377f30bb97f83403d4a800408"
 FACT_FIELDS = (
     "profile_id",
     "batch_id",
@@ -21,6 +21,7 @@ FACT_FIELDS = (
     "exploration_query",
     "source_queries",
     "agent_fact_scope",
+    "minimum_cell",
 )
 
 
@@ -60,7 +61,16 @@ def compare(before: Path, after: Path) -> list[dict]:
             return [(t["tool"], t.get("arguments"), t["status"]) for t in r["tool_ledger"]]
 
         if plan(a) != plan(b) or any(
-            a[k] != b[k] for k in ("status", "stop_reason", "model_requests", "tool_attempts")
+            a[k] != b[k]
+            for k in (
+                "status",
+                "stop_reason",
+                "profile_stop",
+                "investigation_status",
+                "uninvestigated_candidates",
+                "model_requests",
+                "tool_attempts",
+            )
         ):
             raise ValueError("investigation_behavior_changed")
 

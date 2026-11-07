@@ -5,8 +5,7 @@ from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from fractions import Fraction
 
-from app.ai.edu.discovery.disclosure import check_disclosure
-from app.ai.edu.discovery.models import AgentError
+from app.ai.edu.discovery.models import AgentError, Limits
 from app.analysis.edu import prepare_dataset
 from app.analysis.edu.discovery import TargetedDiscovery, discover
 from app.analysis.edu.discovery.models import Discovery, GroupComparison, Policy
@@ -22,7 +21,8 @@ from app.analysis.edu.models import (
 from prototypes.adaptive_assessment.analysis import Kernel
 from prototypes.adaptive_assessment.synthetic import AdmittedSynthetic
 
-from .explanations import PreviousDescription, explain
+from .disclosure import check_profile_disclosure
+from .explanations import PreviousDescription, explain, explanation_input
 from .synthetic import RECIPES
 
 VERSION = "edu-capability-profile-0.1-draft"
@@ -115,6 +115,7 @@ class ProfileBook:
     source: AdmittedSynthetic = field(repr=False)
     candidates: tuple[ProfileCandidate, ...]
     audit: dict
+    minimum_cell: int = 5
 
     def verify(self, profile_id: str) -> ProfileCandidate:
         candidate = next((c for c in self.candidates if c.profile_id == profile_id), None)
@@ -144,10 +145,14 @@ class ProfileBook:
         return candidate
 
 
-def build_profiles(source: AdmittedSynthetic) -> ProfileBook:
+def build_profiles(source: AdmittedSynthetic, *, minimum_cell: int = 5) -> ProfileBook:
+    Limits(minimum_cell=minimum_cell)  # Keep the existing runtime policy bounds.
     dataset, kernel = dataset_from_source(source)
     result = discover(
-        dataset, batch_id=kernel.data.batch.batch_id, snapshot_id=source.fingerprint, policy=POLICY
+        dataset,
+        batch_id=kernel.data.batch.batch_id,
+        snapshot_id=source.fingerprint,
+        policy=POLICY,
     )
     by_partition = {}
     rejected = {"support_or_stability": 0, "near_duplicate": 0, "privacy_limited": 0}
@@ -192,11 +197,11 @@ def build_profiles(source: AdmittedSynthetic) -> ProfileBook:
             rejected["near_duplicate"] += 1
             continue
         try:
-            checked = check_disclosure(
+            checked = check_profile_disclosure(
                 source_sets(finding),
                 released=[frozenset(kernel.participants)],
                 staged=accepted_sets,
-                minimum_cell=5,
+                minimum_cell=minimum_cell,
             )
         except AgentError:
             rejected["privacy_limited"] += 1
@@ -218,6 +223,7 @@ def build_profiles(source: AdmittedSynthetic) -> ProfileBook:
         source,
         tuple(c for _, c in chosen),
         {
+            "minimum_cell": minimum_cell,
             "search_budget": POLICY.search_budget,
             "search_attempts": len(result.search_audit),
             "raw_qualified_findings": result.qualified_count,
@@ -235,16 +241,60 @@ def build_profiles(source: AdmittedSynthetic) -> ProfileBook:
             "rare_combinations": sum(d.type == "rare_combination" for d in result.findings),
             "rare_individuals_not_promoted_to_typical_groups": True,
         },
+        minimum_cell,
     )
 
 
 def teacher_view(
-    book: ProfileBook, profile_id: str, *, previous: tuple[PreviousDescription, ...] = ()
+    book: ProfileBook,
+    profile_id: str,
+    *,
+    released=None,
+    staged=None,
+    previous: tuple[PreviousDescription, ...] = (),
 ) -> dict:
     candidate = book.verify(profile_id)
     d = candidate.discovery
     p = d.payload
     view = present(d)
+    kernel = Kernel(book.source.envelope)
+    history = list(released) if released is not None else [frozenset(kernel.participants)]
+    pending = list(staged) if staged is not None else []
+    # Reserve all admitted candidate partitions before releasing optional score buckets.
+    # Otherwise an early distribution could undermine a later legal group investigation.
+    reserved = [group for c in book.candidates for group in source_sets(c.discovery)]
+    pending.extend(
+        check_profile_disclosure(
+            source_sets(d),
+            released=history,
+            staged=pending,
+            minimum_cell=book.minimum_cell,
+        )
+    )
+    for dimension, row in zip(p.dimensions, view["chart"], strict=True):
+        column = dict(kernel.eligible(ITEMS[DIMS.index(dimension.dimension)]))
+        buckets = [
+            frozenset(r.student_id for r in stats.valid_records if column[r.student_id] == f.score)
+            for stats in (dimension.target, dimension.remainder)
+            for f in stats.distribution
+        ]
+        try:
+            checked = check_profile_disclosure(
+                buckets,
+                released=history,
+                staged=[*reserved, *pending],
+                minimum_cell=book.minimum_cell,
+            )
+        except AgentError:
+            # Suppress BOTH complete histograms, never just the small counts:
+            # the group total and other bins would recover the hidden bucket.
+            for side in ("target", "remainder"):
+                row[side]["distribution"] = []
+                row[side]["distribution_state"] = "privacy_limited"
+        else:
+            pending.extend(checked)
+            for side in ("target", "remainder"):
+                row[side]["distribution_state"] = "available"
     conditions = [
         {
             "dimension_code": CODES[DIMS.index(c.dimension)],
@@ -258,13 +308,28 @@ def teacher_view(
         f"{decimal_text(c.threshold)}分"
         for c in p.selection.conditions
     )
-    return {
+    members = frozenset(p.selection.matches)
+    overlaps = any(old.members & members for old in previous)
+    relevant = tuple(
+        old
+        for old in previous
+        if members
+        and old.members
+        and len(old.members & members) * 2 >= min(len(old.members), len(members))
+    )
+    approved = explanation_input(
+        view,
+        overlaps=overlaps,
+        relevant=bool(relevant),
+        repeated_features=frozenset(f for old in relevant for f in old.features),
+    )
+    result = {
         "profile_id": profile_id,
         "batch_id": d.context.batch_id,
         "snapshot_id": d.context.snapshot_id,
         "rule_version": VERSION,
         "calculation_rule_version": d.rule_version,
-        **explain(p, d.policy, label, previous),
+        **explain(approved, d.policy, label),
         "metrics": view["metrics"],
         "dimensions": [
             dict(
@@ -276,7 +341,10 @@ def teacher_view(
         ],
         "conditions": conditions,
         "status": d.status,
-        "exploration_query": {"snapshot_id": d.context.snapshot_id, "conditions": conditions},
+        "exploration_query": {
+            "snapshot_id": d.context.snapshot_id,
+            "conditions": conditions,
+        },
         "source_queries": [
             {"profile_id": profile_id, "metric_key": s.metric_key} for s in d.sources
         ],
@@ -289,9 +357,13 @@ def teacher_view(
             "群体可能重叠，人数不能相加；未覆盖全部候选。",
             "未读取评语或任务原文，不推断具体代码错误、心理或因果。",
         ],
+        "minimum_cell": book.minimum_cell,
         "public_display_allowed": False,
         "production_enabled": False,
     }
+    if staged is not None:
+        staged[:] = pending
+    return result
 
 
 def resolve(book: ProfileBook, profile_id: str, metric_key: str) -> tuple:
