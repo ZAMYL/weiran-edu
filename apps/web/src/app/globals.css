@@ -536,22 +536,41 @@
   gap: 4px 12px;
   margin-bottom: 8px;
 }
+.ai-task-actions,
 .ai-fact-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 10px 12px;
+}
+.ai-task-actions {
+  margin-top: 12px;
+}
+.ai-task-status {
+  flex: 1 1 160px;
+  color: #536480;
+  font-size: 16px;
+}
+.ai-fact-actions {
   margin-top: auto;
   padding-top: 4px;
 }
+.ai-task-actions .ant-btn,
 .ai-fact-actions .ant-btn,
+.ai-investigation-panel .ai-review-submit {
+  min-height: 52px;
+  min-inline-size: 112px;
+  padding-inline: 16px;
+  font-size: 16px;
+}
+.ai-task-actions > .ant-btn-primary {
+  min-inline-size: 132px;
+}
 .ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  font-size: 14px;
-}
-.ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
+  min-height: 52px;
+  font-size: 16px;
   margin-inline-start: auto;
 }
 @media (max-width: 960px) {
