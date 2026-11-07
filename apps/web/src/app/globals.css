@@ -519,6 +519,42 @@
   font-size: 14px;
   line-height: 1.6;
 }
+.ai-fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap);
+  margin: 16px 0;
+}
+.ai-fact-grid .discovery-card {
+  display: flex;
+  flex-direction: column;
+}
+.ai-fact-footer {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 14px;
+}
+.ai-fact-footer > p {
+  margin: 0 0 8px;
+}
+.ai-fact-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.ai-fact-actions .ant-btn,
+.ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+}
+@media (max-width: 960px) {
+  .ai-fact-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .focus-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3592,6 +3628,14 @@ h1 {
   display: grid;
   gap: 8px;
   margin: 20px 0;
+}
+.report-note-input.ant-input-textarea-affix-wrapper.ant-input-affix-wrapper {
+  padding-block-end: 22px;
+}
+.report-note-input .ant-input-data-count.report-note-count {
+  bottom: 4px;
+  inset-inline-end: 11px;
+  font-size: 12px;
 }
 .saved-analysis-list {
   display: grid;

@@ -30,6 +30,7 @@ import LiveDataPage from './LiveDataPage';
 import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
 import AssessmentItemPage from './AssessmentItemPage';
+import AiInvestigationPanel from './AiInvestigationPanel';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
@@ -46,7 +47,7 @@ export default function LiveInsightsPage() {
   );
 }
 function Insights({ batch }: { batch: ApiBatch }) {
-  const { client, conditions, reportDraft, setReportDraft } = useDataMode();
+  const { client, conditions, reportDraft, setReportDraft, syntheticAi } = useDataMode();
   const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
@@ -173,6 +174,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
       >
         {(focusPanel) => (
           <>
+            {syntheticAi && <AiInvestigationPanel batch={batch} />}
             <div className="insights-grid">
               <Panel
                 title="评分画像"
