@@ -22,6 +22,7 @@ from prototypes.adaptive_assessment.analysis import Kernel
 from prototypes.adaptive_assessment.synthetic import AdmittedSynthetic
 
 from .disclosure import check_profile_disclosure
+from .explanations import PreviousDescription, explain, explanation_input
 from .synthetic import RECIPES
 
 VERSION = "edu-capability-profile-0.1-draft"
@@ -244,7 +245,14 @@ def build_profiles(source: AdmittedSynthetic, *, minimum_cell: int = 5) -> Profi
     )
 
 
-def teacher_view(book: ProfileBook, profile_id: str, *, released=None, staged=None) -> dict:
+def teacher_view(
+    book: ProfileBook,
+    profile_id: str,
+    *,
+    released=None,
+    staged=None,
+    previous: tuple[PreviousDescription, ...] = (),
+) -> dict:
     candidate = book.verify(profile_id)
     d = candidate.discovery
     p = d.payload
@@ -287,8 +295,6 @@ def teacher_view(book: ProfileBook, profile_id: str, *, released=None, staged=No
             pending.extend(checked)
             for side in ("target", "remainder"):
                 row[side]["distribution_state"] = "available"
-    if staged is not None:
-        staged[:] = pending
     conditions = [
         {
             "dimension_code": CODES[DIMS.index(c.dimension)],
@@ -302,23 +308,28 @@ def teacher_view(book: ProfileBook, profile_id: str, *, released=None, staged=No
         f"{decimal_text(c.threshold)}分"
         for c in p.selection.conditions
     )
-    outcome = next(x for x in p.dimensions if x.dimension == p.outcome_dimension)
-    delta = outcome.difference
-    return {
+    members = frozenset(p.selection.matches)
+    overlaps = any(old.members & members for old in previous)
+    relevant = tuple(
+        old
+        for old in previous
+        if members
+        and old.members
+        and len(old.members & members) * 2 >= min(len(old.members), len(members))
+    )
+    approved = explanation_input(
+        view,
+        overlaps=overlaps,
+        relevant=bool(relevant),
+        repeated_features=frozenset(f for old in relevant for f in old.features),
+    )
+    result = {
         "profile_id": profile_id,
         "batch_id": d.context.batch_id,
         "snapshot_id": d.context.snapshot_id,
         "rule_version": VERSION,
         "calculation_rule_version": d.rule_version,
-        "title": label + "的参评群体",
-        "common_pattern": "共同满足：" + label + "；其他维度为群体摘要，并非人人相同。",
-        "summary": f"符合条件{len(p.selection.matches)}人；{outcome.dimension.value}均值"
-        f"{float(outcome.target.mean):.2f}分，其他可判定参评者"
-        f"{float(outcome.remainder.mean):.2f}分，相差{float(delta):+.2f}分。",
-        "why_show": (
-            "除了用于分组的评分，其他评价项目也有可核对的差异；"
-            "多次减少部分样本后，差异仍保留。仍需教师核查，不能据此解释原因。"
-        ),
+        **explain(approved, d.policy, label),
         "metrics": view["metrics"],
         "dimensions": [
             dict(
@@ -346,11 +357,13 @@ def teacher_view(book: ProfileBook, profile_id: str, *, released=None, staged=No
             "群体可能重叠，人数不能相加；未覆盖全部候选。",
             "未读取评语或任务原文，不推断具体代码错误、心理或因果。",
         ],
-        "suggested_next_action": "按原条件查看该群体，再核对各维度实际参与计算的评分依据。",
         "minimum_cell": book.minimum_cell,
         "public_display_allowed": False,
         "production_enabled": False,
     }
+    if staged is not None:
+        staged[:] = pending
+    return result
 
 
 def resolve(book: ProfileBook, profile_id: str, metric_key: str) -> tuple:

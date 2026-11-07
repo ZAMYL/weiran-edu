@@ -25,6 +25,7 @@ from prototypes.research_agent_v2.runtime import (
 
 from .disclosure import check_profile_disclosure
 from .engine import ProfileBook, build_profiles, query, source_sets, teacher_view
+from .explanations import description_context
 
 
 class ProfileExecutor(ResearchExecutor):
@@ -142,6 +143,7 @@ def project_selected(book: ProfileBook, result: dict, executor) -> list[dict]:
     }:
         return []  # Never disguise a failed run as successfully chosen profiles.
     profiles = []
+    descriptions = []
     staged = []
     for card in result["findings"]:
         fact = executor.facts.get(card["fact_id"])
@@ -199,7 +201,14 @@ def project_selected(book: ProfileBook, result: dict, executor) -> list[dict]:
             }
             if actual != expected:
                 raise AgentError("profile_fact_sources_mismatch")
-        view = teacher_view(book, candidate.profile_id, released=executor.released, staged=staged)
+        view = teacher_view(
+            book,
+            candidate.profile_id,
+            released=executor.released,
+            staged=staged,
+            previous=tuple(descriptions),
+        )
+        descriptions.append(description_context(p, view))
         view["verified_fact_ids"] = [fact.fact_id]
         view["selection_origin"] = "http_mock_offline_mechanism"
         profiles.append(view)

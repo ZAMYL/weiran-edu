@@ -2,6 +2,8 @@
 
 import asyncio
 import json
+import re
+from dataclasses import asdict
 
 import pytest
 from prototypes.capability_profiles.agent import ProfileMockPolicy, run_profiles
@@ -51,7 +53,40 @@ def test_exhausted_budget_cannot_claim_completion(tmp_path, support):
     assert "暂无符合展示条件" not in teacher_markdown(result)
 
 
-def test_runtime_k25_blocks_intersection_and_suppresses_whole_distributions(tmp_path):
+def test_runtime_k25_blocks_intersection_and_suppresses_whole_distributions(tmp_path, monkeypatch):
+    from prototypes.capability_profiles import engine
+    from prototypes.capability_profiles.explanations import ExplanationInput
+
+    seen = []
+    render = engine.explain
+
+    def checked_input(approved, policy, label):
+        assert type(approved) is ExplanationInput
+        data = asdict(approved)
+        assert set(data) == {
+            "total",
+            "target",
+            "remainder",
+            "unknown",
+            "dimensions",
+            "overlaps_previous",
+            "relevant_previous",
+            "repeated_features",
+        }
+        for dimension in data["dimensions"]:
+            assert set(dimension) == {
+                "dimension",
+                "condition_defined",
+                "target_mean",
+                "remainder_mean",
+                "difference",
+                "target_valid",
+                "remainder_valid",
+            }
+        seen.append(approved)
+        return render(approved, policy, label)
+
+    monkeypatch.setattr(engine, "explain", checked_input)
     result, book, _ = asyncio.run(
         run_profiles(
             "profile-overlap-96",
@@ -77,6 +112,10 @@ def test_runtime_k25_blocks_intersection_and_suppresses_whole_distributions(tmp_
     assert any(
         d["target"]["distribution"] == [] for p in result["profiles"] for d in p["dimensions"]
     )
+    assert seen and all(s.total == 96 and s.target == s.remainder == 48 for s in seen)
+    for profile in result["profiles"]:
+        assert "distribution" not in json.dumps(profile["explanation"])
+    assert not re.search(r"(?<![0-9])(?:8|16|24)人", teacher_markdown(result))
     # The technical output must use the same sanitized profile projection.
     assert "witness" not in json.dumps(result["native_requests"])
 
