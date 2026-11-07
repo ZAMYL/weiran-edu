@@ -45,12 +45,18 @@ def understand(question: str, catalog: dict) -> Goal:
         raise AgentError("unsafe_or_unsupported_goal")
     if re.search(
         r"姓名|学号|真实身份|身份证|手机号|联系方式|学生名单|别的批次|其它批次|另一批次"
-        r"|其他老师|导致|因果|造成|引起|\bcause\b|\bcausal\b|\bcausation\b",
+        r"|其他老师|导致|因果|造成|引起|\bcaus(?:es?|ed|al|ation)\b"
+        r"|\bstudent\s+(?:names?|ids?|numbers?)\b",
         question,
         re.I,
     ) or (
-        re.search(r"修改|调整|更改|删除|覆盖|更新|重置|改为|改成|设为|调高|调低", question)
-        and re.search(r"评分|分数|成绩", question)
+        re.search(
+            r"修改|调整|更改|删除|覆盖|更新|重置|改为|改成|设为|调高|调低"
+            r"|\b(?:modify|adjust|change|delete|overwrite|update|reset)\b",
+            question,
+            re.I,
+        )
+        and re.search(r"评分|分数|成绩|\b(?:scores?|grades?|marks?)\b", question, re.I)
     ):
         raise AgentError("unsafe_or_unsupported_goal")
     items = tuple(

@@ -25,6 +25,9 @@ def test_prohibited_intents_never_create_task_or_start_worker(tmp_path, monkeypa
                     "核查并把I01的分数改为5分",
                     "证明I01导致I02",
                     "优先帮我写一首诗",
+                    "prove I01 causes I02",
+                    "inspect missing I01 and list student names",
+                    "analyze relation I01 I02 and modify scores",
                 )
             ):
                 response = client.post(

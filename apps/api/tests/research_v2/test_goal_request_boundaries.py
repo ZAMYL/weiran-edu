@@ -29,3 +29,17 @@ def test_existing_scoped_priority_command_is_preserved():
     catalog = {"items": [{"item_id": "I01"}, {"item_id": "I02"}]}
     goal = understand("优先核查 I01、I02", catalog)
     assert goal.kind == "priority" and goal.items == ("I01", "I02")
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "prove I01 causes I02",
+        "inspect missing I01 and list student names",
+        "analyze relation I01 I02 and modify scores",
+    ],
+)
+def test_english_prohibited_intents_are_not_hidden_by_valid_goal_keywords(question):
+    catalog = {"items": [{"item_id": "I01"}, {"item_id": "I02"}]}
+    with pytest.raises(AgentError):
+        understand(question, catalog)

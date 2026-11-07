@@ -1,6 +1,6 @@
 # V1.2 AI 统一验收：P0-C
 
-2026-11-06；这是Agent审核记录与候选门禁，不是发布批准。统一候选分支/SHA：**待彭仲楷交付，组合最终回归未运行，不能放行**。不合并原PR、不代替独立作者之外的审核。
+2026-11-07；这是Agent审核记录与候选门禁，不是发布批准。统一候选分支/SHA：**待彭仲楷交付，组合最终回归未运行，不能放行**。不合并原PR、不代替独立作者之外的审核。
 
 ## 固定版本与范围
 
@@ -21,7 +21,7 @@
 
 局部修复：身份字段、改分/因果/额外批次请求先拒绝；旧priority从任意关键词命中收紧到现有受控命令（可带合法项目ID）及#75六个完整别名。保留`为什么I01和I02相关`为缺教学证据的观察目标，不输出因果解释。不是通用自然语言理解：词法过滤不等于鉴权；未知/多指令问句必须在统一候选继续负测，不能宣称任意文本都能安全理解。
 
-新增仅9项解析边界及1项FastAPI/SQLite准入前拒绝回归；#75六别名、模糊请求和幂等正例直接复用。修复后该组合 **35 passed / 1既有弃用warning（117.74s）**，无skip/xfail。基线失败证据：本机`D:/Temp/edu-v12-goal-boundaries-before.xml`；修复后`edu-v12-goal-boundaries-final.xml`。HTTP否定例要求422 AI_GOAL_UNSUPPORTED、无task/event/账本、worker不能启动，不把失败伪装成功。
+新增仅12项解析边界及1项FastAPI/SQLite准入前拒绝回归；#75六别名、模糊请求和幂等正例直接复用。初轮中文修补组合35 passed；随后复核同一中英文入口，在0134aaed上追加英文反例实际 **3 failed**（causes、student names、modify scores可被合法关键词掩盖），据此最小补齐相同拒绝类别，未冒称初轮CI已经证明这些边界。完整修复组合 **38 passed / 1既有弃用warning（81.53s）**，无skip/xfail。失败证据：本机`D:/Temp/edu-v12-goal-boundaries-before.xml`、`edu-v12-english-boundaries-before.xml`；最新修复后`edu-v12-goal-boundaries-complete.xml`。HTTP否定例要求422 AI_GOAL_UNSUPPORTED、无task/event/账本、worker不能启动，不把失败伪装成功。
 
 ## 已有可信性接点（不重复造测试）
 
@@ -61,6 +61,8 @@ SHA、Fact ID、evidence_id和来源哈希都是绑定/定位信息，**不是�
 - #71：QuestionAssessmentProvider重读原件/SQLite，lease绑定teacher/batch/snapshot/source/scope，Witness逐项可回放；但purpose仅local_deterministic_analysis、remote_model_allowed=false，历史为同服务实例内存。**不能包装成SyntheticAccess/AI grant，也不是持久跨进程模型披露/预算授权**。
 - #71原输入仍是13题XLSX协议；保留实际题目和各自量表，不能映射成五维。没有确认测量等级时拒绝相关/群体差异，不能因数值量表存在自行宣称interval。逐题AI候选/教师报告承接尚无正式适配，必须unsupported，不近似替代五维。
 
+2026-11-07远端审核：#65/#71无正式Review，#61仅作者旧提交COMMENTED，均未见准确head的独立APPROVED；源码核对不替代批准。
+
 远端只见旧V1候选#68 f8e13f1，不能把它冒称含#71/Agent的V1.2新候选。
 
 当前集成阻断：正式真实教师AI用途与Provider准入未实现，当前DB桥接只接受登记合成字节、五维1～5/0.01、5～100人。105人正式统计可用不代表本AI切片可用；不得裁剪为100或把教师原件临时登记为“合成”绕过。若统一候选声称开放真实/逐题AI，此项为P0放行阻断；若仅合成演示则保留关闭标志并明确限制。
@@ -73,6 +75,6 @@ SHA、Fact ID、evidence_id和来源哈希都是绑定/定位信息，**不是�
 - 定向运行原`tests/durable_teacher_agent`、`tests/teacher_agent_bridge`、#75 priority tests、本轮goal_request_boundaries、Fact篡改/来源重放、6/5预算及Live封禁测试；保留原Oracle和所有失败。再运行原TCP demo，核对身份/用途/快照/撤权/版本拒绝、零发现、缺证、同key/新key与服务重启预算。
 - 对最终candidate再核对完整CI和实际前后端组合记录；浏览器由林明、FastAPI整合由彭仲楷负责，本轮未替他们完成组合验收。
 
-本轮复用的事实篡改/实际来源重放、6/5共享预算/重启、全部Live入口否定专项：**16 passed（12.72s）**，本机`D:/Temp/edu-v12-existing-trust-gates.xml`。这些是本隔离补丁的定向回归，不能写成尚未提供的统一候选结果。
+本轮复用的事实篡改/实际来源重放、6/5共享预算/重启、全部Live入口否定专项：**16 passed（10.47s，最新补丁复测）**，本机`D:/Temp/edu-v12-existing-trust-gates-complete.xml`。这些是本隔离补丁的定向回归，不能写成尚未提供的统一候选结果。
 
 **不可对评委宣称**：真实Qwen已自主调查、已证明优于固定5/9或Mock6/9、全部目标/调查方向已穷尽、任意文件或题目结构正式可用、真实教师数据已允许外发、统计相关代表因果、教师确认代表教学效果、哈希代表授权，或仅后端HTTP/CI通过就代表浏览器/产品验收通过。没有负责人单独授权，真实Qwen继续not_run。
