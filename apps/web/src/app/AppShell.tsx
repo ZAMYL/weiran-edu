@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { App, Button, Modal, Select } from 'antd';
+import { App, Button, Modal, Select, Tag } from 'antd';
 import {
   BookOutlined,
   ExpandOutlined,
@@ -34,6 +34,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [help, setHelp] = useState(false);
   const { message } = App.useApp();
   const page = pages.find((p) => pathname.startsWith(p.to)) ?? pages[0]!;
+  const reportSource = dataMode.syntheticAi && pathname === '/reports' && (
+    <Tag color="cyan">合成测试 · 未调用真实 Qwen</Tag>
+  );
   const uploadWorkspace =
     dataMode.mode === 'live' &&
     pathname === '/insights' &&
@@ -100,7 +103,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         {fullscreen ? (
           <>
-            <div className="fullscreen-title">{page.label}</div>
+            <div className="fullscreen-title">
+              {page.label}
+              {reportSource}
+            </div>
             <div className="topbar-actions">
               {batchSelect}
               {fullButton}
@@ -158,6 +164,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {!fullscreen && (
               <div className="page-title-group">
                 <h1>{uploadWorkspace ? '上传测评' : page.label}</h1>
+                {reportSource}
                 {!uploadWorkspace && (
                   <div>
                     <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台</p>

@@ -6,7 +6,7 @@
 
 按后端 `AI_SYNTHETIC_FRONTEND_HANDOFF.md` 启动 `python -m prototypes.durable_teacher_agent.serve`，读取其本机私有 connection 文件。把其中 bearer_token 写入同一私有目录的前端测试会话文件，形状沿用 `{synthetic_only:true,access_token:…}`。前端服务端设置 `EDU_API_ORIGIN`、`EDU_TEST_SESSION_FILE`、`EDU_TEST_MODE=1`、`EDU_AI_SYNTHETIC_MODE=1`。凭据由服务端读取，浏览器只收到开关状态。
 
-入口显示在原学情诊断内容上方，发现卡片在桌面并列、手机纵向排列。AI 面板标明合成来源和分析范围。任务路径必须同时满足回环访问、回环上游和两个显式开关。代理仅允许提交、读取、取消、依据查询及待核查提交的准确方法和路径。
+入口显示在原学情诊断内容上方，发现卡片在桌面并列、手机纵向排列。AI 面板标明合成来源和分析范围，报告页标题旁简短标明合成测试和真实 Qwen 未调用。任务路径必须同时满足回环访问、回环上游和两个显式开关。代理仅允许提交、读取、取消、依据查询及待核查提交的准确方法和路径。
 
 ## 操作流程
 
