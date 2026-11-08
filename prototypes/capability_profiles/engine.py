@@ -1,0 +1,371 @@
+"""Assemble existing qualified comparisons into coherent, replayable group profiles."""
+
+import json
+from dataclasses import dataclass, field, replace
+from decimal import Decimal
+from fractions import Fraction
+
+from app.ai.edu.discovery.models import AgentError, Limits
+from app.analysis.edu import prepare_dataset
+from app.analysis.edu.discovery import TargetedDiscovery, discover
+from app.analysis.edu.discovery.models import Discovery, GroupComparison, Policy
+from app.analysis.edu.discovery.presentation import present
+from app.analysis.edu.models import (
+    AssessmentRecord,
+    Dimension,
+    EvidenceKind,
+    EvidenceRef,
+    ScorePolicy,
+)
+
+from prototypes.adaptive_assessment.analysis import Kernel
+from prototypes.adaptive_assessment.synthetic import AdmittedSynthetic
+
+from .disclosure import check_profile_disclosure
+from .synthetic import RECIPES
+
+VERSION = "edu-capability-profile-0.1-draft"
+DIMS = tuple(Dimension)
+ITEMS = tuple(f"I{i + 1:02}" for i in range(len(DIMS)))
+CODES = (
+    "algorithm_data_structure",
+    "code_implementation",
+    "problem_modeling",
+    "efficiency_awareness",
+    "solution_strategy",
+)
+POLICY = Policy(search_budget=50, maximum_findings=50)
+
+
+def decimal_text(value: Fraction) -> str:
+    return format(Decimal(value.numerator) / Decimal(value.denominator), "f")
+
+
+def dataset_from_source(source: AdmittedSynthetic):
+    if type(source) is not AdmittedSynthetic:
+        raise AgentError("registered_synthetic_source_required")
+    if source.recipe not in (*RECIPES, "five", "constant17"):
+        raise AgentError("five_dimension_profile_source_required")
+    source.validate()
+    kernel = Kernel(source.envelope)
+    if tuple(kernel.items) != ITEMS or any(
+        item.kind != "competency"
+        or item.scale is None
+        or (item.scale.minimum, item.scale.maximum, item.scale.step) != ("1", "5", "0.01")
+        or kernel.levels[item.item_id] != "ordinal"
+        for item in kernel.items.values()
+    ):
+        raise AgentError("five_dimension_profile_source_required")
+    columns = {
+        item: {pid: (v, s) for pid, v, s in col.values} for item, col in kernel.columns.items()
+    }
+    records = []
+    for pid in kernel.participants:
+        scores, evidence = {}, []
+        for dim, item in zip(DIMS, ITEMS, strict=True):
+            value, state = columns[item][pid]
+            scores[dim] = (
+                value if state == "valid" else None if state == "missing" else "unavailable"
+            )
+            if state == "valid":
+                ref = kernel.source("mapping", item, (pid,)).references[0]
+                evidence.append(EvidenceRef(source.fingerprint, ref, EvidenceKind.SCORE, dim))
+        records.append(
+            AssessmentRecord(
+                kernel.data.batch.batch_id,
+                pid,
+                "record-" + pid,
+                source.fingerprint,
+                scores,
+                tuple(evidence),
+            )
+        )
+    return prepare_dataset(records, policy=ScorePolicy(step=Fraction(1, 100))), kernel
+
+
+def source_sets(discovery: Discovery) -> list[frozenset]:
+    return [frozenset(r.student_id for r in s.records) for s in discovery.sources]
+
+
+def query(discovery: Discovery) -> dict:
+    payload = discovery.payload
+    return {
+        "conditions": [
+            {
+                "item_id": ITEMS[DIMS.index(c.dimension)],
+                "operator": c.operator.value,
+                "threshold": decimal_text(c.threshold),
+            }
+            for c in payload.selection.conditions
+        ],
+        "outcomes": [ITEMS[DIMS.index(payload.outcome_dimension)]],
+    }
+
+
+@dataclass(frozen=True)
+class ProfileCandidate:
+    profile_id: str
+    discovery: Discovery = field(repr=False)
+    equivalent_discovery_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ProfileBook:
+    source: AdmittedSynthetic = field(repr=False)
+    candidates: tuple[ProfileCandidate, ...]
+    audit: dict
+    minimum_cell: int = 5
+
+    def verify(self, profile_id: str) -> ProfileCandidate:
+        candidate = next((c for c in self.candidates if c.profile_id == profile_id), None)
+        if candidate is None:
+            raise AgentError("unknown_profile_id")
+        self.audit["projection_source_replays"] = self.audit.get("projection_source_replays", 0) + 1
+        dataset, _ = dataset_from_source(self.source)
+        original = candidate.discovery
+        if original.context.snapshot_id != self.source.fingerprint:
+            raise AgentError("profile_snapshot_mismatch")
+        builder = TargetedDiscovery(
+            dataset,
+            batch_id=original.context.batch_id,
+            snapshot_id=self.source.fingerprint,
+            policy=original.policy,
+        )
+        comparison, findings = builder.group(
+            original.payload.selection.conditions, (original.payload.outcome_dimension,)
+        )
+        if (
+            replace(comparison, outcome_dimension=original.payload.outcome_dimension)
+            != original.payload
+            or original not in findings
+        ):
+            raise AgentError("profile_source_replay_failed")
+        present(original)  # Reuse exact denominator, distribution and actual-source checks.
+        return candidate
+
+
+def build_profiles(source: AdmittedSynthetic, *, minimum_cell: int = 5) -> ProfileBook:
+    Limits(minimum_cell=minimum_cell)  # Keep the existing runtime policy bounds.
+    dataset, kernel = dataset_from_source(source)
+    result = discover(
+        dataset,
+        batch_id=kernel.data.batch.batch_id,
+        snapshot_id=source.fingerprint,
+        policy=POLICY,
+    )
+    by_partition = {}
+    rejected = {"support_or_stability": 0, "near_duplicate": 0, "privacy_limited": 0}
+    for finding in result.findings:
+        if not isinstance(finding.payload, GroupComparison):
+            continue
+        p = finding.payload
+        n = p.selection.scope.student_count
+        m = len(p.selection.matches)
+        robust = finding.ranking.robustness
+        if (
+            not n
+            or not Fraction(1, 5) <= Fraction(m, n) <= Fraction(9, 10)
+            or (robust.passed != 3 or robust.evaluated != 3)
+        ):
+            rejected["support_or_stability"] += 1
+            continue
+        partition = frozenset((frozenset(p.selection.matches), frozenset(p.remainder)))
+        by_partition.setdefault(partition, []).append(finding)
+    # Prefer a short, reproducible description. A complement is shown in the same card.
+    groups = sorted(
+        by_partition.values(),
+        key=lambda group: (
+            -max(d.ranking.score for d in group),
+            min(d.discovery_id for d in group),
+        ),
+    )
+    chosen, accepted_sets = [], []
+    for group in groups:
+        group.sort(
+            key=lambda d: (
+                len(d.payload.selection.conditions),
+                -d.ranking.score,
+                json.dumps(query(d), sort_keys=True),
+            )
+        )
+        finding = group[0]
+        members = frozenset(finding.payload.selection.matches)
+        if any(
+            Fraction(len(members & old), len(members | old)) >= Fraction(4, 5) for old, _ in chosen
+        ):
+            rejected["near_duplicate"] += 1
+            continue
+        try:
+            checked = check_profile_disclosure(
+                source_sets(finding),
+                released=[frozenset(kernel.participants)],
+                staged=accepted_sets,
+                minimum_cell=minimum_cell,
+            )
+        except AgentError:
+            rejected["privacy_limited"] += 1
+            continue
+        accepted_sets.extend(checked)
+        chosen.append(
+            (
+                members,
+                ProfileCandidate(
+                    "profile-" + finding.discovery_id,
+                    finding,
+                    tuple(sorted(d.discovery_id for d in group)),
+                ),
+            )
+        )
+        if len(chosen) == 6:
+            break
+    return ProfileBook(
+        source,
+        tuple(c for _, c in chosen),
+        {
+            "minimum_cell": minimum_cell,
+            "search_budget": POLICY.search_budget,
+            "search_attempts": len(result.search_audit),
+            "raw_qualified_findings": result.qualified_count,
+            "returned_findings": len(result.findings),
+            "upstream_truncated": result.qualified_count > len(result.findings),
+            "group_discoveries": sum(
+                isinstance(d.payload, GroupComparison) for d in result.findings
+            ),
+            "equivalent_group_cards_collapsed": sum(len(g) - 1 for g in by_partition.values()),
+            "representative_share_minimum": "1/5",
+            "distinct_partitions": len(by_partition),
+            "profile_candidates": len(chosen),
+            "filters": rejected,
+            "search_is_exhaustive": False,
+            "rare_combinations": sum(d.type == "rare_combination" for d in result.findings),
+            "rare_individuals_not_promoted_to_typical_groups": True,
+        },
+        minimum_cell,
+    )
+
+
+def teacher_view(book: ProfileBook, profile_id: str, *, released=None, staged=None) -> dict:
+    candidate = book.verify(profile_id)
+    d = candidate.discovery
+    p = d.payload
+    view = present(d)
+    kernel = Kernel(book.source.envelope)
+    history = list(released) if released is not None else [frozenset(kernel.participants)]
+    pending = list(staged) if staged is not None else []
+    # Reserve all admitted candidate partitions before releasing optional score buckets.
+    # Otherwise an early distribution could undermine a later legal group investigation.
+    reserved = [group for c in book.candidates for group in source_sets(c.discovery)]
+    pending.extend(
+        check_profile_disclosure(
+            source_sets(d),
+            released=history,
+            staged=pending,
+            minimum_cell=book.minimum_cell,
+        )
+    )
+    for dimension, row in zip(p.dimensions, view["chart"], strict=True):
+        column = dict(kernel.eligible(ITEMS[DIMS.index(dimension.dimension)]))
+        buckets = [
+            frozenset(r.student_id for r in stats.valid_records if column[r.student_id] == f.score)
+            for stats in (dimension.target, dimension.remainder)
+            for f in stats.distribution
+        ]
+        try:
+            checked = check_profile_disclosure(
+                buckets,
+                released=history,
+                staged=[*reserved, *pending],
+                minimum_cell=book.minimum_cell,
+            )
+        except AgentError:
+            # Suppress BOTH complete histograms, never just the small counts:
+            # the group total and other bins would recover the hidden bucket.
+            for side in ("target", "remainder"):
+                row[side]["distribution"] = []
+                row[side]["distribution_state"] = "privacy_limited"
+        else:
+            pending.extend(checked)
+            for side in ("target", "remainder"):
+                row[side]["distribution_state"] = "available"
+    if staged is not None:
+        staged[:] = pending
+    conditions = [
+        {
+            "dimension_code": CODES[DIMS.index(c.dimension)],
+            "operator": c.operator.value,
+            "value": decimal_text(c.threshold),
+        }
+        for c in p.selection.conditions
+    ]
+    label = "、".join(
+        f"{c.dimension.value}{c.operator.value.replace('<=', '≤').replace('>=', '≥')}"
+        f"{decimal_text(c.threshold)}分"
+        for c in p.selection.conditions
+    )
+    outcome = next(x for x in p.dimensions if x.dimension == p.outcome_dimension)
+    delta = outcome.difference
+    return {
+        "profile_id": profile_id,
+        "batch_id": d.context.batch_id,
+        "snapshot_id": d.context.snapshot_id,
+        "rule_version": VERSION,
+        "calculation_rule_version": d.rule_version,
+        "title": label + "的参评群体",
+        "common_pattern": "共同满足：" + label + "；其他维度为群体摘要，并非人人相同。",
+        "summary": f"符合条件{len(p.selection.matches)}人；{outcome.dimension.value}均值"
+        f"{float(outcome.target.mean):.2f}分，其他可判定参评者"
+        f"{float(outcome.remainder.mean):.2f}分，相差{float(delta):+.2f}分。",
+        "why_show": (
+            "除了用于分组的评分，其他评价项目也有可核对的差异；"
+            "多次减少部分样本后，差异仍保留。仍需教师核查，不能据此解释原因。"
+        ),
+        "metrics": view["metrics"],
+        "dimensions": [
+            dict(
+                row,
+                dimension_code=CODES[DIMS.index(Dimension[row["dimension"]])],
+                label=Dimension[row["dimension"]].value,
+            )
+            for row in view["chart"]
+        ],
+        "conditions": conditions,
+        "status": d.status,
+        "exploration_query": {
+            "snapshot_id": d.context.snapshot_id,
+            "conditions": conditions,
+        },
+        "source_queries": [
+            {"profile_id": profile_id, "metric_key": s.metric_key} for s in d.sources
+        ],
+        "source_replay_verified": True,
+        "five_dimension_summary_origin": "deterministic_discovery_replay",
+        "agent_fact_scope": "primary_non_condition_outcome_only",
+        "comment_state": "unavailable_not_authorized",
+        "limitations": [
+            "评分画像不是综合能力等级；筛选维度的差异由条件定义。",
+            "群体可能重叠，人数不能相加；未覆盖全部候选。",
+            "未读取评语或任务原文，不推断具体代码错误、心理或因果。",
+        ],
+        "suggested_next_action": "按原条件查看该群体，再核对各维度实际参与计算的评分依据。",
+        "minimum_cell": book.minimum_cell,
+        "public_display_allowed": False,
+        "production_enabled": False,
+    }
+
+
+def resolve(book: ProfileBook, profile_id: str, metric_key: str) -> tuple:
+    candidate = book.verify(profile_id)
+    metric = next((s for s in candidate.discovery.sources if s.metric_key == metric_key), None)
+    if metric is None:
+        raise AgentError("unknown_profile_metric")
+    _, kernel = dataset_from_source(book.source)
+    witnesses = []
+    for record in metric.records:
+        for dim in metric.dimensions:
+            witnesses.extend(
+                kernel.witnesses[ref]
+                for ref in kernel.source(
+                    metric_key, ITEMS[DIMS.index(dim)], (record.student_id,)
+                ).references
+            )
+    return tuple(witnesses)
