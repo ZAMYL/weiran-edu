@@ -23,6 +23,45 @@ _PRIORITY_COMMANDS = frozenset(
     {"优先核查", "优先核查评分异常", "核查评分异常", "识别值得优先核查的评分异常"}
 )
 
+# A goal must account for the entire request, including every item and connector.
+# Keep canonical persisted task labels as well as complete teacher question forms.
+# Case-insensitive English verbs must not turn lowercase/embedded text into item IDs.
+_ITEM = r"(?<![A-Za-z0-9_])(?-i:[IQ][0-9]{2,3})(?![A-Za-z0-9_])"
+_SEPARATOR = r"(?:\s*(?:、|，|,|和|与|及|&|\band\b)\s*|\s+)"
+_PAIR = rf"{_ITEM}{_SEPARATOR}{_ITEM}"
+_ITEMS = rf"{_ITEM}(?:{_SEPARATOR}{_ITEM})*"
+_PRIORITY = "(?:" + "|".join(re.escape(c) for c in sorted(_PRIORITY_COMMANDS)) + ")"
+_QUALITY = r"(?:缺分和有效样本|缺分|缺失|有效样本|样本|证据不足)"
+_RELATION = r"(?:关联|相关性?|高度相关)"
+_GOAL_PATTERNS = {
+    "priority": (rf"{_PRIORITY}(?:\s*{_ITEMS})?",),
+    "relation": (
+        rf"(?:调查|比较|分析)\s*{_PAIR}\s*(?:的\s*)?{_RELATION}",
+        rf"(?:关联|相关性?|relation|correlation)\s+{_PAIR}",
+        rf"(?:compare|investigate|analy[sz]e)\s+{_PAIR}\s+(?:relation|correlation)",
+        rf"(?:investigate|analy[sz]e)\s+(?:relation|correlation)\s+{_PAIR}",
+    ),
+    "group": (
+        rf"比较\s*{_ITEMS}\s*(?:的\s*)?群体差异",
+        rf"比较\s*{_PAIR}\s*(?:的\s*)?组合\s*(?:与|和)\s*{_ITEM}\s*(?:的\s*)?群体差异",
+        rf"群体差异\s+{_ITEMS}",
+        rf"compare\s+{_ITEMS}\s+group\s+differences?",
+        rf"compare\s+group\s+differences?\s+{_ITEMS}",
+    ),
+    "quality": (
+        rf"(?:核查|检查|分析)\s*(?:(?:所有项目|{_ITEMS})\s*(?:的\s*)?)?{_QUALITY}",
+        rf"核查{_QUALITY}\s+{_ITEMS}",
+        rf"(?:inspect|check)\s+missing(?:\s+{_ITEMS})?",
+        rf"(?:inspect|check)\s+{_ITEMS}\s+missing",
+    ),
+    "explanation": (
+        rf"为什么\s*{_PAIR}\s*(?:的\s*)?{_RELATION}",
+        rf"为什么相关\s+{_PAIR}",
+        rf"why\s+(?:are\s+)?{_PAIR}\s+(?:correlated|related)",
+        rf"explain\s+(?:the\s+)?(?:correlation|relation)\s+(?:between\s+)?{_PAIR}",
+    ),
+}
+
 
 class Goal(Strict):
     kind: Literal["priority", "relation", "group", "quality", "explanation"]
@@ -65,24 +104,20 @@ def understand(question: str, catalog: dict) -> Goal:
     allowed = {i["item_id"] for i in catalog["items"]}
     if not set(items) <= allowed:
         raise AgentError("goal_item_outside_scope")
-    priority_request = re.sub(r"(?<![A-Za-z0-9_])[IQ]\d{2,3}(?![A-Za-z0-9_])", "", question).strip(
-        " \t\r\n，,、？?。"
-    )
-    if any(t in question.lower() for t in ("为什么", "原因", "导致", "why", "cause")):
-        kind = "explanation"
-    elif any(t in question.lower() for t in ("缺分", "缺失", "样本", "missing", "证据不足")):
-        kind = "quality"
-    elif any(t in question.lower() for t in ("群体", "组合", "差异", "group", "difference")):
-        kind = "group"
-    elif any(t in question.lower() for t in ("关联", "相关", "relation", "correlation")):
-        kind = "relation"
-    elif (
-        priority_request in _PRIORITY_COMMANDS
-        or question.strip().rstrip("？?。").strip() in _PRIORITY_QUESTIONS
-    ):
+    request = question.strip().rstrip("？?。.!！").strip()
+    if request in _PRIORITY_QUESTIONS:
         kind = "priority"
     else:
-        raise AgentError("unsupported_goal")
+        kind = next(
+            (
+                kind
+                for kind, patterns in _GOAL_PATTERNS.items()
+                if any(re.fullmatch(pattern, request, re.I) for pattern in patterns)
+            ),
+            None,
+        )
+        if kind is None:
+            raise AgentError("unsupported_goal")
     if kind in ("relation", "explanation") and len(items) != 2:
         raise AgentError("goal_needs_two_items")
     if kind == "group" and not 2 <= len(items) <= 3:
