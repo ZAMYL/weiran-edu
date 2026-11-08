@@ -1,5 +1,6 @@
 """Reuse #70 projection and #66 executor, backed by SQLite proof/disclosure journals."""
 
+import asyncio
 import json
 from datetime import date
 from hashlib import sha256
@@ -15,13 +16,13 @@ from prototypes.research_agent_v2.runtime import ResearchExecutor
 from prototypes.teacher_agent_bridge.api import InvestigationHost
 from prototypes.teacher_agent_bridge.models import (
     InvestigationRequest,
-    InvestigationResult,
     SourceRequest,
     SourceResult,
 )
 from prototypes.teacher_agent_bridge.provider import DatabaseEnvelope, DatabaseSource, digest
 
-from .models import TaskView
+from .models import ProfileInvestigationResult, TaskView
+from .profiles import extend_proof, investigate_profiles, parse_result, replay_profiles
 from .store import TaskStore, blocked
 
 
@@ -74,6 +75,20 @@ class Invocation(InvestigationHost):
     def open_budget(self, permit):
         return DurableBudget(permit, self.state, self.service.store, self.row["task_id"])
 
+    def investigate(self, source, question, budget, body):
+        from prototypes.research_agent_v2.goals import understand
+
+        goal = understand(
+            question, {"items": [{"item_id": i.item_id} for i in source.envelope.data.items]}
+        )
+        if body.strategy != "adaptive" or goal.kind != "priority" or goal.items:
+            return super().investigate(source, question, budget, body)
+        self.profile_active = True
+        raw, executor, self.profile_projection, self.profile_staged = asyncio.run(
+            investigate_profiles(source, question, budget, self.service.profile_limits)
+        )
+        return raw, executor
+
     def completed(self, actor, source, executor, result):
         if result.status != "completed":
             with self.service.store.database.transaction(write=True) as c:
@@ -86,7 +101,12 @@ class Invocation(InvestigationHost):
                         "stop_reason": result.stop_reason,
                     },
                 )
-            raise APIError(409, "AI_EXECUTION_INCOMPLETE", "调查未正常完成，未发布部分结果")
+            code = (
+                "AI_PROFILE_" + result.stop_reason.upper()
+                if getattr(self, "profile_active", False)
+                else "AI_EXECUTION_INCOMPLETE"
+            )
+            raise APIError(409, code, "调查未正常完成，未发布部分结果")
         base = (
             f"/api/v1/edu/batches/{result.batch_id}"
             f"/ai-investigation-tasks/{result.run_id}/records/query"
@@ -107,7 +127,15 @@ class Invocation(InvestigationHost):
                 "report_integration": "eligible_facts_require_formal_recomputation",
             }
         )
-        self.service.store.finish(self.row["task_id"], actor, result, proof(executor))
+        verified = proof(executor)
+        if getattr(self, "profile_projection", None) is not None:
+            result = ProfileInvestigationResult(
+                **result.model_dump(), profile_projection=self.profile_projection
+            )
+            verified = extend_proof(
+                verified, result, executor, self.profile_staged, self.service.profile_limits
+            )
+        self.service.store.finish(self.row["task_id"], actor, result, verified)
 
 
 class AuthorizedEnvelope(DatabaseEnvelope):
@@ -120,8 +148,13 @@ class AuthorizedEnvelope(DatabaseEnvelope):
 
 
 class TaskService:
-    def __init__(self, provider, store: TaskStore, directory: Path):
+    def __init__(self, provider, store: TaskStore, directory: Path, *, profile_limits=None):
         self.provider, self.store, self.directory = provider, store, directory
+        self.profile_limits = profile_limits or Limits(
+            model_requests=6, tool_attempts=5, timeout_seconds=30
+        )
+        if self.profile_limits.model_requests > 6 or self.profile_limits.tool_attempts > 5:
+            raise ValueError("profile_limits_exceed_existing_task_budget")
 
     def source(self, row: dict, actor: Principal, *, running: bool = False) -> DatabaseSource:
         def current_authorization():
@@ -180,22 +213,7 @@ class TaskService:
 
     def view(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> TaskView:
         row = self.row(actor, batch_id, task_id, snapshot_id)
-        result = None
-        if row["state"] == "completed":
-            if (
-                row["result_json"] is None
-                or digest(json.loads(row["result_json"])) != row["result_sha"]
-            ):
-                blocked("DATA_INTEGRITY_ERROR", 503)
-            result = InvestigationResult.model_validate_json(row["result_json"])
-            persisted_proof = json.loads(row["proof_json"])
-            if (
-                persisted_proof.get("rule_version") != VERSION
-                or persisted_proof["released"] != json.loads(row["disclosure_json"])
-                or {f.fact_id for f in result.facts} != set(persisted_proof["facts"])
-                or any(f.rule_version != VERSION for f in result.facts)
-            ):
-                blocked("AI_PROOF_HISTORY_CONFLICT", 503)
+        result, _ = self.verified_result(actor, row)
         receipt = json.loads(row["review_json"]) if row["review_json"] else None
         return TaskView(
             task_id=task_id,
@@ -212,6 +230,32 @@ class TaskService:
             expires_at=row["expires"],
         )
 
+    def verified_result(self, actor, row):
+        """One authoritative replay per read; never cache a validated profile result."""
+        result = None
+        replayed = None
+        if row["state"] == "completed":
+            try:
+                if (
+                    row["result_json"] is None
+                    or digest(json.loads(row["result_json"])) != row["result_sha"]
+                ):
+                    blocked("DATA_INTEGRITY_ERROR", 503)
+                result = parse_result(row["result_json"])
+                persisted_proof = json.loads(row["proof_json"])
+                if (
+                    persisted_proof.get("rule_version") != VERSION
+                    or persisted_proof["released"] != json.loads(row["disclosure_json"])
+                    or {f.fact_id for f in result.facts} != set(persisted_proof["facts"])
+                    or any(f.rule_version != VERSION for f in result.facts)
+                ):
+                    blocked("AI_PROOF_HISTORY_CONFLICT", 503)
+                if isinstance(result, ProfileInvestigationResult):
+                    replayed = replay_profiles(self, row, actor, result, proof)
+            except (AgentError, ValueError, KeyError, TypeError):
+                blocked("AI_PROFILE_PROOF_CONFLICT", 503)
+        return result, replayed
+
     def replay(self, actor: Principal, row: dict) -> tuple[DatabaseSource, ResearchExecutor]:
         """Reconstruct issued identities only after recomputing ALL queries/disclosures.
 
@@ -221,9 +265,11 @@ class TaskService:
         """
         if row["state"] != "completed" or row["proof_json"] is None:
             blocked("AI_RESULT_NOT_READY")
-        self.view(actor, row["batch_id"], row["task_id"], row["snapshot_id"])
+        self.row(actor, row["batch_id"], row["task_id"], row["snapshot_id"])
         original = json.loads(row["proof_json"])
-        persisted = InvestigationResult.model_validate_json(row["result_json"])
+        persisted, replayed = self.verified_result(actor, row)
+        if isinstance(persisted, ProfileInvestigationResult):
+            return replayed
         if (
             original.get("rule_version") != VERSION
             or any(f.rule_version != VERSION for f in persisted.facts)
@@ -254,7 +300,7 @@ class TaskService:
     ) -> SourceResult:
         row = self.row(actor, batch_id, task_id, body.snapshot_id)
         source, executor = self.replay(actor, row)
-        original = InvestigationResult.model_validate_json(row["result_json"])
+        original = parse_result(row["result_json"])
         host = InvestigationHost(self.provider, self.directory)
         host.runs[task_id] = (actor.teacher_id, source, executor, original)
         return host.records(actor, batch_id, task_id, body)

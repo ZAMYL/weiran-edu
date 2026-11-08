@@ -325,8 +325,9 @@ class TaskStore:
             self.check(c, row, actor, running=True)
             c.execute(
                 "UPDATE ai_synthetic_tasks SET "
-                "state='completed',result_json=?,result_sha=?,proof_json=? WHERE task_id=?",
-                (encode(raw), digest(raw), encode(proof), task_id),
+                "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=? "
+                "WHERE task_id=?",
+                (encode(raw), digest(raw), encode(proof), encode(proof["released"]), task_id),
             )
             self.event(c, task_id, "result_committed", {"result_sha": digest(raw)})
 

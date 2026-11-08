@@ -3,13 +3,33 @@
 from typing import Literal
 
 from app.edu.models import Model
-from pydantic import Field, field_validator
+from pydantic import Field, JsonValue, field_validator
 
 from prototypes.teacher_agent_bridge.models import InvestigationRequest, InvestigationResult
 
 
 class TaskCreate(InvestigationRequest):
     idempotency_key: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+
+
+class ProfileProjection(Model):
+    assessment_snapshot_id: str
+    source_manifest_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    profile_rule_version: str
+    explanation_rule_version: str
+    minimum_cell: int = Field(ge=2)
+    profiles: tuple[dict[str, JsonValue], ...] = Field(max_length=3)
+    stop_reason: str
+    investigation_status: str
+    uninvestigated_candidates: int = Field(ge=0)
+    search_audit: dict[str, JsonValue]
+    timings_seconds: dict[str, float]
+    verification_replays: int = Field(ge=0)
+    dimension_evidence_http: Literal["not_implemented"] = "not_implemented"
+
+
+class ProfileInvestigationResult(InvestigationResult):
+    profile_projection: ProfileProjection
 
 
 class TaskView(Model):
@@ -27,7 +47,7 @@ class TaskView(Model):
     model_requests: int
     max_tool_attempts: Literal[5] = 5
     max_model_requests: Literal[6] = 6
-    result: InvestigationResult | None = None
+    result: ProfileInvestigationResult | InvestigationResult | None = None
     review_result_path: str | None = None
     expires_at: float
 

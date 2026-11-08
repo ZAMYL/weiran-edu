@@ -99,6 +99,18 @@ class InvestigationHost:
     def completed(self, actor, source, executor, result):
         self.runs[result.run_id] = (actor.teacher_id, source, executor, result)
 
+    def investigate(self, source, question, budget, body):
+        """One execution hook; the host retains ownership of the existing budget."""
+        return asyncio.run(
+            investigate_database(
+                source,
+                question,
+                budget,
+                transport=mock_transport(AdaptiveFake() if body.strategy == "fixed" else None),
+                limits=Limits(model_requests=6, tool_attempts=5, timeout_seconds=30),
+            )
+        )
+
     def execute(
         self,
         actor: Principal,
@@ -126,15 +138,7 @@ class InvestigationHost:
         try:
             if cancelled is not None and cancelled():
                 raise APIError(499, "AI_CANCELLED", "调查请求已取消")
-            raw, executor = asyncio.run(
-                investigate_database(
-                    source,
-                    question,
-                    budget,
-                    transport=mock_transport(AdaptiveFake() if body.strategy == "fixed" else None),
-                    limits=Limits(model_requests=6, tool_attempts=5, timeout_seconds=30),
-                )
-            )
+            raw, executor = self.investigate(source, question, budget, body)
             source.validate()
             if cancelled is not None and cancelled():
                 raise APIError(499, "AI_CANCELLED", "调查请求已取消")

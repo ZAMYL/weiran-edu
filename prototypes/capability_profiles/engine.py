@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from fractions import Fraction
+from time import perf_counter
 
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.analysis.edu import prepare_dataset
@@ -21,6 +22,7 @@ from app.analysis.edu.models import (
 from prototypes.adaptive_assessment.analysis import Kernel
 from prototypes.adaptive_assessment.synthetic import AdmittedSynthetic
 
+from .database import DatabaseProfileSource
 from .disclosure import check_profile_disclosure
 from .explanations import PreviousDescription, explain, explanation_input
 from .synthetic import RECIPES
@@ -42,10 +44,10 @@ def decimal_text(value: Fraction) -> str:
     return format(Decimal(value.numerator) / Decimal(value.denominator), "f")
 
 
-def dataset_from_source(source: AdmittedSynthetic):
-    if type(source) is not AdmittedSynthetic:
+def dataset_from_source(source: AdmittedSynthetic | DatabaseProfileSource):
+    if type(source) not in (AdmittedSynthetic, DatabaseProfileSource):
         raise AgentError("registered_synthetic_source_required")
-    if source.recipe not in (*RECIPES, "five", "constant17"):
+    if type(source) is AdmittedSynthetic and source.recipe not in (*RECIPES, "five", "constant17"):
         raise AgentError("five_dimension_profile_source_required")
     source.validate()
     kernel = Kernel(source.envelope)
@@ -112,12 +114,21 @@ class ProfileCandidate:
 
 @dataclass(frozen=True)
 class ProfileBook:
-    source: AdmittedSynthetic = field(repr=False)
+    source: AdmittedSynthetic | DatabaseProfileSource = field(repr=False)
     candidates: tuple[ProfileCandidate, ...]
     audit: dict
     minimum_cell: int = 5
 
     def verify(self, profile_id: str) -> ProfileCandidate:
+        started = perf_counter()
+        try:
+            return self._verify(profile_id)
+        finally:
+            self.audit["projection_source_replay_seconds"] = (
+                self.audit.get("projection_source_replay_seconds", 0.0) + perf_counter() - started
+            )
+
+    def _verify(self, profile_id: str) -> ProfileCandidate:
         candidate = next((c for c in self.candidates if c.profile_id == profile_id), None)
         if candidate is None:
             raise AgentError("unknown_profile_id")
@@ -145,7 +156,9 @@ class ProfileBook:
         return candidate
 
 
-def build_profiles(source: AdmittedSynthetic, *, minimum_cell: int = 5) -> ProfileBook:
+def build_profiles(
+    source: AdmittedSynthetic | DatabaseProfileSource, *, minimum_cell: int = 5
+) -> ProfileBook:
     Limits(minimum_cell=minimum_cell)  # Keep the existing runtime policy bounds.
     dataset, kernel = dataset_from_source(source)
     result = discover(
