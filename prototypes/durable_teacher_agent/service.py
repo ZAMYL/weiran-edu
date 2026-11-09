@@ -6,10 +6,6 @@ from datetime import date
 from hashlib import sha256
 from pathlib import Path
 
-from app.ai.edu.discovery.models import AgentError, Limits
-from app.core.errors import APIError
-from app.edu.auth import Principal
-
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.research_agent_v2.runtime import ResearchExecutor
@@ -20,6 +16,10 @@ from prototypes.teacher_agent_bridge.models import (
     SourceResult,
 )
 from prototypes.teacher_agent_bridge.provider import DatabaseEnvelope, DatabaseSource, digest
+
+from app.ai.edu.discovery.models import AgentError, Limits
+from app.core.errors import APIError
+from app.edu.auth import Principal
 
 from .models import ProfileInvestigationResult, TaskView
 from .profiles import extend_proof, investigate_profiles, parse_result, replay_profiles
@@ -190,6 +190,7 @@ class TaskService:
             actor = Principal(row["teacher_id"], row["credential_sha"])
             body = json.loads(row["request_json"])
             body.pop("idempotency_key")
+            body.pop("_result_contract", None)
             Invocation(self, row).execute(
                 actor,
                 row["batch_id"],
@@ -241,8 +242,9 @@ class TaskService:
                     or digest(json.loads(row["result_json"])) != row["result_sha"]
                 ):
                     blocked("DATA_INTEGRITY_ERROR", 503)
-                result = parse_result(row["result_json"])
                 persisted_proof = json.loads(row["proof_json"])
+                profile_expected = self.store.profile_result_expected(row, persisted_proof)
+                result = parse_result(row["result_json"], profile_expected=profile_expected)
                 if (
                     persisted_proof.get("rule_version") != VERSION
                     or persisted_proof["released"] != json.loads(row["disclosure_json"])
@@ -300,7 +302,11 @@ class TaskService:
     ) -> SourceResult:
         row = self.row(actor, batch_id, task_id, body.snapshot_id)
         source, executor = self.replay(actor, row)
-        original = parse_result(row["result_json"])
+        persisted_proof = json.loads(row["proof_json"])
+        original = parse_result(
+            row["result_json"],
+            profile_expected=self.store.profile_result_expected(row, persisted_proof),
+        )
         host = InvestigationHost(self.provider, self.directory)
         host.runs[task_id] = (actor.teacher_id, source, executor, original)
         return host.records(actor, batch_id, task_id, body)

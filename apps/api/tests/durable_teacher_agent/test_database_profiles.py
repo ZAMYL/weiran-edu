@@ -1,6 +1,7 @@
 """Real workbook -> formal import -> SQLite -> original task -> verified profiles."""
 
 import json
+from copy import deepcopy
 from dataclasses import replace
 from decimal import Decimal
 from fractions import Fraction
@@ -69,11 +70,42 @@ def start(client, fixture, service, case, question="有哪些值得关注的问�
         "question": question,
         "idempotency_key": "profile-once-01",
     }
-    started = perf_counter()
-    response = client.post(base, json=body)
+    execution_seconds = []
+    original_execute = service.execute
+
+    def timed_execute(task_id):
+        started = perf_counter()
+        try:
+            return original_execute(task_id)
+        finally:
+            execution_seconds.append(perf_counter() - started)
+
+    service.execute = timed_execute
+    post_started = perf_counter()
+    try:
+        response = client.post(base, json=body)
+    finally:
+        post_seconds = perf_counter() - post_started
+        service.execute = original_execute
     assert response.status_code == 202, response.text
     path = base + "/" + response.json()["task_id"]
-    response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+    replay_seconds = []
+    original_verified = service.verified_result
+
+    def timed_verified(*args, **kwargs):
+        started = perf_counter()
+        try:
+            return original_verified(*args, **kwargs)
+        finally:
+            replay_seconds.append(perf_counter() - started)
+
+    service.verified_result = timed_verified
+    get_started = perf_counter()
+    try:
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+    finally:
+        get_seconds = perf_counter() - get_started
+        service.verified_result = original_verified
     assert response.status_code == 200, response.text
     view = response.json()
     print(
@@ -84,12 +116,21 @@ def start(client, fixture, service, case, question="有哪些值得关注的问�
                 "http": response.status_code,
                 "state": view["state"],
                 "error": view["error_code"],
-                "wall_seconds": perf_counter() - started,
+                "post_seconds": post_seconds,
+                "task_execution_seconds": execution_seconds[0],
+                "get_seconds": get_seconds,
+                "proof_replay_seconds": replay_seconds[-1],
                 "model_requests": view["model_requests"],
                 "tool_attempts": view["tool_attempts"],
                 "projection": None
                 if view["result"] is None
-                else view["result"].get("profile_projection"),
+                else {
+                    "profiles": len(view["result"]["profile_projection"]["profiles"]),
+                    "stop_reason": view["result"]["profile_projection"]["stop_reason"],
+                    "uninvestigated_candidates": view["result"]["profile_projection"][
+                        "uninvestigated_candidates"
+                    ],
+                },
             },
             ensure_ascii=False,
         )
@@ -116,6 +157,20 @@ def completed72(tmp_path_factory):
             fixture.app, headers={"Authorization": "Bearer " + fixture.token}
         ) as client:
             values = start(client, fixture, service, "balanced72")
+            yield fixture, service, client, values
+    fixture.admin.revoke_tokens(fixture.teacher_id)
+
+
+@pytest.fixture(scope="module")
+def completed81(tmp_path_factory):
+    directory = tmp_path_factory.mktemp("database-profile81")
+    fixture, service = profile_host(directory)
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(QwenSettings, "from_env", no_live_settings)
+        with TestClient(
+            fixture.app, headers={"Authorization": "Bearer " + fixture.token}
+        ) as client:
+            values = start(client, fixture, service, "zero81")
             yield fixture, service, client, values
     fixture.admin.revoke_tokens(fixture.teacher_id)
 
@@ -241,20 +296,108 @@ def test_72_restart_replays_profiles_and_preserves_single_campaign(completed72):
     assert len(list(service.directory.rglob("*.jsonl"))) == 1
 
 
-def test_81_normal_zero_profiles(tmp_path, monkeypatch):
-    monkeypatch.setattr(QwenSettings, "from_env", no_live_settings)
-    fixture, service = profile_host(tmp_path)
+def test_81_normal_zero_profiles(completed81):
+    _, _, _, (_, _, _, _, view) = completed81
+    assert view["state"] == "completed", view
+    p = view["result"]["profile_projection"]
+    assert p["profiles"] == [] and p["stop_reason"] == "no_eligible_profiles"
+    assert p["uninvestigated_candidates"] == 0
+
+
+def test_81_profile_result_cannot_downgrade_after_persistent_tampering(completed81):
+    fixture, service, client, (batch, _, path, _, view) = completed81
+    task_id = view["task_id"]
+    before = service.store.get(actor(fixture, service), task_id)
+    saved = json.loads(before["result_json"])
+    proof = json.loads(before["proof_json"])
+    assert saved.pop("profile_projection")["profiles"] == []
+    saved["batch_record_count"] = 999
+    forged = deepcopy(saved["facts"][0]["metrics"][0])
+    forged["key"] = "forged.persisted.metric"
+    forged["number"] = 999
+    forged["exact"] = {"numerator": 999, "denominator": 1}
+    saved["facts"][0]["metrics"].append(forged)
+    source = saved["facts"][0]["source_refs"][0]
+
+    def persist(result, persisted_proof):
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET result_json=?,result_sha=?,proof_json=? "
+                "WHERE task_id=?",
+                (encode(result), digest(result), encode(persisted_proof), task_id),
+            )
+
     try:
-        with TestClient(
-            fixture.app, headers={"Authorization": "Bearer " + fixture.token}
-        ) as client:
-            _, _, _, _, view = start(client, fixture, service, "zero81")
-            assert view["state"] == "completed", view
-            p = view["result"]["profile_projection"]
-            assert p["profiles"] == [] and p["stop_reason"] == "no_eligible_profiles"
-            assert p["uninvestigated_candidates"] == 0
+        persist(saved, proof)
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+        statuses = {"get": response.status_code}
+        print(
+            "PROFILE_DOWNGRADE_HTTP_EVIDENCE="
+            + json.dumps(
+                {
+                    "get": response.status_code,
+                    "batch_record_count": response.json()
+                    .get("result", {})
+                    .get("batch_record_count"),
+                    "forged_metric_returned": any(
+                        metric.get("key") == "forged.persisted.metric"
+                        for fact in response.json().get("result", {}).get("facts", [])
+                        for metric in fact.get("metrics", [])
+                    ),
+                },
+                ensure_ascii=False,
+            )
+        )
+        assert response.status_code == 503, response.text
+        assert response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+
+        restarted = TaskService(service.provider, TaskStore(service.provider), service.directory)
+        with pytest.raises(APIError) as error:
+            restarted.view(
+                actor(fixture, service), batch["batch_id"], task_id, batch["snapshot_id"]
+            )
+        assert error.value.status_code == 503 and error.value.code == "AI_PROFILE_PROOF_CONFLICT"
+        statuses["restart"] = error.value.status_code
+
+        response = client.post(source["records_path"], json=source["records_query"] | {"limit": 1})
+        assert response.status_code == 503, response.text
+        assert response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+        statuses["records_query"] = response.status_code
+
+        stripped = deepcopy(proof)
+        stripped.pop("profile")
+        stripped.pop("tool_proof")
+        persist(saved, stripped)
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+        assert response.status_code == 503, response.text
+        assert response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+        statuses["result_and_proof_type_tamper"] = response.status_code
+
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET proof_json=NULL WHERE task_id=?", (task_id,)
+            )
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+        assert response.status_code == 503, response.text
+        assert response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+        statuses["missing_proof"] = response.status_code
+
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET proof_json='{' WHERE task_id=?", (task_id,)
+            )
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+        assert response.status_code == 503, response.text
+        assert response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+        statuses["malformed_proof"] = response.status_code
+        print("PROFILE_INTEGRITY_FIXED_EVIDENCE=" + json.dumps(statuses, ensure_ascii=False))
     finally:
-        fixture.admin.revoke_tokens(fixture.teacher_id)
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET result_json=?,result_sha=?,proof_json=? "
+                "WHERE task_id=?",
+                (before["result_json"], before["result_sha"], before["proof_json"], task_id),
+            )
 
 
 def test_profile_readback_scope_and_actual_source_changes(completed72):

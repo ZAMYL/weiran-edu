@@ -2,10 +2,14 @@
 
 from typing import Literal
 
-from app.edu.models import Model
+from prototypes.teacher_agent_bridge.models import InvestigationRequest, InvestigationResult
 from pydantic import Field, JsonValue, field_validator
 
-from prototypes.teacher_agent_bridge.models import InvestigationRequest, InvestigationResult
+from app.edu.models import Model
+
+PROFILE_RESULT_CONTRACT = "profile-investigation-v1"
+STANDARD_RESULT_CONTRACT = "investigation-v1"
+RESULT_CONTRACT_KEY = "_result_contract"
 
 
 class TaskCreate(InvestigationRequest):

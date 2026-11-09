@@ -5,8 +5,6 @@ from dataclasses import asdict
 from time import perf_counter
 
 import httpx
-from app.ai.edu.discovery.models import AgentError
-
 from prototypes.adaptive_assessment.live.budget import OfflineSnapshotPermit
 from prototypes.capability_profiles.agent import (
     ProfileExecutor,
@@ -24,16 +22,17 @@ from prototypes.teacher_agent_bridge.api import filter_conditions, metrics
 from prototypes.teacher_agent_bridge.models import InvestigationResult, SourceRequest
 from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseSource, digest
 
+from app.ai.edu.discovery.models import AgentError
+
 from .models import ProfileInvestigationResult, ProfileProjection
 from .store import blocked
 
 
-def parse_result(raw: str) -> InvestigationResult:
-    model = (
-        ProfileInvestigationResult
-        if "profile_projection" in json.loads(raw)
-        else InvestigationResult
-    )
+def parse_result(raw: str, *, profile_expected: bool) -> InvestigationResult:
+    payload = json.loads(raw)
+    if not isinstance(payload, dict) or (("profile_projection" in payload) is not profile_expected):
+        blocked("AI_PROFILE_PROOF_CONFLICT", 503)
+    model = ProfileInvestigationResult if profile_expected else InvestigationResult
     return model.model_validate_json(raw)
 
 
