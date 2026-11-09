@@ -5,6 +5,8 @@ from dataclasses import asdict
 from time import perf_counter
 
 import httpx
+from app.ai.edu.discovery.models import AgentError
+
 from prototypes.adaptive_assessment.live.budget import OfflineSnapshotPermit
 from prototypes.capability_profiles.agent import (
     ProfileExecutor,
@@ -21,8 +23,6 @@ from prototypes.research_agent_v2.goals import Goal
 from prototypes.teacher_agent_bridge.api import filter_conditions, metrics
 from prototypes.teacher_agent_bridge.models import InvestigationResult, SourceRequest
 from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseSource, digest
-
-from app.ai.edu.discovery.models import AgentError
 
 from .models import ProfileInvestigationResult, ProfileProjection
 from .store import blocked
@@ -99,6 +99,11 @@ def stable_projection(value: ProfileProjection) -> dict:
 
 
 async def investigate_profiles(source, question, budget, limits):
+    with source.validation_scope():
+        return await _investigate_profiles(source, question, budget, limits)
+
+
+async def _investigate_profiles(source, question, budget, limits):
     transport = mock_transport(ProfileMockPolicy())
     if (
         type(source) is not DatabaseSource
@@ -162,7 +167,21 @@ def extend_proof(tool_proof, result: ProfileInvestigationResult, executor, stage
     return extended
 
 
-def replay_profiles(service, row, actor, result: ProfileInvestigationResult, make_tool_proof):
+def replay_profiles(
+    service,
+    row,
+    actor,
+    result: ProfileInvestigationResult,
+    make_tool_proof,
+    *,
+    source=None,
+):
+    source = source or service.source(row, actor)
+    with source.validation_scope():
+        return _replay_profiles(service, row, actor, result, make_tool_proof, source)
+
+
+def _replay_profiles(service, row, actor, result, make_tool_proof, source):
     original = json.loads(row["proof_json"])
     if (
         original["profile"]["limits"] != asdict(service.profile_limits)
@@ -170,7 +189,6 @@ def replay_profiles(service, row, actor, result: ProfileInvestigationResult, mak
         or original["profile"]["explanation_version"] != EXPLANATION_VERSION
     ):
         blocked("AI_PROFILE_RULE_OR_POLICY_CONFLICT", 503)
-    source = service.source(row, actor)
     if (
         result.run_id != row["task_id"]
         or result.batch_id != row["batch_id"]
@@ -230,11 +248,16 @@ def replay_profiles(service, row, actor, result: ProfileInvestigationResult, mak
                 )
             ):
                 blocked("AI_PROFILE_WITNESS_BINDING_CONFLICT", 503)
-    for fact in executor.facts.values():
-        executor._verify(fact)
-        service.provider.replay_witnesses(
-            source, [r for s in fact.item_sources for r in s.references]
-        )
+    executor.verify_all()
+    service.provider.replay_witnesses(
+        source,
+        [
+            reference
+            for fact in executor.facts.values()
+            for metric_source in fact.item_sources
+            for reference in metric_source.references
+        ],
+    )
     staged = []
     raw = {
         "status": "completed",

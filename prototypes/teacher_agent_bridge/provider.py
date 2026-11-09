@@ -1,6 +1,7 @@
 """Current-authority database snapshot, not SyntheticProvider or a recipe substitution."""
 
 import json
+from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
 from hashlib import sha256
 from threading import Lock
@@ -31,6 +32,13 @@ def digest(value) -> str:
     return sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
+@dataclass
+class ValidationState:
+    """Mutable state owned by one request-local DatabaseSource only."""
+
+    depth: int = 0
+
+
 @dataclass(frozen=True)
 class DatabaseEnvelope(Envelope):
     provider: object = field(repr=False)
@@ -38,6 +46,9 @@ class DatabaseEnvelope(Envelope):
     batch_id: str
     bound_snapshot: str
     cancelled: object = field(default=None, repr=False)
+    validation_state: ValidationState = field(
+        default_factory=ValidationState, repr=False, compare=False
+    )
 
     @property
     def snapshot_id(self):
@@ -47,6 +58,11 @@ class DatabaseEnvelope(Envelope):
         if self.cancelled is not None and self.cancelled():
             raise APIError(499, "AI_CANCELLED", "调查请求已取消")
         self.data.validate()
+        # A validation scope has already captured the complete immutable snapshot.
+        # Nested checks still execute cancellation/authorization and in-memory data
+        # validation; the outer scope performs a fresh whole-source check on exit.
+        if self.validation_state.depth:
+            return
         current, manifest = self.provider.capture(self.actor, self.batch_id, self.bound_snapshot)
         if current != self.material or manifest != self.source_bytes:
             raise APIError(503, "DATA_INTEGRITY_ERROR", "调查快照或来源已变化")
@@ -62,6 +78,22 @@ class DatabaseSource:
         if self.fingerprint != sha256(self.envelope.source_bytes).hexdigest():
             raise APIError(503, "DATA_INTEGRITY_ERROR", "调查快照不一致")
         self.envelope.validate()
+
+    @contextmanager
+    def validation_scope(self):
+        """Reuse a verified snapshot only inside one fail-closed validation phase."""
+
+        state = self.envelope.validation_state
+        outermost = state.depth == 0
+        self.validate()
+        state.depth += 1
+        try:
+            yield self
+        finally:
+            state.depth -= 1
+            if outermost:
+                # Detect source changes during the phase before any caller returns.
+                self.validate()
 
 
 class DatabaseProvider:

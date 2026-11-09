@@ -61,14 +61,21 @@ def profile_host(directory):
     return fixture, install(fixture.app, provider, directory / "campaigns")
 
 
-def start(client, fixture, service, case, question="有哪些值得关注的问题？"):
+def start(
+    client,
+    fixture,
+    service,
+    case,
+    question="有哪些值得关注的问题？",
+    idempotency_key="profile-once-01",
+):
     batch = upload(client, fixture, case)
     service.store.grant(actor(fixture, service), batch["batch_id"], batch["snapshot_id"])
     base = f"/api/v1/edu/batches/{batch['batch_id']}/ai-investigation-tasks"
     body = {
         "snapshot_id": batch["snapshot_id"],
         "question": question,
-        "idempotency_key": "profile-once-01",
+        "idempotency_key": idempotency_key,
     }
     execution_seconds = []
     original_execute = service.execute

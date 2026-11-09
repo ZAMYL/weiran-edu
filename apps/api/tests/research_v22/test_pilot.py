@@ -229,10 +229,15 @@ def test_provider_postcheck_rejection_retains_no_new_fact(monkeypatch):
     assert not probe.executor.facts and probe.executor.output_bytes == 0
 
 
-def test_profile_explains_all_52_replays_without_removing_checks():
+def test_profile_explains_bounded_ledger_reuse_without_removing_checks():
     result = asyncio.run(profile())
-    assert result["observed_replays"] == result["reported_replays"] == 52
-    assert result["checks_cached_or_removed"] == 0 and result["tool_attempts"] == 3
+    assert 0 < result["observed_replays"] == result["reported_replays"]
+    assert result["observed_replays"] < result["naive_replays_without_reuse"]
+    assert result["full_ledger_replays_avoided"] == (
+        result["naive_replays_without_reuse"] - result["observed_replays"]
+    )
+    assert result["checks_removed"] == 0 and result["tool_attempts"] == 3
+    assert result["reuse_scope"] == "single_executor_unchanged_ledger"
 
 
 def test_three_arm_offline_is_not_real_qwen_and_no_key_read(tmp_path, monkeypatch):

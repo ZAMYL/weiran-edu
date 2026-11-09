@@ -6,6 +6,10 @@ from datetime import date
 from hashlib import sha256
 from pathlib import Path
 
+from app.ai.edu.discovery.models import AgentError, Limits
+from app.core.errors import APIError
+from app.edu.auth import Principal
+
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.research_agent_v2.runtime import ResearchExecutor
@@ -16,10 +20,6 @@ from prototypes.teacher_agent_bridge.models import (
     SourceResult,
 )
 from prototypes.teacher_agent_bridge.provider import DatabaseEnvelope, DatabaseSource, digest
-
-from app.ai.edu.discovery.models import AgentError, Limits
-from app.core.errors import APIError
-from app.edu.auth import Principal
 
 from .models import ProfileInvestigationResult, TaskView
 from .profiles import extend_proof, investigate_profiles, parse_result, replay_profiles
@@ -205,16 +205,22 @@ class TaskService:
             # No partial result or sensitive exception message crosses the API boundary.
             self.store.fail(task_id, "AI_TASK_FAILED")
 
-    def row(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> dict:
+    def _row(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> dict:
         row = self.store.get(actor, task_id)
         if row["batch_id"] != batch_id or row["snapshot_id"] != snapshot_id:
             blocked("SNAPSHOT_MISMATCH")
+        return row
+
+    def row(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> dict:
+        row = self._row(actor, batch_id, task_id, snapshot_id)
         self.source(row, actor).validate()
         return row
 
     def view(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> TaskView:
-        row = self.row(actor, batch_id, task_id, snapshot_id)
-        result, _ = self.verified_result(actor, row)
+        row = self._row(actor, batch_id, task_id, snapshot_id)
+        source = self.source(row, actor)
+        with source.validation_scope():
+            result, _ = self.verified_result(actor, row, source=source)
         receipt = json.loads(row["review_json"]) if row["review_json"] else None
         return TaskView(
             task_id=task_id,
@@ -231,7 +237,7 @@ class TaskService:
             expires_at=row["expires"],
         )
 
-    def verified_result(self, actor, row):
+    def verified_result(self, actor, row, *, source=None):
         """One authoritative replay per read; never cache a validated profile result."""
         result = None
         replayed = None
@@ -253,7 +259,7 @@ class TaskService:
                 ):
                     blocked("AI_PROOF_HISTORY_CONFLICT", 503)
                 if isinstance(result, ProfileInvestigationResult):
-                    replayed = replay_profiles(self, row, actor, result, proof)
+                    replayed = replay_profiles(self, row, actor, result, proof, source=source)
             except (AgentError, ValueError, KeyError, TypeError):
                 blocked("AI_PROFILE_PROOF_CONFLICT", 503)
         return result, replayed
@@ -267,40 +273,47 @@ class TaskService:
         """
         if row["state"] != "completed" or row["proof_json"] is None:
             blocked("AI_RESULT_NOT_READY")
-        self.row(actor, row["batch_id"], row["task_id"], row["snapshot_id"])
-        original = json.loads(row["proof_json"])
-        persisted, replayed = self.verified_result(actor, row)
-        if isinstance(persisted, ProfileInvestigationResult):
-            return replayed
-        if (
-            original.get("rule_version") != VERSION
-            or any(f.rule_version != VERSION for f in persisted.facts)
-            or {f.fact_id for f in persisted.facts} != set(original["facts"])
-        ):
-            blocked("AI_RULE_OR_FACT_CONFLICT", 503)
         source = self.source(row, actor)
-        executor = ResearchExecutor(source, original["executor_run_id"], Limits())
-        for query in original["queries"]:
-            try:
-                executor.execute(query["tool"], executor.parse(query["tool"], query["arguments"]))
-            except AgentError:
-                if query["status"] != "rejected":
-                    blocked("DATA_INTEGRITY_ERROR", 503)
-        if proof(executor) != original:
-            blocked("DATA_INTEGRITY_ERROR", 503)
-        if original["released"] != json.loads(row["disclosure_json"]):
-            blocked("AI_DISCLOSURE_HISTORY_CONFLICT", 503)
-        for fact in executor.facts.values():
-            executor._verify(fact)
+        original = json.loads(row["proof_json"])
+        with source.validation_scope():
+            persisted, replayed = self.verified_result(actor, row, source=source)
+            if isinstance(persisted, ProfileInvestigationResult):
+                return replayed
+            if (
+                original.get("rule_version") != VERSION
+                or any(f.rule_version != VERSION for f in persisted.facts)
+                or {f.fact_id for f in persisted.facts} != set(original["facts"])
+            ):
+                blocked("AI_RULE_OR_FACT_CONFLICT", 503)
+            executor = ResearchExecutor(source, original["executor_run_id"], Limits())
+            for query in original["queries"]:
+                try:
+                    executor.execute(
+                        query["tool"], executor.parse(query["tool"], query["arguments"])
+                    )
+                except AgentError:
+                    if query["status"] != "rejected":
+                        blocked("DATA_INTEGRITY_ERROR", 503)
+            if proof(executor) != original:
+                blocked("DATA_INTEGRITY_ERROR", 503)
+            if original["released"] != json.loads(row["disclosure_json"]):
+                blocked("AI_DISCLOSURE_HISTORY_CONFLICT", 503)
+            executor.verify_all()
             self.provider.replay_witnesses(
-                source, [r for s in fact.item_sources for r in s.references]
+                source,
+                [
+                    reference
+                    for fact in executor.facts.values()
+                    for metric_source in fact.item_sources
+                    for reference in metric_source.references
+                ],
             )
-        return source, executor
+            return source, executor
 
     def records(
         self, actor: Principal, batch_id: str, task_id: str, body: SourceRequest
     ) -> SourceResult:
-        row = self.row(actor, batch_id, task_id, body.snapshot_id)
+        row = self._row(actor, batch_id, task_id, body.snapshot_id)
         source, executor = self.replay(actor, row)
         persisted_proof = json.loads(row["proof_json"])
         original = parse_result(
@@ -309,4 +322,5 @@ class TaskService:
         )
         host = InvestigationHost(self.provider, self.directory)
         host.runs[task_id] = (actor.teacher_id, source, executor, original)
-        return host.records(actor, batch_id, task_id, body)
+        with source.validation_scope():
+            return host.records(actor, batch_id, task_id, body)
