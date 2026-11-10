@@ -29,6 +29,15 @@ from .explanations import description_context
 
 
 class ProfileExecutor(ResearchExecutor):
+    def _verify(self, fact):
+        started = perf_counter()
+        try:
+            return super()._verify(fact)
+        finally:
+            self.fact_replay_seconds = (
+                getattr(self, "fact_replay_seconds", 0.0) + perf_counter() - started
+            )
+
     def _gate(self, sources, staged):
         return check_profile_disclosure(
             [s.participants for s in sources],
@@ -132,7 +141,7 @@ class ProfileMockPolicy:
         }
 
 
-def project_selected(book: ProfileBook, result: dict, executor) -> list[dict]:
+def project_selected(book: ProfileBook, result: dict, executor, *, staged=None) -> list[dict]:
     if book.source.fingerprint != executor.source.fingerprint:
         raise AgentError("profile_scope_mismatch")
     if book.minimum_cell != executor.limits.minimum_cell:
@@ -144,7 +153,7 @@ def project_selected(book: ProfileBook, result: dict, executor) -> list[dict]:
         return []  # Never disguise a failed run as successfully chosen profiles.
     profiles = []
     descriptions = []
-    staged = []
+    staged = [] if staged is None else staged
     for card in result["findings"]:
         fact = executor.facts.get(card["fact_id"])
         if fact is None:
@@ -233,13 +242,50 @@ async def run_profiles(
         origin="http_mock",
         today=MOCK_DATE,
     )
+    try:
+        return await run_profile_session(
+            source,
+            book,
+            budget,
+            transport=transport,
+            limits=limits,
+            search_seconds=search_seconds,
+            total_started=total_started,
+        )
+    finally:
+        budget.close()
 
+
+async def run_profile_session(
+    source,
+    book: ProfileBook,
+    budget,
+    *,
+    transport=None,
+    limits=None,
+    search_seconds=0.0,
+    total_started=None,
+    retain_partial=True,
+    staged=None,
+) -> tuple:
+    """Existing profile session with caller-owned budget; never allocates a campaign."""
+    if budget.origin != "http_mock" or (
+        transport is not None and type(transport) is not httpx.MockTransport
+    ):
+        raise AgentError("offline_profile_session_required")
+    if budget.snapshot()["claimed"]:
+        raise AgentError("campaign_run_already_claimed")
+    if book.source.fingerprint != source.fingerprint:
+        raise AgentError("profile_scope_mismatch")
+    limits = limits or Limits(timeout_seconds=30)
+    total_started = perf_counter() if total_started is None else total_started
     planner = None
     started = perf_counter()
     try:
         if limits.tool_attempts <= 1:
             raise AgentError("seed_budget_exhausted")
         executor = ProfileExecutor(source, "profiles-" + uuid4().hex[:12], limits)
+        executor.durable_audit = getattr(budget, "audit_tool", None)
         seed = executor.execute(
             "get_dimension_statistics", executor.parse("get_dimension_statistics", {})
         )
@@ -330,7 +376,11 @@ async def run_profiles(
                 )
             )
             result["retained_fact_ids"] = retained
-        result["profiles"] = project_selected(book, result, executor)
+        result["profiles"] = (
+            project_selected(book, result, executor, staged=staged)
+            if result["status"] == "completed" or retain_partial
+            else []
+        )
         result["profile_search"] = book.audit
         result["candidate_search_seconds"] = search_seconds
         result["profile_stop"] = (
@@ -363,8 +413,10 @@ async def run_profiles(
             }
         )
         result["elapsed_total_seconds"] = perf_counter() - total_started
+        result["mock_seconds"] = sum(m.elapsed_ms for m in planner.metrics) / 1000
+        result["tool_compute_seconds"] = executor.compute_seconds
+        result["fact_replay_seconds"] = getattr(executor, "fact_replay_seconds", 0.0)
         return result, book, executor
     finally:
         if planner is not None:
             await planner.aclose()
-        budget.close()

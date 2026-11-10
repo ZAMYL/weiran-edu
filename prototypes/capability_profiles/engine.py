@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from fractions import Fraction
+from time import perf_counter
 
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.analysis.edu import prepare_dataset
@@ -21,6 +22,7 @@ from app.analysis.edu.models import (
 from prototypes.adaptive_assessment.analysis import Kernel
 from prototypes.adaptive_assessment.synthetic import AdmittedSynthetic
 
+from .database import DatabaseProfileSource
 from .disclosure import check_profile_disclosure
 from .explanations import PreviousDescription, explain, explanation_input
 from .synthetic import RECIPES
@@ -42,10 +44,10 @@ def decimal_text(value: Fraction) -> str:
     return format(Decimal(value.numerator) / Decimal(value.denominator), "f")
 
 
-def dataset_from_source(source: AdmittedSynthetic):
-    if type(source) is not AdmittedSynthetic:
+def dataset_from_source(source: AdmittedSynthetic | DatabaseProfileSource):
+    if type(source) not in (AdmittedSynthetic, DatabaseProfileSource):
         raise AgentError("registered_synthetic_source_required")
-    if source.recipe not in (*RECIPES, "five", "constant17"):
+    if type(source) is AdmittedSynthetic and source.recipe not in (*RECIPES, "five", "constant17"):
         raise AgentError("five_dimension_profile_source_required")
     source.validate()
     kernel = Kernel(source.envelope)
@@ -112,17 +114,43 @@ class ProfileCandidate:
 
 @dataclass(frozen=True)
 class ProfileBook:
-    source: AdmittedSynthetic = field(repr=False)
+    source: AdmittedSynthetic | DatabaseProfileSource = field(repr=False)
     candidates: tuple[ProfileCandidate, ...]
     audit: dict
     minimum_cell: int = 5
+    dataset: object | None = field(default=None, repr=False, compare=False)
+    kernel: Kernel | None = field(default=None, repr=False, compare=False)
+    _verified_profiles: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
+
+    def _resources(self):
+        if self.dataset is None or self.kernel is None:
+            dataset, kernel = dataset_from_source(self.source)
+            object.__setattr__(self, "dataset", dataset)
+            object.__setattr__(self, "kernel", kernel)
+        return self.dataset, self.kernel
 
     def verify(self, profile_id: str) -> ProfileCandidate:
+        started = perf_counter()
+        try:
+            return self._verify(profile_id)
+        finally:
+            self.audit["projection_source_replay_seconds"] = (
+                self.audit.get("projection_source_replay_seconds", 0.0) + perf_counter() - started
+            )
+
+    def _verify(self, profile_id: str) -> ProfileCandidate:
         candidate = next((c for c in self.candidates if c.profile_id == profile_id), None)
         if candidate is None:
             raise AgentError("unknown_profile_id")
+        self.source.validate()
+        signature = repr(candidate.discovery)
+        if self._verified_profiles.get(profile_id) == signature:
+            self.audit["projection_source_replay_cache_hits"] = (
+                self.audit.get("projection_source_replay_cache_hits", 0) + 1
+            )
+            return candidate
+        dataset, _ = self._resources()
         self.audit["projection_source_replays"] = self.audit.get("projection_source_replays", 0) + 1
-        dataset, _ = dataset_from_source(self.source)
         original = candidate.discovery
         if original.context.snapshot_id != self.source.fingerprint:
             raise AgentError("profile_snapshot_mismatch")
@@ -142,10 +170,13 @@ class ProfileBook:
         ):
             raise AgentError("profile_source_replay_failed")
         present(original)  # Reuse exact denominator, distribution and actual-source checks.
+        self._verified_profiles[profile_id] = signature
         return candidate
 
 
-def build_profiles(source: AdmittedSynthetic, *, minimum_cell: int = 5) -> ProfileBook:
+def build_profiles(
+    source: AdmittedSynthetic | DatabaseProfileSource, *, minimum_cell: int = 5
+) -> ProfileBook:
     Limits(minimum_cell=minimum_cell)  # Keep the existing runtime policy bounds.
     dataset, kernel = dataset_from_source(source)
     result = discover(
@@ -241,7 +272,9 @@ def build_profiles(source: AdmittedSynthetic, *, minimum_cell: int = 5) -> Profi
             "rare_combinations": sum(d.type == "rare_combination" for d in result.findings),
             "rare_individuals_not_promoted_to_typical_groups": True,
         },
-        minimum_cell,
+        minimum_cell=minimum_cell,
+        dataset=dataset,
+        kernel=kernel,
     )
 
 
@@ -257,7 +290,7 @@ def teacher_view(
     d = candidate.discovery
     p = d.payload
     view = present(d)
-    kernel = Kernel(book.source.envelope)
+    _, kernel = book._resources()
     history = list(released) if released is not None else [frozenset(kernel.participants)]
     pending = list(staged) if staged is not None else []
     # Reserve all admitted candidate partitions before releasing optional score buckets.
@@ -371,7 +404,7 @@ def resolve(book: ProfileBook, profile_id: str, metric_key: str) -> tuple:
     metric = next((s for s in candidate.discovery.sources if s.metric_key == metric_key), None)
     if metric is None:
         raise AgentError("unknown_profile_metric")
-    _, kernel = dataset_from_source(book.source)
+    _, kernel = book._resources()
     witnesses = []
     for record in metric.records:
         for dim in metric.dimensions:

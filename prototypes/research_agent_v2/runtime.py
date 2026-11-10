@@ -3,6 +3,7 @@
 import json
 from dataclasses import asdict, replace
 from decimal import Decimal
+from hashlib import sha256
 from time import perf_counter
 from uuid import uuid4
 
@@ -50,8 +51,12 @@ class ResearchExecutor(AdaptiveExecutor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attempt_ledger = []
+        self._verified_ledger = None
 
     def execute(self, name, args):
+        # A tool attempt may add a Fact or disclosure group. Any prior whole-ledger
+        # replay belongs to the previous immutable state and cannot be reused.
+        self._verified_ledger = None
         entry = {"tool": name, "arguments": args.model_dump(), "status": "attempted"}
         self.attempt_ledger.append(entry)
         audit = getattr(self, "durable_audit", None)
@@ -69,8 +74,41 @@ class ResearchExecutor(AdaptiveExecutor):
                 audit("rejected", self, entry)
             raise
 
-    def _verify(self, fact):
-        super()._verify(fact)
+    def _ledger_key(self):
+        return (
+            self.source.fingerprint,
+            tuple(
+                (
+                    identifier,
+                    original.tool,
+                    json.dumps(original.query, sort_keys=True, separators=(",", ":")),
+                    sha256(
+                        json.dumps(
+                            original.view,
+                            sort_keys=True,
+                            ensure_ascii=False,
+                            allow_nan=False,
+                        ).encode()
+                    ).hexdigest(),
+                    sha256(
+                        json.dumps(
+                            [asdict(source) for source in original.item_sources],
+                            sort_keys=True,
+                        ).encode()
+                    ).hexdigest(),
+                    original.snapshot_id,
+                    repr(original.calculation),
+                )
+                for identifier, original in self.facts.items()
+            ),
+            tuple(tuple(sorted(group)) for group in self.released),
+            self.output_bytes,
+        )
+
+    def _verify_ledger(self):
+        key = self._ledger_key()
+        if key == self._verified_ledger:
+            return
         replay = AdaptiveExecutor(self.source, self.run_id, self.limits)
         for original in self.facts.values():
             fresh = replay.execute(
@@ -81,6 +119,18 @@ class ResearchExecutor(AdaptiveExecutor):
                 raise AgentError("source_validation_failed")
         if replay.released != self.released or replay.output_bytes != self.output_bytes:
             raise AgentError("disclosure_history_mismatch")
+        self._verified_ledger = key
+
+    def _verify(self, fact):
+        # Always recheck the requested Fact's own hashes/calculation. Only the
+        # expensive replay of the unchanged complete ledger is request-local reuse.
+        super()._verify(fact)
+        self._verify_ledger()
+
+    def verify_all(self):
+        for fact in self.facts.values():
+            super()._verify(fact)
+        self._verify_ledger()
 
 
 class ResearchPlanner(QwenAdaptivePlanner):

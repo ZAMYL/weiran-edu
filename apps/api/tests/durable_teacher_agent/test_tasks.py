@@ -1,13 +1,16 @@
 """Synthetic real DB + real HTTP auth + native Function Calling Mock integration."""
 
+import json
 from io import BytesIO
 
 import pytest
 from fastapi.testclient import TestClient
 from openpyxl import load_workbook
 from prototypes.durable_teacher_agent.api import install
+from prototypes.durable_teacher_agent.models import RESULT_CONTRACT_KEY
+from prototypes.durable_teacher_agent.store import encode
 from prototypes.teacher_agent_bridge.fixtures import build_host
-from prototypes.teacher_agent_bridge.provider import DatabaseProvider
+from prototypes.teacher_agent_bridge.provider import DatabaseProvider, digest
 
 from app.edu.auth import authenticate
 from app.importing.edu import parse_excel
@@ -155,6 +158,47 @@ def test_persist_reload_evidence_review_and_report(completed):
         params={"snapshot_id": b["snapshot_id"], "expected_version": 1, "format": "md"},
     )
     assert response.status_code == 409
+
+
+def test_legacy_standard_result_stays_compatible_and_cannot_self_upgrade(completed):
+    fixture, service, client, batch, _, _, path, _, view = completed
+    task_id = view["task_id"]
+    before = service.store.get(actor(fixture, service), task_id)
+    request = json.loads(before["request_json"])
+    assert request.pop(RESULT_CONTRACT_KEY) == "investigation-v1"
+    try:
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET request_json=?,request_sha=? WHERE task_id=?",
+                (encode(request), digest(request), task_id),
+            )
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+        assert response.status_code == 200, response.text
+        assert "profile_projection" not in response.json()["result"]
+
+        forged = json.loads(before["result_json"])
+        forged["profile_projection"] = {}
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET result_json=?,result_sha=? WHERE task_id=?",
+                (encode(forged), digest(forged), task_id),
+            )
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+        assert response.status_code == 503, response.text
+        assert response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+    finally:
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET request_json=?,request_sha=?,result_json=?,"
+                "result_sha=? WHERE task_id=?",
+                (
+                    before["request_json"],
+                    before["request_sha"],
+                    before["result_json"],
+                    before["result_sha"],
+                    task_id,
+                ),
+            )
 
 
 def test_idempotence_new_request_cannot_reset_budget(completed):

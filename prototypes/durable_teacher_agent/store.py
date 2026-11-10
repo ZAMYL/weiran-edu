@@ -10,17 +10,23 @@ import time
 from collections.abc import Callable
 from uuid import uuid4
 
+from prototypes.research_agent_v2.goals import understand
+from prototypes.teacher_agent_bridge.models import InvestigationResult
+from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseProvider, digest
+
 from app.ai.edu.discovery.models import AgentError
 from app.core.errors import APIError
 from app.edu.auth import Principal
 from app.edu.reads import BatchReader
 from app.edu.reviews import require_owner
 
-from prototypes.research_agent_v2.goals import understand
-from prototypes.teacher_agent_bridge.models import InvestigationResult
-from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseProvider, digest
-
-from .models import TaskCreate
+from .models import (
+    PROFILE_RESULT_CONTRACT,
+    RESULT_CONTRACT_KEY,
+    STANDARD_RESULT_CONTRACT,
+    ProfileInvestigationResult,
+    TaskCreate,
+)
 
 
 def encode(value: object) -> str:
@@ -191,7 +197,15 @@ class TaskStore:
             "explanation": "为什么相关",
         }[goal.kind]
         # Persist only the controlled intent/items, never the arbitrary question text.
-        raw = body.model_dump(mode="json") | {"question": label + " " + " ".join(goal.items)}
+        contract = (
+            PROFILE_RESULT_CONTRACT
+            if body.strategy == "adaptive" and goal.kind == "priority" and not goal.items
+            else STANDARD_RESULT_CONTRACT
+        )
+        raw = body.model_dump(mode="json") | {
+            "question": label + " " + " ".join(goal.items),
+            RESULT_CONTRACT_KEY: contract,
+        }
         request_sha = digest(raw)
         with self.database.transaction(write=True) as c:
             self.reader._batch(c, actor, batch_id, body.snapshot_id)
@@ -203,7 +217,12 @@ class TaskStore:
             if old:
                 row = self._row(c, old["task_id"])
                 self.check(c, row, actor)
-                if row["batch_id"] != batch_id or old["request_sha"] != request_sha:
+                legacy = dict(raw)
+                legacy.pop(RESULT_CONTRACT_KEY)
+                if row["batch_id"] != batch_id or old["request_sha"] not in {
+                    request_sha,
+                    digest(legacy),
+                }:
                     blocked("AI_IDEMPOTENCY_CONFLICT")
                 return row, False
             grant = c.execute(
@@ -323,12 +342,38 @@ class TaskStore:
         with self.database.transaction(write=True) as c:
             row = self._row(c, task_id)
             self.check(c, row, actor, running=True)
+            profile_expected = self.profile_result_expected(row, proof)
+            if isinstance(result, ProfileInvestigationResult) is not profile_expected:
+                blocked("AI_PROFILE_PROOF_CONFLICT", 503)
             c.execute(
                 "UPDATE ai_synthetic_tasks SET "
-                "state='completed',result_json=?,result_sha=?,proof_json=? WHERE task_id=?",
-                (encode(raw), digest(raw), encode(proof), task_id),
+                "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=? "
+                "WHERE task_id=?",
+                (encode(raw), digest(raw), encode(proof), encode(proof["released"]), task_id),
             )
             self.event(c, task_id, "result_committed", {"result_sha": digest(raw)})
+
+    @staticmethod
+    def profile_result_expected(row: dict, proof: dict) -> bool:
+        request = json.loads(row["request_json"])
+        if not isinstance(request, dict) or digest(request) != row["request_sha"]:
+            blocked("DATA_INTEGRITY_ERROR", 503)
+        contract = request.get(RESULT_CONTRACT_KEY)
+        has_profile = "profile" in proof
+        has_tool_proof = "tool_proof" in proof
+        if contract is None:
+            if has_profile is not has_tool_proof:
+                blocked("AI_PROFILE_PROOF_CONFLICT", 503)
+            # Historical tasks predate the explicit contract. Their server proof
+            # remains authoritative: ordinary results stay ordinary, while the
+            # original #81 profile proof still requires a profile result.
+            return has_profile
+        if contract not in {PROFILE_RESULT_CONTRACT, STANDARD_RESULT_CONTRACT}:
+            blocked("AI_PROFILE_PROOF_CONFLICT", 503)
+        profile_expected = contract == PROFILE_RESULT_CONTRACT
+        if has_profile is not profile_expected or has_tool_proof is not profile_expected:
+            blocked("AI_PROFILE_PROOF_CONFLICT", 503)
+        return profile_expected
 
     def fail(self, task_id: str, code: str) -> None:
         state = (

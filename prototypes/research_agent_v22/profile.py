@@ -1,4 +1,4 @@
-"""Observe existing verification calls without weakening or caching any check."""
+"""Observe Fact checks and request-local reuse of an unchanged ledger replay."""
 
 import argparse
 import asyncio
@@ -69,24 +69,29 @@ async def profile():
     for event in events:
         totals[event["caller"]] += event["replay_executions"]
         calls[event["caller"]] += 1
+    naive_replays = sum(event["facts_in_ledger"] for event in events)
+    observed_replays = sum(totals.values())
     return {
         "origin": "offline_mechanism",
         "real_qwen": "not_run",
         "model_requests": result["model_requests"],
         "tool_attempts": result["tool_attempts"],
         "reported_replays": result["verification_replay_executions"],
-        "observed_replays": sum(totals.values()),
+        "observed_replays": observed_replays,
+        "naive_replays_without_reuse": naive_replays,
+        "full_ledger_replays_avoided": naive_replays - observed_replays,
         "verify_calls_by_caller": dict(calls),
         "replays_by_caller": dict(totals),
         "events": events,
-        "checks_cached_or_removed": 0,
+        "checks_removed": 0,
+        "reuse_scope": "single_executor_unchanged_ledger",
         "kernel_and_source_calls": dict(calculations),
         "timing_limitation": "sys.setprofile adds overhead; do not compare to unprofiled latency",
-        "decision": "retain_executor_checks",
+        "decision": "reuse_unchanged_ledger_replay_with_fresh_fact_checks",
         "reason": [
-            "mutable_fact_views_and_queries",
-            "source_and_disclosure_history_can_change",
-            "future_provider_revocation_requires_fresh_check",
+            "every_requested_fact_hash_and_calculation_is_rechecked",
+            "new_fact_or_disclosure_invalidates_whole_ledger_reuse",
+            "source_and_authorization_are_checked_at_validation_boundaries",
         ],
     }
 

@@ -99,6 +99,86 @@ class InvestigationHost:
     def completed(self, actor, source, executor, result):
         self.runs[result.run_id] = (actor.teacher_id, source, executor, result)
 
+    def investigate(self, source, question, budget, body):
+        """One execution hook; the host retains ownership of the existing budget."""
+        return asyncio.run(
+            investigate_database(
+                source,
+                question,
+                budget,
+                transport=mock_transport(AdaptiveFake() if body.strategy == "fixed" else None),
+                limits=Limits(model_requests=6, tool_attempts=5, timeout_seconds=30),
+            )
+        )
+
+    def verified_facts(self, source, executor, batch_id, snapshot_id, run_id):
+        """Verify one immutable Fact ledger and all Witness references as one phase."""
+
+        with source.validation_scope():
+            executor.verify_all()
+            self.provider.replay_witnesses(
+                source,
+                [
+                    reference
+                    for fact in executor.facts.values()
+                    for metric_source in fact.item_sources
+                    for reference in metric_source.references
+                ],
+            )
+            witness_by_id = {w.reference_id: w for w in source.envelope.material.witnesses}
+            return tuple(
+                FactResult(
+                    fact_id=fact.fact_id,
+                    batch_id=batch_id,
+                    snapshot_id=snapshot_id,
+                    method=fact.tool,
+                    rule_version=VERSION,
+                    qualified=fact.view["qualified"],
+                    source_verified=True,
+                    conditions=filter_conditions(fact.query["arguments"]),
+                    metrics=tuple(metrics(fact.view)),
+                    source_refs=tuple(
+                        SourceReference(
+                            metric_key=metric_source.key,
+                            dimension_code=ALIASES[metric_source.item_id],
+                            participant_count=len(metric_source.participants),
+                            witness_kind="row"
+                            if any(
+                                witness_by_id[reference].kind == "row"
+                                for reference in metric_source.references
+                            )
+                            else "score",
+                            records_path=(
+                                f"/api/v1/edu/batches/{batch_id}/ai-investigations/"
+                                f"{run_id}/records/query"
+                            ),
+                            records_query=SourceRequest(
+                                snapshot_id=snapshot_id,
+                                fact_id=fact.fact_id,
+                                metric_key=metric_source.key,
+                            ),
+                        )
+                        for metric_source in fact.item_sources
+                    ),
+                    limitation_codes=tuple(fact.view.get("limitation_codes", ())),
+                    exploration_query=GroupQuery(
+                        snapshot_id=snapshot_id,
+                        conditions=filter_conditions(fact.query["arguments"]),
+                    )
+                    if fact.tool == "compare_student_groups"
+                    else None,
+                    save_group_analysis_request=AnalysisCreate(
+                        snapshot_id=snapshot_id,
+                        title="AI调查后的群体核对",
+                        candidate_ids=(),
+                        conditions=filter_conditions(fact.query["arguments"]),
+                    )
+                    if fact.tool == "compare_student_groups"
+                    else None,
+                )
+                for fact in executor.facts.values()
+            )
+
     def execute(
         self,
         actor: Principal,
@@ -126,71 +206,12 @@ class InvestigationHost:
         try:
             if cancelled is not None and cancelled():
                 raise APIError(499, "AI_CANCELLED", "调查请求已取消")
-            raw, executor = asyncio.run(
-                investigate_database(
-                    source,
-                    question,
-                    budget,
-                    transport=mock_transport(AdaptiveFake() if body.strategy == "fixed" else None),
-                    limits=Limits(model_requests=6, tool_attempts=5, timeout_seconds=30),
-                )
-            )
+            raw, executor = self.investigate(source, question, budget, body)
             source.validate()
             if cancelled is not None and cancelled():
                 raise APIError(499, "AI_CANCELLED", "调查请求已取消")
             run_id = self.result_id()
-            facts = []
-            witness_by_id = {w.reference_id: w for w in source.envelope.material.witnesses}
-            for f in executor.facts.values():
-                executor._verify(f)
-                self.provider.replay_witnesses(
-                    source, [ref for s in f.item_sources for ref in s.references]
-                )
-                facts.append(
-                    FactResult(
-                        fact_id=f.fact_id,
-                        batch_id=batch_id,
-                        snapshot_id=body.snapshot_id,
-                        method=f.tool,
-                        rule_version=VERSION,
-                        qualified=f.view["qualified"],
-                        source_verified=True,
-                        conditions=filter_conditions(f.query["arguments"]),
-                        metrics=tuple(metrics(f.view)),
-                        source_refs=tuple(
-                            SourceReference(
-                                metric_key=s.key,
-                                dimension_code=ALIASES[s.item_id],
-                                participant_count=len(s.participants),
-                                witness_kind="row"
-                                if any(witness_by_id[r].kind == "row" for r in s.references)
-                                else "score",
-                                records_path=f"/api/v1/edu/batches/{batch_id}/ai-investigations/{run_id}/records/query",
-                                records_query=SourceRequest(
-                                    snapshot_id=body.snapshot_id,
-                                    fact_id=f.fact_id,
-                                    metric_key=s.key,
-                                ),
-                            )
-                            for s in f.item_sources
-                        ),
-                        limitation_codes=tuple(f.view.get("limitation_codes", ())),
-                        exploration_query=GroupQuery(
-                            snapshot_id=body.snapshot_id,
-                            conditions=filter_conditions(f.query["arguments"]),
-                        )
-                        if f.tool == "compare_student_groups"
-                        else None,
-                        save_group_analysis_request=AnalysisCreate(
-                            snapshot_id=body.snapshot_id,
-                            title="AI调查后的群体核对",
-                            candidate_ids=(),
-                            conditions=filter_conditions(f.query["arguments"]),
-                        )
-                        if f.tool == "compare_student_groups"
-                        else None,
-                    )
-                )
+            facts = self.verified_facts(source, executor, batch_id, body.snapshot_id, run_id)
             source.validate()
             result = InvestigationResult(
                 run_id=run_id,
