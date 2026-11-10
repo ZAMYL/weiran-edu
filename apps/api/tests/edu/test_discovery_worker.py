@@ -3,8 +3,8 @@
 import asyncio
 import json
 import multiprocessing
-import os
 import time
+from multiprocessing.process import BaseProcess
 
 import pytest
 
@@ -15,14 +15,7 @@ from app.edu import discovery_bridge, discovery_worker
 
 from .test_discovery_api import query
 from .test_insights_api import formal_batch as formal_batch
-
-
-def sleeping_child(*args):
-    time.sleep(30)
-
-
-def crashed_child(*args):
-    os._exit(7)
+from .worker_process_targets import crashed_child, sleeping_child
 
 
 def arguments():
@@ -96,10 +89,32 @@ def test_disconnect_and_task_cancellation_reap_real_child(monkeypatch, method):
 
 def test_crashed_worker_is_unavailable_not_empty_discovery(monkeypatch):
     before = child_ids()
+    receive = discovery_worker._receive
+    close = BaseProcess.close
+    transport_errors = []
+    exitcodes = []
+
+    def observe_receive(receiver):
+        try:
+            return receive(receiver)
+        except BaseException as error:
+            transport_errors.append(type(error).__name__)
+            raise
+
+    def observe_close(process):
+        exitcodes.append(process.exitcode)
+        return close(process)
+
+    monkeypatch.setattr(discovery_worker, "_receive", observe_receive)
+    monkeypatch.setattr(BaseProcess, "close", observe_close)
     monkeypatch.setattr(discovery_worker, "compute_child", crashed_child)
+    started = time.perf_counter()
     with pytest.raises(APIError) as error:
         asyncio.run(discovery_worker.execute(*arguments(), timeout=5))
     assert error.value.code == "DISCOVERY_UNAVAILABLE"
+    assert time.perf_counter() - started < 5
+    assert transport_errors == ["EOFError"]
+    assert exitcodes == [7]
     assert child_ids() == before
 
 
