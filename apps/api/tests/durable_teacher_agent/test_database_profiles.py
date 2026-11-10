@@ -16,7 +16,10 @@ from prototypes.capability_profiles.database import DatabaseProfileSource
 from prototypes.capability_profiles.engine import build_profiles, dataset_from_source
 from prototypes.capability_profiles.synthetic import specification
 from prototypes.durable_teacher_agent.api import install
-from prototypes.durable_teacher_agent.models import ProfileInvestigationResult
+from prototypes.durable_teacher_agent.models import (
+    ProfileInvestigationResult,
+    ProfileScoreRequest,
+)
 from prototypes.durable_teacher_agent.profiles import stable_projection
 from prototypes.durable_teacher_agent.service import TaskService
 from prototypes.durable_teacher_agent.store import TaskStore, encode
@@ -145,6 +148,23 @@ def start(
     return batch, base, path, body, view
 
 
+def profile_scores_path(batch, view):
+    return (
+        f"/api/v1/edu/batches/{batch['batch_id']}/ai-investigation-tasks/"
+        f"{view['task_id']}/profiles/scores/query"
+    )
+
+
+def profile_scores_body(batch, profile, dimension, side, **page):
+    return {
+        "snapshot_id": batch["snapshot_id"],
+        "profile_id": profile["profile_id"],
+        "dimension_code": dimension["dimension_code"],
+        "side": side,
+        **page,
+    }
+
+
 def no_live_settings():
     raise AssertionError("real_model_settings_must_not_be_read")
 
@@ -222,7 +242,7 @@ def test_72_http_profiles_are_real_database_statistics_and_witnesses(completed72
         assert profile["snapshot_id"] == batch["snapshot_id"]
         assert profile["analysis_snapshot_id"] == source.fingerprint
         assert "source_queries" not in profile
-        assert profile["dimension_evidence_http"] == "not_implemented"
+        assert profile["dimension_evidence_http"] == "synthetic_task_profile_scores_v1"
         target = set()
         for pid, values in scores.items():
             if all(
@@ -283,6 +303,137 @@ def test_72_http_profiles_are_real_database_statistics_and_witnesses(completed72
         assert actual.json()["comment"] is None
 
 
+def test_profile_five_dimension_scores_match_database_and_do_not_spend_budget(
+    completed72, monkeypatch
+):
+    fixture, service, client, (batch, _, _, _, view) = completed72
+    profile = view["result"]["profile_projection"]["profiles"][0]
+    path = profile_scores_path(batch, view)
+    before = service.store.get(actor(fixture, service), view["task_id"])
+    with service.store.database.transaction() as connection:
+        rows = connection.execute(
+            "SELECT s.public_id,e.dimension_code,e.score_units,e.evidence_id "
+            "FROM evaluations e JOIN students s USING(student_pk) WHERE e.batch_id=?",
+            (batch["batch_id"],),
+        ).fetchall()
+    scores = {
+        (row["public_id"], row["dimension_code"]): (
+            Fraction(row["score_units"], 100),
+            row["evidence_id"],
+        )
+        for row in rows
+    }
+    calls = {"capture": 0, "witness_batches": 0}
+    capture = service.provider.capture
+    replay_witnesses = service.provider.replay_witnesses
+
+    def counted_capture(*args):
+        calls["capture"] += 1
+        return capture(*args)
+
+    def counted_witnesses(*args):
+        calls["witness_batches"] += 1
+        return replay_witnesses(*args)
+
+    monkeypatch.setattr(service.provider, "capture", counted_capture)
+    monkeypatch.setattr(service.provider, "replay_witnesses", counted_witnesses)
+    started = perf_counter()
+    responses = []
+    evidence_sample = None
+    for dimension in profile["dimensions"]:
+        for side in ("target", "remainder"):
+            response = client.post(
+                path,
+                json=profile_scores_body(batch, profile, dimension, side, limit=100),
+            )
+            assert response.status_code == 200, response.text
+            result = response.json()
+            responses.append(result)
+            assert result["detail_status"] == "available"
+            assert result["limitation_code"] is None
+            assert result["total_count"] == dimension[side]["valid_count"]
+            assert result["valid_count"] == len(result["items"])
+            assert Fraction(result["mean"]["numerator"], result["mean"]["denominator"]) == Fraction(
+                dimension[side]["mean"]["numerator"], dimension[side]["mean"]["denominator"]
+            )
+            assert result["verified_profile_fact_ids"] == profile["verified_fact_ids"]
+            actual_scores = []
+            for item in result["items"]:
+                expected_score, expected_evidence = scores[
+                    (item["student_id"], dimension["dimension_code"])
+                ]
+                assert item["evidence_id"] == expected_evidence
+                observed = Fraction(item["score"]["numerator"], item["score"]["denominator"])
+                assert observed == expected_score
+                actual_scores.append(observed)
+            evidence_sample = evidence_sample or (
+                result["items"][0],
+                scores[(result["items"][0]["student_id"], dimension["dimension_code"])][0],
+            )
+            assert sum(actual_scores, Fraction()) / len(actual_scores) == Fraction(
+                result["mean"]["numerator"], result["mean"]["denominator"]
+            )
+
+    item, expected_score = evidence_sample
+    evidence = client.get(item["evidence_path"], params={"snapshot_id": batch["snapshot_id"]})
+    assert evidence.status_code == 200, evidence.text
+    assert Fraction(str(evidence.json()["score"])) == expected_score
+
+    # Five dimensions share one profile selection Fact, but only its outcome dimension
+    # is itself an Agent Fact. The other dimensions remain deterministic profile replay.
+    assert sum(bool(result["dimension_fact_ids"]) for result in responses) == 2
+    first_dimension = profile["dimensions"][0]
+    first = client.post(
+        path,
+        json=profile_scores_body(batch, profile, first_dimension, "target", offset=0, limit=7),
+    ).json()
+    second = client.post(
+        path,
+        json=profile_scores_body(batch, profile, first_dimension, "target", offset=7, limit=7),
+    ).json()
+    assert first["has_more"] and first["total_count"] == second["total_count"]
+    assert {item["evidence_id"] for item in first["items"]}.isdisjoint(
+        item["evidence_id"] for item in second["items"]
+    )
+    after = service.store.get(actor(fixture, service), view["task_id"])
+    for key in ("budget_json", "tool_attempts", "disclosure_json", "proof_json"):
+        assert after[key] == before[key]
+    assert calls["capture"] == 3 * 12
+    assert calls["witness_batches"] == 2 * 12
+    print(
+        "PROFILE_SCORE_QUERY_EVIDENCE="
+        + json.dumps(
+            {
+                "requests": len(responses) + 2,
+                "elapsed_seconds": perf_counter() - started,
+                "capture_calls": calls["capture"],
+                "witness_batches": calls["witness_batches"],
+                "sample_response": {
+                    key: responses[0][key]
+                    for key in (
+                        "dimension_code",
+                        "side",
+                        "detail_status",
+                        "mean",
+                        "valid_count",
+                        "total_count",
+                    )
+                }
+                | {
+                    "returned_items": len(responses[0]["items"]),
+                    "dimension_fact_count": len(responses[0]["dimension_fact_ids"]),
+                },
+                "model_requests_before_after": [
+                    json.loads(before["budget_json"])["request_count"],
+                    json.loads(after["budget_json"])["request_count"],
+                ],
+                "tool_attempts_before_after": [before["tool_attempts"], after["tool_attempts"]],
+            },
+            ensure_ascii=False,
+        )
+    )
+
+
 def test_72_restart_replays_profiles_and_preserves_single_campaign(completed72):
     fixture, service, client, (batch, base, path, body, view) = completed72
     assert view["state"] == "completed", view
@@ -303,12 +454,100 @@ def test_72_restart_replays_profiles_and_preserves_single_campaign(completed72):
     assert len(list(service.directory.rglob("*.jsonl"))) == 1
 
 
+def test_legacy_profile_result_remains_readable_but_is_not_auto_upgraded(completed72):
+    fixture, service, client, (batch, _, path, _, view) = completed72
+    task_id = view["task_id"]
+    before = service.store.get(actor(fixture, service), task_id)
+    saved = json.loads(before["result_json"])
+    proof = json.loads(before["proof_json"])
+    projection = saved["profile_projection"]
+    projection["dimension_evidence_http"] = "not_implemented"
+    for profile in projection["profiles"]:
+        profile["dimension_evidence_http"] = "not_implemented"
+    model = ProfileInvestigationResult.model_validate_json(encode(saved))
+    proof["profile"]["projection_sha"] = digest(stable_projection(model.profile_projection))
+    with service.store.database.transaction(write=True) as connection:
+        connection.execute(
+            "UPDATE ai_synthetic_tasks SET result_json=?,result_sha=?,proof_json=? WHERE task_id=?",
+            (encode(saved), digest(saved), encode(proof), task_id),
+        )
+    try:
+        response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
+        assert response.status_code == 200, response.text
+        assert (
+            response.json()["result"]["profile_projection"]["dimension_evidence_http"]
+            == "not_implemented"
+        )
+        profile = projection["profiles"][0]
+        blocked_response = client.post(
+            profile_scores_path(batch, view),
+            json=profile_scores_body(batch, profile, profile["dimensions"][0], "target"),
+        )
+        assert blocked_response.status_code == 409, blocked_response.text
+        assert blocked_response.json()["error"]["code"] == "AI_PROFILE_EVIDENCE_NOT_ENABLED"
+        restarted = TaskService(service.provider, TaskStore(service.provider), service.directory)
+        assert (
+            restarted.view(
+                actor(fixture, service), batch["batch_id"], task_id, batch["snapshot_id"]
+            ).result.profile_projection.dimension_evidence_http
+            == "not_implemented"
+        )
+    finally:
+        with service.store.database.transaction(write=True) as connection:
+            connection.execute(
+                "UPDATE ai_synthetic_tasks SET result_json=?,result_sha=?,proof_json=? "
+                "WHERE task_id=?",
+                (before["result_json"], before["result_sha"], before["proof_json"], task_id),
+            )
+
+
 def test_81_normal_zero_profiles(completed81):
     _, _, _, (_, _, _, _, view) = completed81
     assert view["state"] == "completed", view
     p = view["result"]["profile_projection"]
     assert p["profiles"] == [] and p["stop_reason"] == "no_eligible_profiles"
     assert p["uninvestigated_candidates"] == 0
+
+
+def test_profile_score_query_rejects_zero_unknown_dimension_and_forged_fact(
+    completed72, completed81
+):
+    _, _, client72, (batch72, _, _, _, view72) = completed72
+    profile = view72["result"]["profile_projection"]["profiles"][0]
+    dimension = profile["dimensions"][0]
+    path72 = profile_scores_path(batch72, view72)
+    unknown = client72.post(
+        path72,
+        json=profile_scores_body(
+            batch72, profile | {"profile_id": "profile-missing"}, dimension, "target"
+        ),
+    )
+    assert unknown.status_code == 404
+    invalid_dimension = client72.post(
+        path72,
+        json=profile_scores_body(batch72, profile, dimension, "target")
+        | {"dimension_code": "invented_dimension"},
+    )
+    assert invalid_dimension.status_code == 422
+    forged_fact = client72.post(
+        path72,
+        json=profile_scores_body(batch72, profile, dimension, "target")
+        | {"fact_id": profile["verified_fact_ids"][0]},
+    )
+    assert forged_fact.status_code == 422
+
+    _, _, client81, (batch81, _, _, _, view81) = completed81
+    zero = client81.post(
+        profile_scores_path(batch81, view81),
+        json={
+            "snapshot_id": batch81["snapshot_id"],
+            "profile_id": "profile-missing",
+            "dimension_code": "algorithm_data_structure",
+            "side": "target",
+        },
+    )
+    assert zero.status_code == 404
+    assert zero.json()["error"]["code"] == "AI_PROFILE_NOT_FOUND"
 
 
 def test_81_profile_result_cannot_downgrade_after_persistent_tampering(completed81):
@@ -357,6 +596,19 @@ def test_81_profile_result_cannot_downgrade_after_persistent_tampering(completed
         )
         assert response.status_code == 503, response.text
         assert response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+
+        score_response = client.post(
+            profile_scores_path(batch, view),
+            json={
+                "snapshot_id": batch["snapshot_id"],
+                "profile_id": "profile-forged",
+                "dimension_code": "algorithm_data_structure",
+                "side": "target",
+            },
+        )
+        assert score_response.status_code == 503, score_response.text
+        assert score_response.json()["error"]["code"] == "AI_PROFILE_PROOF_CONFLICT"
+        statuses["profile_scores"] = score_response.status_code
 
         restarted = TaskService(service.provider, TaskStore(service.provider), service.directory)
         with pytest.raises(APIError) as error:
@@ -410,11 +662,26 @@ def test_81_profile_result_cannot_downgrade_after_persistent_tampering(completed
 def test_profile_readback_scope_and_actual_source_changes(completed72):
     fixture, service, client, (batch, base, path, body, view) = completed72
     assert view["state"] == "completed"
+    profile = view["result"]["profile_projection"]["profiles"][0]
+    dimension = profile["dimensions"][0]
+    score_path = profile_scores_path(batch, view)
+    score_body = profile_scores_body(batch, profile, dimension, "target")
     assert client.get(path, params={"snapshot_id": "old-snapshot"}).status_code == 409
+    assert (
+        client.post(score_path, json=score_body | {"snapshot_id": "old-snapshot"}).status_code
+        == 409
+    )
     other_batch = upload(client, fixture, "zero81")
     wrong_path = path.replace(batch["batch_id"], other_batch["batch_id"])
     assert (
         client.get(wrong_path, params={"snapshot_id": other_batch["snapshot_id"]}).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            score_path.replace(batch["batch_id"], other_batch["batch_id"]),
+            json=score_body | {"snapshot_id": other_batch["snapshot_id"]},
+        ).status_code
         == 409
     )
     other = fixture.admin.create_teacher("profile-other-teacher")
@@ -424,6 +691,14 @@ def test_profile_readback_scope_and_actual_source_changes(completed72):
             client.get(
                 path,
                 params={"snapshot_id": batch["snapshot_id"]},
+                headers={"Authorization": "Bearer " + token},
+            ).status_code
+            == 404
+        )
+        assert (
+            client.post(
+                score_path,
+                json=score_body,
                 headers={"Authorization": "Bearer " + token},
             ).status_code
             == 404
@@ -447,6 +722,8 @@ def test_profile_readback_scope_and_actual_source_changes(completed72):
     try:
         response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
         assert response.status_code == 503, response.text
+        score_response = client.post(score_path, json=score_body)
+        assert score_response.status_code == 503, score_response.text
     finally:
         with service.store.database.transaction(write=True) as c:
             c.execute(
@@ -463,6 +740,10 @@ def test_profile_readback_scope_and_actual_source_changes(completed72):
 def test_restart_recomputes_instead_of_trusting_saved_json(completed72, changed):
     fixture, service, client, (batch, _, path, _, view) = completed72
     task_id = view["task_id"]
+    profile = view["result"]["profile_projection"]["profiles"][0]
+    dimension = profile["dimensions"][0]
+    score_path = profile_scores_path(batch, view)
+    score_body = profile_scores_body(batch, profile, dimension, "target")
     before = service.store.get(actor(fixture, service), task_id)
     saved = json.loads(before["result_json"])
     proof = json.loads(before["proof_json"])
@@ -491,6 +772,8 @@ def test_restart_recomputes_instead_of_trusting_saved_json(completed72, changed)
     try:
         response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
         assert response.status_code == 503, response.text
+        score_response = client.post(score_path, json=score_body)
+        assert score_response.status_code == 503, score_response.text
     finally:
         with service.store.database.transaction(write=True) as c:
             c.execute(
@@ -614,13 +897,34 @@ def test_profile_k25_cumulative_histogram_suppression_survives_restart(tmp_path)
             p = view["result"]["profile_projection"]
             assert p["profiles"] and p["minimum_cell"] == 25
             suppressed = False
+            restricted = []
             for profile in p["profiles"]:
                 for dimension in profile["dimensions"]:
                     for side in ("target", "remainder"):
                         cells = dimension[side]["distribution"]
                         suppressed |= not cells
+                        if not cells:
+                            restricted.append((profile, dimension, side))
                         assert all(c["count"] >= 25 for c in cells)
             assert suppressed
+            profile, dimension, side = restricted[0]
+            score_path = profile_scores_path(batch, view)
+            score_body = profile_scores_body(batch, profile, dimension, side)
+            before = service.store.get(actor(fixture, service), view["task_id"])
+            response = client.post(score_path, json=score_body)
+            assert response.status_code == 200, response.text
+            limited = response.json()
+            assert limited["detail_status"] == "privacy_limited"
+            assert limited["limitation_code"] == "PROFILE_SCORE_DETAIL_PRIVACY_LIMITED"
+            assert limited["items"] == [] and limited["total_count"] is None
+            assert not limited["has_more"]
+            # Offset/limit probing cannot turn a suppressed histogram into a count oracle.
+            probed = client.post(score_path, json=score_body | {"offset": 999, "limit": 1})
+            assert probed.status_code == 200
+            assert probed.json()["items"] == [] and probed.json()["total_count"] is None
+            after = service.store.get(actor(fixture, service), view["task_id"])
+            for key in ("budget_json", "tool_attempts", "disclosure_json", "proof_json"):
+                assert after[key] == before[key]
             row = service.store.get(actor(fixture, service), view["task_id"])
             groups = [frozenset(g) for g in json.loads(row["disclosure_json"])]
             universe = set().union(*groups)
@@ -645,9 +949,22 @@ def test_profile_k25_cumulative_histogram_suppression_survives_restart(tmp_path)
                 == view
             )
             assert (
+                restarted.profile_scores(
+                    actor(fixture, service),
+                    batch["batch_id"],
+                    view["task_id"],
+                    ProfileScoreRequest.model_validate(score_body),
+                ).model_dump(mode="json")
+                == limited
+            )
+            assert (
                 client.post(base, json=body | {"idempotency_key": "cannot-probe-next"}).status_code
                 == 409
             )
+            service.store.revoke(row["grant_id"])
+            revoked = client.post(score_path, json=score_body)
+            assert revoked.status_code == 403
+            assert revoked.json()["error"]["code"] == "AI_PURPOSE_REVOKED"
     finally:
         fixture.admin.revoke_tokens(fixture.teacher_id)
 

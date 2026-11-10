@@ -1,7 +1,7 @@
 """Trusted profile execution/replay inside the existing durable task and budget."""
 
 import json
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from time import perf_counter
 
 import httpx
@@ -15,7 +15,7 @@ from prototypes.capability_profiles.agent import (
     run_profile_session,
 )
 from prototypes.capability_profiles.database import DatabaseProfileSource
-from prototypes.capability_profiles.engine import VERSION, build_profiles, query
+from prototypes.capability_profiles.engine import VERSION, ProfileBook, build_profiles, query
 from prototypes.capability_profiles.explanations import VERSION as EXPLANATION_VERSION
 from prototypes.research_agent_v2.completeness import query_key
 from prototypes.research_agent_v2.demo import mock_transport
@@ -24,7 +24,11 @@ from prototypes.teacher_agent_bridge.api import filter_conditions, metrics
 from prototypes.teacher_agent_bridge.models import InvestigationResult, SourceRequest
 from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseSource, digest
 
-from .models import ProfileInvestigationResult, ProfileProjection
+from .models import (
+    PROFILE_SCORE_EVIDENCE_MODE,
+    ProfileInvestigationResult,
+    ProfileProjection,
+)
 from .store import blocked
 
 
@@ -34,6 +38,13 @@ def parse_result(raw: str, *, profile_expected: bool) -> InvestigationResult:
         blocked("AI_PROFILE_PROOF_CONFLICT", 503)
     model = ProfileInvestigationResult if profile_expected else InvestigationResult
     return model.model_validate_json(raw)
+
+
+@dataclass(frozen=True)
+class ProfileReplay:
+    source: DatabaseSource
+    executor: ProfileExecutor
+    book: ProfileBook
 
 
 def combined_disclosure(executor, staged) -> list[list[str]]:
@@ -57,7 +68,14 @@ def uncovered(book, executor) -> list[str]:
     ]
 
 
-def projection(source, raw, book, executor) -> ProfileProjection:
+def projection(
+    source,
+    raw,
+    book,
+    executor,
+    *,
+    evidence_mode: str = PROFILE_SCORE_EVIDENCE_MODE,
+) -> ProfileProjection:
     profiles = []
     for original in raw["profiles"]:
         view = json.loads(json.dumps(original))
@@ -67,7 +85,7 @@ def projection(source, raw, book, executor) -> ProfileProjection:
         view["source_manifest_sha256"] = source.fingerprint
         view["exploration_query"]["snapshot_id"] = source.envelope.bound_snapshot
         view.pop("source_queries", None)  # Offline resolvers are NOT implemented HTTP routes.
-        view["dimension_evidence_http"] = "not_implemented"
+        view["dimension_evidence_http"] = evidence_mode
         profiles.append(view)
     return ProfileProjection(
         assessment_snapshot_id=source.envelope.bound_snapshot,
@@ -89,6 +107,7 @@ def projection(source, raw, book, executor) -> ProfileProjection:
             "total": raw.get("elapsed_total_seconds", 0.0),
         },
         verification_replays=executor.replay_executions,
+        dimension_evidence_http=evidence_mode,
     )
 
 
@@ -285,7 +304,13 @@ def _replay_profiles(service, row, actor, result, make_tool_proof, source):
     expected_stop = raw["profile_stop"] if book.candidates else "no_supported_findings"
     if result.stop_reason != expected_stop or result.uncovered_direction_count != remaining:
         blocked("AI_PROFILE_COVERAGE_CONFLICT", 503)
-    current = projection(source, raw, book, executor)
+    current = projection(
+        source,
+        raw,
+        book,
+        executor,
+        evidence_mode=result.profile_projection.dimension_evidence_http,
+    )
     if stable_projection(current) != stable_projection(result.profile_projection):
         blocked("AI_PROFILE_PROJECTION_CONFLICT", 503)
     expected = extend_proof(tool_proof, result, executor, staged, service.profile_limits)
@@ -298,4 +323,4 @@ def _replay_profiles(service, row, actor, result, make_tool_proof, source):
         ):
             blocked("AI_PROFILE_SEARCH_PROOF_CONFLICT", 503)
     source.validate()
-    return source, executor
+    return ProfileReplay(source, executor, book)

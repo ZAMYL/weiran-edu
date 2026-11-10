@@ -12,7 +12,14 @@ from starlette.concurrency import run_in_threadpool
 from prototypes.teacher_agent_bridge.models import SourceRequest, SourceResult
 from prototypes.teacher_agent_bridge.provider import DatabaseProvider
 
-from .models import ReviewReceipt, ReviewSubmission, TaskCreate, TaskView
+from .models import (
+    ProfileScoreRequest,
+    ProfileScoreResult,
+    ReviewReceipt,
+    ReviewSubmission,
+    TaskCreate,
+    TaskView,
+)
 from .review import submit
 from .service import TaskService
 from .store import TaskStore
@@ -68,6 +75,17 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
     async def records(batch_id: str, task_id: str, request: Request, actor: Actor):
         body = await read_query(request, SourceRequest)
         return await run_in_threadpool(service.records, actor, batch_id, task_id, body)
+
+    @router.post(
+        "/{task_id}/profiles/scores/query",
+        response_model=ProfileScoreResult,
+        openapi_extra=schema(ProfileScoreRequest),
+    )
+    async def profile_scores(batch_id: str, task_id: str, request: Request, actor: Actor):
+        body = await read_query(request, ProfileScoreRequest)
+        return await run_in_threadpool(
+            service.profile_scores, actor, batch_id, task_id, body
+        )
 
     @router.post(
         "/{task_id}/review-submissions",

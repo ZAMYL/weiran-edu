@@ -2,14 +2,16 @@
 
 from typing import Literal
 
-from prototypes.teacher_agent_bridge.models import InvestigationRequest, InvestigationResult
+from app.edu.analysis_models import DimensionCode, ExactRational
+from app.edu.models import Identifier, Model
 from pydantic import Field, JsonValue, field_validator
 
-from app.edu.models import Model
+from prototypes.teacher_agent_bridge.models import InvestigationRequest, InvestigationResult
 
 PROFILE_RESULT_CONTRACT = "profile-investigation-v1"
 STANDARD_RESULT_CONTRACT = "investigation-v1"
 RESULT_CONTRACT_KEY = "_result_contract"
+PROFILE_SCORE_EVIDENCE_MODE = "synthetic_task_profile_scores_v1"
 
 
 class TaskCreate(InvestigationRequest):
@@ -29,11 +31,52 @@ class ProfileProjection(Model):
     search_audit: dict[str, JsonValue]
     timings_seconds: dict[str, float]
     verification_replays: int = Field(ge=0)
-    dimension_evidence_http: Literal["not_implemented"] = "not_implemented"
+    dimension_evidence_http: Literal[
+        "not_implemented", "synthetic_task_profile_scores_v1"
+    ] = "not_implemented"
 
 
 class ProfileInvestigationResult(InvestigationResult):
     profile_projection: ProfileProjection
+
+
+class ProfileScoreRequest(Model):
+    snapshot_id: Identifier
+    profile_id: Identifier
+    dimension_code: DimensionCode
+    side: Literal["target", "remainder"]
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=20, ge=1, le=100)
+
+
+class ProfileScoreEvidence(Model):
+    student_id: Identifier
+    evidence_id: Identifier
+    dimension_code: DimensionCode
+    score: ExactRational
+    evidence_path: str
+
+
+class ProfileScoreResult(Model):
+    task_id: Identifier
+    batch_id: Identifier
+    snapshot_id: Identifier
+    profile_id: Identifier
+    dimension_code: DimensionCode
+    side: Literal["target", "remainder"]
+    detail_status: Literal["available", "privacy_limited"]
+    source_origin: Literal["deterministic_profile_replay"] = "deterministic_profile_replay"
+    source_manifest_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    verified_profile_fact_ids: tuple[Identifier, ...]
+    dimension_fact_ids: tuple[Identifier, ...]
+    mean: ExactRational
+    valid_count: int = Field(ge=0)
+    total_count: int | None = Field(default=None, ge=0)
+    offset: int = Field(ge=0)
+    limit: int = Field(ge=1, le=100)
+    has_more: bool
+    items: tuple[ProfileScoreEvidence, ...]
+    limitation_code: Literal["PROFILE_SCORE_DETAIL_PRIVACY_LIMITED"] | None = None
 
 
 class TaskView(Model):

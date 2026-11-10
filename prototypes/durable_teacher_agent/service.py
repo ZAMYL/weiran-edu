@@ -3,6 +3,7 @@
 import asyncio
 import json
 from datetime import date
+from fractions import Fraction
 from hashlib import sha256
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from app.edu.auth import Principal
 
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
+from prototypes.capability_profiles.engine import CODES, DIMS, ITEMS
 from prototypes.research_agent_v2.runtime import ResearchExecutor
 from prototypes.teacher_agent_bridge.api import InvestigationHost
 from prototypes.teacher_agent_bridge.models import (
@@ -21,7 +23,14 @@ from prototypes.teacher_agent_bridge.models import (
 )
 from prototypes.teacher_agent_bridge.provider import DatabaseEnvelope, DatabaseSource, digest
 
-from .models import ProfileInvestigationResult, TaskView
+from .models import (
+    PROFILE_SCORE_EVIDENCE_MODE,
+    ProfileInvestigationResult,
+    ProfileScoreEvidence,
+    ProfileScoreRequest,
+    ProfileScoreResult,
+    TaskView,
+)
 from .profiles import extend_proof, investigate_profiles, parse_result, replay_profiles
 from .store import TaskStore, blocked
 
@@ -278,7 +287,7 @@ class TaskService:
         with source.validation_scope():
             persisted, replayed = self.verified_result(actor, row, source=source)
             if isinstance(persisted, ProfileInvestigationResult):
-                return replayed
+                return replayed.source, replayed.executor
             if (
                 original.get("rule_version") != VERSION
                 or any(f.rule_version != VERSION for f in persisted.facts)
@@ -309,6 +318,153 @@ class TaskService:
                 ],
             )
             return source, executor
+
+    def profile_scores(
+        self, actor: Principal, batch_id: str, task_id: str, body: ProfileScoreRequest
+    ) -> ProfileScoreResult:
+        """Resolve one already-published profile dimension without issuing a new Fact."""
+
+        row = self._row(actor, batch_id, task_id, body.snapshot_id)
+        source = self.source(row, actor)
+        with source.validation_scope():
+            result, replayed = self.verified_result(actor, row, source=source)
+            if not isinstance(result, ProfileInvestigationResult) or replayed is None:
+                blocked("AI_PROFILE_NOT_FOUND", 404)
+            if result.profile_projection.dimension_evidence_http != PROFILE_SCORE_EVIDENCE_MODE:
+                blocked("AI_PROFILE_EVIDENCE_NOT_ENABLED")
+            profiles = [
+                profile
+                for profile in result.profile_projection.profiles
+                if profile.get("profile_id") == body.profile_id
+            ]
+            if len(profiles) != 1:
+                blocked("AI_PROFILE_NOT_FOUND", 404)
+            profile = profiles[0]
+            dimensions = [
+                dimension
+                for dimension in profile.get("dimensions", [])
+                if dimension.get("dimension_code") == body.dimension_code
+            ]
+            if len(dimensions) != 1:
+                blocked("AI_PROFILE_DIMENSION_NOT_FOUND", 404)
+            published = dimensions[0][body.side]
+            dimension = DIMS[CODES.index(body.dimension_code)]
+            item_id = ITEMS[DIMS.index(dimension)]
+            candidate = replayed.book.verify(body.profile_id)
+            statistics = next(
+                value
+                for value in candidate.discovery.payload.dimensions
+                if value.dimension == dimension
+            )
+            actual = getattr(statistics, body.side)
+            published_mean = published["mean"]
+            if (
+                published["valid_count"] != actual.valid_count
+                or Fraction(
+                    published_mean["numerator"], published_mean["denominator"]
+                )
+                != actual.mean
+            ):
+                blocked("AI_PROFILE_PROJECTION_CONFLICT", 503)
+            profile_fact_ids = tuple(profile.get("verified_fact_ids", ()))
+            facts = []
+            for fact_id in profile_fact_ids:
+                fact = replayed.executor.facts.get(fact_id)
+                if fact is None:
+                    blocked("AI_PROFILE_FACT_CONFLICT", 503)
+                facts.append(fact)
+            dimension_fact_ids = tuple(
+                fact.fact_id
+                for fact in facts
+                if fact.calculation.values.get("outcome") == item_id
+            )
+            common = {
+                "task_id": task_id,
+                "batch_id": batch_id,
+                "snapshot_id": body.snapshot_id,
+                "profile_id": body.profile_id,
+                "dimension_code": body.dimension_code,
+                "side": body.side,
+                "source_manifest_sha256": source.fingerprint,
+                "verified_profile_fact_ids": profile_fact_ids,
+                "dimension_fact_ids": dimension_fact_ids,
+                "mean": {
+                    "numerator": actual.mean.numerator,
+                    "denominator": actual.mean.denominator,
+                },
+                "valid_count": actual.valid_count,
+                "offset": body.offset,
+                "limit": body.limit,
+            }
+            if published.get("distribution_state") != "available":
+                return ProfileScoreResult(
+                    **common,
+                    detail_status="privacy_limited",
+                    total_count=None,
+                    has_more=False,
+                    items=(),
+                    limitation_code="PROFILE_SCORE_DETAIL_PRIVACY_LIMITED",
+                )
+
+            references = []
+            for record in actual.valid_records:
+                matches = [
+                    evidence.location
+                    for evidence in record.evidence_refs
+                    if evidence.dimension == dimension
+                ]
+                if len(matches) != 1:
+                    blocked("AI_PROFILE_WITNESS_BINDING_CONFLICT", 503)
+                references.append(matches[0])
+            witnesses = self.provider.replay_witnesses(source, references)
+            validated_records = {
+                record.reference.student_id: record for record in replayed.book.dataset.records
+            }
+            links = []
+            for record, reference, witness in zip(
+                actual.valid_records, references, witnesses, strict=True
+            ):
+                validated = validated_records.get(record.student_id)
+                score = None if validated is None else validated.score(dimension).value
+                if (
+                    score is None
+                    or validated.reference != record
+                    or witness.reference_id != reference
+                    or witness.participant_id != record.student_id
+                    or witness.item_id != item_id
+                    or witness.kind != "score"
+                    or Fraction(witness.value) != score
+                    or witness.source_sha256 != source.fingerprint
+                ):
+                    blocked("AI_PROFILE_WITNESS_BINDING_CONFLICT", 503)
+                links.append(
+                    ProfileScoreEvidence(
+                        student_id=record.student_id,
+                        evidence_id=reference,
+                        dimension_code=body.dimension_code,
+                        score={"numerator": score.numerator, "denominator": score.denominator},
+                        evidence_path=f"/api/v1/edu/batches/{batch_id}/evidence/{reference}",
+                    )
+                )
+            released = {
+                frozenset(group) for group in json.loads(row["disclosure_json"]) if group
+            }
+            for bucket in actual.distribution:
+                members = frozenset(
+                    link.student_id
+                    for link in links
+                    if Fraction(link.score.numerator, link.score.denominator) == bucket.score
+                )
+                if members and members not in released:
+                    blocked("AI_DISCLOSURE_HISTORY_CONFLICT", 503)
+            source.validate()
+            return ProfileScoreResult(
+                **common,
+                detail_status="available",
+                total_count=len(links),
+                has_more=body.offset + body.limit < len(links),
+                items=tuple(links[body.offset : body.offset + body.limit]),
+            )
 
     def records(
         self, actor: Principal, batch_id: str, task_id: str, body: SourceRequest
