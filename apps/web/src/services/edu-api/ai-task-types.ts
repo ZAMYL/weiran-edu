@@ -11,14 +11,15 @@ import {
   text,
   type Decoded,
 } from './schema';
-import { conditionDto } from './types';
-import { exactRationalDto } from './exact';
+import { conditionDto, dimensionCode } from './types';
+import { discoveryExactDto, exactRationalDto } from './exact';
 
 const origin = {
   execution_origin: literal('http_mock'),
   real_qwen: literal('not_run'),
   production_enabled: literal(false),
 };
+const sourceManifestDto = checked(text, (value) => /^[a-f0-9]{64}$/.test(value));
 const explorationDto = object({ snapshot_id: text, conditions: list(conditionDto) });
 const sourceReferenceDto = object({
   metric_key: text,
@@ -48,6 +49,63 @@ const factDto = object({
   exploration_query: nullable(explorationDto),
 });
 export type AiFact = Decoded<typeof factDto>;
+const profileConditionDto = object({
+  dimension_code: dimensionCode,
+  operator: literal('<', '<=', '==', '>=', '>'),
+  value: text,
+});
+const profileStatisticDto = object({
+  valid_count: count,
+  missing_count: count,
+  invalid_count: count,
+  mean: discoveryExactDto,
+  median: discoveryExactDto,
+  distribution: list(object({ score: discoveryExactDto, count, student_denominator: count })),
+  distribution_state: literal('available', 'privacy_limited'),
+});
+const profileDimensionDto = object({
+  dimension_code: dimensionCode,
+  label: text,
+  condition_defined: flag,
+  target: profileStatisticDto,
+  remainder: profileStatisticDto,
+  difference: discoveryExactDto,
+});
+const profileDto = object({
+  profile_id: text,
+  batch_id: text,
+  snapshot_id: text,
+  title: text,
+  common_pattern: text,
+  summary: text,
+  why_show: text,
+  suggested_next_action: text,
+  conditions: list(profileConditionDto),
+  dimensions: list(profileDimensionDto),
+  exploration_query: object({ snapshot_id: text, conditions: list(profileConditionDto) }),
+  source_replay_verified: literal(true),
+  five_dimension_summary_origin: literal('deterministic_discovery_replay'),
+  agent_fact_scope: literal('primary_non_condition_outcome_only'),
+  verified_fact_ids: list(text),
+  dimension_evidence_http: literal('synthetic_task_profile_scores_v1'),
+  minimum_cell: count,
+  public_display_allowed: literal(false),
+  production_enabled: literal(false),
+});
+export type AiProfile = Decoded<typeof profileDto>;
+export type AiProfileDimension = Decoded<typeof profileDimensionDto>;
+const profileProjectionDto = object({
+  assessment_snapshot_id: text,
+  source_manifest_sha256: sourceManifestDto,
+  profile_rule_version: text,
+  explanation_rule_version: text,
+  minimum_cell: count,
+  profiles: list(profileDto),
+  stop_reason: text,
+  investigation_status: text,
+  uninvestigated_candidates: count,
+  dimension_evidence_http: literal('synthetic_task_profile_scores_v1'),
+});
 const resultDto = object({
   ...origin,
   run_id: text,
@@ -61,6 +119,7 @@ const resultDto = object({
   selected_fact_ids: list(text),
   retained_fact_ids: list(text),
   uncovered_direction_count: count,
+  profile_projection: optional(profileProjectionDto),
 });
 export const aiTaskDto = checked(
   object({
@@ -84,6 +143,7 @@ export const aiTaskDto = checked(
     const result = task.result;
     if (!result) return true;
     const ids = new Set(result.facts.map((fact) => fact.fact_id));
+    const projection = result.profile_projection;
     return (
       result.batch_id === task.batch_id &&
       result.snapshot_id === task.snapshot_id &&
@@ -96,7 +156,18 @@ export const aiTaskDto = checked(
           fact.batch_id === task.batch_id &&
           fact.snapshot_id === task.snapshot_id &&
           (!fact.exploration_query || fact.exploration_query.snapshot_id === task.snapshot_id),
-      )
+      ) &&
+      (!projection ||
+        (projection.assessment_snapshot_id === task.snapshot_id &&
+          projection.profiles.every(
+            (profile) =>
+              profile.batch_id === task.batch_id &&
+              profile.snapshot_id === task.snapshot_id &&
+              profile.exploration_query.snapshot_id === task.snapshot_id &&
+              profile.dimensions.length === 5 &&
+              new Set(profile.dimensions.map((dimension) => dimension.dimension_code)).size === 5 &&
+              profile.verified_fact_ids.every((id) => ids.has(id)),
+          )))
     );
   },
 );
@@ -111,6 +182,54 @@ export const aiSourcesDto = object({
   offset: count,
   items: list(object({ student_id: text, evidence_id: text, dimension_code: text })),
 });
+export const aiProfileScoresDto = checked(
+  object({
+    task_id: text,
+    batch_id: text,
+    snapshot_id: text,
+    profile_id: text,
+    dimension_code: dimensionCode,
+    side: literal('target', 'remainder'),
+    detail_status: literal('available', 'privacy_limited'),
+    source_origin: literal('deterministic_profile_replay'),
+    source_manifest_sha256: sourceManifestDto,
+    verified_profile_fact_ids: list(text),
+    dimension_fact_ids: list(text),
+    mean: exactRationalDto,
+    valid_count: count,
+    total_count: nullable(count),
+    offset: count,
+    limit: count,
+    has_more: flag,
+    items: list(
+      object({
+        student_id: text,
+        evidence_id: text,
+        dimension_code: dimensionCode,
+        score: exactRationalDto,
+        evidence_path: text,
+      }),
+    ),
+    limitation_code: nullable(literal('PROFILE_SCORE_DETAIL_PRIVACY_LIMITED')),
+  }),
+  (value) => {
+    const evidence = new Set(value.items.map((item) => item.evidence_id));
+    const common =
+      value.limit >= 1 &&
+      value.limit <= 100 &&
+      value.items.length <= value.limit &&
+      evidence.size === value.items.length &&
+      value.items.every((item) => item.dimension_code === value.dimension_code);
+    return value.detail_status === 'available'
+      ? common && value.total_count !== null && value.limitation_code === null
+      : common &&
+          value.total_count === null &&
+          value.items.length === 0 &&
+          !value.has_more &&
+          value.limitation_code === 'PROFILE_SCORE_DETAIL_PRIVACY_LIMITED';
+  },
+);
+export type AiProfileScores = Decoded<typeof aiProfileScoresDto>;
 export const aiReviewDto = object({
   task_id: text,
   batch_id: text,

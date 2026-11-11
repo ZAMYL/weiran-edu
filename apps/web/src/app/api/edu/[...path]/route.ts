@@ -33,6 +33,7 @@ const routes: Record<string, RegExp[]> = {
     /^batches\/[^/]+\/ai-investigation-tasks$/,
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/cancel$/,
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/records\/query$/,
+    /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/profiles\/scores\/query$/,
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/review-submissions$/,
   ],
   PATCH: [/^imports\/[^/]+$/, /^batches\/[^/]+\/analysis-results\/[^/]+$/],

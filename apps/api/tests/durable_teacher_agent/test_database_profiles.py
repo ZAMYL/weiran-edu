@@ -15,6 +15,7 @@ from prototypes.adaptive_assessment.synthetic import admit
 from prototypes.capability_profiles.database import DatabaseProfileSource
 from prototypes.capability_profiles.engine import build_profiles, dataset_from_source
 from prototypes.capability_profiles.synthetic import specification
+from prototypes.capability_profiles.synthetic import workbook as profile_workbook
 from prototypes.durable_teacher_agent.api import install
 from prototypes.durable_teacher_agent.models import (
     ProfileInvestigationResult,
@@ -34,20 +35,6 @@ from app.importing.edu import parse_excel
 from app.importing.edu.types import DIMENSIONS
 
 from .test_tasks import actor, upload
-
-
-def profile_workbook(recipe):
-    rows = specification(recipe)["rows"]
-    # Reuse the existing actual protocol writer, only substituting registered score cells.
-    original = make_fixture(len(rows), 811)
-    book = load_workbook(BytesIO(original.data))
-    for index, values in enumerate(rows):
-        for dimension, value in enumerate(values):
-            book["Sheet2"].cell(3 + index * 6 + dimension, 3).value = Decimal(value)
-    output = BytesIO()
-    book.save(output)
-    book.close()
-    return output.getvalue()
 
 
 def profile_host(directory):

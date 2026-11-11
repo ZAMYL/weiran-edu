@@ -1,11 +1,17 @@
 """Independent, versioned five-dimension fixtures. No files or reference answers."""
 
+from decimal import Decimal
+from io import BytesIO
 from itertools import product
 from random import Random
 
 from app.analysis.edu.models import Dimension
+from openpyxl import load_workbook
+
+from scripts.edu_demo_fixtures import make_fixture
 
 RECIPES = ("profile-balanced-72", "profile-overlap-96", "profile-no-pattern-81")
+RECIPE_ID_OFFSETS = dict(zip(RECIPES, (100_000, 200_000, 300_000), strict=True))
 
 
 def specification(recipe: str) -> dict:
@@ -44,3 +50,21 @@ def specification(recipe: str) -> dict:
         "step": "0.01",
         "rows": rows,
     }
+
+
+def workbook(recipe: str) -> bytes:
+    """Render a registered recipe through the formal V1 workbook writer."""
+    spec = specification(recipe)
+    original = make_fixture(len(spec["rows"]), spec["seed"])
+    book = load_workbook(BytesIO(original.data))
+    for index, values in enumerate(spec["rows"]):
+        public_id = RECIPE_ID_OFFSETS[recipe] + index + 1
+        book["Sheet2"].cell(2 + index * 6, 1).value = (
+            f"{public_id:012d} 画像合成{recipe}-{index + 1}"
+        )
+        for dimension, value in enumerate(values):
+            book["Sheet2"].cell(3 + index * 6 + dimension, 3).value = Decimal(value)
+    output = BytesIO()
+    book.save(output)
+    book.close()
+    return output.getvalue()

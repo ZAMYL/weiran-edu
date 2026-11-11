@@ -633,6 +633,82 @@
 .ai-fact-grid .focus-metrics > div {
   padding-block: 4px;
 }
+.ai-profile-section {
+  margin: 24px 0;
+  padding-top: 20px;
+  border-top: 1px solid #e5edfb;
+}
+.ai-profile-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+.ai-profile-heading h2 {
+  margin: 0 0 4px;
+  color: #142448;
+  font-size: 20px;
+}
+.ai-profile-heading p {
+  margin: 0;
+}
+.ai-profile-grid {
+  display: grid;
+  gap: var(--gap);
+}
+.ai-profile-card {
+  padding: 20px;
+}
+.ai-profile-dimensions {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+.ai-profile-dimension {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(280px, 2fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5edfb;
+  border-radius: 12px;
+  background: #fbfdff;
+}
+.ai-profile-dimension > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ai-profile-dimension > div:first-child span {
+  color: #71809f;
+  font-size: 12px;
+}
+.ai-profile-dimension dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.ai-profile-dimension dt {
+  color: #71809f;
+  font-size: 12px;
+}
+.ai-profile-dimension dd {
+  margin: 2px 0 0;
+  color: #142448;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ai-profile-evidence-summary {
+  margin-block: 16px;
+}
+@media (max-width: 760px) {
+  .ai-profile-dimension {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .focus-interpretation {
   font-size: 14px;
   margin-bottom: 12px;

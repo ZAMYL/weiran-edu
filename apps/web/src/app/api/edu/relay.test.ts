@@ -12,6 +12,7 @@ it.each([
   ['GET', 'batches/b/ai-investigation-tasks/t'],
   ['POST', 'batches/b/ai-investigation-tasks/t/cancel'],
   ['POST', 'batches/b/ai-investigation-tasks/t/records/query'],
+  ['POST', 'batches/b/ai-investigation-tasks/t/profiles/scores/query'],
   ['POST', 'batches/b/ai-investigation-tasks/t/review-submissions'],
 ])('gates synthetic AI %s %s behind the loopback development switches', async (method, route) => {
   const fetcher = vi

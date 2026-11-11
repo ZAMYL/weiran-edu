@@ -16,7 +16,13 @@ import {
   type ReportFormat,
 } from './analysis-types';
 import { readReportFile, ReportFileError, type ReportFile } from './report-file';
-import { aiTaskDto, aiSourcesDto, aiReviewDto, type AiTask } from './ai-task-types';
+import {
+  aiTaskDto,
+  aiSourcesDto,
+  aiProfileScoresDto,
+  aiReviewDto,
+  type AiTask,
+} from './ai-task-types';
 import {
   isQuestionResponse,
   questionPreviewDto,
@@ -45,6 +51,7 @@ import {
   type ApiBatch,
   type ApiImport,
   type ApiCondition,
+  type DimensionCode,
   type InsightSpec,
 } from './types';
 
@@ -305,6 +312,41 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
         value.run_id !== task.result?.run_id ||
         value.fact_id !== factId ||
         value.metric_key !== metricKey ||
+        value.offset !== offset
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return value;
+    },
+    aiProfileScores: async (
+      batch: ApiBatch,
+      task: AiTask,
+      profileId: string,
+      dimensionCode: DimensionCode,
+      side: 'target' | 'remainder',
+      offset: number,
+      signal?: AbortSignal,
+    ) => {
+      const value = assertSnapshot(
+        await post(
+          `${base(batch)}/ai-investigation-tasks/${id(task.task_id)}/profiles/scores/query`,
+          aiProfileScoresDto,
+          {
+            snapshot_id: batch.snapshot_id,
+            profile_id: profileId,
+            dimension_code: dimensionCode,
+            side,
+            offset,
+            limit: 10,
+          },
+          signal,
+        ),
+        batch,
+      );
+      if (
+        value.task_id !== task.task_id ||
+        value.profile_id !== profileId ||
+        value.dimension_code !== dimensionCode ||
+        value.side !== side ||
         value.offset !== offset
       )
         throw new ApiError(502, 'INVALID_API_RESPONSE');

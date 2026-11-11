@@ -4,12 +4,15 @@ import argparse
 import json
 import os
 import time
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import httpx
 from app.edu.auth import authenticate
+from app.importing.edu import parse_excel
 
+from prototypes.capability_profiles.synthetic import workbook as profile_workbook
 from prototypes.teacher_agent_bridge.fixtures import build_host
 from prototypes.teacher_agent_bridge.provider import DatabaseProvider
 
@@ -20,18 +23,25 @@ from .demo import QUESTION, server
 def bootstrap(client, host, service):
     actor = authenticate(service.store.database, host.token)
     batches = {}
-    for case in ("normal", "evidence", "empty"):
+    for case in ("normal", "evidence", "empty", "balanced72", "zero81", "overlap96"):
         response = client.post(
             "/api/v1/edu/imports/preview",
-            files={"file": ("synthetic.xlsx", host.books[case], "application/octet-stream")},
+            files={
+                "file": ("synthetic.xlsx", host.books[case], "application/octet-stream")
+            },
         )
         response.raise_for_status()
         preview = response.json()["import"]
         response = client.post(
             f"/api/v1/edu/imports/{preview['import_id']}/commit",
-            json={"preview_version": preview["preview_version"], "acknowledge_warnings": True},
+            json={
+                "preview_version": preview["preview_version"],
+                "acknowledge_warnings": True,
+            },
         )
-        response.raise_for_status()
+        if response.status_code != 201:
+            code = response.json().get("error", {}).get("code", "UNKNOWN")
+            raise RuntimeError(f"synthetic_bootstrap_failed:{case}:{code}")
         ref = response.json()
         service.store.grant(actor, ref["batch_id"], ref["snapshot_id"])
         batches[case] = {
@@ -50,18 +60,41 @@ def bootstrap(client, host, service):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--seconds", type=int, default=0, help="0: until Ctrl+C; max 3600")
+    parser.add_argument(
+        "--seconds", type=int, default=0, help="0: until Ctrl+C; max 3600"
+    )
+    parser.add_argument(
+        "--minimum-cell",
+        type=int,
+        default=5,
+        help="synthetic disclosure threshold (5 by default; 25 for the privacy demo)",
+    )
     args = parser.parse_args()
     if not 0 <= args.seconds <= 3600:
         parser.error("invalid_lifetime")
+    if not 5 <= args.minimum_cell <= 25:
+        parser.error("invalid_minimum_cell")
     # Avoid a shared TEMP override: credentials/DB stay inside the OS user profile.
     private_root = Path(os.environ["LOCALAPPDATA"]) / "weiran-edu-ai-integration"
     private_root.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix="handoff-", dir=private_root) as temporary:
         directory = Path(temporary)
         host = build_host(directory, install_bridge=False)
-        provider = DatabaseProvider(host.app.state.edu_service, tuple(host.books.values()))
+        host.books.update(
+            {
+                "balanced72": profile_workbook("profile-balanced-72"),
+                "zero81": profile_workbook("profile-no-pattern-81"),
+                "overlap96": profile_workbook("profile-overlap-96"),
+            }
+        )
+        host.app.state.edu_service.parser = parse_excel
+        provider = DatabaseProvider(
+            host.app.state.edu_service, tuple(host.books.values())
+        )
         service = install(host.app, provider, directory / "campaigns")
+        service.profile_limits = replace(
+            service.profile_limits, minimum_cell=args.minimum_cell
+        )
         try:
             with (
                 server(host, directory) as origin,
@@ -83,6 +116,7 @@ def main():
                             "execution_origin": "http_mock",
                             "real_qwen": "not_run",
                             "production_enabled": False,
+                            "minimum_cell": args.minimum_cell,
                             "batches": batches,
                         },
                         target,
@@ -108,7 +142,9 @@ def main():
             pass
         finally:
             host.admin.revoke_tokens(host.teacher_id)
-            print(json.dumps({"stopped": True, "credentials_revoked": True}), flush=True)
+            print(
+                json.dumps({"stopped": True, "credentials_revoked": True}), flush=True
+            )
 
 
 if __name__ == "__main__":

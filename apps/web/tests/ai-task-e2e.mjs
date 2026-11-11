@@ -323,6 +323,9 @@ try {
         .waitFor({ timeout: 240000 });
       assert.equal(await cards.count(), 0);
       assert.equal(await page.getByRole('button', { name: /提交待核查/ }).count(), 0);
+      await page
+        .getByText('本轮没有可展示的合格群体画像', { exact: true })
+        .waitFor();
     } else {
       await page.getByText('进一步解释需要补充资料', { exact: true }).waitFor({ timeout: 240000 });
       assert.ok((await cards.count()) > 0);
@@ -330,10 +333,61 @@ try {
     await page.screenshot({ path: path.join(artifacts, name + '.png'), fullPage: true });
     checks.push(
       name === 'empty'
-        ? 'real zero-finding task has no fabricated cards'
+        ? 'real zero-finding and zero-profile task has no fabricated cards'
         : 'evidence gaps retain verified observations without invented explanations',
     );
   }
+  const profileBatch = await openCase('balanced72');
+  const profileCreated = page.waitForResponse(
+    (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 202,
+  );
+  await page.getByLabel('想了解什么？', { exact: true }).fill(profileBatch.question);
+  await page.getByRole('button', { name: '开始分析', exact: true }).click();
+  const profileStart = await (await profileCreated).json();
+  const profileCards = page.getByTestId('ai-profile-card');
+  await profileCards.first().waitFor({ timeout: 240000 });
+  const scoreRequestCount = requests.filter((request) =>
+    request.path.endsWith('/profiles/scores/query'),
+  ).length;
+  const scoreResponse = page.waitForResponse(
+    (r) => r.url().endsWith('/profiles/scores/query') && r.status() === 200,
+  );
+  await profileCards
+    .first()
+    .getByRole('button', { name: '查看算法与数据结构评分依据', exact: true })
+    .click();
+  const scoreEvidence = await (await scoreResponse).json();
+  assert.equal(scoreEvidence.task_id, profileStart.task_id);
+  assert.equal(scoreEvidence.dimension_code, 'algorithm_data_structure');
+  assert.equal(scoreEvidence.side, 'target');
+  assert.equal(scoreEvidence.detail_status, 'available');
+  assert.equal(scoreEvidence.source_origin, 'deterministic_profile_replay');
+  assert.ok(scoreEvidence.items.length > 0);
+  assert.equal(
+    requests.filter((request) => request.path.endsWith('/profiles/scores/query')).length,
+    scoreRequestCount + 1,
+    'profile evidence must load only after the dimension click',
+  );
+  const profileDrawer = page.getByRole('dialog', {
+    name: '算法与数据结构 · 评分依据',
+    exact: true,
+  });
+  await profileDrawer.getByText('数据库重算均分', { exact: true }).waitFor();
+  await profileDrawer.getByRole('button', { name: '查看原评分依据', exact: true }).first().click();
+  await page.getByText('原始数值：', { exact: false }).waitFor();
+  await page.screenshot({ path: path.join(artifacts, 'profile-score-evidence.png'), fullPage: true });
+  await page.locator('.ant-drawer-open').last().locator('.ant-drawer-close').click();
+  await profileDrawer.locator('.ant-drawer-close').click();
+  await page.reload();
+  await profileCards.first().waitFor({ timeout: 240000 });
+  assert.equal(
+    await page.getByText('可信群体画像', { exact: true }).count(),
+    1,
+    'completed profile task must restore after refresh',
+  );
+  checks.push(
+    '72-person database profile / click-only dimension query / original score evidence / refresh restoration',
+  );
   await openCase('normal');
   await cards.first().waitFor();
   execFileSync(
