@@ -159,7 +159,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {!fullscreen && (
               <div className="page-title-group">
                 <h1>{uploadWorkspace ? '上传测评资料' : page.label}</h1>
-                {dataMode.mode === 'demo' && <span className="muted">合成测评</span>}
+                {dataMode.mode === 'demo' && batch.demo && <span className="muted">合成测评</span>}
               </div>
             )}
             {!fullscreen && (
