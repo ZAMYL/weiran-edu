@@ -364,7 +364,7 @@ export default function LiveImportPreview({
                   showTotal={(total) => `共 ${total} 条评分行`}
                 />
                 <details className="technical-details">
-                  <summary>技术详情</summary>
+                  <summary>错误详情</summary>
                   <dl className="source-details">
                     <dt>预览版本</dt>
                     <dd>{info.preview_version}</dd>

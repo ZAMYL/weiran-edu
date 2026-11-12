@@ -22,7 +22,7 @@ export function RequestError({ error, retry }: { error: ApiError; retry?: () => 
       title={error.message}
       description={
         <details>
-          <summary>技术详情</summary>
+          <summary>错误详情</summary>
           <span>错误码：{error.code}</span>
           {error.requestId && <span> · 请求编号：{error.requestId}</span>}
         </details>

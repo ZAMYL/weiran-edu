@@ -69,10 +69,10 @@ const STATUS_MESSAGES: Record<number, string> = {
 };
 const FILE_MESSAGES: Record<string, string> = {
   AI_GOAL_UNSUPPORTED:
-    '当前合成服务不支持这个问题，请使用优先核查、评分关联或群体差异等已支持的问法。',
-  AI_PURPOSE_REQUIRED: '这份测评尚未获得合成 AI 分析授权。',
+    '暂不支持这个问题。可以问「有哪些值得关注的问题？」或询问评分关联、群体差异。',
+  AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
-  IMPORT_FORMAT_UNSUPPORTED: '当前暂不支持此文件结构，未创建测评批次。请核对文件结构后重新选择。',
+  IMPORT_FORMAT_UNSUPPORTED: '这份表格的结构暂不支持。请核对测评表格后重新选择。',
   IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
   IMPORT_FILE_INVALID:
     '当前无法识别此工作簿的结构，或文件触及解析限制。请保留原文件并核对检查要求。',
