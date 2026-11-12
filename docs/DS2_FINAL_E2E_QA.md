@@ -59,6 +59,11 @@
 - 后端定向：`apps/api/tests/edu/test_analysis_api.py + test_export_check.py` = `74 passed`。
 - 后端定向：`apps/api/tests/edu/test_worker.py + test_discovery_worker.py` = `8 passed`
   （验证 15→60 默认超时改动无回归）。
+- 后端 `tests/durable_teacher_agent`（原始 15s 基线）：`1 failed / 48 passed`，失败为
+  `test_tasks.py::test_persist_reload_evidence_review_and_report` → 报告下载时
+  `DISCOVERY_TIMEOUT`(503)，即 P1-1 的复现。
+- 后端 `tests/durable_teacher_agent/test_tasks.py`（修复后 60s）：`5 passed`（240s），
+  上述失败转绿，验证 15→60 修复有效。
 - 浏览器实跑 E2E（需共享服务）待 DS-1 释放后执行，见下。
 
 ## 五、交给最终集成的 E2E 命令
