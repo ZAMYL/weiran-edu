@@ -279,8 +279,9 @@ async def run_profile_session(
     """Existing profile session with caller-owned budget; never allocates a campaign."""
     if reviewed_execution is not None:
         from prototypes.qwen_execution.runtime import ReviewedExecution
+        from prototypes.qwen_execution.task_contract import DatabaseExecution
 
-        if type(reviewed_execution) is not ReviewedExecution:
+        if type(reviewed_execution) not in (ReviewedExecution, DatabaseExecution):
             raise AgentError("reviewed_execution_required")
         reviewed_execution.check(source, budget, transport)
     elif budget.origin != "http_mock" or (
