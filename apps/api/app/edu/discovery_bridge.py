@@ -31,7 +31,7 @@ from .models import Model, Student
 from .service import _page, fail
 
 MAX_RECORDS = ParseLimits().rows_per_sheet // 6
-MAX_SECONDS = 15.0
+MAX_SECONDS = 60.0
 MAX_RESPONSE_BYTES = 1024 * 1024
 SLOTS = BoundedSemaphore(2)
 

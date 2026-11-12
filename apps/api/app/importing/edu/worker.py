@@ -23,7 +23,7 @@ def _parse_child(data: bytes, sender: Connection) -> None:
         sender.close()
 
 
-def parse_isolated(data: bytes, *, timeout: float = 15) -> ParsedWorkbook:
+def parse_isolated(data: bytes, *, timeout: float = 60) -> ParsedWorkbook:
     if len(data) > ParseLimits().compressed_bytes:
         raise ImportFileError("FILE_SIZE_LIMIT")
     if not SLOTS.acquire(blocking=False):

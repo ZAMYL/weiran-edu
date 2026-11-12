@@ -82,7 +82,7 @@ async def execute(
     boundaries: tuple[BoundaryRequest, ...],
     policy: Policy,
     *,
-    timeout: float = 15,
+    timeout: float = 60,
     disconnected: Callable[[], Awaitable[bool]] | None = None,
 ) -> DiscoveryResult:
     """The parent stays cancellable while a separate process owns all engine CPU work."""
