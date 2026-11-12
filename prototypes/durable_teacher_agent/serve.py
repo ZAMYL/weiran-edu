@@ -80,6 +80,11 @@ def main():
     with TemporaryDirectory(prefix="handoff-", dir=private_root) as temporary:
         directory = Path(temporary)
         host = build_host(directory, install_bridge=False)
+        # 独立空数据教师：无任何批次、具有导入权，用于验证真实首次使用流程。
+        first_use_teacher = host.admin.create_teacher("first-use-owner")
+        first_use_scope = host.admin.create_scope("默认来源")
+        host.admin.set_member(first_use_teacher, first_use_scope, can_import=True)
+        first_use_token = host.admin.issue_token(first_use_teacher, hours=24)
         host.books.update(
             {
                 "balanced72": profile_workbook("profile-balanced-72"),
@@ -117,6 +122,9 @@ def main():
                             "real_qwen": "not_run",
                             "production_enabled": False,
                             "minimum_cell": args.minimum_cell,
+                            "first_use_token": first_use_token,
+                            "first_use_teacher_id": first_use_teacher,
+                            "first_use_scope_id": first_use_scope,
                             "batches": batches,
                         },
                         target,
@@ -142,6 +150,7 @@ def main():
             pass
         finally:
             host.admin.revoke_tokens(host.teacher_id)
+            host.admin.revoke_tokens(first_use_teacher)
             print(
                 json.dumps({"stopped": True, "credentials_revoked": True}), flush=True
             )

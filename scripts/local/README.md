@@ -1,0 +1,47 @@
+# 本机演示启动（未然 EDU）
+
+这两个脚本让你在本机直接启动完整产品演示，无需手动配置凭证或数据库。
+
+## 首次准备（一次性）
+
+```powershell
+cd apps\web
+corepack pnpm install --frozen-lockfile
+corepack pnpm build
+cd ..\..\apps\api
+uv sync --locked --group dev
+```
+
+要求：Node.js 24、corepack（提供 pnpm 11.25.0）、Python 3.12、uv。
+
+## 启动
+
+空数据教师（推荐，用于验证首次上传流程）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity first
+```
+
+合成样例教师（6 个样例批次，用于体验 AI 分析、群体画像与报告）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity sample
+```
+
+启动后自动打开浏览器进入「学情诊断」。启动器会校验 `test-session / me / scopes / batches` 四个接口全部返回 200 后才会报告成功。
+
+首次上传的样例文件会在启动时生成到 `apps\web\public\samples\sample-assessment.xlsx`（五维测评的受支持格式），并可在上传页点击「样例文件」下载。
+
+## 停止
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\local\stop-demo.ps1
+```
+
+或在启动窗口按 Ctrl+C。合成宿主达到时限（默认 1 小时）后会自动撤销凭证并清理临时数据库。
+
+## 边界
+
+- 仅绑定本机回环 `127.0.0.1`。
+- 全程真实 HTTP + SQLite 合成数据；不调用真实 Qwen；AI 结果为 `http_mock`。
+- 不提交数据库、token、真实学生资料或私有会话文件（会话文件写入 `%LOCALAPPDATA%\weiran-edu-ai-integration`）。
