@@ -10,7 +10,10 @@ corepack pnpm install --frozen-lockfile --registry=https://registry.npmmirror.co
 corepack pnpm build
 cd ..\..\apps\api
 uv sync --locked --group dev
+cd ..\..
 ```
+
+以上命令最后回到仓库根目录，之后可直接执行下方「启动」命令。
 
 要求：Node.js 24、corepack（提供 pnpm 11.25.0）、Python 3.12、uv。
 
