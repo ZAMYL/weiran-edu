@@ -144,11 +144,15 @@ class CampaignBudget:
             and origin == "http_mock"
         ):
             raise AgentError("invalid_live_authorization")
+        self._initialize(authorization, state_dir, origin=origin, today=today)
+
+    def _initialize(self, authorization, state_dir, *, origin, today=None):
+        """Shared journal mechanics; admission belongs to each execution entry point."""
         self._today = today if origin == "http_mock" else None
         self.authorization = (
             authorization
             if type(authorization) is OfflineSnapshotPermit
-            else SyntheticLiveAuthorization.model_validate_json(authorization.model_dump_json())
+            else type(authorization).model_validate_json(authorization.model_dump_json())
         )
         self._bound_price = reviewed_price(self.authorization.price_fingerprint)
         self._authorization_fingerprint = sha256(

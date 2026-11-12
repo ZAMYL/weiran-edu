@@ -141,7 +141,14 @@ class ProfileMockPolicy:
         }
 
 
-def project_selected(book: ProfileBook, result: dict, executor, *, staged=None) -> list[dict]:
+def project_selected(
+    book: ProfileBook,
+    result: dict,
+    executor,
+    *,
+    staged=None,
+    selection_origin="http_mock_offline_mechanism",
+) -> list[dict]:
     if book.source.fingerprint != executor.source.fingerprint:
         raise AgentError("profile_scope_mismatch")
     if book.minimum_cell != executor.limits.minimum_cell:
@@ -219,7 +226,7 @@ def project_selected(book: ProfileBook, result: dict, executor, *, staged=None) 
         )
         descriptions.append(description_context(p, view))
         view["verified_fact_ids"] = [fact.fact_id]
-        view["selection_origin"] = "http_mock_offline_mechanism"
+        view["selection_origin"] = selection_origin
         profiles.append(view)
     return profiles
 
@@ -267,9 +274,16 @@ async def run_profile_session(
     total_started=None,
     retain_partial=True,
     staged=None,
+    reviewed_execution=None,
 ) -> tuple:
     """Existing profile session with caller-owned budget; never allocates a campaign."""
-    if budget.origin != "http_mock" or (
+    if reviewed_execution is not None:
+        from prototypes.qwen_execution.runtime import ReviewedExecution
+
+        if type(reviewed_execution) is not ReviewedExecution:
+            raise AgentError("reviewed_execution_required")
+        reviewed_execution.check(source, budget, transport)
+    elif budget.origin != "http_mock" or (
         transport is not None and type(transport) is not httpx.MockTransport
     ):
         raise AgentError("offline_profile_session_required")
@@ -289,13 +303,21 @@ async def run_profile_session(
         seed = executor.execute(
             "get_dimension_statistics", executor.parse("get_dimension_statistics", {})
         )
-        planner = ProfilePlanner(
+        planner_type = ProfilePlanner if reviewed_execution is None else reviewed_execution.planner
+        planner = planner_type(
             executor,
             budget,
             Goal(kind="priority", items=()),
             book=book,
-            transport=transport if transport is not None else mock_transport(ProfileMockPolicy()),
-            allow_network=False,
+            transport=(
+                transport
+                if reviewed_execution is not None
+                else transport
+                if transport is not None
+                else mock_transport(ProfileMockPolicy())
+            ),
+            allow_network=reviewed_execution is not None and transport is None,
+            **({"settings": reviewed_execution.settings} if reviewed_execution is not None else {}),
         )
         run = await _run_session(
             executor,
@@ -377,7 +399,15 @@ async def run_profile_session(
             )
             result["retained_fact_ids"] = retained
         result["profiles"] = (
-            project_selected(book, result, executor, staged=staged)
+            project_selected(
+                book,
+                result,
+                executor,
+                staged=staged,
+                selection_origin=(
+                    "http_mock_offline_mechanism" if reviewed_execution is None else budget.origin
+                ),
+            )
             if result["status"] == "completed" or retain_partial
             else []
         )
@@ -414,6 +444,29 @@ async def run_profile_session(
         )
         result["elapsed_total_seconds"] = perf_counter() - total_started
         result["mock_seconds"] = sum(m.elapsed_ms for m in planner.metrics) / 1000
+        if reviewed_execution is not None:
+            entries = budget.snapshot()["entries"]
+            usage_known = all(entry["actual_usage"] is not None for entry in entries)
+            result.update(
+                origin=budget.origin,
+                real_qwen=(
+                    "responses_received"
+                    if transport is None
+                    and planner.metrics
+                    and all(m.status == "response_received" for m in planner.metrics)
+                    else "request_failed"
+                    if transport is None and planner.metrics
+                    else "not_run"
+                ),
+                actual_tokens=(
+                    sum(entry["actual_usage"]["total_tokens"] for entry in entries)
+                    if usage_known
+                    else None
+                ),
+                actual_cost_cny=(
+                    budget.snapshot()["charged_cny_upper_bound"] if usage_known else None
+                ),
+            )
         result["tool_compute_seconds"] = executor.compute_seconds
         result["fact_replay_seconds"] = getattr(executor, "fact_replay_seconds", 0.0)
         return result, book, executor
