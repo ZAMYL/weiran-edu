@@ -92,7 +92,7 @@ try {
       { teacher: me.teacher_id, id: ref.batch_id },
     );
     await page.reload();
-    await page.getByRole('heading', { name: 'AI 分析演示', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'AI 分析', exact: true }).waitFor();
     await page.getByLabel('想了解什么？', { exact: true }).waitFor();
     return ref;
   }
@@ -103,7 +103,7 @@ try {
   await page.getByLabel('想了解什么？', { exact: true }).fill('帮我分析一下');
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
   assert.equal((await (await unsupported).json()).error.code, 'AI_GOAL_UNSUPPORTED');
-  await page.getByText(/当前合成服务不支持这个问题/).waitFor();
+  await page.getByText(/暂不支持这个问题/).waitFor();
   const database = path.join(path.dirname(process.env.EDU_AI_CONNECTION), 'synthetic.sqlite3');
   const taskCount = Number(
     execFileSync(
@@ -132,6 +132,10 @@ try {
   const start = await createdResponse.json();
   assert.equal(start.execution_origin, 'http_mock');
   await page.getByTestId('ai-fact-card').first().waitFor({ timeout: 240000 });
+  assert.doesNotMatch(
+    await page.locator('main').innerText(),
+    /Demo|联调测试|正式版|HTTP Mock|AI 分析演示/,
+  );
   const completed = await page.evaluate(
     async ({ batch, task }) =>
       (
@@ -238,6 +242,13 @@ try {
     path: path.join(artifacts, 'normal-reviewed-report.png'),
     fullPage: true,
   });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({
+    path: path.join(artifacts, 'normal-reviewed-report-mobile.png'),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   for (const format of ['xlsx', 'md']) {
     const preflight = page.waitForResponse(
       (r) => r.url().endsWith('/export-check') && r.request().postDataJSON().format === format,
@@ -323,9 +334,7 @@ try {
         .waitFor({ timeout: 240000 });
       assert.equal(await cards.count(), 0);
       assert.equal(await page.getByRole('button', { name: /提交待核查/ }).count(), 0);
-      await page
-        .getByText('本轮没有可展示的合格群体画像', { exact: true })
-        .waitFor();
+      assert.equal(await page.getByTestId('ai-profile-card').count(), 0);
     } else {
       await page.getByText('进一步解释需要补充资料', { exact: true }).waitFor({ timeout: 240000 });
       assert.ok((await cards.count()) > 0);
@@ -346,6 +355,12 @@ try {
   const profileStart = await (await profileCreated).json();
   const profileCards = page.getByTestId('ai-profile-card');
   await profileCards.first().waitFor({ timeout: 240000 });
+  assert.equal(await profileCards.first().locator('tbody tr').count(), 5);
+  await page.screenshot({ path: path.join(artifacts, 'profiles-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await profileCards.first().scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(artifacts, 'profiles-mobile.png') });
   const scoreRequestCount = requests.filter((request) =>
     request.path.endsWith('/profiles/scores/query'),
   ).length;
@@ -354,7 +369,7 @@ try {
   );
   await profileCards
     .first()
-    .getByRole('button', { name: '查看算法与数据结构评分依据', exact: true })
+    .getByRole('button', { name: /^查看算法与数据结构评分依据/ })
     .click();
   const scoreEvidence = await (await scoreResponse).json();
   assert.equal(scoreEvidence.task_id, profileStart.task_id);
@@ -372,21 +387,41 @@ try {
     name: '算法与数据结构 · 评分依据',
     exact: true,
   });
-  await profileDrawer.getByText('数据库重算均分', { exact: true }).waitFor();
+  await profileDrawer.getByText('均分', { exact: true }).waitFor();
+  await page.screenshot({ path: path.join(artifacts, 'profile-evidence-mobile.png') });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await profileDrawer.getByRole('button', { name: '查看原评分依据', exact: true }).first().click();
   await page.getByText('原始数值：', { exact: false }).waitFor();
-  await page.screenshot({ path: path.join(artifacts, 'profile-score-evidence.png'), fullPage: true });
+  await page.screenshot({
+    path: path.join(artifacts, 'profile-score-evidence.png'),
+    fullPage: true,
+  });
   await page.locator('.ant-drawer-open').last().locator('.ant-drawer-close').click();
+  const comparisonResponse = page.waitForResponse(
+    (r) =>
+      r.url().endsWith('/profiles/scores/query') &&
+      r.status() === 200 &&
+      r.request().postDataJSON().side === 'remainder',
+  );
+  await profileDrawer.getByText('对照组', { exact: true }).click();
+  const comparison = await (await comparisonResponse).json();
+  assert.equal(comparison.side, 'remainder');
+  if (comparison.detail_status === 'privacy_limited') {
+    await profileDrawer.getByText('受隐私保护，无法查看这组评分明细', { exact: true }).waitFor();
+    assert.equal(await profileDrawer.getByRole('button', { name: '查看原评分依据' }).count(), 0);
+  } else {
+    await profileDrawer.getByRole('button', { name: '查看原评分依据' }).first().waitFor();
+  }
   await profileDrawer.locator('.ant-drawer-close').click();
   await page.reload();
   await profileCards.first().waitFor({ timeout: 240000 });
   assert.equal(
-    await page.getByText('可信群体画像', { exact: true }).count(),
+    await page.getByRole('heading', { name: '群体画像', exact: true }).count(),
     1,
     'completed profile task must restore after refresh',
   );
   checks.push(
-    '72-person database profile / click-only dimension query / original score evidence / refresh restoration',
+    '72-person database profile / five dimensions at 1440px and 390px / click-only evidence / target and comparison / original record / refresh restoration',
   );
   await openCase('normal');
   await cards.first().waitFor();

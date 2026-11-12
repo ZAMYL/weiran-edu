@@ -401,7 +401,7 @@ try {
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.on('pageerror', (error) => unexpected.push(error.message));
   await page.goto(`${origin}/insights`);
-  await page.getByRole('heading', { name: '选择 Excel 文件' }).waitFor();
+  await page.getByRole('heading', { name: '上传测评资料', exact: true }).waitFor();
   await page.locator('input[type=file]').setInputFiles(workbook);
   await page.getByText('文件检查通过').waitFor();
   await page.getByText('评分项目与量表', { exact: true }).click();

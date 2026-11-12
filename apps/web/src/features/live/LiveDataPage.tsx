@@ -18,7 +18,7 @@ import QuestionImportPreview from './QuestionImportPreview';
 import { isQuestionPreview } from '../../services/edu-api/question-types';
 
 export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'history' }) {
-  const { client, scopes, batch, selectBatch, revision, uploadDraft, setUploadDraft } =
+  const { client, scopes, batch, notice, selectBatch, revision, uploadDraft, setUploadDraft } =
     useDataMode();
   const router = useRouter();
   const importScopes = scopes.filter((s) => s.can_import);
@@ -46,8 +46,12 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     (signal: AbortSignal) => client.batches(offset, 10, signal),
     [client, offset],
   );
-  const batches = useRemote(`data-batches:${revision}:${offset}`, loadBatches);
+  const batches = useRemote(
+    view === 'history' ? `data-batches:${revision}:${offset}` : null,
+    loadBatches,
+  );
   const allowed = scopes.some((s) => s.data_scope_id === scope && s.can_import);
+  const firstUpload = view === 'upload' && !batch && !notice && !selectedFile;
   function selectFile(file: File) {
     if (busy || uploadController.current) return Upload.LIST_IGNORE;
     setError(null);
@@ -56,8 +60,12 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
       setLocalError('请选择当前有导入权的数据来源。');
       return Upload.LIST_IGNORE;
     }
-    if (!file.name.toLowerCase().endsWith('.xlsx') || file.size > 10 * 1024 * 1024) {
-      setLocalError('请选择不超过 10 MiB 的.xlsx 文件。');
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+      setLocalError('目前只支持 .xlsx 测评文件，请重新选择。');
+      return Upload.LIST_IGNORE;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setLocalError('文件超过 10 MB，请缩小后重新上传。');
       return Upload.LIST_IGNORE;
     }
     const selected = {
@@ -109,7 +117,9 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     );
   }
   return (
-    <div className="page-stack data-page live-data">
+    <div
+      className={`page-stack data-page live-data${firstUpload ? ' first-assessment-upload' : ''}`}
+    >
       {view === 'upload' && (
         <UploadWorkflow step={busy ? 1 : 0} busy={busy}>
           {importScopes.length > 1 && (
@@ -138,13 +148,13 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
               disabled={busy || !allowed}
               className="excel-dropzone workflow-dropzone"
             >
-              <UploadOutlined className="assessment-file-symbol" aria-hidden="true" />
-              <h2>选择 Excel 文件</h2>
-              <p className="workflow-drag-label">拖拽文件到此处</p>
-              <Button type="primary" tabIndex={-1} disabled={!allowed}>
-                选择文件
-              </Button>
-              <p>.xlsx · 最大 10 MiB</p>
+              <div className="assessment-file-prompt">
+                <UploadOutlined className="assessment-file-symbol" aria-hidden="true" />
+                <Button type="primary" tabIndex={-1} disabled={!allowed}>
+                  选择文件
+                </Button>
+                <p>.xlsx · 最大 10 MB，也可拖入文件</p>
+              </div>
             </Upload.Dragger>
           </div>
           {selectedFile && (
@@ -186,7 +196,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
           title="历史测评"
           action={
             <Button icon={<ReloadOutlined />} onClick={batches.retry}>
-              刷新批次
+              刷新列表
             </Button>
           }
           className="batches-panel"
@@ -205,7 +215,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
                 pageSize: 10,
                 showSizeChanger: false,
                 onChange: (page) => setOffset((page - 1) * 10),
-                showTotal: (total) => `共 ${total} 个授权批次`,
+                showTotal: (total) => `共 ${total} 份测评`,
               }}
               columns={[
                 {
@@ -214,7 +224,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
                   render: (value, target) => (
                     <div className="batch-title">
                       <strong>{value}</strong>
-                      {target.batch_id === batch?.batch_id && <Tag color="cyan">当前批次</Tag>}
+                      {target.batch_id === batch?.batch_id && <Tag color="cyan">当前测评</Tag>}
                     </div>
                   ),
                 },

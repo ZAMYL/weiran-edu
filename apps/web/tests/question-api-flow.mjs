@@ -10,9 +10,12 @@ export async function questionApiFlow({
   temporary,
   python,
   env,
+  token,
+  readerToken,
   importThroughPage,
 }) {
   const file = path.join(temporary, '逐题测评.xlsx');
+  const unsupported = path.join(temporary, 'unsupported.xlsx');
   execFileSync(
     python,
     [
@@ -27,14 +30,85 @@ export async function questionApiFlow({
         'for i in range(20): b.append([f"S{i:04d}",*[(i*3+j)%11/2 for j in range(1,14)]])',
         'b["B3"]=None; b["C4"]="invalid"; b["D5"]=999; b["E6"]=1.25',
         'w.save(sys.argv[1])',
+        'other=Workbook(); other.active.append(["任意内容", "不属于测评格式"]); other.save(sys.argv[2])',
       ].join('\n'),
       file,
+      unsupported,
     ],
     { env, windowsHide: true },
   );
   const checks = [];
+  async function connect(credential) {
+    await page.getByRole('button', { name: '连接账户', exact: true }).first().click();
+    const dialog = page.getByRole('dialog', { name: '连接账户', exact: true });
+    await dialog.getByLabel('访问凭据').fill(credential);
+    await dialog.getByRole('button', { name: '连接', exact: true }).click();
+    await page.locator('.live-workspace').waitFor();
+    await dialog.waitFor({ state: 'hidden' });
+  }
+  const getJson = (url) =>
+    page.evaluate(
+      async ({ url, token }) => {
+        const r = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+        return { status: r.status, data: await r.json() };
+      },
+      { url, token },
+    );
   await page.goto(origin + '/insights');
-  await page.getByRole('heading', { name: '选择 Excel 文件' }).waitFor();
+  await page.getByRole('heading', { name: '连接账户，查看测评', exact: true }).waitFor();
+  await connect(readerToken);
+  await page.getByText('当前教师没有导入权，可查看已授权批次。', { exact: true }).waitFor();
+  assert.ok(await page.locator('.workflow-dropzone .ant-btn').isDisabled());
+  await page.getByRole('button', { name: '结束会话', exact: true }).click();
+  await connect(token);
+  const heading = page.getByRole('heading', { name: '上传测评资料', exact: true, level: 1 });
+  await heading.waitFor();
+  const list = await getJson('/api/edu/batches');
+  assert.equal(list.status, 200);
+  assert.deepEqual(list.data.items, []);
+  assert.ok(await page.locator('.workflow-dropzone .ant-btn').isEnabled());
+  assert.equal(await page.locator('.radar-panel, .ai-investigation-panel').count(), 0);
+  assert.doesNotMatch(
+    await page.locator('main').innerText(),
+    /Demo|联调测试|正式版|HTTP Mock|AI 分析演示/,
+  );
+  await page.screenshot({ path: path.join(artifacts, 'first-upload-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({ path: path.join(artifacts, 'first-upload-mobile.png'), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const rejected = page.waitForResponse(
+    (r) => r.url().endsWith('/imports/preview') && r.status() === 422,
+  );
+  await page.locator('input[type=file]').setInputFiles(unsupported);
+  assert.equal((await (await rejected).json()).error.code, 'IMPORT_FORMAT_UNSUPPORTED');
+  await page.getByText(/这份表格的结构暂不支持/).waitFor();
+  assert.deepEqual((await getJson('/api/edu/batches')).data.items, []);
+  await page.getByRole('button', { name: '更换文件', exact: true }).click();
+  checks.push(
+    'manual account connection / real empty list / read-only upload gate / unsupported XLSX 422 / 1440px and 390px',
+  );
+  async function verifyLegacy() {
+    const legacy = await importThroughPage('empty', '五维兼容小样');
+    assert.ok(legacy);
+    await page.getByText('评分画像', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+    await page.getByRole('heading', { name: '历史测评', exact: true }).waitFor();
+    await page
+      .getByRole('row', { name: /五维兼容小样/ })
+      .getByRole('button', { name: '查看学情', exact: true })
+      .click();
+    await page.getByText('评分画像', { exact: true }).waitFor();
+    await page.screenshot({
+      path: path.join(artifacts, 'five-dimension-diagnosis.png'),
+      fullPage: true,
+    });
+  }
+  if (env.EDU_FIRST_UPLOAD_ONLY === '1') {
+    await verifyLegacy();
+    checks.push('first five-dimension import opens diagnosis and can be reopened from history');
+    return checks;
+  }
   const previewResponse = page.waitForResponse(
     (r) => new URL(r.url()).pathname === '/api/edu/imports/preview' && r.status() === 201,
   );
@@ -65,13 +139,11 @@ export async function questionApiFlow({
   const table = page.getByRole('table', { name: '逐题统计' });
   await table.waitFor();
   assert.equal(await table.locator('tbody tr[data-row-key]').count(), 13);
-  const stats = await page.evaluate(
-    async ({ batch_id, snapshot_id }) =>
-      (
-        await fetch('/api/edu/batches/' + batch_id + '/statistics?snapshot_id=' + snapshot_id)
-      ).json(),
-    receipt,
+  const statsResponse = await getJson(
+    `/api/edu/batches/${receipt.batch_id}/statistics?snapshot_id=${receipt.snapshot_id}`,
   );
+  assert.equal(statsResponse.status, 200);
+  const stats = statsResponse.data;
   assert.equal(stats.item_statistics.length, 13);
   assert.equal(
     stats.item_statistics.reduce((sum, item) => sum + item.valid_count, 0),
@@ -121,6 +193,7 @@ export async function questionApiFlow({
     '20 participants / 13 original questions / 260 observations / 256 valid, 1 missing, 3 invalid / original cell source',
   );
   await page.reload();
+  await connect(token);
   await table.waitFor();
   assert.equal(await table.locator('tbody tr[data-row-key]').count(), 13);
   await page.getByRole('link', { name: '画像探索' }).click();
@@ -138,17 +211,12 @@ export async function questionApiFlow({
   await page.getByRole('link', { name: '分析报告' }).click();
   await page.getByText('当前测评暂不支持生成或导出分析报告。').waitFor();
   assert.equal(await page.getByRole('button', { name: /导出|下载/ }).count(), 0);
-  const legacy = await importThroughPage('empty', '五维兼容小样');
-  assert.ok(legacy);
-  await page.getByText('评分画像', { exact: true }).waitFor();
+  await verifyLegacy();
   await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
   await page.locator('.ant-select-dropdown').getByText('逐题测评', { exact: true }).click();
   await table.waitFor();
-  const stale = await page.evaluate(
-    async ({ batch_id }) =>
-      (await fetch('/api/edu/batches/' + batch_id + '/statistics?snapshot_id=stale')).status,
-    receipt,
-  );
+  const stale = (await getJson(`/api/edu/batches/${receipt.batch_id}/statistics?snapshot_id=stale`))
+    .status;
   assert.equal(stale, 409);
   checks.push(
     'reload / filtered item_id / 390px / unsupported report / legacy five-dimension upload / batch switch / stale snapshot 409',

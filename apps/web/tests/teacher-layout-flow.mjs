@@ -142,7 +142,7 @@ export async function teacherLayoutFlow({
     '画像探索',
     '分析报告',
   ]);
-  await page.getByRole('heading', { name: '上传测评', exact: true }).waitFor();
+  await page.getByRole('heading', { name: '上传测评资料', exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: '上传新测评', exact: true }).count(), 0);
   assert.equal(await page.getByRole('combobox', { name: '当前测评批次' }).count(), 0);
   assert.equal(await page.getByText('更多信息（可选）', { exact: true }).count(), 0);
