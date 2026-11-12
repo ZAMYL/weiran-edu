@@ -132,9 +132,9 @@ export async function teacherDiscoveryCopyFlow({
 
   // A real <= filter asks the existing backend for its boundary comparison.
   await page.getByRole('button', { name: '添加条件', exact: true }).click();
-  await page.getByRole('combobox', { name: '正式条件1比较', exact: true }).click();
+  await page.getByRole('combobox', { name: '筛选条件1比较', exact: true }).click();
   await page.locator('.ant-select-dropdown:visible').getByText('≤', { exact: true }).click();
-  await page.getByRole('textbox', { name: '正式条件1评分', exact: true }).fill('3.49');
+  await page.getByRole('textbox', { name: '筛选条件1评分', exact: true }).fill('3.49');
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
   await navigation('学情诊断');
   await waitFocus();

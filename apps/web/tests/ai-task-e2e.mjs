@@ -177,6 +177,13 @@ try {
   );
   assert.equal(stale, 409);
   await page.screenshot({ path: path.join(artifacts, 'normal-facts.png'), fullPage: true });
+  await page.getByRole('button', { name: '全屏', exact: true }).click();
+  const fullscreenTitle = page.locator('.fullscreen-title');
+  await fullscreenTitle.getByText(/合成样例账户/).waitFor();
+  await page.screenshot({ path: path.join(artifacts, 'normal-fullscreen.png'), fullPage: true });
+  await page.getByRole('button', { name: /^退出全屏/ }).click();
+  await fullscreenTitle.waitFor({ state: 'hidden' });
+  checks.push('synthetic sample identity remains visible in fullscreen');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.screenshot({ path: path.join(artifacts, 'normal-mobile.png'), fullPage: true });

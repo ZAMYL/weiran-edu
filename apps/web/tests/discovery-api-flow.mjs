@@ -604,9 +604,9 @@ try {
     checkpoint = 'outer scope and boundary chart';
     await navigation('画像探索');
     await page.getByRole('button', { name: '添加条件', exact: true }).click();
-    await page.getByRole('combobox', { name: '正式条件1比较', exact: true }).click();
+    await page.getByRole('combobox', { name: '筛选条件1比较', exact: true }).click();
     await page.locator('.ant-select-dropdown').getByText('≤', { exact: true }).click();
-    await page.getByLabel('正式条件1评分', { exact: true }).fill('3');
+    await page.getByLabel('筛选条件1评分', { exact: true }).fill('3');
     await page.getByRole('button', { name: '应用筛选', exact: true }).click();
     const scopedResponse = nextResponse('/discoveries/query');
     await navigation('学情诊断');

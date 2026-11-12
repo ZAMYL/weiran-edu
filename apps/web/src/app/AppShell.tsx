@@ -51,6 +51,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     dataMode.testMode &&
     dataMode.syntheticAi &&
     dataMode.scopes.some((scope) => scope.label === '合成AI集成验收');
+  const sourceLabel = sampleAccount
+    ? '合成样例账户'
+    : dataMode.mode === 'demo' && batch.demo
+      ? '合成测评'
+      : null;
+  const pageTitle = uploadWorkspace ? '上传测评资料' : page.label;
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
   }, [page]);
@@ -95,6 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <Button
       className="fullscreen-button"
       type="text"
+      aria-label={fullscreen ? '退出全屏' : '全屏'}
       icon={fullscreen ? <CompressOutlined /> : <ExpandOutlined />}
       onClick={toggleFullscreen}
     >
@@ -112,7 +119,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         {fullscreen ? (
           <>
-            <div className="fullscreen-title">{page.label}</div>
+            <div className="fullscreen-title">
+              {pageTitle}
+              {sourceLabel && <span className="muted"> · {sourceLabel}</span>}
+            </div>
             <div className="topbar-actions">
               {!uploadWorkspace && !emptyWorkspace && batchSelect}
               {fullButton}
@@ -164,9 +174,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="workspace-intro">
             {!fullscreen && (
               <div className="page-title-group">
-                <h1>{uploadWorkspace ? '上传测评资料' : page.label}</h1>
-                {sampleAccount && <span className="muted">合成样例账户</span>}
-                {dataMode.mode === 'demo' && batch.demo && <span className="muted">合成测评</span>}
+                <h1>{pageTitle}</h1>
+                {sourceLabel && <span className="muted">{sourceLabel}</span>}
               </div>
             )}
             {!fullscreen && !emptyWorkspace && (

@@ -653,7 +653,7 @@ function AnalysisEditor({
           <details className="technical-details">
             <summary>保存详情</summary>
             <p>
-              测评快照：<code>{initial.snapshot_id}</code>
+              测评数据版本 <code>{initial.snapshot_id}</code>
             </p>
             <p className="muted small">{initial.notice}</p>
             <div className="batch-actions">
