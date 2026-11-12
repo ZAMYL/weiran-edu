@@ -177,7 +177,7 @@ try {
       if (await page.locator('.upload-workspace-heading').count()) {
         const reselect = page.getByRole('button', { name: '更换文件', exact: true });
         if (await reselect.count()) await reselect.click();
-      } else await page.getByRole('button', { name: '上传新测评', exact: true }).click();
+      } else await page.getByRole('button', { name: '上传测评资料', exact: true }).click();
     } else {
       await page.getByRole('link', { name, exact: true }).click();
       if (name === '学情诊断')
@@ -250,7 +250,7 @@ try {
     return data;
   }
   async function selectBatch(title) {
-    await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
+    await page.getByRole('combobox', { name: '当前测评批次' }).click();
     await page.locator('.ant-select-dropdown').getByText(title, { exact: true }).click();
   }
   async function selectAspect(label) {
@@ -504,7 +504,7 @@ try {
     .waitFor();
   await page.locator('.ant-drawer-open .ant-drawer-close').click();
   await page
-    .getByRole('button', { name: /算法与数据结构 2.75 分证据/ })
+    .getByRole('button', { name: /算法与数据结构 2.75 分，查看评分依据/ })
     .first()
     .click();
   await page.getByText('Sheet1 · L3:P6', { exact: true }).waitFor();
@@ -537,7 +537,7 @@ try {
     '合成已审核依据：仅用于本批评分解释。',
   );
   await page
-    .getByRole('button', { name: /算法与数据结构 2.75 分证据/ })
+    .getByRole('button', { name: /算法与数据结构 2.75 分，查看评分依据/ })
     .first()
     .click();
   await page.getByText(publishedComment.display_text, { exact: true }).waitFor();
@@ -547,7 +547,7 @@ try {
   await writeReview('comment', source.evidence_id, 1, 'withheld');
   await writeReview('rubric', source.rubric_criterion_id, 1, 'withheld');
   await page
-    .getByRole('button', { name: /算法与数据结构 2.75 分证据/ })
+    .getByRole('button', { name: /算法与数据结构 2.75 分，查看评分依据/ })
     .first()
     .click();
   await page.getByText('原始评语暂未开放（非空，待审核）', { exact: true }).waitFor();
@@ -593,7 +593,9 @@ try {
     .waitFor();
   await selectAspect('算法与数据结构');
   const recordsResponse = page.waitForResponse((r) => r.url().includes('/records/query'));
-  await page.getByRole('button', { name: `${card.title} mean 查看评分证据`, exact: true }).click();
+  await page
+    .getByRole('button', { name: `${card.title} 测评平均分 查看评分依据`, exact: true })
+    .click();
   const recordsHTTP = await recordsResponse,
     posted = recordsHTTP.request().postDataJSON();
   assert.deepEqual(posted.conditions, spec.conditions);
@@ -608,7 +610,7 @@ try {
     .waitFor();
   assert.equal(records.metric.value.exact.denominator, 46);
   assert.equal(records.metric.denominator, 23);
-  await page.getByText('未作为本指标证据', { exact: true }).first().waitFor();
+  await page.getByText('未纳入本指标核算', { exact: true }).first().waitFor();
   await shot('metric-evidence-desktop');
   await page.locator('.ant-drawer-open .ant-drawer-close').click();
   checks.push(
@@ -830,7 +832,7 @@ try {
   await page.getByRole('row').filter({ hasText: '合成竞赛测评' }).waitFor();
   await page.goto(`${origin}/dev/demo`);
   await navigation('测评数据');
-  await page.getByRole('heading', { name: '上传新测评' }).waitFor();
+  await page.getByRole('heading', { name: '上传测评资料' }).waitFor();
   await page.goto(`${origin}/dev/live`);
   if (testMode) {
     await page.locator('.live-workspace').waitFor();

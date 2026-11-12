@@ -641,7 +641,7 @@ function DiscoveryRecordsDrawer({
   const result = resource.data;
   return (
     <>
-      <Drawer title="发现群体与评分证据" open onClose={onClose} size="min(720px, 100vw)">
+      <Drawer title="发现群体与评分依据" open onClose={onClose} size="min(720px, 100vw)">
         <p>{sourceName(metric)}</p>
         {resource.loading && <LoadingPanel />}
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
@@ -665,7 +665,7 @@ function DiscoveryRecordsDrawer({
                       <Button
                         type="link"
                         onClick={() => setEvidence(score.evidence_id)}
-                        aria-label={`${student.display_label} ${dimensionName(dimension)} 评分证据`}
+                        aria-label={`${student.display_label} ${dimensionName(dimension)} 评分依据`}
                       >
                         {scoreDisplay(score.score)} 分
                       </Button>

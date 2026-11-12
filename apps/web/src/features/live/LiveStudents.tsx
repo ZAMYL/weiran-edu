@@ -66,7 +66,7 @@ export function LiveStudentTable({
                   className="score-evidence-link"
                   type="link"
                   onClick={() => onEvidence(score.evidence_id)}
-                  aria-label={`${student.display_label} ${d.name} ${score.score} 分证据`}
+                  aria-label={`${student.display_label} ${d.name} ${score.score} 分，查看评分依据`}
                 >
                   {score.score}
                 </Button>
@@ -74,7 +74,7 @@ export function LiveStudentTable({
                 score.score
               )
             ) : (
-              <span className="muted">未作为本指标证据</span>
+              <span className="muted">未纳入本指标核算</span>
             );
           },
         })),
@@ -165,7 +165,7 @@ export function LiveScoreDrawer({
     (c) => c.rubric_criterion_id === resource.data?.evidence.rubric_criterion_id,
   );
   return (
-    <Drawer title="测评评分证据" open={Boolean(evidenceId)} onClose={onClose} size={550}>
+    <Drawer title="测评评分依据" open={Boolean(evidenceId)} onClose={onClose} size={550}>
       <AssessmentContext title={batch.title} course={batch.course} date={batch.assessment_date} />
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}

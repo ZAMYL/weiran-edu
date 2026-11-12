@@ -740,7 +740,7 @@ function AnalysisEditor({
                             })
                           }
                         >
-                          查看评分证据 · {metricDisplay(metric)}
+                          查看评分依据 · {metricDisplay(metric)}
                         </Button>
                       ))}
                     {item.discovery && (

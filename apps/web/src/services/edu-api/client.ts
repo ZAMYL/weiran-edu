@@ -58,13 +58,13 @@ import {
 const STATUS_MESSAGES: Record<number, string> = {
   401: '教师凭证已失效或被撤销，请重新连接。',
   403: '当前教师没有执行此操作的权限。',
-  404: '记录不存在或当前教师无权查看，请刷新批次。',
+  404: '记录不存在或你无权查看，请刷新测评。',
   409: '数据版本或操作状态已变化，请刷新后重试。',
   410: '导入预览已过期，请重新上传。',
-  413: '文件或查询结果超过服务限制，请缩小范围。',
+  413: '文件或查询结果过大，请缩小范围后重试。',
   415: '文件或请求格式不受支持。',
-  422: '文件或筛选参数不符合当前接口要求，请检查后重试。',
-  503: '数据服务暂不可用或繁忙，请稍后重试。',
+  422: '文件或筛选条件不符合要求，请检查后重试。',
+  503: '暂时无法处理，请稍后重试。',
   504: '请求超时，请检查连接后重试。',
 };
 const FILE_MESSAGES: Record<string, string> = {
@@ -74,15 +74,13 @@ const FILE_MESSAGES: Record<string, string> = {
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
   IMPORT_FORMAT_UNSUPPORTED: '这份表格的结构暂不支持。请核对测评表格后重新选择。',
   IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
-  IMPORT_FILE_INVALID:
-    '当前无法识别此工作簿的结构，或文件触及解析限制。请保留原文件并核对检查要求。',
+  IMPORT_FILE_INVALID: '无法读取这份表格，请保留原文件，并检查表格格式和文件大小。',
   IMPORT_FILE_TOO_LARGE: '上传文件超过当前大小限制，请检查文件后重试。',
   IMPORT_PROCESSING_UNAVAILABLE: '文件检查服务暂时繁忙或不可用，请稍后重试。',
-  INVALID_PRINTER_SETTINGS_PACKAGE:
-    '文件中的打印设置部件或引用不一致，无法安全读取；原文件未被修改。',
-  UNSUPPORTED_PRINTER_SETTINGS_FORMAT: '文件中的打印设置格式暂不受支持；原文件未被修改。',
-  PRINTER_SETTINGS_SIZE_LIMIT: '文件中的打印设置超过安全大小或数量限制；原文件未被修改。',
-  INVALID_WORKBOOK_RELATIONSHIP: '工作簿内部引用异常，无法确定安全来源；原文件未被修改。',
+  INVALID_PRINTER_SETTINGS_PACKAGE: '文件的打印设置不完整或不一致，无法读取。原文件未修改。',
+  UNSUPPORTED_PRINTER_SETTINGS_FORMAT: '暂不支持此文件的打印设置格式。原文件未修改。',
+  PRINTER_SETTINGS_SIZE_LIMIT: '文件的打印设置超过大小或数量限制。原文件未修改。',
+  INVALID_WORKBOOK_RELATIONSHIP: '表格中有无法安全读取的引用。原文件未修改。',
 };
 export class ApiError extends Error {
   constructor(
@@ -93,15 +91,13 @@ export class ApiError extends Error {
     super(
       FILE_MESSAGES[code] ??
         (code === 'SNAPSHOT_MISMATCH'
-          ? '批次快照已变化，请刷新批次后重新查询。'
+          ? '这份测评的数据已更新，请刷新测评后重试。'
           : code === 'ANALYSIS_RESULT_VERSION_MISMATCH'
             ? '分析的核验版本已更新，请加载最新结果后重新操作。'
             : code === 'INVALID_REPORT_FILE'
-              ? '报告响应格式异常，已停止下载，请重试或联系维护人员。'
+              ? '报告文件格式有误，下载已停止。请重试或联系维护人员。'
               : (STATUS_MESSAGES[status] ??
-                (status === 0
-                  ? '无法连接数据服务，请检查本机服务和网络后重试。'
-                  : '请求未完成，请重试。'))),
+                (status === 0 ? '暂时无法连接，请检查网络后重试。' : '请求未完成，请重试。'))),
     );
   }
 }

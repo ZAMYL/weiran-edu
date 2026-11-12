@@ -244,7 +244,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             />
           )}
           {facts.length > 0 && (
-            <div className="ai-fact-grid">
+            <div className="ai-fact-grid" role="region" aria-label="分析发现">
               {facts.map((fact) => (
                 <section className="discovery-card" data-testid="ai-fact-card" key={fact.fact_id}>
                   <h3>{methodLabels[fact.method] ?? '分析结果'}</h3>
@@ -254,7 +254,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                     ].join('、')}
                   </p>
                   {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
-                  <dl className="focus-metrics" aria-label="AI 发现指标">
+                  <dl className="focus-metrics" aria-label="发现指标">
                     {fact.metrics
                       .filter((metric) => metricLabels[metric.key])
                       .map((metric) => (
@@ -268,7 +268,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                   </dl>
                   <div className="ai-fact-actions">
                     {!!fact.source_refs.length && fact.source_verified && (
-                      <Button onClick={() => setSources(fact)}>查看依据</Button>
+                      <Button onClick={() => setSources(fact)}>查看评分依据</Button>
                     )}
                     {fact.exploration_query && fact.source_verified && (
                       <Button
@@ -544,7 +544,7 @@ function AiSourcesDrawer({
     load,
   );
   return (
-    <Drawer title="分析依据" open onClose={onClose} size={620} className="ai-evidence-drawer">
+    <Drawer title="评分依据" open onClose={onClose} size={620} className="ai-evidence-drawer">
       <Select
         aria-label="选择依据指标"
         style={{ width: '100%' }}

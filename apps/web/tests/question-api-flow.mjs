@@ -76,6 +76,9 @@ export async function questionApiFlow({
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.screenshot({ path: path.join(artifacts, 'first-upload-mobile.png'), fullPage: true });
+  await page.getByRole('link', { name: '分析报告' }).click();
+  await page.getByRole('button', { name: '上传测评资料', exact: true }).click();
+  await heading.waitFor();
   await page.setViewportSize({ width: 1440, height: 1000 });
   const rejected = page.waitForResponse(
     (r) => r.url().endsWith('/imports/preview') && r.status() === 422,
@@ -211,15 +214,26 @@ export async function questionApiFlow({
   await page.getByRole('link', { name: '分析报告' }).click();
   await page.getByText('当前测评暂不支持生成或导出分析报告。').waitFor();
   assert.equal(await page.getByRole('button', { name: /导出|下载/ }).count(), 0);
+  await page.screenshot({
+    path: path.join(artifacts, '20x13-reports-desktop.png'),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({ path: path.join(artifacts, '20x13-reports-mobile.png'), fullPage: true });
+  await page.getByRole('button', { name: '返回学情诊断', exact: true }).click();
+  await table.waitFor();
+  assert.equal(await table.locator('tbody tr[data-row-key]').count(), 13);
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await verifyLegacy();
-  await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
+  await page.getByRole('combobox', { name: '当前测评批次' }).click();
   await page.locator('.ant-select-dropdown').getByText('逐题测评', { exact: true }).click();
   await table.waitFor();
   const stale = (await getJson(`/api/edu/batches/${receipt.batch_id}/statistics?snapshot_id=stale`))
     .status;
   assert.equal(stale, 409);
   checks.push(
-    'reload / filtered item_id / 390px / unsupported report / legacy five-dimension upload / batch switch / stale snapshot 409',
+    'reload / filtered item_id / 390px / unsupported report returns to diagnosis / legacy five-dimension upload / batch switch / stale snapshot 409',
   );
   await writeFile(
     path.join(artifacts, 'acceptance.json'),

@@ -152,7 +152,7 @@ export async function teacherAnalysisFlow({
     await shot('analysis-review-desktop');
     const evidenceHTTP = page.waitForResponse((r) => r.url().endsWith('/records/query'));
     await drawer()
-      .getByRole('button', { name: /查看评分证据/ })
+      .getByRole('button', { name: /查看评分依据/ })
       .first()
       .click();
     assert.deepEqual((await evidenceHTTP).request().postDataJSON().conditions, spec.conditions);

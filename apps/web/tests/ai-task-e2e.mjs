@@ -134,8 +134,9 @@ try {
   await page.getByTestId('ai-fact-card').first().waitFor({ timeout: 240000 });
   assert.doesNotMatch(
     await page.locator('main').innerText(),
-    /Demo|联调测试|正式版|HTTP Mock|AI 分析演示/,
+    /Demo|联调测试|正式版|HTTP Mock|AI 分析演示|Agent Fact|确定性重放|主 Fact|真实评分重放/,
   );
+  await page.getByText('合成样例账户', { exact: true }).waitFor();
   const completed = await page.evaluate(
     async ({ batch, task }) =>
       (
@@ -182,8 +183,8 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const cards = page.getByTestId('ai-fact-card');
   assert.ok((await cards.count()) > 0);
-  await cards.first().getByRole('button', { name: '查看依据', exact: true }).click();
-  const sources = page.getByRole('dialog', { name: '分析依据', exact: true });
+  await cards.first().getByRole('button', { name: '查看评分依据', exact: true }).click();
+  const sources = page.getByRole('dialog', { name: '评分依据', exact: true });
   await sources.getByRole('button', { name: '查看原评分依据', exact: true }).first().click();
   await page.getByText('原始数值：', { exact: false }).waitFor();
   await page.waitForFunction(
@@ -310,7 +311,7 @@ try {
   await crossBatch;
   await page
     .locator('.ai-investigation-panel')
-    .getByText('批次快照已变化，请刷新批次后重新查询。', { exact: true })
+    .getByText('这份测评的数据已更新，请刷新测评后重试。', { exact: true })
     .waitFor();
   assert.equal(await cards.count(), 0);
   await page.screenshot({ path: path.join(artifacts, 'cross-batch-rejected.png'), fullPage: true });
@@ -449,11 +450,11 @@ try {
   const denied = page.waitForResponse(
     (r) => r.url().endsWith('/records/query') && [403, 404].includes(r.status()),
   );
-  await cards.first().getByRole('button', { name: '查看依据', exact: true }).click();
+  await cards.first().getByRole('button', { name: '查看评分依据', exact: true }).click();
   const permissionResponse = await denied;
   await page
-    .getByRole('dialog', { name: '分析依据', exact: true })
-    .getByText(/没有执行此操作的权限|不存在或当前教师无权查看/)
+    .getByRole('dialog', { name: '评分依据', exact: true })
+    .getByText(/没有执行此操作的权限|不存在或你无权查看/)
     .waitFor();
   await page.screenshot({ path: path.join(artifacts, 'permission-denied.png'), fullPage: true });
   checks.push(

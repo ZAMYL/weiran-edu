@@ -122,7 +122,7 @@ export default function DataPage() {
   return (
     <div className={`data-page page-stack ${fullscreen ? 'data-fullscreen' : ''}`}>
       <div className="data-top-grid">
-        <Panel title="上传新测评" className="upload-panel">
+        <Panel title="上传测评资料" className="upload-panel">
           <Steps
             current={0}
             size="small"

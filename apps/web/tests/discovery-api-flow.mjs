@@ -204,7 +204,7 @@ try {
       if (await reselect.count()) await reselect.click();
       return;
     }
-    await page.getByRole('button', { name: '上传新测评', exact: true }).click();
+    await page.getByRole('button', { name: '上传测评资料', exact: true }).click();
   };
   const panel = () => page.locator('.all-discoveries-panel');
   const waitResponse = (predicate) => {
@@ -377,7 +377,7 @@ try {
   }
   async function selectBatch(title) {
     const pending = nextResponse('/discoveries/query');
-    await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
+    await page.getByRole('combobox', { name: '当前测评批次' }).click();
     await page.locator('.ant-select-dropdown').getByText(title, { exact: true }).click();
     return await (await pending).json();
   }
@@ -539,7 +539,7 @@ try {
     );
     await drawers()
       .last()
-      .getByRole('button', { name: /评分证据$/ })
+      .getByRole('button', { name: /评分依据$/ })
       .first()
       .click();
     const proof = await (await proofResponse).json();
@@ -681,7 +681,7 @@ try {
     await denied;
     await page
       .locator('.discoveries-panel')
-      .getByText('记录不存在或当前教师无权查看，请刷新批次。', { exact: true })
+      .getByText('记录不存在或你无权查看，请刷新测评。', { exact: true })
       .waitFor();
     assert.equal(await page.getByTestId('discovery-card').count(), 0);
     checks.push(

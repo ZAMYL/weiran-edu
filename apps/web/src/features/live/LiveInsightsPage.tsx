@@ -394,7 +394,7 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
                 <Button
                   key={metric.key}
                   size="small"
-                  aria-label={`${card.title} ${metric.key} 查看评分证据`}
+                  aria-label={`${card.title} ${metricLabel(metric)} 查看评分依据`}
                   onClick={() => onMetric(metric.key)}
                 >
                   {metricLabels[metric.key]} {metricDisplay(metric)}
@@ -439,11 +439,11 @@ function MetricTile({
   return (
     <Button
       onClick={() => onMetric(metric.key)}
-      aria-label={`${card.title} ${metric.key} 查看评分证据`}
+      aria-label={`${card.title} ${metricLabel(metric)} 查看评分依据`}
     >
       <span>{metricLabel(metric)}</span>
       <b>{metricDisplay(metric)}</b>
-      <small>查看评分证据 →</small>
+      <small>查看评分依据 →</small>
     </Button>
   );
 }

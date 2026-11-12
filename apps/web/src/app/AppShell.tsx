@@ -15,7 +15,8 @@ import {
   LeftOutlined,
 } from '@ant-design/icons';
 import { useBatch, useWorkspace } from './store';
-import { LiveBatchSelect, useDataMode } from './data-mode';
+import { useDataMode } from './data-mode';
+import LiveAssessmentPicker from '../features/live/LiveAssessmentPicker';
 import { WorkspaceLayoutContext } from './WorkspaceLayoutContext';
 
 const pages = [
@@ -39,12 +40,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname === '/insights' &&
     (dataMode.assessmentPanel === 'upload' ||
       (dataMode.connected && !dataMode.batch && dataMode.assessmentPanel !== 'history'));
-  const firstUpload =
-    uploadWorkspace &&
+  const emptyWorkspace =
+    dataMode.mode === 'live' &&
     dataMode.connected &&
     !dataMode.batch &&
     !dataMode.notice &&
     dataMode.assessmentPanel === null;
+  const sampleAccount =
+    dataMode.mode === 'live' &&
+    dataMode.testMode &&
+    dataMode.syntheticAi &&
+    dataMode.scopes.some((scope) => scope.label === '合成AI集成验收');
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
   }, [page]);
@@ -74,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
   const batchSelect =
     dataMode.mode === 'live' ? (
-      <LiveBatchSelect />
+      <LiveAssessmentPicker />
     ) : (
       <Select
         aria-label="当前测评批次"
@@ -108,7 +114,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <>
             <div className="fullscreen-title">{page.label}</div>
             <div className="topbar-actions">
-              {!uploadWorkspace && batchSelect}
+              {!uploadWorkspace && !emptyWorkspace && batchSelect}
               {fullButton}
             </div>
           </>
@@ -159,10 +165,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             {!fullscreen && (
               <div className="page-title-group">
                 <h1>{uploadWorkspace ? '上传测评资料' : page.label}</h1>
+                {sampleAccount && <span className="muted">合成样例账户</span>}
                 {dataMode.mode === 'demo' && batch.demo && <span className="muted">合成测评</span>}
               </div>
             )}
-            {!fullscreen && (
+            {!fullscreen && !emptyWorkspace && (
               <section className="assessment-toolbar" aria-label="当前测评工作台">
                 {!uploadWorkspace && batchSelect}
                 {!uploadWorkspace && (
@@ -175,28 +182,26 @@ export function AppShell({ children }: { children: ReactNode }) {
                       router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
                     }}
                   >
-                    上传新测评
+                    上传测评资料
                   </Button>
                 )}
-                {!firstUpload && (
-                  <Button
-                    className="assessment-history-action"
-                    icon={
-                      uploadWorkspace ? (
-                        <FileTextOutlined aria-hidden="true" />
-                      ) : (
-                        <HistoryOutlined aria-hidden="true" />
-                      )
-                    }
-                    aria-label="查看历史测评"
-                    onClick={() => {
-                      dataMode.openAssessments('history');
-                      router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
-                    }}
-                  >
-                    {uploadWorkspace ? '历史测评' : '查看历史测评'}
-                  </Button>
-                )}
+                <Button
+                  className="assessment-history-action"
+                  icon={
+                    uploadWorkspace ? (
+                      <FileTextOutlined aria-hidden="true" />
+                    ) : (
+                      <HistoryOutlined aria-hidden="true" />
+                    )
+                  }
+                  aria-label="查看历史测评"
+                  onClick={() => {
+                    dataMode.openAssessments('history');
+                    router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                  }}
+                >
+                  {uploadWorkspace ? '历史测评' : '查看历史测评'}
+                </Button>
                 {dataMode.assessmentPanel && dataMode.batch && (
                   <Button
                     type="link"
