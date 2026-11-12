@@ -2,10 +2,13 @@
 
 import asyncio
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import date
 from fractions import Fraction
 from hashlib import sha256
 from pathlib import Path
+from threading import Lock
 
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.core.errors import APIError
@@ -159,6 +162,8 @@ class AuthorizedEnvelope(DatabaseEnvelope):
 class TaskService:
     def __init__(self, provider, store: TaskStore, directory: Path, *, profile_limits=None):
         self.provider, self.store, self.directory = provider, store, directory
+        self._review_lock = Lock()
+        self._active_reviews: set[str] = set()
         self.profile_limits = profile_limits or Limits(
             model_requests=6, tool_attempts=5, timeout_seconds=30
         )
@@ -224,6 +229,19 @@ class TaskService:
         row = self._row(actor, batch_id, task_id, snapshot_id)
         self.source(row, actor).validate()
         return row
+
+    @contextmanager
+    def review_submission(self, task_id: str) -> Iterator[None]:
+        """Avoid redundant in-flight work in this process. SQLite owns the save guard."""
+        with self._review_lock:
+            if task_id in self._active_reviews:
+                blocked("AI_REVIEW_IN_PROGRESS")
+            self._active_reviews.add(task_id)
+        try:
+            yield
+        finally:
+            with self._review_lock:
+                self._active_reviews.remove(task_id)
 
     def view(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> TaskView:
         row = self._row(actor, batch_id, task_id, snapshot_id)
@@ -360,9 +378,7 @@ class TaskService:
             published_mean = published["mean"]
             if (
                 published["valid_count"] != actual.valid_count
-                or Fraction(
-                    published_mean["numerator"], published_mean["denominator"]
-                )
+                or Fraction(published_mean["numerator"], published_mean["denominator"])
                 != actual.mean
             ):
                 blocked("AI_PROFILE_PROJECTION_CONFLICT", 503)
@@ -374,9 +390,7 @@ class TaskService:
                     blocked("AI_PROFILE_FACT_CONFLICT", 503)
                 facts.append(fact)
             dimension_fact_ids = tuple(
-                fact.fact_id
-                for fact in facts
-                if fact.calculation.values.get("outcome") == item_id
+                fact.fact_id for fact in facts if fact.calculation.values.get("outcome") == item_id
             )
             common = {
                 "task_id": task_id,
@@ -446,9 +460,7 @@ class TaskService:
                         evidence_path=f"/api/v1/edu/batches/{batch_id}/evidence/{reference}",
                     )
                 )
-            released = {
-                frozenset(group) for group in json.loads(row["disclosure_json"]) if group
-            }
+            released = {frozenset(group) for group in json.loads(row["disclosure_json"]) if group}
             for bucket in actual.distribution:
                 members = frozenset(
                     link.student_id

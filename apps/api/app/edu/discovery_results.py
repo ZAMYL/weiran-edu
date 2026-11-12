@@ -64,6 +64,50 @@ def checked_findings(
 
 
 class DiscoveryResultService(ResultService):
+    def prepare_discovery(
+        self,
+        reader: DiscoveryReader,
+        principal: Principal,
+        body: AnalysisCreate,
+        data: DiscoveryInput,
+        result: DiscoveryResult,
+        *,
+        cancelled: CancelCheck | None = None,
+    ) -> AnalysisSnapshot:
+        """Prepare a save from the current request's verified calculation."""
+        selection = body.discovery
+        assert selection is not None
+        if selection.input_key != data.scope.input_key:
+            raise APIError(409, "DISCOVERY_INPUT_MISMATCH", "分析范围已变化，请重新获取发现")
+        findings = checked_findings(
+            reader, principal, data, result, selection.discovery_ids, cancelled=cancelled
+        )
+        ids = set(data.student_ids)
+        members = tuple(s for s in data.students if s.student_id in ids)
+        with self.database.transaction() as connection:
+            batch = self._batch(connection, principal, data.scope.batch_id, body.snapshot_id)
+            require_owner(batch, principal)
+            statistics = self._statistics(batch, data.dataset)
+        return AnalysisSnapshot(
+            query=InsightSpec(
+                snapshot_id=body.snapshot_id,
+                conditions=data.spec.scope_conditions,
+                include_dimensions=False,
+            ),
+            statistics=statistics,
+            group_statistics=data.scope.statistics if body.conditions else None,
+            total_count=len(data.students),
+            matched_count=len(members),
+            ratio=stat(Fraction(len(members), len(data.students))) if data.students else stat(None),
+            members=members,
+            candidates=(),
+            discovery=SavedDiscoverySnapshot(
+                spec=data.spec,
+                scope=data.scope,
+                findings=findings,
+            ),
+        )
+
     async def verify_saved(
         self, principal: Principal, saved: AnalysisResult, *, cancelled: CancelCheck | None = None
     ) -> None:
@@ -98,8 +142,6 @@ class DiscoveryResultService(ResultService):
         *,
         request: Request | None = None,
     ) -> AnalysisResult:
-        selection = body.discovery
-        assert selection is not None
         cancelled = cancellation(request)
 
         def authorize():
@@ -114,42 +156,9 @@ class DiscoveryResultService(ResultService):
         async with reader.calculation(
             principal, batch_id, spec, request=request, cancelled=cancelled
         ) as (data, result):
-            if selection.input_key != data.scope.input_key:
-                raise APIError(409, "DISCOVERY_INPUT_MISMATCH", "分析范围已变化，请重新获取发现")
-
-            def prepare() -> AnalysisSnapshot:
-                findings = checked_findings(
-                    reader, principal, data, result, selection.discovery_ids, cancelled=cancelled
-                )
-                ids = set(data.student_ids)
-                members = tuple(s for s in data.students if s.student_id in ids)
-                with self.database.transaction() as connection:
-                    batch = self._batch(connection, principal, batch_id, body.snapshot_id)
-                    require_owner(batch, principal)
-                    statistics = self._statistics(batch, data.dataset)
-                return AnalysisSnapshot(
-                    query=InsightSpec(
-                        snapshot_id=body.snapshot_id,
-                        conditions=data.spec.scope_conditions,
-                        include_dimensions=False,
-                    ),
-                    statistics=statistics,
-                    group_statistics=data.scope.statistics if body.conditions else None,
-                    total_count=len(data.students),
-                    matched_count=len(members),
-                    ratio=stat(Fraction(len(members), len(data.students)))
-                    if data.students
-                    else stat(None),
-                    members=members,
-                    candidates=(),
-                    discovery=SavedDiscoverySnapshot(
-                        spec=data.spec,
-                        scope=data.scope,
-                        findings=findings,
-                    ),
-                )
-
-            snapshot = await run_in_threadpool(prepare)
+            snapshot = await run_in_threadpool(
+                self.prepare_discovery, reader, principal, body, data, result, cancelled=cancelled
+            )
         # Exit the shared bounded snapshot (including revoke/corruption checks) BEFORE write.
         return await run_in_threadpool(
             self._save,

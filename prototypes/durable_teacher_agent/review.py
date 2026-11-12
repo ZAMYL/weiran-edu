@@ -17,9 +17,11 @@ from app.edu.analysis import DIMENSION_MAP, OPERATOR_MAP
 from app.edu.auth import Principal
 from app.edu.discoveries import DiscoveryReader
 from app.edu.discovery_bridge import DiscoveryInput
+from app.edu.discovery_disconnect import CancelCheck, cancellation, check_cancelled
 from app.edu.discovery_models import DiscoverySpec
-from app.edu.discovery_results import DiscoveryResultService, checked_findings
-from app.edu.review_models import AnalysisCreate, DiscoverySelection
+from app.edu.discovery_results import DiscoveryResultService
+from app.edu.review_models import AnalysisCreate, AnalysisSnapshot, DiscoverySelection
+from fastapi import Request
 from starlette.concurrency import run_in_threadpool
 
 from prototypes.adaptive_assessment.agent import AdaptiveFact
@@ -28,7 +30,7 @@ from prototypes.teacher_agent_bridge.provider import ALIASES
 
 from .models import ReviewReceipt, ReviewSubmission
 from .service import TaskService
-from .store import TaskStore, blocked, encode
+from .store import TaskStore, blocked
 
 
 class ReviewDatabase:
@@ -38,8 +40,16 @@ class ReviewDatabase:
     pending result. No partial save can survive a revocation or linking failure.
     """
 
-    def __init__(self, store: TaskStore, row: dict, actor: Principal, ids: dict):
+    def __init__(
+        self,
+        store: TaskStore,
+        row: dict,
+        actor: Principal,
+        ids: dict,
+        cancelled: CancelCheck | None,
+    ):
         self.store, self.row, self.actor, self.ids = store, row, actor, ids
+        self.cancelled = cancelled
         self.path = store.database.path
 
     @contextmanager
@@ -48,13 +58,15 @@ class ReviewDatabase:
             if write:
                 current = self.store._row(c, self.row["task_id"])
                 self.store.check(c, current, self.actor)
-                if current["state"] != "completed" or json.loads(
-                    current["review_json"] or "null"
-                ) != {"preparing": self.ids}:
+                if current["state"] != "completed" or current["review_json"] is not None:
                     blocked("AI_REVIEW_CONFLICT")
+                check_cancelled(self.cancelled)
                 before = c.execute(
                     "SELECT result_id FROM analysis_results ORDER BY rowid DESC LIMIT 1"
                 ).fetchone()
+                self.store.event(
+                    c, self.row["task_id"], "review_requested", {"fact_ids": list(self.ids)}
+                )
             yield c
             if write:
                 self.store.check(c, self.store._row(c, self.row["task_id"]), self.actor)
@@ -85,6 +97,7 @@ class ReviewDatabase:
                 self.store.event(
                     c, self.row["task_id"], "pending_review_saved", receipt.model_dump(mode="json")
                 )
+                check_cancelled(self.cancelled)
 
 
 def score_pairs(records: Sequence[RecordRef], dimension: Dimension) -> set[tuple[str, str]]:
@@ -187,77 +200,92 @@ def match_fact(fact: AdaptiveFact, data: DiscoveryInput, result: DiscoveryResult
 
 
 async def submit(
-    service: TaskService, actor: Principal, batch_id: str, task_id: str, body: ReviewSubmission
+    service: TaskService,
+    actor: Principal,
+    batch_id: str,
+    task_id: str,
+    body: ReviewSubmission,
+    *,
+    request: Request | None = None,
 ) -> ReviewReceipt:
     if len(set(body.fact_ids)) != len(body.fact_ids):
         blocked("AI_DUPLICATE_FACT")
-    row = await run_in_threadpool(service.row, actor, batch_id, task_id, body.snapshot_id)
+    row = await run_in_threadpool(service._row, actor, batch_id, task_id, body.snapshot_id)
+    with service.review_submission(task_id):
+        return await _submit_review(service, actor, row, body, request=request)
+
+
+async def _submit_review(
+    service: TaskService,
+    actor: Principal,
+    row: dict,
+    body: ReviewSubmission,
+    *,
+    request: Request | None,
+) -> ReviewReceipt:
+    cancelled = cancellation(request)
+    check_cancelled(cancelled)
     source, executor = await run_in_threadpool(service.replay, actor, row)
+    check_cancelled(cancelled)
+    facts = []
     for fact_id in body.fact_ids:
         fact = executor.facts.get(fact_id)
         if fact is None or not fact.view["qualified"]:
             blocked("AI_FACT_NOT_ELIGIBLE", 422)
+        facts.append(fact)
+    batch_id, task_id = row["batch_id"], row["task_id"]
     if row["review_json"]:
-        receipt = json.loads(row["review_json"])
-        if receipt.get("fact_ids") is not None or "preparing" in receipt:
-            blocked("AI_REVIEW_IN_PROGRESS")
-        # Idempotent read-back only for the exact originally submitted Fact set.
-        with service.store.database.transaction() as c:
-            event = c.execute(
-                "SELECT payload FROM ai_synthetic_events WHERE task_id=? AND "
-                "phase='review_requested' ORDER BY sequence DESC LIMIT 1",
-                (task_id,),
-            ).fetchone()
-        if event is None or set(json.loads(event[0])["fact_ids"]) != set(body.fact_ids):
-            blocked("AI_REVIEW_CONFLICT")
-        return ReviewReceipt.model_validate_json(row["review_json"])
+        return await run_in_threadpool(_read_receipt, service, actor, task_id, body)
+
     reader = DiscoveryReader(service.store.database, clock=service.provider.service.clock)
     spec = DiscoverySpec(snapshot_id=body.snapshot_id)
-    mapped = {}
-    async with reader.calculation(actor, batch_id, spec) as (data, result):
-        for fact_id in body.fact_ids:
-            fact = executor.facts.get(fact_id)
-            if fact is None or not fact.view["qualified"]:
-                blocked("AI_FACT_NOT_ELIGIBLE", 422)
-            finding = match_fact(fact, data, result)
-            checked_findings(reader, actor, data, result, (finding.discovery_id,))
-            mapped[fact_id] = finding.discovery_id
-        selection = DiscoverySelection(
-            input_key=data.scope.input_key, discovery_ids=tuple(mapped.values())
-        )
-    source.validate()
-    # Claim only after all recomputation/qualification/source checks; concurrent submits
-    # race under BEGIN IMMEDIATE and cannot create duplicate analysis results.
-    with service.store.database.transaction(write=True) as c:
-        current = service.store._row(c, task_id)
-        service.store.check(c, current, actor)
-        if current["review_json"] is not None:
-            blocked("AI_REVIEW_CONFLICT")
-        c.execute(
-            "UPDATE ai_synthetic_tasks SET review_json=? WHERE task_id=?",
-            (encode({"preparing": mapped}), task_id),
-        )
-        service.store.event(c, task_id, "review_requested", {"fact_ids": list(body.fact_ids)})
-    database = ReviewDatabase(service.store, row, actor, mapped)
-    try:
-        await DiscoveryResultService(
-            database, clock=service.provider.service.clock
-        ).create_discovery(
-            actor,
-            batch_id,
-            AnalysisCreate(
+    async with reader.calculation(actor, batch_id, spec, request=request, cancelled=cancelled) as (
+        data,
+        result,
+    ):
+
+        def prepare() -> tuple[DiscoveryResultService, AnalysisCreate, AnalysisSnapshot]:
+            mapped = {fact.fact_id: match_fact(fact, data, result).discovery_id for fact in facts}
+            create = AnalysisCreate(
                 snapshot_id=body.snapshot_id,
                 title="AI调查事实待教师核查",
                 include_dimensions=False,
-                discovery=selection,
-            ),
-        )
-    except BaseException:
-        with service.store.database.transaction(write=True) as c:
-            c.execute(
-                "UPDATE ai_synthetic_tasks SET review_json=NULL WHERE task_id=? AND review_json=?",
-                (task_id, encode({"preparing": mapped})),
+                discovery=DiscoverySelection(
+                    input_key=data.scope.input_key, discovery_ids=tuple(mapped.values())
+                ),
             )
-        raise
-    current = service.store.get(actor, task_id)
-    return ReviewReceipt.model_validate_json(current["review_json"])
+            database = ReviewDatabase(service.store, row, actor, mapped, cancelled)
+            results = DiscoveryResultService(database, clock=service.provider.service.clock)
+            snapshot = results.prepare_discovery(
+                reader, actor, create, data, result, cancelled=cancelled
+            )
+            return results, create, snapshot
+
+        results, create, snapshot = await run_in_threadpool(prepare)
+    await run_in_threadpool(source.validate)
+    await run_in_threadpool(
+        results._save, actor, batch_id, create, snapshot, expected_input=data, cancelled=cancelled
+    )
+    return await run_in_threadpool(_read_receipt, service, actor, task_id, body)
+
+
+def _read_receipt(
+    service: TaskService, actor: Principal, task_id: str, body: ReviewSubmission
+) -> ReviewReceipt:
+    with service.store.database.transaction() as c:
+        current = service.store._row(c, task_id)
+        service.store.check(c, current, actor)
+        raw_receipt = current["review_json"]
+        if raw_receipt is None:
+            blocked("AI_REVIEW_CONFLICT")
+        receipt = json.loads(raw_receipt)
+        if receipt.get("fact_ids") is not None or "preparing" in receipt:
+            blocked("AI_REVIEW_IN_PROGRESS")
+        event = c.execute(
+            "SELECT payload FROM ai_synthetic_events WHERE task_id=? AND "
+            "phase='review_requested' ORDER BY sequence DESC LIMIT 1",
+            (task_id,),
+        ).fetchone()
+    if event is None or set(json.loads(event[0])["fact_ids"]) != set(body.fact_ids):
+        blocked("AI_REVIEW_CONFLICT")
+    return ReviewReceipt.model_validate_json(raw_receipt)

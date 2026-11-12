@@ -83,9 +83,7 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
     )
     async def profile_scores(batch_id: str, task_id: str, request: Request, actor: Actor):
         body = await read_query(request, ProfileScoreRequest)
-        return await run_in_threadpool(
-            service.profile_scores, actor, batch_id, task_id, body
-        )
+        return await run_in_threadpool(service.profile_scores, actor, batch_id, task_id, body)
 
     @router.post(
         "/{task_id}/review-submissions",
@@ -94,7 +92,7 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
     )
     async def review(batch_id: str, task_id: str, request: Request, actor: Actor):
         body = await read_query(request, ReviewSubmission)
-        return await submit(service, actor, batch_id, task_id, body)
+        return await submit(service, actor, batch_id, task_id, body, request=request)
 
     application.include_router(router)
     application.state.durable_investigations = service

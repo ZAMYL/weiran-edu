@@ -1,7 +1,10 @@
 """Synthetic real DB + real HTTP auth + native Function Calling Mock integration."""
 
 import json
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from io import BytesIO
+from threading import Barrier, Event
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,8 +15,11 @@ from prototypes.durable_teacher_agent.store import encode
 from prototypes.teacher_agent_bridge.fixtures import build_host
 from prototypes.teacher_agent_bridge.provider import DatabaseProvider, digest
 
+from app.edu import discovery_worker
 from app.edu.auth import authenticate
+from app.edu.discovery_results import DiscoveryResultService
 from app.importing.edu import parse_excel
+from app.main import create_app
 
 QUESTION = "比较 算法与数据结构、代码实现能力 的组合与 问题建模能力 的群体差异"
 
@@ -51,9 +57,8 @@ def actor(fixture, service):
     return authenticate(service.store.database, fixture.token)
 
 
-@pytest.fixture(scope="module")
-def completed(tmp_path_factory):
-    directory = tmp_path_factory.mktemp("durable-investigation")
+@contextmanager
+def completed_task(directory):
     fixture, service = setup(directory)
     with TestClient(fixture.app) as client:
         client.headers["Authorization"] = "Bearer " + fixture.token
@@ -76,7 +81,13 @@ def completed(tmp_path_factory):
         yield fixture, service, client, b, gid, base, path, body, view
 
 
-def test_persist_reload_evidence_review_and_report(completed):
+@pytest.fixture(scope="module")
+def completed(tmp_path_factory):
+    with completed_task(tmp_path_factory.mktemp("durable-investigation")) as task:
+        yield task
+
+
+def test_persist_reload_evidence_review_and_report(completed, monkeypatch):
     fixture, service, client, b, gid, base, path, body, view = completed
     assert view["model_requests"] == 3 and view["tool_attempts"] == 3
     assert view["result"]["real_qwen"] == "not_run"
@@ -108,11 +119,22 @@ def test_persist_reload_evidence_review_and_report(completed):
         "snapshot_id": b["snapshot_id"],
         "fact_ids": [relation["fact_id"], group["fact_id"]],
     }
+    worker_calls = 0
+    execute = discovery_worker.execute
+
+    async def count_worker(*args, **kwargs):
+        nonlocal worker_calls
+        worker_calls += 1
+        return await execute(*args, **kwargs)
+
+    monkeypatch.setattr(discovery_worker, "execute", count_worker)
     response = client.post(path + "/review-submissions", json=submission)
     assert response.status_code == 200, response.text
+    assert worker_calls == 1
     receipt = response.json()
     response = client.post(path + "/review-submissions", json=submission)
     assert response.status_code == 200 and response.json() == receipt
+    assert worker_calls == 1
     response = client.get(receipt["result_path"], params={"snapshot_id": b["snapshot_id"]})
     assert response.status_code == 200, response.text
     saved = response.json()
@@ -158,6 +180,126 @@ def test_persist_reload_evidence_review_and_report(completed):
         params={"snapshot_id": b["snapshot_id"], "expected_version": 1, "format": "md"},
     )
     assert response.status_code == 409
+
+
+def test_review_failure_rolls_back_and_concurrent_retry_saves_once(tmp_path, monkeypatch):
+    with completed_task(tmp_path) as task:
+        fixture, service, client, batch, _, _, path, _, view = task
+        fact = next(f for f in view["result"]["facts"] if f["method"] == "compare_student_groups")
+        url = path + "/review-submissions"
+        submission = {"snapshot_id": batch["snapshot_id"], "fact_ids": [fact["fact_id"]]}
+        original_event = service.store.event
+
+        def fail_link(connection, task_id, phase, payload):
+            if phase == "pending_review_saved":
+                assert (
+                    connection.execute("SELECT count(*) FROM analysis_results").fetchone()[0] == 1
+                )
+                raise RuntimeError("synthetic_link_failure")
+            return original_event(connection, task_id, phase, payload)
+
+        with monkeypatch.context() as patches:
+            patches.setattr(service.store, "event", fail_link)
+            with TestClient(fixture.app, raise_server_exceptions=False) as failing:
+                response = failing.post(url, json=submission, headers=client.headers)
+            assert response.status_code == 500
+
+        with service.store.database.transaction() as connection:
+            assert service.store._row(connection, view["task_id"])["review_json"] is None
+            assert connection.execute("SELECT count(*) FROM analysis_results").fetchone()[0] == 0
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM ai_synthetic_events WHERE phase='review_requested'"
+                ).fetchone()[0]
+                == 0
+            )
+
+        started, release = Event(), Event()
+        original_replay = service.replay
+
+        def hold_replay(*args):
+            started.set()
+            assert release.wait(15)
+            return original_replay(*args)
+
+        with monkeypatch.context() as patches, ThreadPoolExecutor(max_workers=1) as pool:
+            patches.setattr(service, "replay", hold_replay)
+            first = pool.submit(client.post, url, json=submission)
+            try:
+                assert started.wait(10)
+                duplicate = client.post(url, json=submission)
+                assert duplicate.status_code == 409, duplicate.text
+                assert duplicate.json()["error"]["code"] == "AI_REVIEW_IN_PROGRESS"
+            finally:
+                release.set()
+            accepted = first.result(timeout=30)
+        assert accepted.status_code == 200, accepted.text
+        retry = client.post(url, json=submission)
+        assert retry.status_code == 200 and retry.json() == accepted.json()
+        with service.store.database.transaction() as connection:
+            assert connection.execute("SELECT count(*) FROM analysis_results").fetchone()[0] == 1
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM ai_synthetic_events WHERE phase='review_requested'"
+                ).fetchone()[0]
+                == 1
+            )
+
+
+def test_review_rechecks_purpose_before_atomic_save(tmp_path, monkeypatch):
+    with completed_task(tmp_path) as task:
+        _, service, client, batch, grant_id, _, path, _, view = task
+        fact = next(f for f in view["result"]["facts"] if f["method"] == "compare_student_groups")
+        save = DiscoveryResultService._save
+
+        def revoke_before_save(*args, **kwargs):
+            service.store.revoke(grant_id)
+            return save(*args, **kwargs)
+
+        monkeypatch.setattr(DiscoveryResultService, "_save", revoke_before_save)
+        response = client.post(
+            path + "/review-submissions",
+            json={"snapshot_id": batch["snapshot_id"], "fact_ids": [fact["fact_id"]]},
+        )
+        assert response.status_code == 403, response.text
+        assert response.json()["error"]["code"] == "AI_PURPOSE_REVOKED"
+        with service.store.database.transaction() as connection:
+            assert service.store._row(connection, view["task_id"])["review_json"] is None
+            assert connection.execute("SELECT count(*) FROM analysis_results").fetchone()[0] == 0
+
+
+def test_review_independent_hosts_serialize_report_insert(tmp_path, monkeypatch):
+    with completed_task(tmp_path) as task:
+        fixture, service, client, batch, _, _, path, _, view = task
+        second = create_app(fixture.app.state.settings)
+        install(second, service.provider, service.directory)
+        fact = next(f for f in view["result"]["facts"] if f["method"] == "compare_student_groups")
+        submission = {"snapshot_id": batch["snapshot_id"], "fact_ids": [fact["fact_id"]]}
+        url = path + "/review-submissions"
+        both_ready = Barrier(2)
+        save = DiscoveryResultService._save
+
+        def simultaneous_save(*args, **kwargs):
+            both_ready.wait(timeout=20)
+            return save(*args, **kwargs)
+
+        monkeypatch.setattr(DiscoveryResultService, "_save", simultaneous_save)
+        with TestClient(second) as other, ThreadPoolExecutor(max_workers=1) as pool:
+            first = pool.submit(client.post, url, json=submission)
+            response = other.post(url, json=submission, headers=client.headers)
+            responses = [first.result(timeout=30), response]
+        assert sorted(response.status_code for response in responses) == [200, 409]
+        assert next(r for r in responses if r.status_code == 409).json()["error"]["code"] == (
+            "AI_REVIEW_CONFLICT"
+        )
+        with service.store.database.transaction() as connection:
+            assert connection.execute("SELECT count(*) FROM analysis_results").fetchone()[0] == 1
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM ai_synthetic_events WHERE phase='pending_review_saved'"
+                ).fetchone()[0]
+                == 1
+            )
 
 
 def test_legacy_standard_result_stays_compatible_and_cannot_self_upgrade(completed):
