@@ -32,10 +32,7 @@ class QwenAdaptivePlanner(NativeDialogue):
         transport: httpx.MockTransport | None = None,
         settings: QwenSettings | None = None,
     ):
-        if budget.origin != "http_mock":
-            deny_live()  # Never load credentials, even with a forged/future budget.
-        if type(transport) is not httpx.MockTransport or allow_network:
-            raise AgentError("mock_transport_required")
+        self._admit_execution(budget, transport, allow_network)
         settings = settings or QwenSettings(
             SecretStr("synthetic-mock-placeholder"),
             "https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -50,6 +47,12 @@ class QwenAdaptivePlanner(NativeDialogue):
         self.choices = []
         self.schemas = bound_schemas(executor.kernel.catalog(executor.limits.minimum_cell))
         self._init_dialogue()
+
+    def _admit_execution(self, budget, transport, allow_network):
+        if budget.origin != "http_mock":
+            deny_live()  # Never load credentials, even with a forged/future budget.
+        if type(transport) is not httpx.MockTransport or allow_network:
+            raise AgentError("mock_transport_required")
 
     async def aclose(self):
         if self._http is not None:
