@@ -1,6 +1,6 @@
 ﻿# 停止未然 EDU 本机演示（清理启动器与所有遗留进程）
 # 按命令行特征精确匹配，不误杀无关进程。
-$patterns = @('node_modules/next/dist/bin/next', 'prototypes.durable_teacher_agent.serve')
+$patterns = @('node_modules/next/dist/bin/next start', 'prototypes.durable_teacher_agent.serve')
 $killed = 0
 foreach ($pattern in $patterns) {
   $procs = Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='python.exe'" -ErrorAction SilentlyContinue |

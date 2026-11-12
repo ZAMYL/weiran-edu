@@ -6,13 +6,15 @@
 
 ```powershell
 cd apps\web
-corepack pnpm install --frozen-lockfile
+corepack pnpm install --frozen-lockfile --registry=https://registry.npmmirror.com
 corepack pnpm build
 cd ..\..\apps\api
 uv sync --locked --group dev
 ```
 
 要求：Node.js 24、corepack（提供 pnpm 11.25.0）、Python 3.12、uv。
+
+> 说明：`--registry=https://registry.npmmirror.com` 用于国内直连 npmjs 过慢导致大包（next / @next/swc）下载超时（error 23）的情况。网络较快时可省略该参数。`--frozen-lockfile` 仍按锁文件校验完整性，不改变依赖版本。
 
 ## 启动
 

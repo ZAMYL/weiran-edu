@@ -34,7 +34,7 @@ function Stop-Tree([int]$ProcId) {
 }
 
 function Stop-DemoProcesses {
-  $patterns = @('node_modules/next/dist/bin/next', 'prototypes.durable_teacher_agent.serve')
+  $patterns = @('node_modules/next/dist/bin/next start', 'prototypes.durable_teacher_agent.serve')
   $killed = 0
   foreach ($pattern in $patterns) {
     $procs = Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='python.exe'" -ErrorAction SilentlyContinue |
@@ -70,10 +70,12 @@ try {
     Push-Location $Repo
     try {
       & $Python -c "from prototypes.teacher_agent_bridge.fixtures import workbook; open(r'$samplePath','wb').write(workbook('normal'))"
+    } catch {
+      Write-Host '样例文件生成失败；首次上传可改用手工准备的受支持测评文件。' -ForegroundColor Yellow
     } finally { Pop-Location }
   }
   $connectionPath = $null
-  for ($hostAttempt = 1; $hostAttempt -le 2 -and -not $connectionPath; $hostAttempt++) {
+  for ($hostAttempt = 1; $hostAttempt -le 3 -and -not $connectionPath; $hostAttempt++) {
     $hostOut = Join-Path $Private ('host-startup-' + $hostAttempt + '.log')
     $hostErr = Join-Path $Private ('host-startup-' + $hostAttempt + '.err.log')
     Remove-Item $hostOut, $hostErr -ErrorAction SilentlyContinue
@@ -89,7 +91,7 @@ try {
     $hostProc = Start-Process @hostParams
     Set-Content -LiteralPath (Join-Path $Private 'demo-host.pid') -Value $hostProc.Id
     Write-Host ('正在启动合成后端宿主（真实 HTTP + SQLite）... 第 ' + $hostAttempt + ' 次尝试') -ForegroundColor Cyan
-    $deadline = (Get-Date).AddSeconds(180)
+    $deadline = (Get-Date).AddSeconds(300)
     while ((Get-Date) -lt $deadline -and -not $connectionPath) {
       Start-Sleep -Milliseconds 500
       if ($hostProc.HasExited) { break }
@@ -100,11 +102,11 @@ try {
     }
     if ($connectionPath) { break }
     if ($hostProc -and -not $hostProc.HasExited) { Stop-Tree $hostProc.Id }
-    if ($hostAttempt -eq 2) {
+    if ($hostAttempt -eq 3) {
       $tail = Get-Content $hostErr -Tail 20 -ErrorAction SilentlyContinue
-      throw "合成后端宿主两次启动均未成功，请查看日志：$hostErr；末尾内容：$tail"
+      throw "合成后端宿主多次启动均未成功，请查看日志：$hostErr；末尾内容：$tail"
     }
-    Write-Host '合成后端宿主首次启动未成功（解析子进程可能超时），自动重试一次...' -ForegroundColor Yellow
+    Write-Host '合成后端宿主本次启动未成功（解析子进程可能超时或引导较慢），自动重试...' -ForegroundColor Yellow
   }
   if (-not $connectionPath) { throw '合成后端宿主启动超时，请查看日志：' + $hostOut }
   $connection  = Get-Content -Raw -Encoding UTF8 -LiteralPath $connectionPath | ConvertFrom-Json
@@ -154,12 +156,14 @@ try {
   }
   if (-not $ready) { throw "前端服务在 $Port 端口未就绪" }
 
-  # ---------- 3. 校验账户/批次接口，全部 200 才算成功 ----------
+  # ---------- 3. 校验账户/批次接口，全部 200 且批次数符合身份才算成功 ----------
   $failed = $null
+  $batchTotal = $null
   foreach ($ep in @('test-session', 'me', 'scopes', 'batches')) {
     try {
       $resp = Invoke-WebRequest -Uri "http://127.0.0.1:$Port/api/edu/$ep" -UseBasicParsing -TimeoutSec 8 -ErrorAction Stop
       if ($resp.StatusCode -ne 200) { $failed = "$ep -> HTTP $($resp.StatusCode)"; break }
+      if ($ep -eq 'batches') { $batchTotal = ($resp.Content | ConvertFrom-Json).total_count }
     } catch {
       $failed = "$ep -> 请求失败（$($_.Exception.Message)）"
       break
@@ -168,7 +172,13 @@ try {
   if ($failed) {
     throw "账户/批次接口未就绪（$failed）。会话文件：$sessionFile；请运行 stop-demo.ps1 清理遗留进程后重试。"
   }
-  Write-Host '账户/批次接口校验通过（test-session / me / scopes / batches = 200）' -ForegroundColor Green
+  if ($Identity -eq 'first' -and $batchTotal -ne 0) {
+    throw "空数据教师应有 0 个批次，实际 $batchTotal；身份或会话配置异常。"
+  }
+  if ($Identity -eq 'sample' -and $batchTotal -lt 1) {
+    throw "合成样例教师应有样例批次，实际 $batchTotal；身份或会话配置异常。"
+  }
+  Write-Host "账户/批次接口校验通过（test-session / me / scopes / batches = 200，批次 $batchTotal）" -ForegroundColor Green
 
   # ---------- 4. 打开浏览器并保持运行 ----------
   $demo = "http://127.0.0.1:$Port/insights"
