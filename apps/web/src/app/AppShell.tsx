@@ -153,7 +153,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     dataMode.testMode ? void dataMode.connect(null) : dataMode.openLogin(true)
                   }
                 >
-                  连接账户
+                  {dataMode.testMode ? '连接账户' : '登录'}
                 </Button>
               )}
               {dataMode.connected && (

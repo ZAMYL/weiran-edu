@@ -58,6 +58,7 @@ try {
     ['explorer', '画像探索'],
     ['data', '学情诊断'],
     ['reports', '分析报告'],
+    ['login', '教师登录'],
   ]) {
     const response = await fetch(`${url}/${route}`, { signal: AbortSignal.timeout(5000) });
     assert.equal(response.status, 200);

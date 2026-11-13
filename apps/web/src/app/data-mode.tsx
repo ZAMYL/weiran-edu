@@ -1,7 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Alert, App, Button, Input, Modal, Pagination, Segmented, Select, Tag } from 'antd';
+import { Alert, App, Button, Modal, Pagination, Segmented, Select, Tag } from 'antd';
+import TeacherLoginForm from '../features/auth/TeacherLoginForm';
+import loginStyles from '../features/auth/teacher-login.module.css';
 import { ApiError, createEduClient, type EduClient } from '../services/edu-api/client';
 import type {
   ApiBatch,
@@ -113,6 +115,7 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
         ready: true,
         mode: s.mode,
         testMode: s.testMode,
+        loginOpen: s.loginOpen,
         revision: s.revision + 1,
         notice: s.testMode ? '连接已失效，请重新连接。' : '账户权限已失效或被撤销，请重新连接。',
       }));
@@ -328,58 +331,38 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
 }
 function SessionDialog() {
   const session = useDataMode();
-  const [token, setToken] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  async function submit() {
-    if (!token.trim() || busy) return;
-    const candidate = token.trim();
-    setToken('');
-    setError(null);
-    setBusy(true);
-    try {
-      await session.connect(candidate);
-    } catch (e) {
-      if (!(e instanceof DOMException && e.name === 'AbortError'))
-        setError(e instanceof ApiError ? e.message : '连接未完成，请重试。');
-    } finally {
-      setBusy(false);
-    }
-  }
-  const close = () => {
-    if (busy) session.disconnect();
-    setToken('');
-    setError(null);
-    session.openLogin(false);
-  };
   return (
     <Modal
-      title="连接账户"
+      title="教师登录"
       open={session.loginOpen}
-      onCancel={close}
+      onCancel={() => {
+        if (busy) session.disconnect();
+        session.openLogin(false);
+      }}
       destroyOnHidden
-      footer={
-        <Button type="primary" loading={busy} disabled={!token.trim() || busy} onClick={submit}>
-          连接
-        </Button>
-      }
+      centered
+      width={440}
+      classNames={{ mask: loginStyles.mask }}
+      styles={{
+        container: { padding: '28px clamp(20px, 5vw, 34px) 20px' },
+        mask: { backgroundColor: 'rgb(20 36 72 / 34%)' },
+        title: { marginBottom: 22, fontSize: 26, lineHeight: 1.25 },
+      }}
+      mask={{ closable: false }}
+      footer={null}
     >
-      <p>使用教师访问凭据连接有权查看的测评。</p>
-      <label htmlFor="teacher-access-token" className="session-token-label">
-        访问凭据
-      </label>
-      <Input.Password
-        id="teacher-access-token"
-        value={token}
-        onChange={(e) => setToken(e.target.value)}
-        onPressEnter={submit}
-        autoComplete="off"
-        maxLength={200}
-        placeholder="输入教师访问凭据"
-        disabled={busy}
+      <TeacherLoginForm
+        busy={busy}
+        connectWithCredential={async (credential) => {
+          setBusy(true);
+          try {
+            await session.connect(credential);
+          } finally {
+            setBusy(false);
+          }
+        }}
       />
-      {error && <Alert className="session-notice" type="error" showIcon title={error} />}
-      <p className="muted small session-notice">访问凭据仅在当前会话使用。</p>
     </Modal>
   );
 }
@@ -449,7 +432,7 @@ export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
         <p>连接后可查看有权访问的测评、评分和分析报告。</p>
         {session.notice && <Alert showIcon type="warning" title={session.notice} />}
         <Button type="primary" onClick={() => session.openLogin(true)}>
-          连接账户
+          登录
         </Button>
       </Panel>
     );

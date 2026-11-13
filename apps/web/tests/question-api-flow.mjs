@@ -39,10 +39,11 @@ export async function questionApiFlow({
   );
   const checks = [];
   async function connect(credential) {
-    await page.getByRole('button', { name: '连接账户', exact: true }).first().click();
-    const dialog = page.getByRole('dialog', { name: '连接账户', exact: true });
+    await page.getByRole('button', { name: '登录', exact: true }).first().click();
+    const dialog = page.getByRole('dialog', { name: '教师登录', exact: true });
+    await dialog.getByRole('button', { name: '使用访问凭据', exact: true }).click();
     await dialog.getByLabel('访问凭据').fill(credential);
-    await dialog.getByRole('button', { name: '连接', exact: true }).click();
+    await dialog.getByRole('button', { name: '登录', exact: true }).click();
     await page.locator('.live-workspace').waitFor();
     await dialog.waitFor({ state: 'hidden' });
   }
@@ -60,7 +61,12 @@ export async function questionApiFlow({
   await page.getByText('当前教师没有导入权，可查看已授权批次。', { exact: true }).waitFor();
   assert.ok(await page.locator('.workflow-dropzone .ant-btn').isDisabled());
   await page.getByRole('button', { name: '结束会话', exact: true }).click();
-  await connect(token);
+  await page.goto(origin + '/login');
+  await page.getByRole('heading', { name: '教师登录', exact: true }).waitFor();
+  await page.getByRole('button', { name: '使用访问凭据', exact: true }).click();
+  await page.getByLabel('访问凭据').fill(token);
+  await page.getByRole('button', { name: '登录', exact: true }).click();
+  await page.waitForURL('**/insights');
   const heading = page.getByRole('heading', { name: '上传测评资料', exact: true, level: 1 });
   await heading.waitFor();
   const list = await getJson('/api/edu/batches');
@@ -89,7 +95,7 @@ export async function questionApiFlow({
   assert.deepEqual((await getJson('/api/edu/batches')).data.items, []);
   await page.getByRole('button', { name: '更换文件', exact: true }).click();
   checks.push(
-    'manual account connection / real empty list / read-only upload gate / unsupported XLSX 422 / 1440px and 390px',
+    'credential login in modal and dedicated page / real empty list / read-only upload gate / unsupported XLSX 422 / 1440px and 390px',
   );
   async function verifyLegacy() {
     const legacy = await importThroughPage('empty', '五维兼容小样');

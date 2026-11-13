@@ -193,12 +193,11 @@ try {
       assert.equal(await page.getByRole('button', { name: '连接教师', exact: true }).count(), 0);
       return;
     }
-    await page
-      .locator('.session-gate')
-      .getByRole('button', { name: '连接账户', exact: true })
-      .click();
-    await page.getByLabel('访问凭据', { exact: true }).fill(token);
-    await page.getByRole('dialog').getByRole('button', { name: '连接', exact: true }).click();
+    await page.locator('.session-gate').getByRole('button', { name: '登录', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '教师登录', exact: true });
+    await dialog.getByRole('button', { name: '使用访问凭据', exact: true }).click();
+    await dialog.getByLabel('访问凭据', { exact: true }).fill(token);
+    await dialog.getByRole('button', { name: '登录', exact: true }).click();
     await page.getByRole('button', { name: '结束会话', exact: true }).waitFor();
     await page.locator('#teacher-access-token').waitFor({ state: 'detached' });
   }
