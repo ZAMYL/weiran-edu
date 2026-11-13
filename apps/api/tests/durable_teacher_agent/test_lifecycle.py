@@ -260,3 +260,39 @@ def test_duplicate_worker_does_not_fail_the_running_owner(pending):
     current = service.store.get(a, row["task_id"])
     assert current["state"] == "running"
     assert current["tool_attempts"] == 0
+
+
+def test_status_read_does_not_take_write_lock(pending):
+    """A status read must not contend with an execution write via a needless write transaction."""
+    _, service, _, _, a, _, _, row = pending
+    service.store.start(row["task_id"])
+    # Simulate the execution worker holding the database write lock (BEGIN IMMEDIATE).
+    with service.store.database.transaction(write=True):
+        try:
+            current = service.store.get(a, row["task_id"])
+        except APIError as error:
+            pytest.fail(
+                f"status read raised HTTP {error.status_code} ({error.code}) under a "
+                "concurrent write; it must use a read transaction instead of BEGIN IMMEDIATE"
+            )
+    assert current["state"] == "running"
+
+
+def test_synthetic_mode_marker_does_not_bypass_grant(tmp_path):
+    """A synthetic-mode marker on the request must not authorize an ungranted batch."""
+    fixture, service = setup(tmp_path)
+    with TestClient(fixture.app) as client:
+        client.headers["Authorization"] = "Bearer " + fixture.token
+        b = upload(client, fixture)
+        path = f"/api/v1/edu/batches/{b['batch_id']}/ai-investigation-tasks"
+        body = {
+            "snapshot_id": b["snapshot_id"],
+            "question": QUESTION,
+            "idempotency_key": "forged-marker-01",
+            # The only valid synthetic-mode value must not act as an authorization grant.
+            "mode": "http_mock",
+            "strategy": "adaptive",
+        }
+        response = client.post(path, json=body)
+        assert response.status_code == 403, response.text
+        assert response.json()["error"]["code"] == "AI_PURPOSE_REQUIRED"
