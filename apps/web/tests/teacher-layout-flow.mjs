@@ -32,32 +32,34 @@ const capture = async (page, artifacts, name) => {
       const workflow = await page.locator('.upload-workflow').boundingBox();
       assert.ok(workflow.width <= 1320 && workflow.width <= width);
       if (width > 1384) assert.ok(Math.abs(workflow.width - 1320) <= 1);
-      const frameKey = `${width}x${height}`;
-      const first = uploadFrames.get(frameKey);
-      if (!first) uploadFrames.set(frameKey, workflow);
-      else {
-        assert.ok(Math.abs(workflow.width - first.width) <= 1);
-        assert.ok(
-          Math.abs(workflow.height - first.height) <= 1,
-          'all upload stages have identical frame height',
-        );
-      }
       const steps = page.locator('.upload-workflow .ant-steps-item');
-      const step1 = await steps.first().boundingBox();
-      const step3 = await steps.last().boundingBox();
-      assert.ok(step3.y > step1.y + step1.height, 'steps stay in a left vertical column');
-      assert.ok(Math.abs(step3.x - step1.x) <= 1);
       if (name === 'data') {
+        assert.equal(await steps.first().isVisible(), false);
         const body = await page.locator('.upload-workflow-body').boundingBox();
         const drop = await page.locator('.workflow-dropzone .ant-upload-drag').boundingBox();
         assert.ok(
           drop.width > body.width * 0.8 && drop.height > body.height * 0.8,
-          'upload target fills the available right pane',
+          'upload target fills the first-use panel',
         );
         assert.doesNotMatch(
           await page.locator('.upload-workflow-body').innerText(),
           /选择后自动检查|确认前不会入库/,
         );
+      } else {
+        const frameKey = `${width}x${height}`;
+        const first = uploadFrames.get(frameKey);
+        if (!first) uploadFrames.set(frameKey, workflow);
+        else {
+          assert.ok(Math.abs(workflow.width - first.width) <= 1);
+          assert.ok(
+            Math.abs(workflow.height - first.height) <= 1,
+            'steps after file selection have identical frame height',
+          );
+        }
+        const step1 = await steps.first().boundingBox();
+        const step3 = await steps.last().boundingBox();
+        assert.ok(step3.y > step1.y + step1.height, 'steps stay in a left vertical column');
+        assert.ok(Math.abs(step3.x - step1.x) <= 1);
       }
     }
     if (name === 'diagnosis' || name === 'statistics') {
@@ -142,8 +144,8 @@ export async function teacherLayoutFlow({
     '画像探索',
     '分析报告',
   ]);
-  await page.getByRole('heading', { name: '上传测评', exact: true }).waitFor();
-  assert.equal(await page.getByRole('button', { name: '上传新测评', exact: true }).count(), 0);
+  await page.getByRole('heading', { name: '上传测评资料', exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: '上传测评资料', exact: true }).count(), 0);
   assert.equal(await page.getByRole('combobox', { name: '当前测评批次' }).count(), 0);
   assert.equal(await page.getByText('更多信息（可选）', { exact: true }).count(), 0);
   await clean();
@@ -253,7 +255,7 @@ export async function teacherLayoutFlow({
   await page
     .locator('.ant-drawer-open')
     .last()
-    .getByRole('button', { name: /评分证据$/ })
+    .getByRole('button', { name: /评分依据$/ })
     .first()
     .click();
   const proof = await (await proofResponse).json();
@@ -475,7 +477,7 @@ export async function teacherLayoutFlow({
     ),
   );
   return [
-    'Automatic checks, name edits and preview survive navigation; all three upload frames keep identical sizes with vertical steps; injected post-commit read failure recovers without a second commit',
+    'Automatic checks, name edits and preview survive navigation; the first-use panel focuses on upload and later stages keep stable frames with vertical steps; injected post-commit read failure recovers without a second commit',
     'One focused finding at a time; switching finding and statistics preserves report selection',
     'Individual portrait uses full authorized student evidence; comparison, selection, original group, score evidence and missing-score bars verified; desktop/mobile screenshots',
     'Evidence drawer can add/remove a report selection; zero discoveries explain limits and link to statistics; mobile shows findings before chart',

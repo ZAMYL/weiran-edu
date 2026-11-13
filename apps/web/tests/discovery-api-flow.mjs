@@ -18,6 +18,7 @@ import { teacherIntegerFlow } from './teacher-integer-flow.mjs';
 import { questionApiFlow } from './question-api-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
+const manualQuestionSession = process.env.EDU_QUESTION_FLOW === '1';
 const repo = path.resolve(web, '../..');
 const apiRoot = process.env.EDU_TEST_API_ROOT || path.join(repo, 'apps/api');
 const python =
@@ -34,7 +35,9 @@ const credentialFile = path.join(temporary, 'test-session.private.json');
 const artifacts = path.join(
   web,
   process.env.EDU_QUESTION_FLOW === '1'
-    ? 'artifacts/question-api'
+    ? process.env.EDU_FIRST_UPLOAD_ONLY === '1'
+      ? 'artifacts/contest-first-upload'
+      : 'artifacts/question-api'
     : process.env.EDU_AUTH_RELAY_ONLY === '1'
       ? 'artifacts/auth-relay'
       : process.env.EDU_PRODUCT_FLOW === '1'
@@ -151,7 +154,12 @@ try {
       String(webPort),
     ],
     web,
-    { ...env, EDU_API_ORIGIN: api, EDU_TEST_MODE: '1', EDU_TEST_SESSION_FILE: credentialFile },
+    {
+      ...env,
+      EDU_API_ORIGIN: api,
+      EDU_TEST_MODE: manualQuestionSession ? '0' : '1',
+      EDU_TEST_SESSION_FILE: credentialFile,
+    },
   );
   await ready(origin, frontend);
   const chrome = [
@@ -172,7 +180,11 @@ try {
     if (message.type() === 'error') consoleErrors.push(message.text());
   });
   page.on('request', (request) => {
-    if (request.url().includes('/api/edu/') && request.headers().authorization)
+    if (
+      !manualQuestionSession &&
+      request.url().includes('/api/edu/') &&
+      request.headers().authorization
+    )
       browserCredentials.push(true);
     if (/qwen|dashscope/i.test(request.url())) modelRequests.push(true);
   });
@@ -192,7 +204,7 @@ try {
       if (await reselect.count()) await reselect.click();
       return;
     }
-    await page.getByRole('button', { name: '上传新测评', exact: true }).click();
+    await page.getByRole('button', { name: '上传测评资料', exact: true }).click();
   };
   const panel = () => page.locator('.all-discoveries-panel');
   const waitResponse = (predicate) => {
@@ -211,10 +223,13 @@ try {
     );
   const post = (route, body) =>
     page.evaluate(
-      async ({ route, body }) => {
+      async ({ route, body, credential }) => {
         const r = await fetch(`/api/edu${route}`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: {
+            'content-type': 'application/json',
+            ...(credential ? { Authorization: 'Bearer ' + credential } : {}),
+          },
           body: JSON.stringify(body),
           cache: 'no-store',
         });
@@ -225,7 +240,7 @@ try {
           cache: r.headers.get('cache-control'),
         };
       },
-      { route, body },
+      { route, body, credential: manualQuestionSession ? token : undefined },
     );
   const drawers = () => page.locator('.ant-drawer-open');
   const closeTop = async () => {
@@ -233,7 +248,15 @@ try {
     await sleep(350);
   };
   const clientBatch = (id) =>
-    page.evaluate(async (id) => (await fetch(`/api/edu/batches/${id}`)).json(), id);
+    page.evaluate(
+      async ({ id, credential }) =>
+        (
+          await fetch(`/api/edu/batches/${id}`, {
+            headers: credential ? { Authorization: 'Bearer ' + credential } : undefined,
+          })
+        ).json(),
+      { id, credential: manualQuestionSession ? token : undefined },
+    );
   async function importThroughPage(kind, title) {
     await navigation('测评数据');
     const previewReady = waitResponse(
@@ -354,7 +377,7 @@ try {
   }
   async function selectBatch(title) {
     const pending = nextResponse('/discoveries/query');
-    await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
+    await page.getByRole('combobox', { name: '当前测评批次' }).click();
     await page.locator('.ant-select-dropdown').getByText(title, { exact: true }).click();
     return await (await pending).json();
   }
@@ -387,6 +410,8 @@ try {
         temporary,
         python,
         env,
+        token,
+        readerToken,
         importThroughPage,
         selectBatch,
       })),
@@ -514,7 +539,7 @@ try {
     );
     await drawers()
       .last()
-      .getByRole('button', { name: /评分证据$/ })
+      .getByRole('button', { name: /评分依据$/ })
       .first()
       .click();
     const proof = await (await proofResponse).json();
@@ -579,9 +604,9 @@ try {
     checkpoint = 'outer scope and boundary chart';
     await navigation('画像探索');
     await page.getByRole('button', { name: '添加条件', exact: true }).click();
-    await page.getByRole('combobox', { name: '正式条件1比较', exact: true }).click();
+    await page.getByRole('combobox', { name: '筛选条件1比较', exact: true }).click();
     await page.locator('.ant-select-dropdown').getByText('≤', { exact: true }).click();
-    await page.getByLabel('正式条件1评分', { exact: true }).fill('3');
+    await page.getByLabel('筛选条件1评分', { exact: true }).fill('3');
     await page.getByRole('button', { name: '应用筛选', exact: true }).click();
     const scopedResponse = nextResponse('/discoveries/query');
     await navigation('学情诊断');
@@ -656,7 +681,7 @@ try {
     await denied;
     await page
       .locator('.discoveries-panel')
-      .getByText('记录不存在或当前教师无权查看，请刷新批次。', { exact: true })
+      .getByText('记录不存在或你无权查看，请刷新测评。', { exact: true })
       .waitFor();
     assert.equal(await page.getByTestId('discovery-card').count(), 0);
     checks.push(

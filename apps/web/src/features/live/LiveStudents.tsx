@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useState } from 'react';
-import { Button, Drawer, Empty, Pagination, Table, Tag } from 'antd';
+import { Button, Drawer, Empty, Pagination, Table } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import {
@@ -66,7 +66,7 @@ export function LiveStudentTable({
                   className="score-evidence-link"
                   type="link"
                   onClick={() => onEvidence(score.evidence_id)}
-                  aria-label={`${student.display_label} ${d.name} ${score.score} 分证据`}
+                  aria-label={`${student.display_label} ${d.name} ${score.score} 分，查看评分依据`}
                 >
                   {score.score}
                 </Button>
@@ -74,7 +74,7 @@ export function LiveStudentTable({
                 score.score
               )
             ) : (
-              <span className="muted">未作为本指标证据</span>
+              <span className="muted">未纳入本指标核算</span>
             );
           },
         })),
@@ -95,7 +95,7 @@ export function LiveStudentTable({
               <Button
                 type="link"
                 onClick={() => onStudent(student)}
-                aria-label={`查看 ${student.display_label} 正式详情`}
+                aria-label={`查看 ${student.display_label} 的测评详情`}
               >
                 详情 →
               </Button>
@@ -165,7 +165,7 @@ export function LiveScoreDrawer({
     (c) => c.rubric_criterion_id === resource.data?.evidence.rubric_criterion_id,
   );
   return (
-    <Drawer title="测评评分证据" open={Boolean(evidenceId)} onClose={onClose} size={550}>
+    <Drawer title="测评评分依据" open={Boolean(evidenceId)} onClose={onClose} size={550}>
       <AssessmentContext title={batch.title} course={batch.course} date={batch.assessment_date} />
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
@@ -303,13 +303,13 @@ export function MetricEvidenceDrawer({
   const result = resource.data;
   return (
     <>
-      <Drawer open={Boolean(selection)} onClose={onClose} size={740} title="洞察指标 · 评分依据">
+      <Drawer open={Boolean(selection)} onClose={onClose} size={740} title="统计指标 · 评分依据">
         <p className="drawer-subtitle">{selection?.title}</p>
         {resource.loading && <LoadingPanel />}
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
         {result && (
           <>
-            <Panel title="指标口径" action={<Tag color="blue">服务端计算</Tag>}>
+            <Panel title="统计说明">
               <p>
                 当前指标：<b>{metricDisplay(result.metric)}</b>
               </p>
@@ -321,9 +321,7 @@ export function MetricEvidenceDrawer({
                 统计分母：{result.metric.denominator ?? '不适用'} · 卡片范围人数：
                 {result.scope_record_count}
               </p>
-              <p className="muted small">
-                此处人数来自完整结果，分页不改变统计口径；数值的有理数分母不代表参评人数。
-              </p>
+              <p className="muted small">人数按完整结果统计，翻页时保持一致。</p>
               <div className="condition-box">{conditionText(selection!.spec.conditions)}</div>
             </Panel>
             {result.total_count ? (
@@ -336,7 +334,7 @@ export function MetricEvidenceDrawer({
                 onEvidence={setEvidenceId}
               />
             ) : (
-              <Empty description="该指标没有参与评分记录，未使用其他学生填充。" />
+              <Empty description="当前范围没有纳入该指标的评分记录。" />
             )}
             {!result.total_count && result.page.has_more && <Pagination current={1} total={0} />}
           </>

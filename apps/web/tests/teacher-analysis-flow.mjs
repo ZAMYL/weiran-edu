@@ -152,7 +152,7 @@ export async function teacherAnalysisFlow({
     await shot('analysis-review-desktop');
     const evidenceHTTP = page.waitForResponse((r) => r.url().endsWith('/records/query'));
     await drawer()
-      .getByRole('button', { name: /查看评分证据/ })
+      .getByRole('button', { name: /查看评分依据/ })
       .first()
       .click();
     assert.deepEqual((await evidenceHTTP).request().postDataJSON().conditions, spec.conditions);
@@ -338,10 +338,10 @@ export async function teacherAnalysisFlow({
       await page.getByRole('button', { name: '准备分析报告', exact: true }).isDisabled(),
       true,
     );
-    await page.getByRole('combobox', { name: '正式条件1比较' }).click();
+    await page.getByRole('combobox', { name: '筛选条件1比较' }).click();
     await page.locator('.ant-select-dropdown').getByText('=', { exact: true }).click();
     await page.getByRole('button', { name: '添加条件', exact: true }).click();
-    await page.getByRole('textbox', { name: '正式条件2评分' }).fill('3.25');
+    await page.getByRole('textbox', { name: '筛选条件2评分' }).fill('3.25');
     await page.getByRole('button', { name: '应用筛选', exact: true }).click();
     await page.locator('.match-summary').filter({ hasText: '12 / 23' }).waitFor();
     await navigation('学情诊断');

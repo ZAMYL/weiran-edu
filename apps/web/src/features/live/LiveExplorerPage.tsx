@@ -249,7 +249,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                 {index > 0 && <span className="and-token">且</span>}
                 <Select
                   className="dimension-select"
-                  aria-label={`正式条件${index + 1}维度`}
+                  aria-label={`筛选条件${index + 1}维度`}
                   value={condition.dimension_code}
                   options={DIMENSIONS.filter(
                     (d) => !draft.some((c, i) => i !== index && c.dimension_code === d.code),
@@ -260,7 +260,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                 />
                 <Select
                   className="operator-select"
-                  aria-label={`正式条件${index + 1}比较`}
+                  aria-label={`筛选条件${index + 1}比较`}
                   value={condition.operator}
                   options={Object.entries(operatorLabels).map(([value, label]) => ({
                     value,
@@ -273,7 +273,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                 <Input
                   className="live-threshold"
                   inputMode="decimal"
-                  aria-label={`正式条件${index + 1}评分`}
+                  aria-label={`筛选条件${index + 1}评分`}
                   value={condition.value}
                   maxLength={32}
                   onChange={(e) =>
@@ -285,7 +285,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                 />
                 <Button
                   type="text"
-                  aria-label={`移除正式条件${index + 1}`}
+                  aria-label={`移除筛选条件${index + 1}`}
                   onClick={() => setDraft(draft.filter((_, i) => i !== index))}
                 >
                   ×
@@ -452,7 +452,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                   {
                     <div className="axis-controls">
                       <Select
-                        aria-label="正式热力图横轴"
+                        aria-label="热力图横轴"
                         value={axes.x}
                         options={DIMENSIONS.map((d) => ({
                           value: d.code,
@@ -461,7 +461,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                         onChange={(x) => setAxes({ x, y: x === axes.y ? axes.x : axes.y })}
                       />
                       <Select
-                        aria-label="正式热力图纵轴"
+                        aria-label="热力图纵轴"
                         value={axes.y}
                         options={DIMENSIONS.filter((d) => d.code !== axes.x).map((d) => ({
                           value: d.code,
@@ -491,7 +491,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                   {
                     <div className="axis-controls">
                       <Select
-                        aria-label="正式热力图横轴"
+                        aria-label="热力图横轴"
                         value={axes.x}
                         options={DIMENSIONS.map((d) => ({
                           value: d.code,
@@ -500,7 +500,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                         onChange={(x) => setAxes({ x, y: x === axes.y ? axes.x : axes.y })}
                       />
                       <Select
-                        aria-label="正式热力图纵轴"
+                        aria-label="热力图纵轴"
                         value={axes.y}
                         options={DIMENSIONS.filter((d) => d.code !== axes.x).map((d) => ({
                           value: d.code,

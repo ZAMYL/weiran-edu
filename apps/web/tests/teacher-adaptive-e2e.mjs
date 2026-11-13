@@ -401,7 +401,7 @@ try {
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.on('pageerror', (error) => unexpected.push(error.message));
   await page.goto(`${origin}/insights`);
-  await page.getByRole('heading', { name: '选择 Excel 文件' }).waitFor();
+  await page.getByRole('heading', { name: '上传测评资料', exact: true }).waitFor();
   await page.locator('input[type=file]').setInputFiles(workbook);
   await page.getByText('文件检查通过').waitFor();
   await page.getByText('评分项目与量表', { exact: true }).click();
@@ -435,10 +435,10 @@ try {
   await page.screenshot({ path: path.join(artifacts, '13-reports.png'), fullPage: true });
   await page.reload();
   await page.getByText('当前测评暂不支持生成或导出分析报告。').waitFor();
-  await page.getByRole('link', { name: '学情诊断' }).click();
+  await page.getByRole('button', { name: '返回学情诊断', exact: true }).click();
   await table.waitFor();
   assert.equal(await table.getByRole('row').count(), 14);
-  summaries.push('unavailable report has no action / reload retains the recognized items');
+  summaries.push('unavailable report returns to diagnosis / reload retains the recognized items');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('link', { name: '画像探索' }).click();
@@ -454,7 +454,7 @@ try {
   await table.waitFor();
 
   for (const scenario of cases) {
-    await page.getByRole('combobox', { name: '当前正式测评批次' }).click();
+    await page.getByRole('combobox', { name: '当前测评批次' }).click();
     await page.getByText(scenario.title, { exact: true }).click();
     const projectTable = page.getByRole('table', { name: '评分项目统计' });
     await projectTable.waitFor();

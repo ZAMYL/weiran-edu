@@ -15,7 +15,8 @@ import {
   LeftOutlined,
 } from '@ant-design/icons';
 import { useBatch, useWorkspace } from './store';
-import { LiveBatchSelect, useDataMode } from './data-mode';
+import { useDataMode } from './data-mode';
+import LiveAssessmentPicker from '../features/live/LiveAssessmentPicker';
 import { WorkspaceLayoutContext } from './WorkspaceLayoutContext';
 
 const pages = [
@@ -39,6 +40,23 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname === '/insights' &&
     (dataMode.assessmentPanel === 'upload' ||
       (dataMode.connected && !dataMode.batch && dataMode.assessmentPanel !== 'history'));
+  const emptyWorkspace =
+    dataMode.mode === 'live' &&
+    dataMode.connected &&
+    !dataMode.batch &&
+    !dataMode.notice &&
+    dataMode.assessmentPanel === null;
+  const sampleAccount =
+    dataMode.mode === 'live' &&
+    dataMode.testMode &&
+    dataMode.syntheticAi &&
+    dataMode.scopes.some((scope) => scope.label === '合成AI集成验收');
+  const sourceLabel = sampleAccount
+    ? '合成样例账户'
+    : dataMode.mode === 'demo' && batch.demo
+      ? '合成测评'
+      : null;
+  const pageTitle = uploadWorkspace ? '上传测评资料' : page.label;
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
   }, [page]);
@@ -68,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
   const batchSelect =
     dataMode.mode === 'live' ? (
-      <LiveBatchSelect />
+      <LiveAssessmentPicker />
     ) : (
       <Select
         aria-label="当前测评批次"
@@ -83,6 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <Button
       className="fullscreen-button"
       type="text"
+      aria-label={fullscreen ? '退出全屏' : '全屏'}
       icon={fullscreen ? <CompressOutlined /> : <ExpandOutlined />}
       onClick={toggleFullscreen}
     >
@@ -100,9 +119,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         {fullscreen ? (
           <>
-            <div className="fullscreen-title">{page.label}</div>
+            <div className="fullscreen-title">
+              {pageTitle}
+              {sourceLabel && <span className="muted"> · {sourceLabel}</span>}
+            </div>
             <div className="topbar-actions">
-              {batchSelect}
+              {!uploadWorkspace && !emptyWorkspace && batchSelect}
               {fullButton}
             </div>
           </>
@@ -148,24 +170,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </header>
       <main className={`workspace${uploadWorkspace ? ' upload-workspace' : ''}`}>
-        {dataMode.mode === 'demo' && (
-          <p className="internal-demo-notice" role="status">
-            内部 Demo · 当前全部数据均为合成样例，不用于正式分析。
-          </p>
-        )}
         <div className={`page-heading${uploadWorkspace ? ' upload-workspace-heading' : ''}`}>
           <div className="workspace-intro">
             {!fullscreen && (
               <div className="page-title-group">
-                <h1>{uploadWorkspace ? '上传测评' : page.label}</h1>
-                {!uploadWorkspace && (
-                  <div>
-                    <p>未然 EDU｜AI 时代的编程能力与学习成效诊断平台</p>
-                  </div>
-                )}
+                <h1>{pageTitle}</h1>
+                {sourceLabel && <span className="muted">{sourceLabel}</span>}
               </div>
             )}
-            {!fullscreen && (
+            {!fullscreen && !emptyWorkspace && (
               <section className="assessment-toolbar" aria-label="当前测评工作台">
                 {!uploadWorkspace && batchSelect}
                 {!uploadWorkspace && (
@@ -178,7 +191,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
                     }}
                   >
-                    上传新测评
+                    上传测评资料
                   </Button>
                 )}
                 <Button
@@ -242,7 +255,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <b>画像探索</b> 设置条件并应用，人数、分布和学生列表同步更新。
           </p>
           <p>
-            <b>上传新测评</b> 选择 Excel 文件，检查数据后确认导入。
+            <b>上传测评资料</b> 选择 .xlsx 文件，检查后确认导入。
           </p>
           <p>
             <b>分析报告</b> 保存本次范围及选定发现，核验后导出报告。教师确认不等于因果证明。

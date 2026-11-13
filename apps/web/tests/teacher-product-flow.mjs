@@ -174,7 +174,7 @@ export async function teacherProductFlow(h) {
   assert.ok((await page.locator('body').innerText()).includes('正在查看原发现群体'));
   const evidence = wait((r) => /\/evidence\/[^/?]+\?/.test(r.url()) && r.status() === 200);
   await page
-    .getByRole('button', { name: /分证据$/ })
+    .getByRole('button', { name: /分，查看评分依据$/ })
     .first()
     .click();
   const proof = await (await evidence).json();

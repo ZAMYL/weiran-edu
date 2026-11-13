@@ -111,7 +111,7 @@ export async function teacherIntegerFlow(h) {
   await page.locator('.match-summary').filter({ hasText: '/ 105' }).waitFor();
   const proofResponse = wait((r) => /\/evidence\/[^/?]+\?/.test(r.url()) && r.status() === 200);
   await page
-    .getByRole('button', { name: /分证据$/ })
+    .getByRole('button', { name: /分，查看评分依据$/ })
     .first()
     .click();
   const proof = await (await proofResponse).json();

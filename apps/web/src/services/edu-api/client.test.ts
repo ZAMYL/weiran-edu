@@ -166,7 +166,13 @@ describe('formal API privacy and cancellation', () => {
         batch_id: 'b',
         snapshot_id: 'current',
       } as ApiBatch),
-    ).toThrow('快照');
+    ).toThrow(
+      expect.objectContaining({
+        status: 409,
+        code: 'SNAPSHOT_MISMATCH',
+        message: '这份测评的数据已更新，请刷新测评后重试。',
+      }),
+    );
     const client = createEduClient(
       vi.fn(),
       vi.fn<typeof fetch>().mockResolvedValue(response(200, { teacher_id: 123 })),

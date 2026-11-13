@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Button, Checkbox, Drawer, Input, Pagination, Select, Table } from 'antd';
+import { Alert, Button, Checkbox, Drawer, Input, Pagination, Segmented, Select, Table } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useDataMode } from '../../app/data-mode';
 import type { ApiBatch, ApiCondition } from '../../services/edu-api/types';
@@ -167,7 +167,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const resultLabel = task?.result && stopLabels[task.result.stop_reason];
   const status = restoring ? '正在读取分析任务…' : (resultLabel ?? taskLabel);
   return (
-    <Panel title="AI 分析演示" className="ai-investigation-panel">
+    <Panel title="AI 分析" className="ai-investigation-panel">
       <div className="ai-question-heading">
         <label htmlFor="ai-question">想了解什么？</label>
         <span id="ai-scope" className="muted">
@@ -226,19 +226,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
           }
         />
       )}
-      {task?.error_code && (
-        <Alert
-          showIcon
-          type="warning"
-          title={taskLabel}
-          description={
-            <details>
-              <summary>技术详情</summary>
-              {task.error_code}
-            </details>
-          }
-        />
-      )}
+      {task?.error_code && !error && <Alert showIcon type="warning" title={taskLabel} />}
       {task?.result && (
         <>
           {task.result.missing_evidence.length > 0 && (
@@ -255,140 +243,139 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                 .join('、')}
             />
           )}
-          <div className="ai-fact-grid">
-            {facts.map((fact) => (
-              <section className="discovery-card" data-testid="ai-fact-card" key={fact.fact_id}>
-                <h3>{methodLabels[fact.method] ?? '分析结果'}</h3>
-                <p>
-                  {[
-                    ...new Set(fact.source_refs.map((ref) => dimensionName(ref.dimension_code))),
-                  ].join('、')}
-                </p>
-                {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
-                <dl className="focus-metrics" aria-label="AI 发现指标">
-                  {fact.metrics
-                    .filter((metric) => metricLabels[metric.key])
-                    .map((metric) => (
-                      <div key={metric.key}>
-                        <dt>{metricLabels[metric.key]}</dt>
-                        <dd>
-                          <strong>{metric.display}</strong>
-                        </dd>
-                      </div>
-                    ))}
-                </dl>
-                <div className="ai-fact-actions">
-                  {!!fact.source_refs.length && fact.source_verified && (
-                    <Button onClick={() => setSources(fact)}>查看依据</Button>
-                  )}
-                  {fact.exploration_query && fact.source_verified && (
-                    <Button
-                      onClick={() => {
-                        setConditions(fact.exploration_query!.conditions);
-                        router.push('/explorer');
-                      }}
-                    >
-                      继续探索
-                    </Button>
-                  )}
-                  {fact.qualified && fact.source_verified && (
-                    <Checkbox
-                      checked={selected.includes(fact.fact_id)}
-                      disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
-                      onChange={(e) =>
-                        setSelected((ids) =>
-                          e.target.checked
-                            ? [...ids, fact.fact_id]
-                            : ids.filter((id) => id !== fact.fact_id),
-                        )
-                      }
-                    >
-                      加入待核查
-                    </Checkbox>
-                  )}
-                </div>
-              </section>
-            ))}
-          </div>
-          {projection && (
-            <section className="ai-profile-section" aria-label="可信群体画像">
-              <div className="ai-profile-heading">
-                <div>
-                  <h2>可信群体画像</h2>
-                  <p className="muted">
-                    来自当前授权评分快照的确定性重放；只有主结果维度属于 Agent Fact。
+          {facts.length > 0 && (
+            <div className="ai-fact-grid" role="region" aria-label="分析发现">
+              {facts.map((fact) => (
+                <section className="discovery-card" data-testid="ai-fact-card" key={fact.fact_id}>
+                  <h3>{methodLabels[fact.method] ?? '分析结果'}</h3>
+                  <p>
+                    {[
+                      ...new Set(fact.source_refs.map((ref) => dimensionName(ref.dimension_code))),
+                    ].join('、')}
                   </p>
-                </div>
-                <span className="muted">隐私门槛：{projection.minimum_cell} 人</span>
-              </div>
-              {profiles.length === 0 ? (
-                <Alert
-                  showIcon
-                  type="info"
-                  title="本轮没有可展示的合格群体画像"
-                  description="系统不会为了填充页面伪造群体差异；已核验的分析结果仍可继续探索或提交待核查。"
-                />
-              ) : (
-                <div className="ai-profile-grid">
-                  {profiles.map((profile) => (
-                    <section
-                      className="discovery-card ai-profile-card"
-                      data-testid="ai-profile-card"
-                      key={profile.profile_id}
+                  {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
+                  <dl className="focus-metrics" aria-label="发现指标">
+                    {fact.metrics
+                      .filter((metric) => metricLabels[metric.key])
+                      .map((metric) => (
+                        <div key={metric.key}>
+                          <dt>{metricLabels[metric.key]}</dt>
+                          <dd>
+                            <strong>{metric.display}</strong>
+                          </dd>
+                        </div>
+                      ))}
+                  </dl>
+                  <div className="ai-fact-actions">
+                    {!!fact.source_refs.length && fact.source_verified && (
+                      <Button onClick={() => setSources(fact)}>查看评分依据</Button>
+                    )}
+                    {fact.exploration_query && fact.source_verified && (
+                      <Button
+                        onClick={() => {
+                          setConditions(fact.exploration_query!.conditions);
+                          router.push('/explorer');
+                        }}
+                      >
+                        继续探索
+                      </Button>
+                    )}
+                    {fact.qualified && fact.source_verified && (
+                      <Checkbox
+                        checked={selected.includes(fact.fact_id)}
+                        disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
+                        onChange={(e) =>
+                          setSelected((ids) =>
+                            e.target.checked
+                              ? [...ids, fact.fact_id]
+                              : ids.filter((id) => id !== fact.fact_id),
+                          )
+                        }
+                      >
+                        加入待核查
+                      </Checkbox>
+                    )}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+          {projection && profiles.length > 0 && (
+            <section className="ai-profile-section" aria-labelledby="ai-profiles-heading">
+              <h2 id="ai-profiles-heading">群体画像</h2>
+              <div className="ai-profile-grid">
+                {profiles.map((profile) => (
+                  <section
+                    className="discovery-card ai-profile-card"
+                    data-testid="ai-profile-card"
+                    key={profile.profile_id}
+                  >
+                    <h3>{profile.title}</h3>
+                    <p className="ai-profile-summary">{profile.summary}</p>
+                    <table
+                      className="ai-profile-dimensions"
+                      aria-label={`${profile.title}评分对照（分）`}
                     >
-                      <div className="finding-top">
-                        <h3>{profile.title}</h3>
-                        <span>真实评分重放</span>
-                      </div>
-                      <p>{profile.common_pattern}</p>
-                      <p className="muted">{profile.summary}</p>
-                      <p className="focus-interpretation">{profile.why_show}</p>
-                      <div className="ai-profile-dimensions">
+                      <thead>
+                        <tr>
+                          <th scope="col">评分维度</th>
+                          <th scope="col">本组</th>
+                          <th scope="col">对照组</th>
+                          <th scope="col">均分差</th>
+                        </tr>
+                      </thead>
+                      <tbody>
                         {profile.dimensions.map((dimension) => (
-                          <div className="ai-profile-dimension" key={dimension.dimension_code}>
-                            <div>
-                              <strong>{dimension.label}</strong>
-                              {dimension.condition_defined && <span>筛选条件</span>}
-                            </div>
-                            <dl aria-label={`${dimension.label}群体评分`}>
-                              <div>
-                                <dt>本组</dt>
-                                <dd>{dimension.target.mean.display}</dd>
-                              </div>
-                              <div>
-                                <dt>对照组</dt>
-                                <dd>{dimension.remainder.mean.display}</dd>
-                              </div>
-                              <div>
-                                <dt>均分差</dt>
-                                <dd>{dimension.difference.display}</dd>
-                              </div>
-                            </dl>
-                            <Button
-                              onClick={() => setProfileEvidence({ profile, dimension })}
-                              aria-label={`查看${dimension.label}评分依据`}
-                            >
-                              查看评分依据
-                            </Button>
-                          </div>
+                          <tr key={dimension.dimension_code}>
+                            <th scope="row">
+                              <button
+                                type="button"
+                                className="ai-profile-dimension-action"
+                                onClick={() => setProfileEvidence({ profile, dimension })}
+                                aria-label={`查看${dimension.label}评分依据${dimension.condition_defined ? '（分组条件）' : ''}`}
+                              >
+                                <span>{dimension.label}</span>
+                                <span aria-hidden="true">›</span>
+                              </button>
+                            </th>
+                            <td>{dimension.target.mean.display}</td>
+                            <td>{dimension.remainder.mean.display}</td>
+                            <td>{dimension.difference.display}</td>
+                          </tr>
                         ))}
-                      </div>
-                      <div className="ai-fact-actions">
-                        <Button
-                          onClick={() => {
-                            setConditions(profileConditions(profile));
-                            router.push('/explorer');
-                          }}
-                        >
-                          继续探索该群体
-                        </Button>
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              )}
+                      </tbody>
+                    </table>
+                    <div className="ai-fact-actions">
+                      <Button
+                        onClick={() => {
+                          setConditions(profileConditions(profile));
+                          router.push('/explorer');
+                        }}
+                      >
+                        继续探索该群体
+                      </Button>
+                      <details className="ai-profile-note">
+                        <summary>分组与使用说明</summary>
+                        <p>{profile.common_pattern}</p>
+                        <p>{profile.why_show}</p>
+                        <p>
+                          报告仅收录教师确认的发现。评分明细须满足至少 {projection.minimum_cell}{' '}
+                          人的隐私要求。
+                        </p>
+                      </details>
+                    </div>
+                  </section>
+                ))}
+              </div>
             </section>
           )}
+          {projection &&
+            profiles.length === 0 &&
+            task.result.stop_reason !== 'no_supported_findings' && (
+              <p className="ai-profile-empty" role="status">
+                本轮未发现符合条件的群体画像
+              </p>
+            )}
           {!!selected.length && (
             <Button className="ai-review-submit" type="primary" loading={busy} onClick={review}>
               提交待核查（{selected.length}）
@@ -452,40 +439,42 @@ function ProfileScoreDrawer({
     load,
   );
   return (
-    <Drawer title={`${dimension.label} · 评分依据`} open onClose={onClose} size={680}>
-      <Select
+    <Drawer
+      title={`${dimension.label} · 评分依据`}
+      open
+      onClose={onClose}
+      size={680}
+      className="ai-evidence-drawer"
+    >
+      <Segmented<'target' | 'remainder'>
         aria-label="选择画像群体"
-        style={{ width: '100%' }}
+        block
+        size="large"
         value={side}
         onChange={(value) => {
           setSide(value);
           setOffset(0);
         }}
         options={[
-          { value: 'target', label: `本组 · ${dimension.target.valid_count} 条有效评分` },
+          { value: 'target', label: '本组' },
           {
             value: 'remainder',
-            label: `对照组 · ${dimension.remainder.valid_count} 条有效评分`,
+            label: '对照组',
           },
         ]}
       />
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {resource.data?.detail_status === 'privacy_limited' && (
-        <Alert
-          showIcon
-          type="warning"
-          title="评分明细受隐私门槛限制"
-          description="已公开的画像统计仍可核验，但系统不会通过逐行记录、分页或总数泄露被隐藏的评分分布。"
-        />
+        <Alert showIcon type="warning" title="受隐私保护，无法查看这组评分明细" />
       )}
       {resource.data?.detail_status === 'available' && (
         <>
           <dl className="focus-metrics ai-profile-evidence-summary">
             <div>
-              <dt>数据库重算均分</dt>
+              <dt>均分</dt>
               <dd>
-                <strong>{exactScore(resource.data.mean)}</strong>
+                <strong>{exactScore(resource.data.mean)}</strong> 分
               </dd>
             </div>
             <div>
@@ -493,10 +482,6 @@ function ProfileScoreDrawer({
               <dd>
                 <strong>{resource.data.valid_count}</strong> 条
               </dd>
-            </div>
-            <div>
-              <dt>依据类型</dt>
-              <dd>{resource.data.dimension_fact_ids.length ? '主 Fact + 评分重放' : '评分重放'}</dd>
             </div>
           </dl>
           <Table
@@ -559,7 +544,7 @@ function AiSourcesDrawer({
     load,
   );
   return (
-    <Drawer title="分析依据" open onClose={onClose} size={620}>
+    <Drawer title="评分依据" open onClose={onClose} size={620} className="ai-evidence-drawer">
       <Select
         aria-label="选择依据指标"
         style={{ width: '100%' }}

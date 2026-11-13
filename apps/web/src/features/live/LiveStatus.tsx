@@ -1,5 +1,6 @@
 'use client';
 import { Alert, Button, Empty, Spin } from 'antd';
+import { useRouter } from 'next/navigation';
 import { ApiError } from '../../services/edu-api/client';
 import { Panel } from '../../components/ui';
 import { useDataMode } from '../../app/data-mode';
@@ -22,14 +23,14 @@ export function RequestError({ error, retry }: { error: ApiError; retry?: () => 
       title={error.message}
       description={
         <details>
-          <summary>技术详情</summary>
+          <summary>错误详情</summary>
           <span>错误码：{error.code}</span>
           {error.requestId && <span> · 请求编号：{error.requestId}</span>}
         </details>
       }
       action={
         error.code === 'SNAPSHOT_MISMATCH' ? (
-          <Button onClick={refreshSnapshot}>刷新批次</Button>
+          <Button onClick={refreshSnapshot}>刷新测评</Button>
         ) : retry ? (
           <Button onClick={retry}>重试</Button>
         ) : undefined
@@ -46,9 +47,21 @@ export function LoadingPanel() {
   );
 }
 export function NoBatch() {
+  const router = useRouter();
+  const { openAssessments } = useDataMode();
   return (
     <Panel>
-      <Empty description="暂无可查看的测评，请从顶部上传新测评或查看历史测评。" />
+      <Empty description="暂无可查看的测评">
+        <Button
+          type="primary"
+          onClick={() => {
+            openAssessments(null);
+            router.push('/insights');
+          }}
+        >
+          上传测评资料
+        </Button>
+      </Empty>
     </Panel>
   );
 }

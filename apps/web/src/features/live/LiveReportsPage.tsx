@@ -1,14 +1,30 @@
 'use client';
 import { useDataMode } from '../../app/data-mode';
 import { Button } from 'antd';
+import { useRouter } from 'next/navigation';
 import { Panel } from '../../components/ui';
 import { NoBatch } from './LiveStatus';
 import { conditionText } from '../../services/edu-api/view-model';
 import AnalysisActions from './AnalysisActions';
 export default function LiveReportsPage() {
-  const { batch, conditions, reportDraft, setReportDraft } = useDataMode();
+  const { batch, conditions, reportDraft, setReportDraft, openAssessments } = useDataMode();
+  const router = useRouter();
   if (!batch) return <NoBatch />;
-  if (batch.recognized_items) return <Panel>当前测评暂不支持生成或导出分析报告。</Panel>;
+  if (batch.recognized_items)
+    return (
+      <Panel>
+        <p>当前测评暂不支持生成或导出分析报告。</p>
+        <Button
+          type="primary"
+          onClick={() => {
+            openAssessments(null);
+            router.push('/insights');
+          }}
+        >
+          返回学情诊断
+        </Button>
+      </Panel>
+    );
   const key = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
   const draft = reportDraft?.key === key ? reportDraft : null;
   const spec = draft?.spec ?? {
