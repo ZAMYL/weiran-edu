@@ -6,7 +6,7 @@
 
 已搭建独立的 Next.js + FastAPI 工程。前端增加了按设计稿实现的本地演示工作台：学情洞察、画像探索、测评数据、证据与学生详情抽屉、浏览器内 Excel 预览校验、批次切换及全屏。
 
-前端设计 Demo 已完成，目前仍使用合成记录和浏览器内存批次。后端已实现固定 Excel 解析、预览/质量报告、SQLite 确认入库、批次/修订管理、教师试点凭证与授权、五维统计、群体筛选和证据来源查询。前端尚未切换这些真实 API，尚未完成浏览器整条流程验收。已有分析与受控合成 AI 模块不等于真实学生数据的 AI 服务已开放。
+前端工作台（学情诊断、画像探索、分析报告、测评数据）已接入真实 HTTP API 与 SQLite：空数据教师可完成「上传测评资料 → 预览校验 → 确认入库 → 学情诊断」的完整流程，合成样例教师可体验 AI 群体画像、评分依据与报告。AI 分析当前为受控合成模式（`http_mock`），未调用真实 Qwen；已有分析与受控合成 AI 模块不等于真实学生数据的 AI 服务已开放。
 
 前端运行、演示导入格式与验证见 [apps/web/README.md](apps/web/README.md)。当前功能和历史草案差异见 [实现状态](docs/IMPLEMENTATION_STATUS.md)。
 
@@ -15,7 +15,7 @@
 ## 技术栈
 
 - 前端：Node.js 24、pnpm 11.25.0、Next.js 16.4.1、React 19.3.1、TypeScript 5.9.3。
-- 界面与交互：Ant Design 6、ECharts 6、Zustand 5；xlsx 在浏览器内由 read-excel-file 解析，未对接后端导入。
+- 界面与交互：Ant Design 6、ECharts 6、Zustand 5；xlsx 由后端按固定模板解析并校验后确认入库，前端通过真实 HTTP API 读取统计与依据。
 - 前端质量工具：ESLint 9、Prettier 3，使用 `pnpm-lock.yaml` 锁定依赖。
 - 后端：Python 3.12、uv 0.11.14、FastAPI、Pydantic、Uvicorn，使用 `uv.lock` 锁定依赖。
 - 后端质量工具：Ruff、pytest、httpx；测试禁止外网连接。
@@ -23,14 +23,30 @@
 
 ## 本地运行
 
-先安装 Node.js 24、pnpm 11.25.0、Python 3.12 和 uv。以下命令分别在两个终端运行，默认仅绑定本机回环地址，无需任何密钥。
+先安装 Node.js 24、corepack（提供 pnpm 11.25.0）、Python 3.12 和 uv。
+
+### 一键启动完整演示（推荐）
+
+```powershell
+cd apps\web
+corepack pnpm install --frozen-lockfile
+corepack pnpm build
+cd ..\..\apps\api
+uv sync --locked --group dev
+cd ..\..
+powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity first
+```
+
+启动后自动打开浏览器进入学情诊断，并校验 `test-session / me / scopes / batches` 四个接口全部返回 200。`-Identity first` 为空数据教师（验证首次上传），`-Identity sample` 为合成样例教师（体验 AI 分析）。详见 [scripts/local/README.md](scripts/local/README.md)。
+
+### 手动分别启动（开发，两个终端）
 
 前端：
 
 ```powershell
 cd apps/web
-pnpm install --frozen-lockfile
-pnpm dev
+corepack pnpm install --frozen-lockfile
+corepack pnpm dev
 ```
 
 访问 [http://127.0.0.1:3000](http://127.0.0.1:3000)。
