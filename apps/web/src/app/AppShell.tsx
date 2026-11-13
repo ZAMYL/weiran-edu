@@ -34,6 +34,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [summaryHost, setSummaryHost] = useState<HTMLElement | null>(null);
   const [help, setHelp] = useState(false);
   const { message } = App.useApp();
+  function openAssessment(panel: 'upload' | 'history') {
+    const open = () => {
+      dataMode.openAssessments(panel);
+      router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+    };
+    if (dataMode.requireSession(open)) open();
+  }
   const page = pages.find((p) => pathname.startsWith(p.to)) ?? pages[0]!;
   const uploadWorkspace =
     dataMode.mode === 'live' &&
@@ -135,7 +142,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   href={p.to}
                   key={p.to}
-                  onClick={() => dataMode.openAssessments(null)}
+                  onClick={(event) => {
+                    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    if (!dataMode.requireSession(() => router.push(p.to))) event.preventDefault();
+                    else dataMode.openAssessments(null);
+                  }}
                   className={pathname === p.to ? 'active' : undefined}
                   aria-current={pathname === p.to ? 'page' : undefined}
                 >
@@ -149,11 +160,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               ) : (
                 <Button
                   type="text"
+                  disabled={!dataMode.ready}
                   onClick={() =>
-                    dataMode.testMode ? void dataMode.connect(null) : dataMode.openLogin(true)
+                    dataMode.logoutPending
+                      ? void dataMode.disconnect()
+                      : dataMode.testMode
+                        ? void dataMode.connect(null).catch(() => {})
+                        : dataMode.openLogin(true)
                   }
                 >
-                  {dataMode.testMode ? '连接账户' : '登录'}
+                  {dataMode.logoutPending ? '重试退出' : dataMode.testMode ? '连接账户' : '登录'}
                 </Button>
               )}
               {dataMode.connected && (
@@ -186,10 +202,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                     className="assessment-upload-action"
                     type="primary"
                     icon={<UploadOutlined aria-hidden="true" />}
-                    onClick={() => {
-                      dataMode.openAssessments('upload');
-                      router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
-                    }}
+                    disabled={!dataMode.ready || dataMode.logoutPending}
+                    onClick={() => openAssessment('upload')}
                   >
                     上传测评资料
                   </Button>
@@ -204,10 +218,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                     )
                   }
                   aria-label="查看历史测评"
-                  onClick={() => {
-                    dataMode.openAssessments('history');
-                    router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
-                  }}
+                  disabled={!dataMode.ready || dataMode.logoutPending}
+                  onClick={() => openAssessment('history')}
                 >
                   {uploadWorkspace ? '历史测评' : '查看历史测评'}
                 </Button>

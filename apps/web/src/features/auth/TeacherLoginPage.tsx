@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDataMode } from '../../app/data-mode';
+import { Button } from 'antd';
 import TeacherLoginForm from './TeacherLoginForm';
 import styles from './teacher-login.module.css';
 
 export default function TeacherLoginPage() {
-  const { connected, connect } = useDataMode();
+  const { ready, connected, connect, login, logoutPending, disconnect, notice } = useDataMode();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -27,17 +28,36 @@ export default function TeacherLoginPage() {
         <div className={styles.illustration} aria-hidden="true" />
         <section className={styles.card} aria-labelledby="teacher-login-heading">
           <h1 id="teacher-login-heading">教师登录</h1>
-          <TeacherLoginForm
-            busy={busy}
-            connectWithCredential={async (credential) => {
-              setBusy(true);
-              try {
-                await connect(credential);
-              } finally {
-                setBusy(false);
-              }
-            }}
-          />
+          {logoutPending ? (
+            <>
+              <p role="alert">{notice}</p>
+              <Button type="primary" onClick={() => void disconnect()}>
+                重试退出
+              </Button>
+            </>
+          ) : !ready || connected ? (
+            <p role="status">{connected ? '正在进入工作台…' : '正在检查登录状态…'}</p>
+          ) : (
+            <TeacherLoginForm
+              busy={busy}
+              loginWithAccount={async (input) => {
+                setBusy(true);
+                try {
+                  await login(input);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              connectWithCredential={async (credential) => {
+                setBusy(true);
+                try {
+                  await connect(credential);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            />
+          )}
         </section>
       </main>
     </div>

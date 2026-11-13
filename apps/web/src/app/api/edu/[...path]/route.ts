@@ -1,6 +1,12 @@
 // Same-origin, fixed-upstream teacher API relay.
 import { testSessionAuthorization, testSessionEnabled } from '../../../../server/test-session';
 import {
+  browserOrigin,
+  readTeacherSession,
+  sessionCookie,
+  teacherApiOrigin,
+} from '../../../../server/teacher-session';
+import {
   readReportFile,
   ReportFileError,
   REPORT_MIME,
@@ -90,32 +96,15 @@ async function relay(
     return fail(422, 'INVALID_REPORT_REQUEST');
   // Next may normalize request.url to localhost even when the browser used 127.0.0.1.
   // Compare Origin to the actual HTTP Host; never trust forwarded host headers.
-  const receivedHost = request.headers.get('host');
-  const expectedOrigin =
-    receivedHost && /^[a-zA-Z0-9.\[\]:-]+$/.test(receivedHost)
-      ? `${source.protocol}//${receivedHost}`
-      : source.origin;
+  const expectedOrigin = browserOrigin(request);
   if (
     Array.from(source.searchParams.keys()).some((key) => !queryNames.has(key)) ||
     request.headers.get('sec-fetch-site') === 'cross-site' ||
     (request.headers.has('origin') && request.headers.get('origin') !== expectedOrigin)
   )
     return fail(403, 'ORIGIN_NOT_ALLOWED');
-  let origin: URL;
-  try {
-    origin = new URL(process.env.EDU_API_ORIGIN ?? 'http://127.0.0.1:8000');
-    if (
-      !['http:', 'https:'].includes(origin.protocol) ||
-      origin.username ||
-      origin.password ||
-      origin.pathname !== '/' ||
-      origin.search ||
-      origin.hash
-    )
-      return fail(503, 'BACKEND_NOT_CONFIGURED');
-  } catch {
-    return fail(503, 'BACKEND_NOT_CONFIGURED');
-  }
+  const origin = teacherApiOrigin();
+  if (!origin) return fail(503, 'BACKEND_NOT_CONFIGURED');
   const testMode = testSessionEnabled(request, origin);
   const aiEnabled = testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1';
   if (path[2] === 'ai-investigation-tasks' && !aiEnabled) return fail(404, 'NOT_FOUND');
@@ -125,7 +114,14 @@ async function relay(
       { headers: { 'Cache-Control': 'no-store' } },
     );
   let authorization = request.headers.get('authorization');
-  if (!authorization && testMode) {
+  const cookieSession = !authorization && readTeacherSession(request, origin);
+  if (cookieSession) {
+    if (path[2] === 'ai-investigation-tasks') return fail(404, 'NOT_FOUND');
+    if (request.method !== 'GET' && request.headers.get('origin') !== expectedOrigin)
+      return fail(403, 'ORIGIN_NOT_ALLOWED');
+    authorization = `Bearer ${cookieSession.token}`;
+  }
+  if (!authorization && testMode && request.headers.get('x-weiran-session') !== 'account') {
     try {
       authorization = await testSessionAuthorization();
     } catch {
@@ -203,6 +199,8 @@ async function relay(
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
     });
+    if (response.status === 401 && cookieSession)
+      outgoing.set('Set-Cookie', sessionCookie(request, cookieSession.test, '', 0));
     const requestId = response.headers.get('x-request-id');
     if (requestId && /^req_[a-zA-Z0-9-]{1,100}$/.test(requestId))
       outgoing.set('X-Request-ID', requestId);

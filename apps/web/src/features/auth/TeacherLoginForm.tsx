@@ -1,42 +1,45 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Alert, Button, Input } from 'antd';
 import { ApiError } from '../../services/edu-api/client';
+import type { AccountLogin } from '../../services/edu-api/account-session';
 import styles from './teacher-login.module.css';
 
 export default function TeacherLoginForm({
   connectWithCredential,
+  loginWithAccount,
   busy,
 }: {
   connectWithCredential: (credential: string) => Promise<void>;
+  loginWithAccount: (input: AccountLogin) => Promise<void>;
   busy: boolean;
 }) {
   const id = useId();
   const [credentialMode, setCredentialMode] = useState(false);
   const [credential, setCredential] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const submitting = useRef(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || submitting.current) return;
     setError(null);
-
-    if (!credentialMode) {
-      setPassword('');
-      setError('账号密码登录暂未开通，请使用教师访问凭据。');
-      return;
-    }
-
     const token = credential.trim();
-    if (!token) return;
+    if (credentialMode ? !token : !account.trim() || !password) return;
+    submitting.current = true;
     setCredential('');
+    setPassword('');
     try {
-      await connectWithCredential(token);
+      if (credentialMode) await connectWithCredential(token);
+      else await loginWithAccount({ account: account.trim(), password });
     } catch (cause) {
       if (cause instanceof DOMException && cause.name === 'AbortError') return;
       setError(cause instanceof ApiError ? cause.message : '登录未完成，请重试。');
+    } finally {
+      submitting.current = false;
     }
   }
 
@@ -60,7 +63,16 @@ export default function TeacherLoginForm({
         <>
           <div className={styles.field}>
             <label htmlFor={`${id}-account`}>账号</label>
-            <Input id={`${id}-account`} placeholder="请输入账号" autoComplete="username" required />
+            <Input
+              id={`${id}-account`}
+              value={account}
+              onChange={(event) => setAccount(event.target.value)}
+              placeholder="请输入账号"
+              autoComplete="username"
+              maxLength={128}
+              disabled={busy}
+              required
+            />
           </div>
           <div className={styles.field}>
             <label htmlFor={`${id}-password`}>密码</label>
@@ -70,6 +82,8 @@ export default function TeacherLoginForm({
               onChange={(event) => setPassword(event.target.value)}
               placeholder="请输入密码"
               autoComplete="current-password"
+              maxLength={256}
+              disabled={busy}
               required
             />
           </div>
@@ -81,7 +95,7 @@ export default function TeacherLoginForm({
         type="primary"
         htmlType="submit"
         loading={busy}
-        disabled={busy || (credentialMode && !credential.trim())}
+        disabled={busy || (credentialMode ? !credential.trim() : !account.trim() || !password)}
       >
         登录
       </Button>

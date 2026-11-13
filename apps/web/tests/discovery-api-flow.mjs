@@ -16,9 +16,11 @@ import { renameImport } from './upload-workflow-utils.mjs';
 import { teacherDiscoveryCopyFlow } from './teacher-discovery-copy-flow.mjs';
 import { teacherIntegerFlow } from './teacher-integer-flow.mjs';
 import { questionApiFlow } from './question-api-flow.mjs';
+import { teacherLoginFlow } from './teacher-login-flow.mjs';
 
 const web = fileURLToPath(new URL('..', import.meta.url));
 const manualQuestionSession = process.env.EDU_QUESTION_FLOW === '1';
+const accountLoginFlow = process.env.EDU_ACCOUNT_FLOW === '1';
 const repo = path.resolve(web, '../..');
 const apiRoot = process.env.EDU_TEST_API_ROOT || path.join(repo, 'apps/api');
 const python =
@@ -32,23 +34,27 @@ assert.ok(existsSync(python), 'Set EDU_TEST_PYTHON to a locked backend Python en
 const temporary = await mkdtemp(path.join(tmpdir(), 'weiran-discovery-flow-'));
 const database = path.join(temporary, 'synthetic.sqlite3');
 const credentialFile = path.join(temporary, 'test-session.private.json');
+const accountFile = path.join(temporary, 'account-session.private.json');
+const testAccount = { account: 'local-teacher', password: 'local-synthetic-password' };
 const artifacts = path.join(
   web,
-  process.env.EDU_QUESTION_FLOW === '1'
-    ? process.env.EDU_FIRST_UPLOAD_ONLY === '1'
-      ? 'artifacts/contest-first-upload'
-      : 'artifacts/question-api'
-    : process.env.EDU_AUTH_RELAY_ONLY === '1'
-      ? 'artifacts/auth-relay'
-      : process.env.EDU_PRODUCT_FLOW === '1'
-        ? 'artifacts/teacher-product'
-        : process.env.EDU_INTEGER_FLOW === '1'
-          ? process.env.EDU_INTEGER_CONTROL === '1'
-            ? 'artifacts/integer-control'
-            : 'artifacts/integer-browser'
-          : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
-            ? 'artifacts/teacher-copy'
-            : 'artifacts/discovery-flow',
+  accountLoginFlow
+    ? 'artifacts/teacher-login'
+    : process.env.EDU_QUESTION_FLOW === '1'
+      ? process.env.EDU_FIRST_UPLOAD_ONLY === '1'
+        ? 'artifacts/contest-first-upload'
+        : 'artifacts/question-api'
+      : process.env.EDU_AUTH_RELAY_ONLY === '1'
+        ? 'artifacts/auth-relay'
+        : process.env.EDU_PRODUCT_FLOW === '1'
+          ? 'artifacts/teacher-product'
+          : process.env.EDU_INTEGER_FLOW === '1'
+            ? process.env.EDU_INTEGER_CONTROL === '1'
+              ? 'artifacts/integer-control'
+              : 'artifacts/integer-browser'
+            : process.env.EDU_DISCOVERY_COPY_FLOW === '1'
+              ? 'artifacts/teacher-copy'
+              : 'artifacts/discovery-flow',
 );
 await mkdir(artifacts, { recursive: true });
 const env = {
@@ -115,6 +121,15 @@ try {
   const setToken = (value) =>
     writeFile(credentialFile, JSON.stringify({ synthetic_only: true, access_token: value }));
   await setToken(token);
+  if (accountLoginFlow)
+    await writeFile(
+      accountFile,
+      JSON.stringify({
+        synthetic_only: true,
+        ...testAccount,
+        access_token: token,
+      }),
+    );
   execFileSync(python, [path.join(web, 'tests/make-discovery-fixtures.py'), temporary], {
     cwd: apiRoot,
     env,
@@ -157,8 +172,11 @@ try {
     {
       ...env,
       EDU_API_ORIGIN: api,
-      EDU_TEST_MODE: manualQuestionSession ? '0' : '1',
+      EDU_TEST_MODE: manualQuestionSession || accountLoginFlow ? '0' : '1',
       EDU_TEST_SESSION_FILE: credentialFile,
+      EDU_ACCOUNT_LOGIN_ENABLED: '0',
+      EDU_ACCOUNT_TEST_MODE: accountLoginFlow ? '1' : '0',
+      EDU_ACCOUNT_TEST_FILE: accountFile,
     },
   );
   await ready(origin, frontend);
@@ -401,7 +419,19 @@ try {
     await page.getByTestId('discovery-record-count').waitFor();
     return result;
   }
-  if (process.env.EDU_QUESTION_FLOW === '1') {
+  if (accountLoginFlow) {
+    checks.push(
+      ...(await teacherLoginFlow({
+        page,
+        origin,
+        artifacts,
+        temporary,
+        teacher,
+        admin,
+        testAccount,
+      })),
+    );
+  } else if (process.env.EDU_QUESTION_FLOW === '1') {
     checks.push(
       ...(await questionApiFlow({
         page,
