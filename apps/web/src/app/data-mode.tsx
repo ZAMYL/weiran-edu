@@ -1,8 +1,19 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Alert, App, Button, Input, Modal, Pagination, Segmented, Select, Tag } from 'antd';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { Alert, App, Button, Modal, Pagination, Segmented, Select, Tag } from 'antd';
+import TeacherLoginForm from '../features/auth/TeacherLoginForm';
+import loginStyles from '../features/auth/teacher-login.module.css';
 import { ApiError, createEduClient, type EduClient } from '../services/edu-api/client';
+import { signIn, signOut, type AccountLogin } from '../services/edu-api/account-session';
 import type {
   ApiBatch,
   ApiCommit,
@@ -29,6 +40,7 @@ export interface ReportDraft {
   showSaved?: boolean;
 }
 type Mode = 'live' | 'demo';
+type SessionKind = 'account' | 'credential' | 'test';
 export interface UploadDraft {
   file: File | null;
   title: string;
@@ -49,6 +61,7 @@ interface SessionState {
   testMode: boolean;
   syntheticAi: boolean;
   connected: boolean;
+  sessionKind: SessionKind | null;
   teacherId: string | null;
   scopes: ApiScope[];
   batch: ApiBatch | null;
@@ -57,6 +70,7 @@ interface SessionState {
   revision: number;
   notice: string | null;
   loginOpen: boolean;
+  logoutPending: boolean;
 }
 const initial: SessionState = {
   activeReport: null,
@@ -69,6 +83,7 @@ const initial: SessionState = {
   testMode: false,
   syntheticAi: false,
   connected: false,
+  sessionKind: null,
   teacherId: null,
   scopes: [],
   batch: null,
@@ -77,7 +92,25 @@ const initial: SessionState = {
   revision: 0,
   notice: null,
   loginOpen: false,
+  logoutPending: false,
 };
+const logoutKey = 'weiran.edu.logout-pending';
+function rememberLogout(pending: boolean) {
+  try {
+    if (pending) sessionStorage.setItem(logoutKey, '1');
+    else sessionStorage.removeItem(logoutKey);
+  } catch {
+    // Storage is optional and never holds credentials.
+  }
+}
+
+function hasPendingLogout() {
+  try {
+    return sessionStorage.getItem(logoutKey) === '1';
+  } catch {
+    return false;
+  }
+}
 interface DataMode extends SessionState {
   setActiveReport: (report: SessionState['activeReport']) => void;
   setUploadDraft: (draft: UploadDraft | null) => void;
@@ -86,6 +119,8 @@ interface DataMode extends SessionState {
   openAssessments: (panel: 'upload' | 'history' | null) => void;
   setMode: (mode: Mode) => void;
   connect: (token: string | null) => Promise<void>;
+  login: (input: AccountLogin) => Promise<void>;
+  requireSession: (action: () => void) => boolean;
   disconnect: () => void;
   openLogin: (open: boolean) => void;
   selectBatch: (batch: ApiBatch | null) => void;
@@ -101,6 +136,7 @@ export function useDataMode() {
 }
 export function DataModeProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<SessionState>(initial);
+  const pendingAction = useRef<(() => void) | null>(null);
   const [connecting] = useState(() => {
     let sequence = 0;
     return { next: () => ++sequence, isCurrent: (value: number) => value === sequence };
@@ -113,23 +149,46 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
         ready: true,
         mode: s.mode,
         testMode: s.testMode,
+        loginOpen: s.loginOpen,
         revision: s.revision + 1,
-        notice: s.testMode ? '连接已失效，请重新连接。' : '账户权限已失效或被撤销，请重新连接。',
+        notice: s.connected
+          ? s.testMode
+            ? '连接已失效，请重新连接。'
+            : '登录已失效，请重新登录。'
+          : s.notice,
       }));
     }),
   );
-  function disconnect() {
-    connecting.next();
+  async function disconnect() {
+    pendingAction.current = null;
+    const account = state.sessionKind === 'account' || state.logoutPending;
+    const sequence = connecting.next();
     client.clear();
     setState((s) => ({
       ...initial,
-      ready: true,
+      ready: !account,
       mode: s.mode,
       testMode: s.testMode,
       revision: s.revision + 1,
     }));
+    if (account) {
+      rememberLogout(true);
+      let notice: string | null = null;
+      try {
+        await signOut();
+        rememberLogout(false);
+      } catch (error) {
+        notice =
+          error instanceof ApiError && error.code === 'LOGOUT_NOT_CONFIRMED'
+            ? error.message
+            : '无法确认退出，请检查连接后重试。';
+      }
+      if (connecting.isCurrent(sequence))
+        setState((s) => ({ ...s, ready: true, notice, logoutPending: notice !== null }));
+    }
   }
   function setMode(mode: Mode) {
+    pendingAction.current = null;
     connecting.next();
     client.clear();
     setState((s) => ({
@@ -140,17 +199,17 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       revision: s.revision + 1,
     }));
   }
-  const connect = useCallback(
-    async (token: string | null) => {
+  const establish = useCallback(
+    async (kind: SessionKind, token?: string) => {
       const sequence = connecting.next();
-      if (token === null) client.useTestSession();
-      else client.authenticate(token);
+      if (kind === 'test') client.useTestSession();
+      else if (kind === 'account') client.useAccountSession();
+      else if (token) client.authenticate(token);
+      else throw new ApiError(401, 'UNAUTHORIZED');
       try {
-        const [me, scopes, batches] = await Promise.all([
-          client.me(),
-          client.scopes(),
-          client.batches(),
-        ]);
+        const me = await client.me();
+        if (!connecting.isCurrent(sequence)) return;
+        const [scopes, batches] = await Promise.all([client.scopes(), client.batches()]);
         if (!connecting.isCurrent(sequence)) return;
         const origin = readDiscoveryOrigin(window.location.search);
         let selected = batches.items[0] ?? null;
@@ -184,6 +243,7 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           ...s,
           ready: true,
           connected: true,
+          sessionKind: kind,
           reportDraft: null,
           activeReport: null,
           uploadDraft: null,
@@ -196,11 +256,12 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           revision: s.revision + 1,
           notice,
           loginOpen: false,
+          logoutPending: false,
         }));
       } catch (error) {
         if (connecting.isCurrent(sequence)) {
           client.clear();
-          if (token === null)
+          if (kind === 'test')
             setState((s) => ({
               ...s,
               notice: '数据连接未完成，请重试。',
@@ -211,12 +272,52 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
     },
     [client, connecting],
   );
+  async function login(input: AccountLogin) {
+    if (!state.ready || state.logoutPending) throw new ApiError(409, 'REQUEST_FAILED');
+    await signIn(input);
+    try {
+      await establish('account');
+    } catch (error) {
+      await signOut().catch(() => {});
+      throw error;
+    }
+  }
+  function connect(token: string | null) {
+    return establish(token === null ? 'test' : 'credential', token ?? undefined);
+  }
+  function openLogin(open: boolean) {
+    if (!open) pendingAction.current = null;
+    if (!open || (state.ready && !state.logoutPending))
+      setState((s) => ({ ...s, loginOpen: open }));
+  }
+  function requireSession(action: () => void) {
+    if (state.connected || state.mode === 'demo') return true;
+    if (!state.ready || state.logoutPending) return false;
+    pendingAction.current = action;
+    if (state.testMode)
+      void establish('test').catch(() => {
+        pendingAction.current = null;
+      });
+    else openLogin(true);
+    return false;
+  }
   useEffect(() => {
     if (state.mode !== 'live') return;
     const controller = new AbortController();
     let active = true;
     void (async () => {
       try {
+        if (hasPendingLogout()) {
+          try {
+            await signOut();
+            rememberLogout(false);
+          } catch {
+            if (active)
+              setState((s) => ({ ...s, logoutPending: true, notice: '无法确认退出，请重试。' }));
+            return;
+          }
+        }
+        if (!active) return;
         const response = await fetch('/api/edu/test-session', {
           cache: 'no-store',
           credentials: 'omit',
@@ -236,10 +337,13 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
             testMode: true,
             syntheticAi: 'ai_synthetic_enabled' in config && config.ai_synthetic_enabled === true,
           }));
-          await connect(null);
+          await establish('test');
+        } else if (active) {
+          await establish('account');
         }
-      } catch {
-        // Never replace inaccessible teacher data with demonstration records.
+      } catch (error) {
+        if (active && error instanceof ApiError && error.status !== 401)
+          setState((s) => ({ ...s, notice: s.notice ?? '暂时无法验证登录状态，请重试。' }));
       } finally {
         if (active) setState((s) => ({ ...s, ready: true }));
       }
@@ -250,7 +354,38 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       connecting.next();
       client.clear();
     };
-  }, [state.mode, connect, client, connecting]);
+  }, [state.mode, establish, client, connecting]);
+  useEffect(() => {
+    if (!state.connected || !pendingAction.current) return;
+    const action = pendingAction.current;
+    pendingAction.current = null;
+    action();
+  }, [state.connected]);
+  useEffect(() => {
+    if (!state.connected || state.sessionKind === 'test') return;
+    const controller = new AbortController();
+    let checking = false;
+    async function check() {
+      if (document.visibilityState !== 'visible' || checking) return;
+      checking = true;
+      try {
+        await client.me(controller.signal);
+      } catch {
+        // Only an explicit 401 clears the session. A temporary outage does not.
+      } finally {
+        checking = false;
+      }
+    }
+    const timer = window.setInterval(check, 60_000);
+    window.addEventListener('focus', check);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      controller.abort();
+      window.clearInterval(timer);
+      window.removeEventListener('focus', check);
+      document.removeEventListener('visibilitychange', check);
+    };
+  }, [client, state.connected, state.sessionKind]);
   useEffect(() => {
     if (!state.connected || !state.teacherId || !state.batch) return;
     try {
@@ -295,9 +430,11 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
         setActiveReport: (activeReport) => setState((s) => ({ ...s, activeReport })),
         setUploadDraft: (uploadDraft) => setState((s) => ({ ...s, uploadDraft })),
         connect,
+        login,
+        requireSession,
         disconnect,
         setMode,
-        openLogin: (loginOpen) => setState((s) => ({ ...s, loginOpen })),
+        openLogin,
         selectBatch,
         batchChanged: (batch) => {
           selectBatch(batch);
@@ -328,58 +465,45 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
 }
 function SessionDialog() {
   const session = useDataMode();
-  const [token, setToken] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  async function submit() {
-    if (!token.trim() || busy) return;
-    const candidate = token.trim();
-    setToken('');
-    setError(null);
-    setBusy(true);
-    try {
-      await session.connect(candidate);
-    } catch (e) {
-      if (!(e instanceof DOMException && e.name === 'AbortError'))
-        setError(e instanceof ApiError ? e.message : '连接未完成，请重试。');
-    } finally {
-      setBusy(false);
-    }
-  }
-  const close = () => {
-    if (busy) session.disconnect();
-    setToken('');
-    setError(null);
-    session.openLogin(false);
-  };
   return (
     <Modal
-      title="连接账户"
+      title="教师登录"
       open={session.loginOpen}
-      onCancel={close}
+      onCancel={() => session.openLogin(false)}
+      keyboard={!busy}
+      closable={{ disabled: busy }}
       destroyOnHidden
-      footer={
-        <Button type="primary" loading={busy} disabled={!token.trim() || busy} onClick={submit}>
-          连接
-        </Button>
-      }
+      centered
+      width={440}
+      classNames={{ mask: loginStyles.mask }}
+      styles={{
+        container: { padding: '28px clamp(20px, 5vw, 34px) 20px' },
+        mask: { backgroundColor: 'rgb(20 36 72 / 34%)' },
+        title: { marginBottom: 22, fontSize: 26, lineHeight: 1.25 },
+      }}
+      mask={{ closable: false }}
+      footer={null}
     >
-      <p>使用教师访问凭据连接有权查看的测评。</p>
-      <label htmlFor="teacher-access-token" className="session-token-label">
-        访问凭据
-      </label>
-      <Input.Password
-        id="teacher-access-token"
-        value={token}
-        onChange={(e) => setToken(e.target.value)}
-        onPressEnter={submit}
-        autoComplete="off"
-        maxLength={200}
-        placeholder="输入教师访问凭据"
-        disabled={busy}
+      <TeacherLoginForm
+        busy={busy}
+        loginWithAccount={async (input) => {
+          setBusy(true);
+          try {
+            await session.login(input);
+          } finally {
+            setBusy(false);
+          }
+        }}
+        connectWithCredential={async (credential) => {
+          setBusy(true);
+          try {
+            await session.connect(credential);
+          } finally {
+            setBusy(false);
+          }
+        }}
       />
-      {error && <Alert className="session-notice" type="error" showIcon title={error} />}
-      <p className="muted small session-notice">访问凭据仅在当前会话使用。</p>
     </Modal>
   );
 }
@@ -448,8 +572,14 @@ export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
       <Panel className="session-gate" title="连接账户，查看测评">
         <p>连接后可查看有权访问的测评、评分和分析报告。</p>
         {session.notice && <Alert showIcon type="warning" title={session.notice} />}
-        <Button type="primary" onClick={() => session.openLogin(true)}>
-          连接账户
+        <Button
+          type="primary"
+          disabled={!session.ready}
+          onClick={() =>
+            session.logoutPending ? void session.disconnect() : session.openLogin(true)
+          }
+        >
+          {session.logoutPending ? '重试退出' : '登录'}
         </Button>
       </Panel>
     );

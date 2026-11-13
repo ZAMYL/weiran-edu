@@ -72,6 +72,10 @@ const FILE_MESSAGES: Record<string, string> = {
     '暂不支持这个问题。可以问「有哪些值得关注的问题？」或询问评分关联、群体差异。',
   AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
+  ACCOUNT_LOGIN_UNAVAILABLE: '账号密码登录暂不可用，请稍后重试或使用教师访问凭据。',
+  INVALID_LOGIN: '账号或密码不正确，或账户已失效。',
+  INVALID_LOGIN_INPUT: '请检查账号和密码后重试。',
+  LOGOUT_NOT_CONFIRMED: '服务暂未确认退出，请重试。',
   IMPORT_FORMAT_UNSUPPORTED: '这份表格的结构暂不支持。请核对测评表格后重新选择。',
   IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
   IMPORT_FILE_INVALID: '无法读取这份表格，请保留原文件，并检查表格格式和文件大小。',
@@ -119,12 +123,14 @@ export function assertSnapshot<T extends { batch_id: string; snapshot_id: string
 export function createEduClient(onUnauthorized: () => void, transport: typeof fetch = fetch) {
   let bearer: string | null = null;
   let testSession = false;
+  let accountSession = false;
   let generation = 0;
   const pending = new Set<AbortController>();
   function clear() {
     generation++;
     bearer = null;
     testSession = false;
+    accountSession = false;
     pending.forEach((c) => c.abort());
     pending.clear();
   }
@@ -139,7 +145,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     signal?: AbortSignal,
     readResponse?: (response: Response) => Promise<T>,
   ): Promise<T> {
-    if (!bearer && !testSession) throw new ApiError(401, 'UNAUTHORIZED');
+    if (!bearer && !testSession && !accountSession) throw new ApiError(401, 'UNAUTHORIZED');
     const epoch = generation;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort('timeout'), 45_000);
@@ -150,13 +156,14 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     try {
       const headers = new Headers(init.headers);
       if (bearer) headers.set('Authorization', `Bearer ${bearer}`);
+      if (accountSession) headers.set('X-Weiran-Session', 'account');
       if (typeof init.body === 'string') headers.set('Content-Type', 'application/json');
       const response = await transport(`/api/edu${path}`, {
         ...init,
         headers,
         signal: controller.signal,
         cache: 'no-store',
-        credentials: 'omit',
+        credentials: accountSession ? 'same-origin' : 'omit',
         redirect: 'error',
       });
       if (epoch !== generation || signal?.aborted || controller.signal.aborted)
@@ -427,6 +434,10 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     useTestSession: () => {
       clear();
       testSession = true;
+    },
+    useAccountSession: () => {
+      clear();
+      accountSession = true;
     },
     me: (signal?: AbortSignal) => get('/me', meDto, signal),
     scopes: (signal?: AbortSignal) => get('/scopes', scopesDto, signal),
