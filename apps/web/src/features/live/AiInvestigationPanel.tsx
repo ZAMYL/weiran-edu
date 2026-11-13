@@ -80,6 +80,10 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const pending = useRef<AbortController | null>(null);
   const submission = useRef<{ question: string; key: string } | null>(null);
   const storageKey = `weiran.edu.ai-task.${teacherId}.${batch.batch_id}.${batch.snapshot_id}`;
+  const running = aiRunning(task);
+  const campaignUsed = error?.status === 409 && error.code === 'AI_CAMPAIGN_ALREADY_USED';
+  const canStart = !task && !campaignUsed;
+  const showQuestion = canStart || running;
   useEffect(() => {
     const controller = new AbortController();
     let taskId: string | null = null;
@@ -102,7 +106,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             } catch {
               /* optional pointer */
             }
-            setRestoreNotice('上次分析任务已失效，可重新开始。');
+            setRestoreNotice('暂时无法读取上次分析任务。');
           } else {
             setError(e);
           }
@@ -123,7 +127,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       try {
         const next = await client.aiTask(batch, task.task_id, controller.signal);
         if (controller.signal.aborted) return;
-        setTask(next);
+        setTask((current) => (current === task ? next : current));
       } catch (e) {
         if (!controller.signal.aborted && e instanceof ApiError) setError(e);
       }
@@ -153,7 +157,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   }
   function start() {
     const text = question.trim();
-    if (!text || text.length > 300) return;
+    if (!canStart || restoring || !text || text.length > 300) return;
     if (submission.current?.question !== text)
       submission.current = { question: text, key: crypto.randomUUID() };
     void operate(async (signal) => {
@@ -193,54 +197,62 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   return (
     <Panel title="AI 分析" className="ai-investigation-panel">
       <div className="ai-question-heading">
-        <label htmlFor="ai-question">想了解什么？</label>
+        {showQuestion && <label htmlFor="ai-question">想了解什么？</label>}
         <span id="ai-scope" className="muted">
           全体参评者 · {batch.student_count} 人
         </span>
       </div>
-      <Input.TextArea
-        id="ai-question"
-        aria-describedby="ai-scope"
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        maxLength={300}
-        autoSize={{ minRows: 2, maxRows: 4 }}
-        placeholder="有哪些值得关注的问题？"
-        disabled={busy || restoring || aiRunning(task)}
-      />
-      <TeacherQuestionSuggestions
-        items={batch.recognized_items ?? legacyItems}
-        disabled={busy || restoring || aiRunning(task)}
-        onChoose={setQuestion}
-      />
-      <div className="ai-task-actions">
-        <Button
-          type="primary"
-          disabled={!question.trim() || busy || restoring || aiRunning(task)}
-          loading={busy}
-          onClick={start}
-        >
-          开始分析
-        </Button>
-        {aiRunning(task) && (
-          <Button
-            disabled={busy}
-            onClick={() =>
-              void operate(async (signal) => {
-                const value = await client.cancelAiTask(batch, task!.task_id, signal);
-                if (!signal.aborted) setTask(value);
-              })
-            }
-          >
-            停止分析
-          </Button>
-        )}
-        {status && !task?.error_code && (
-          <span className="ai-task-status" role="status">
-            {status}
-          </span>
-        )}
-      </div>
+      {showQuestion && (
+        <Input.TextArea
+          id="ai-question"
+          aria-describedby="ai-scope"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          maxLength={300}
+          autoSize={{ minRows: 2, maxRows: 4 }}
+          placeholder="有哪些值得关注的问题？"
+          disabled={busy || restoring || running}
+        />
+      )}
+      {canStart && !restoring && (
+        <TeacherQuestionSuggestions
+          items={batch.recognized_items ?? legacyItems}
+          disabled={busy}
+          onChoose={setQuestion}
+        />
+      )}
+      {(showQuestion || (status && !task?.error_code)) && (
+        <div className="ai-task-actions">
+          {canStart && (
+            <Button
+              type="primary"
+              disabled={!question.trim() || busy || restoring}
+              loading={busy}
+              onClick={start}
+            >
+              开始分析
+            </Button>
+          )}
+          {running && task && (
+            <Button
+              disabled={busy}
+              onClick={() =>
+                void operate(async (signal) => {
+                  const value = await client.cancelAiTask(batch, task.task_id, signal);
+                  if (!signal.aborted) setTask(value);
+                })
+              }
+            >
+              停止分析
+            </Button>
+          )}
+          {status && !task?.error_code && (
+            <span className="ai-task-status" role="status">
+              {status}
+            </span>
+          )}
+        </div>
+      )}
       {error && (
         <RequestError
           error={error}
