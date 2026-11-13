@@ -74,6 +74,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
     dimension: AiProfileDimension;
   } | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
+  const [restoreNotice, setRestoreNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(true);
   const pending = useRef<AbortController | null>(null);
@@ -93,13 +94,15 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       } catch (e) {
         if (!controller.signal.aborted && e instanceof ApiError) {
           // A missing or expired task pointer is not an actionable error: clear it and
-          // let the teacher start fresh instead of showing a stale import/expiry message.
+          // show a short neutral notice instead of a stale import/expiry error message.
+          // Auth/session/source failures (401/403/409/5xx) still surface as errors.
           if (e.status === 404 || e.status === 410) {
             try {
               sessionStorage.removeItem(storageKey);
             } catch {
               /* optional pointer */
             }
+            setRestoreNotice('上次分析任务已失效，可重新开始。');
           } else {
             setError(e);
           }
@@ -252,6 +255,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
           }
         />
       )}
+      {restoreNotice && !error && !task && <Alert showIcon type="info" title={restoreNotice} />}
       {task?.error_code && !error && (
         <Alert
           showIcon
