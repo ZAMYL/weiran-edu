@@ -23,14 +23,19 @@ from prototypes.teacher_agent_bridge.fixtures import build_host
 from prototypes.teacher_agent_bridge.provider import DatabaseProvider
 
 from .api import install
+from .first_use import FirstUseImportService
 
 QUESTION = "比较 算法与数据结构、代码实现能力 的组合与 问题建模能力 的群体差异"
 
 
-def serve(database_path, directory, books, connection, stop):
+def serve(database_path, directory, books, connection, stop, first_use=None):
     app = create_app(Settings(environment="test", database_path=Path(database_path)))
     provider = DatabaseProvider(app.state.edu_service, tuple(books.values()))
-    install(app, provider, Path(directory))
+    service = install(app, provider, Path(directory))
+    if first_use is not None:
+        app.state.edu_service = FirstUseImportService(
+            app.state.edu_service, service.store, *first_use
+        )
     sock = socket.socket()
     sock.bind(("127.0.0.1", 0))
     server = uvicorn.Server(uvicorn.Config(app, log_level="critical", access_log=False))
@@ -49,7 +54,7 @@ def serve(database_path, directory, books, connection, stop):
 
 
 @contextmanager
-def server(fixture, directory):
+def server(fixture, directory, *, first_use: tuple[str, bytes] | None = None):
     ctx = multiprocessing.get_context("spawn")
     receive, send = ctx.Pipe(duplex=False)
     stop = ctx.Event()
@@ -61,6 +66,7 @@ def server(fixture, directory):
             fixture.books,
             send,
             stop,
+            first_use,
         ),
     )
     process.start()

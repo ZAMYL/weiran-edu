@@ -10,15 +10,15 @@ import time
 from collections.abc import Callable
 from uuid import uuid4
 
-from prototypes.research_agent_v2.goals import understand
-from prototypes.teacher_agent_bridge.models import InvestigationResult
-from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseProvider, digest
-
 from app.ai.edu.discovery.models import AgentError
 from app.core.errors import APIError
 from app.edu.auth import Principal
 from app.edu.reads import BatchReader
 from app.edu.reviews import require_owner
+
+from prototypes.research_agent_v2.goals import understand
+from prototypes.teacher_agent_bridge.models import InvestigationResult
+from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseProvider, digest
 
 from .models import (
     PROFILE_RESULT_CONTRACT,
@@ -83,7 +83,7 @@ class TaskStore:
         fingerprint = sha256(manifest).hexdigest()
         with self.database.transaction(write=True) as c:
             # Auth is checked inside the same write transaction as the durable binding.
-            self.reader._batch(c, actor, batch_id, snapshot_id)
+            require_owner(self.reader._batch(c, actor, batch_id, snapshot_id), actor)
             row = c.execute(
                 "SELECT * FROM ai_synthetic_grants WHERE teacher_id=? AND batch_id=? "
                 "AND snapshot_id=?",
@@ -171,14 +171,7 @@ class TaskStore:
         # Purpose preflight happens before loading any score material. Repeat the
         # same checks under the write lock before a task can actually be claimed.
         with self.database.transaction() as c:
-            self.reader._batch(c, actor, batch_id, body.snapshot_id)
-            grant = c.execute(
-                "SELECT revoked,expires FROM ai_synthetic_grants WHERE teacher_id=? "
-                "AND batch_id=? AND snapshot_id=?",
-                (actor.teacher_id, batch_id, body.snapshot_id),
-            ).fetchone()
-            if grant is None or grant["revoked"] or grant["expires"] <= self.clock():
-                blocked("AI_PURPOSE_REQUIRED", 403)
+            self._task_grant(c, actor, batch_id, body.snapshot_id)
         material, _ = self.provider.capture(actor, batch_id, body.snapshot_id)
         question = body.question
         for alias, item in zip(ALIASES, material.data.items, strict=True):
@@ -208,7 +201,7 @@ class TaskStore:
         }
         request_sha = digest(raw)
         with self.database.transaction(write=True) as c:
-            self.reader._batch(c, actor, batch_id, body.snapshot_id)
+            grant = self._task_grant(c, actor, batch_id, body.snapshot_id)
             old = c.execute(
                 "SELECT task_id,request_sha FROM ai_synthetic_tasks WHERE teacher_id=? "
                 "AND idempotency_key=?",
@@ -225,13 +218,6 @@ class TaskStore:
                 }:
                     blocked("AI_IDEMPOTENCY_CONFLICT")
                 return row, False
-            grant = c.execute(
-                "SELECT * FROM ai_synthetic_grants WHERE teacher_id=? AND batch_id=? "
-                "AND snapshot_id=?",
-                (actor.teacher_id, batch_id, body.snapshot_id),
-            ).fetchone()
-            if grant is None or grant["revoked"] or grant["expires"] <= self.clock():
-                blocked("AI_PURPOSE_REQUIRED", 403)
             if c.execute(
                 "SELECT 1 FROM ai_synthetic_tasks WHERE grant_id=?", (grant["grant_id"],)
             ).fetchone():
@@ -259,6 +245,24 @@ class TaskStore:
                 ),
             )
             return self._row(c, tid), True
+
+    def _task_grant(
+        self, c: sqlite3.Connection, actor: Principal, batch_id: str, snapshot_id: str
+    ) -> sqlite3.Row:
+        batch = self.reader._batch(c, actor, batch_id, snapshot_id)
+        require_owner(batch, actor)
+        self.provider.require_registered_source(batch["file_sha256"])
+        grant = c.execute(
+            "SELECT * FROM ai_synthetic_grants WHERE teacher_id=? AND batch_id=? AND snapshot_id=?",
+            (actor.teacher_id, batch_id, snapshot_id),
+        ).fetchone()
+        if grant is None:
+            raise APIError(403, "AI_PURPOSE_REQUIRED", "这份测评尚未获得 AI 分析授权")
+        if grant["revoked"] or grant["purpose"] != "synthetic_mock":
+            raise APIError(403, "AI_PURPOSE_REVOKED", "本测评的 AI 分析授权已撤销")
+        if grant["expires"] <= self.clock():
+            raise APIError(403, "AI_PURPOSE_REQUIRED", "AI 分析授权已过期，请联系演示负责人")
+        return grant
 
     def get(self, actor: Principal, task_id: str) -> dict:
         # Read-only fast path: normal status reads must not take BEGIN IMMEDIATE, which

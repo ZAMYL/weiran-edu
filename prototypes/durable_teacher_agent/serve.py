@@ -26,9 +26,7 @@ def bootstrap(client, host, service):
     for case in ("normal", "evidence", "empty", "balanced72", "zero81", "overlap96"):
         response = client.post(
             "/api/v1/edu/imports/preview",
-            files={
-                "file": ("synthetic.xlsx", host.books[case], "application/octet-stream")
-            },
+            files={"file": ("synthetic.xlsx", host.books[case], "application/octet-stream")},
         )
         response.raise_for_status()
         preview = response.json()["import"]
@@ -60,9 +58,7 @@ def bootstrap(client, host, service):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--seconds", type=int, default=0, help="0: until Ctrl+C; max 3600"
-    )
+    parser.add_argument("--seconds", type=int, default=0, help="0: until Ctrl+C; max 3600")
     parser.add_argument(
         "--minimum-cell",
         type=int,
@@ -93,16 +89,18 @@ def main():
             }
         )
         host.app.state.edu_service.parser = parse_excel
-        provider = DatabaseProvider(
-            host.app.state.edu_service, tuple(host.books.values())
-        )
+        provider = DatabaseProvider(host.app.state.edu_service, tuple(host.books.values()))
         service = install(host.app, provider, directory / "campaigns")
-        service.profile_limits = replace(
-            service.profile_limits, minimum_cell=args.minimum_cell
-        )
+        service.profile_limits = replace(service.profile_limits, minimum_cell=args.minimum_cell)
         try:
+            # Give the operator the exact bytes admitted by this running host.
+            first_use_workbook = host.books["normal"]
+            first_use_sample = directory / "first-use-synthetic.xlsx"
+            first_use_sample.write_bytes(first_use_workbook)
             with (
-                server(host, directory) as origin,
+                server(
+                    host, directory, first_use=(first_use_teacher, first_use_workbook)
+                ) as origin,
                 httpx.Client(
                     base_url=origin,
                     headers={"Authorization": "Bearer " + host.token},
@@ -125,6 +123,7 @@ def main():
                             "first_use_token": first_use_token,
                             "first_use_teacher_id": first_use_teacher,
                             "first_use_scope_id": first_use_scope,
+                            "first_use_sample_path": str(first_use_sample),
                             "batches": batches,
                         },
                         target,
@@ -137,6 +136,7 @@ def main():
                         {
                             "ready": True,
                             "private_connection_file": str(config),
+                            "first_use_sample_path": str(first_use_sample),
                             "synthetic_batches": len(batches),
                             "real_qwen": "not_run",
                         }
@@ -151,9 +151,7 @@ def main():
         finally:
             host.admin.revoke_tokens(host.teacher_id)
             host.admin.revoke_tokens(first_use_teacher)
-            print(
-                json.dumps({"stopped": True, "credentials_revoked": True}), flush=True
-            )
+            print(json.dumps({"stopped": True, "credentials_revoked": True}), flush=True)
 
 
 if __name__ == "__main__":

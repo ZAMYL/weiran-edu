@@ -136,14 +136,15 @@ class DatabaseProvider:
         self._consumed = set()
         self._lock = Lock()
 
+    def require_registered_source(self, file_sha256: str) -> None:
+        if file_sha256 not in self.allowed_hashes:
+            raise APIError(403, "AI_SYNTHETIC_SOURCE_REQUIRED", "当前仅开放服务器登记的合成测评")
+
     def capture(self, actor: Principal, batch_id: str, snapshot: str) -> tuple[Materialized, bytes]:
         with self.service.database.transaction() as connection:
             batch = self.reader._batch(connection, actor, batch_id, snapshot)
             require_owner(batch, actor)
-            if batch["file_sha256"] not in self.allowed_hashes:
-                raise APIError(
-                    403, "AI_SYNTHETIC_SOURCE_REQUIRED", "当前仅开放服务器登记的合成测评"
-                )
+            self.require_registered_source(batch["file_sha256"])
             original = connection.execute(
                 "SELECT raw_xlsx FROM batch_sources WHERE batch_id=?", (batch_id,)
             ).fetchone()

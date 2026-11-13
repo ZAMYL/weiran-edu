@@ -72,6 +72,8 @@ const FILE_MESSAGES: Record<string, string> = {
     '暂不支持这个问题。可以问「有哪些值得关注的问题？」或询问评分关联、群体差异。',
   AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
+  AI_SYNTHETIC_SOURCE_REQUIRED:
+    '当前 AI 演示仅支持本次服务登记的合成样例原件。此测评仍可查看评分统计。',
   IMPORT_FORMAT_UNSUPPORTED: '这份表格的结构暂不支持。请核对测评表格后重新选择。',
   IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
   IMPORT_FILE_INVALID: '无法读取这份表格，请保留原文件，并检查表格格式和文件大小。',

@@ -63,6 +63,20 @@ describe('assessment item contract', () => {
 });
 
 describe('formal API privacy and cancellation', () => {
+  it('explains an unregistered synthetic AI source while preserving its request ID', async () => {
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(response(403, { error: { code: 'AI_SYNTHETIC_SOURCE_REQUIRED' } }));
+    const client = createEduClient(vi.fn(), transport);
+    client.useTestSession();
+    await expect(client.me()).rejects.toMatchObject({
+      status: 403,
+      code: 'AI_SYNTHETIC_SOURCE_REQUIRED',
+      message: '当前 AI 演示仅支持本次服务登记的合成样例原件。此测评仍可查看评分统计。',
+      requestId: 'req_synthetic',
+    });
+  });
+
   it('allows an explicitly selected server test session without sending credentials from the browser', async () => {
     const transport = vi
       .fn<typeof fetch>()
