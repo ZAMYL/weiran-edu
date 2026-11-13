@@ -261,6 +261,15 @@ class TaskStore:
             return self._row(c, tid), True
 
     def get(self, actor: Principal, task_id: str) -> dict:
+        # Read-only fast path: normal status reads must not take BEGIN IMMEDIATE, which
+        # serializes against the worker's writes and surfaces as SQLITE_BUSY/503.
+        with self.database.transaction() as c:
+            row = self._row(c, task_id)
+            self.check(c, row, actor)
+            if not (row["state"] in ("queued", "running") and row["deadline"] <= self.clock()):
+                return row
+        # Expired task: re-check state and deadline under a write lock before transitioning,
+        # so a concurrent transition is observed exactly once.
         with self.database.transaction(write=True) as c:
             row = self._row(c, task_id)
             self.check(c, row, actor)
