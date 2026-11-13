@@ -62,18 +62,6 @@ try {
   }
   $env:PYTHONPATH = '.;apps/api'
   $env:PYTHONUTF8 = '1'
-  # 运行期生成首次上传用的样例文件（不提交二进制，避免真实 Excel 入库）
-  $sampleDir = Join-Path $Web 'public\samples'
-  New-Item -ItemType Directory -Force -Path $sampleDir | Out-Null
-  $samplePath = Join-Path $sampleDir 'sample-assessment.xlsx'
-  if (-not (Test-Path $samplePath)) {
-    Push-Location $Repo
-    try {
-      & $Python -c "from prototypes.teacher_agent_bridge.fixtures import workbook; open(r'$samplePath','wb').write(workbook('normal'))"
-    } catch {
-      Write-Host '样例文件生成失败；首次上传可改用手工准备的受支持测评文件。' -ForegroundColor Yellow
-    } finally { Pop-Location }
-  }
   $connectionPath = $null
   for ($hostAttempt = 1; $hostAttempt -le 3 -and -not $connectionPath; $hostAttempt++) {
     $hostOut = Join-Path $Private ('host-startup-' + $hostAttempt + '.log')
@@ -115,6 +103,10 @@ try {
     $token = $connection.bearer_token
   } else {
     $token = $connection.first_use_token
+    $samplePath = $connection.first_use_sample_path
+    if (-not $samplePath -or -not (Test-Path -LiteralPath $samplePath -PathType Leaf)) {
+      throw '后端宿主未提供本次登记的首次上传样例。'
+    }
   }
   $sessionJson = @{ synthetic_only = $true; access_token = $token } | ConvertTo-Json
   [System.IO.File]::WriteAllText($sessionFile, $sessionJson, (New-Object System.Text.UTF8Encoding($false)))
@@ -187,7 +179,8 @@ try {
   Write-Host '  学情诊断: ' -NoNewline; Write-Host $demo -ForegroundColor Yellow
   Write-Host '  画像探索 / 测评数据 / 报告 : /explorer  /data  /reports' -ForegroundColor DarkGray
   if ($Identity -eq 'first') {
-    Write-Host '  首次使用：在页面下载样例文件后上传，即可体验导入与诊断。' -ForegroundColor DarkGray
+    Write-Host '  首次上传请在文件选择框中打开本次登记的样例：' -ForegroundColor DarkGray
+    Write-Host "  $samplePath" -ForegroundColor Yellow
   } else {
     Write-Host '  样例身份：批次选择器已包含 6 个合成样例，可直接体验 AI 分析。' -ForegroundColor DarkGray
   }

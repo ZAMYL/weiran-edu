@@ -35,7 +35,7 @@ powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity 
 
 启动后自动打开浏览器进入「学情诊断」。启动器会校验 `test-session / me / scopes / batches` 四个接口全部返回 200 后才会报告成功。
 
-首次上传的样例文件会在启动时生成到 `apps\web\public\samples\sample-assessment.xlsx`（五维测评的受支持格式），并可在上传页点击「样例文件」下载。
+使用空数据教师时，启动器会打印本次宿主已登记的合成样例路径。请在上传页的文件选择框中打开该路径，确认导入后即可启动合成 AI。演示宿主每次启动都会生成本次样例。
 
 ## 停止
 
