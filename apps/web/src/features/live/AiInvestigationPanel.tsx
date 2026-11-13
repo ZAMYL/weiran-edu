@@ -263,7 +263,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
           title={taskLabel}
           description={
             task.state === 'failed' || task.state === 'timed_out'
-              ? '可修改问题后重新开始分析。'
+              ? '本轮分析未完成，可切换其他测评批次。'
               : undefined
           }
         />
