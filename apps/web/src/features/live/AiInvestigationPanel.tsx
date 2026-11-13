@@ -82,7 +82,19 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       try {
         if (taskId) setTask(await client.aiTask(batch, taskId, controller.signal));
       } catch (e) {
-        if (!controller.signal.aborted && e instanceof ApiError) setError(e);
+        if (!controller.signal.aborted && e instanceof ApiError) {
+          // A missing or expired task pointer is not an actionable error: clear it and
+          // let the teacher start fresh instead of showing a stale import/expiry message.
+          if (e.status === 404 || e.status === 410) {
+            try {
+              sessionStorage.removeItem(storageKey);
+            } catch {
+              /* optional pointer */
+            }
+          } else {
+            setError(e);
+          }
+        }
       } finally {
         if (!controller.signal.aborted) setRestoring(false);
       }
@@ -226,7 +238,18 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
           }
         />
       )}
-      {task?.error_code && !error && <Alert showIcon type="warning" title={taskLabel} />}
+      {task?.error_code && !error && (
+        <Alert
+          showIcon
+          type={task.state === 'cancelled' ? 'info' : 'warning'}
+          title={taskLabel}
+          description={
+            task.state === 'failed' || task.state === 'timed_out'
+              ? '可修改问题后重新开始分析。'
+              : undefined
+          }
+        />
+      )}
       {task?.result && (
         <>
           {task.result.missing_evidence.length > 0 && (
