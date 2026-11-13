@@ -93,7 +93,6 @@ try {
     );
     await page.reload();
     await page.getByRole('heading', { name: 'AI 分析', exact: true }).waitFor();
-    await page.getByLabel('想了解什么？', { exact: true }).waitFor();
     return ref;
   }
   const normal = await openCase('normal');
@@ -132,6 +131,8 @@ try {
   const start = await createdResponse.json();
   assert.equal(start.execution_origin, 'http_mock');
   await page.getByTestId('ai-fact-card').first().waitFor({ timeout: 240000 });
+  const startButton = page.getByRole('button', { name: '开始分析', exact: true });
+  assert.equal(await startButton.count(), 0, 'completed tasks cannot be started again');
   assert.doesNotMatch(
     await page.locator('main').innerText(),
     /Demo|联调测试|正式版|HTTP Mock|AI 分析演示|Agent Fact|确定性重放|主 Fact|真实评分重放/,
@@ -216,6 +217,7 @@ try {
   await page.getByText('应用筛选', { exact: true }).waitFor();
   await page.getByRole('link', { name: '学情诊断', exact: true }).click();
   await page.getByTestId('ai-fact-card').first().waitFor();
+  assert.equal(await startButton.count(), 0, 'restored completed tasks cannot be started again');
   for (const checkbox of await cards
     .getByRole('checkbox', { name: '加入待核查', exact: true })
     .all())
@@ -423,6 +425,11 @@ try {
   await profileDrawer.locator('.ant-drawer-close').click();
   await page.reload();
   await profileCards.first().waitFor({ timeout: 240000 });
+  assert.equal(
+    await startButton.count(),
+    0,
+    'restored profiles remain read-only for task creation',
+  );
   assert.equal(
     await page.getByRole('heading', { name: '群体画像', exact: true }).count(),
     1,
