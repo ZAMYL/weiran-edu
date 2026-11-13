@@ -246,8 +246,14 @@ class TaskService:
     def view(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> TaskView:
         row = self._row(actor, batch_id, task_id, snapshot_id)
         source = self.source(row, actor)
-        with source.validation_scope():
-            result, _ = self.verified_result(actor, row, source=source)
+        result = None
+        if row["state"] == "completed":
+            with source.validation_scope():
+                result, _ = self.verified_result(actor, row, source=source)
+        else:
+            # source() has just verified the current snapshot fingerprint.
+            # Status-only replies have no Fact or Witness replay to enclose.
+            self.store.authorize(task_id, actor)
         receipt = json.loads(row["review_json"]) if row["review_json"] else None
         return TaskView(
             task_id=task_id,

@@ -276,3 +276,34 @@ def test_status_read_does_not_take_write_lock(pending):
                 "concurrent write; it must use a read transaction instead of BEGIN IMMEDIATE"
             )
     assert current["state"] == "running"
+
+
+def test_running_status_materializes_once_and_rechecks_purpose(pending, monkeypatch):
+    _, service, client, batch, _, grant, _, row = pending
+    service.store.start(row["task_id"])
+    route = f"/api/v1/edu/batches/{batch['batch_id']}/ai-investigation-tasks/{row['task_id']}"
+    capture = service.provider.capture
+    captures = 0
+    revoke = False
+
+    def counted_capture(*args):
+        nonlocal captures
+        captures += 1
+        result = capture(*args)
+        if revoke:
+            service.store.revoke(grant)
+        return result
+
+    monkeypatch.setattr(service.provider, "capture", counted_capture)
+    params = {"snapshot_id": batch["snapshot_id"]}
+    response = client.get(route, params=params)
+    assert response.status_code == 200
+    assert response.json()["state"] == "running"
+    assert response.json()["result"] is None
+    assert captures == 1
+
+    revoke = True
+    response = client.get(route, params=params)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "AI_PURPOSE_REVOKED"
+    assert captures == 2
