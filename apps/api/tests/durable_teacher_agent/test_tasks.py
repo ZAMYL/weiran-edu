@@ -225,6 +225,68 @@ def test_unknown_and_unqualified_fact_not_promoted(completed):
         assert response.status_code == 422
 
 
+def test_review_submit_recovers_after_timeout_and_never_duplicates(tmp_path, monkeypatch):
+    """A lost/timed-out review submit must not strand the claim nor create duplicate reports."""
+    from app.core.errors import APIError
+    from app.edu.discovery_results import DiscoveryResultService
+
+    fixture, service = setup(tmp_path)
+    with TestClient(fixture.app) as client:
+        client.headers["Authorization"] = "Bearer " + fixture.token
+        b = upload(client, fixture)
+        service.store.grant(actor(fixture, service), b["batch_id"], b["snapshot_id"])
+        base = f"/api/v1/edu/batches/{b['batch_id']}/ai-investigation-tasks"
+        response = client.post(
+            base,
+            json={
+                "snapshot_id": b["snapshot_id"],
+                "question": QUESTION,
+                "idempotency_key": "review-recover-01",
+            },
+        )
+        assert response.status_code == 202, response.text
+        task_id = response.json()["task_id"]
+        path = base + "/" + task_id
+        response = client.get(path, params={"snapshot_id": b["snapshot_id"]})
+        assert response.status_code == 200, response.text
+        assert response.json()["state"] == "completed", response.text
+        view = response.json()
+        relation = next(f for f in view["result"]["facts"] if f["method"] == "query_dimension_relation")
+        group = next(f for f in view["result"]["facts"] if f["method"] == "compare_student_groups")
+        submission = {
+            "snapshot_id": b["snapshot_id"],
+            "fact_ids": [relation["fact_id"], group["fact_id"]],
+        }
+
+        async def fail_once(self, principal, batch_id, body, *, request=None):
+            raise APIError(499, "DISCOVERY_CANCELLED", "simulated client timeout")
+
+        original = DiscoveryResultService.create_discovery
+        monkeypatch.setattr(DiscoveryResultService, "create_discovery", fail_once)
+        first = client.post(path + "/review-submissions", json=submission)
+        assert first.status_code == 499, first.text
+        monkeypatch.setattr(DiscoveryResultService, "create_discovery", original)
+        # The interrupted claim must be cleared, leaving no report behind.
+        with service.store.database.transaction() as connection:
+            assert service.store._row(connection, task_id)["review_json"] is None
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM analysis_results WHERE batch_id=?", (b["batch_id"],)
+                ).fetchone()[0]
+                == 0
+            )
+
+        retry = client.post(path + "/review-submissions", json=submission)
+        assert retry.status_code == 200, retry.text
+        with service.store.database.transaction() as connection:
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM analysis_results WHERE batch_id=?", (b["batch_id"],)
+                ).fetchone()[0]
+                == 1
+            )
+
+
 def test_readback_rejects_purpose_revoked_during_witness_replay(completed, monkeypatch):
     fixture, service, client, b, gid, base, path, body, view = completed
     group = next(f for f in view["result"]["facts"] if f["method"] == "compare_student_groups")
