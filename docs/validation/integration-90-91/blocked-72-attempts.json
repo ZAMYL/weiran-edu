@@ -1,0 +1,249 @@
+{
+  "syntheticOnly": true,
+  "productSourceUnchanged": true,
+  "attempts": [
+    {
+      "attempt": 1,
+      "syntheticOnly": true,
+      "realQwen": "not_run",
+      "checks": [],
+      "network": [
+        {
+          "path": "/api/edu/test-session",
+          "method": "GET",
+          "status": 200,
+          "ms": 4
+        },
+        {
+          "path": "/api/edu/me",
+          "method": "GET",
+          "status": 200,
+          "ms": 58
+        },
+        {
+          "path": "/api/edu/batches",
+          "method": "GET",
+          "status": 200,
+          "ms": 75
+        },
+        {
+          "path": "/api/edu/scopes",
+          "method": "GET",
+          "status": 200,
+          "ms": 75
+        },
+        {
+          "path": "/api/edu/batches/20627775-27ca-4855-948a-8245ebae7120",
+          "method": "GET",
+          "status": 200,
+          "ms": 177
+        },
+        {
+          "path": "/api/edu/batches",
+          "method": "GET",
+          "status": 200,
+          "ms": 7
+        },
+        {
+          "path": "/api/edu/batches/20627775-27ca-4855-948a-8245ebae7120/capabilities",
+          "method": "GET",
+          "status": 200,
+          "ms": 7
+        },
+        {
+          "path": "/api/edu/batches/20627775-27ca-4855-948a-8245ebae7120/statistics",
+          "method": "GET",
+          "status": 200,
+          "ms": 24
+        },
+        {
+          "path": "/api/edu/batches/20627775-27ca-4855-948a-8245ebae7120/rubric",
+          "method": "GET",
+          "status": 200,
+          "ms": 133
+        },
+        {
+          "path": "/api/edu/batches/20627775-27ca-4855-948a-8245ebae7120/insights/query",
+          "method": "POST",
+          "status": 200,
+          "ms": 324
+        },
+        {
+          "path": "/api/edu/batches/20627775-27ca-4855-948a-8245ebae7120/discoveries/query",
+          "method": "POST",
+          "status": 504,
+          "ms": 39891
+        }
+      ],
+      "pageErrors": [],
+      "analysis": [],
+      "passed": false,
+      "failure": {
+        "checkpoint": "case-balanced72",
+        "message": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.discoveries-panel [data-testid=discovery-card]').first() to be visible\u001b[22m\n"
+      }
+    },
+    {
+      "attempt": 2,
+      "syntheticOnly": true,
+      "realQwen": "not_run",
+      "checks": [],
+      "network": [
+        {
+          "path": "/api/edu/test-session",
+          "method": "GET",
+          "status": 200,
+          "ms": 22
+        },
+        {
+          "path": "/api/edu/me",
+          "method": "GET",
+          "status": 200,
+          "ms": 58
+        },
+        {
+          "path": "/api/edu/scopes",
+          "method": "GET",
+          "status": 200,
+          "ms": 72
+        },
+        {
+          "path": "/api/edu/batches",
+          "method": "GET",
+          "status": 200,
+          "ms": 78
+        },
+        {
+          "path": "/api/edu/batches/843f6aa0-7c9b-4854-a955-83da539a40d7",
+          "method": "GET",
+          "status": 200,
+          "ms": 46
+        },
+        {
+          "path": "/api/edu/batches",
+          "method": "GET",
+          "status": 200,
+          "ms": 9
+        },
+        {
+          "path": "/api/edu/batches/843f6aa0-7c9b-4854-a955-83da539a40d7/capabilities",
+          "method": "GET",
+          "status": 200,
+          "ms": 6
+        },
+        {
+          "path": "/api/edu/batches/843f6aa0-7c9b-4854-a955-83da539a40d7/rubric",
+          "method": "GET",
+          "status": 200,
+          "ms": 68
+        },
+        {
+          "path": "/api/edu/batches/843f6aa0-7c9b-4854-a955-83da539a40d7/discoveries/query",
+          "method": "POST",
+          "status": 504,
+          "ms": 39970
+        },
+        {
+          "path": "/api/edu/batches/843f6aa0-7c9b-4854-a955-83da539a40d7/statistics",
+          "method": "GET",
+          "status": 504,
+          "ms": 39995
+        },
+        {
+          "path": "/api/edu/batches/843f6aa0-7c9b-4854-a955-83da539a40d7/insights/query",
+          "method": "POST",
+          "status": 504,
+          "ms": 40003
+        }
+      ],
+      "pageErrors": [],
+      "analysis": [],
+      "passed": false,
+      "failure": {
+        "checkpoint": "case-balanced72",
+        "message": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.discoveries-panel [data-testid=discovery-card]').first() to be visible\u001b[22m\n"
+      }
+    },
+    {
+      "attempt": 3,
+      "syntheticOnly": true,
+      "realQwen": "not_run",
+      "checks": [],
+      "network": [
+        {
+          "path": "/api/edu/test-session",
+          "method": "GET",
+          "status": 200,
+          "ms": 16
+        },
+        {
+          "path": "/api/edu/me",
+          "method": "GET",
+          "status": 200,
+          "ms": 43
+        },
+        {
+          "path": "/api/edu/batches",
+          "method": "GET",
+          "status": 200,
+          "ms": 61
+        },
+        {
+          "path": "/api/edu/scopes",
+          "method": "GET",
+          "status": 200,
+          "ms": 63
+        },
+        {
+          "path": "/api/edu/batches/ff297f57-f345-4e6c-a562-dbd997997f60",
+          "method": "GET",
+          "status": 200,
+          "ms": 42
+        },
+        {
+          "path": "/api/edu/batches/ff297f57-f345-4e6c-a562-dbd997997f60/capabilities",
+          "method": "GET",
+          "status": 200,
+          "ms": 8
+        },
+        {
+          "path": "/api/edu/batches",
+          "method": "GET",
+          "status": 200,
+          "ms": 18
+        },
+        {
+          "path": "/api/edu/batches/ff297f57-f345-4e6c-a562-dbd997997f60/rubric",
+          "method": "GET",
+          "status": 200,
+          "ms": 92
+        },
+        {
+          "path": "/api/edu/batches/ff297f57-f345-4e6c-a562-dbd997997f60/statistics",
+          "method": "GET",
+          "status": 200,
+          "ms": 243
+        },
+        {
+          "path": "/api/edu/batches/ff297f57-f345-4e6c-a562-dbd997997f60/insights/query",
+          "method": "POST",
+          "status": 200,
+          "ms": 360
+        },
+        {
+          "path": "/api/edu/batches/ff297f57-f345-4e6c-a562-dbd997997f60/discoveries/query",
+          "method": "POST",
+          "status": 504,
+          "ms": 39966
+        }
+      ],
+      "pageErrors": [],
+      "analysis": [],
+      "passed": false,
+      "failure": {
+        "checkpoint": "case-balanced72",
+        "message": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.discoveries-panel [data-testid=discovery-card]').first() to be visible\u001b[22m\n"
+      }
+    }
+  ]
+}

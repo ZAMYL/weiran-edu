@@ -1,0 +1,88 @@
+{
+  "coverage": "ai-and-report-entrance-only",
+  "syntheticOnly": true,
+  "realQwen": "not_run",
+  "checks": [],
+  "network": [
+    {
+      "path": "/api/edu/test-session",
+      "method": "GET",
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "path": "/api/edu/me",
+      "method": "GET",
+      "status": 200,
+      "ms": 54
+    },
+    {
+      "path": "/api/edu/scopes",
+      "method": "GET",
+      "status": 200,
+      "ms": 58
+    },
+    {
+      "path": "/api/edu/batches",
+      "method": "GET",
+      "status": 200,
+      "ms": 67
+    },
+    {
+      "path": "/api/edu/batches/0d5d0a32-a4f9-45f7-9e0f-f3ceaf6b10eb",
+      "method": "GET",
+      "status": 200,
+      "ms": 43
+    },
+    {
+      "path": "/api/edu/batches",
+      "method": "GET",
+      "status": 200,
+      "ms": 30
+    },
+    {
+      "path": "/api/edu/batches/0d5d0a32-a4f9-45f7-9e0f-f3ceaf6b10eb/capabilities",
+      "method": "GET",
+      "status": 200,
+      "ms": 33
+    },
+    {
+      "path": "/api/edu/batches/0d5d0a32-a4f9-45f7-9e0f-f3ceaf6b10eb/rubric",
+      "method": "GET",
+      "status": 200,
+      "ms": 111
+    },
+    {
+      "path": "/api/edu/batches/0d5d0a32-a4f9-45f7-9e0f-f3ceaf6b10eb/statistics",
+      "method": "GET",
+      "status": 200,
+      "ms": 145
+    },
+    {
+      "path": "/api/edu/batches/0d5d0a32-a4f9-45f7-9e0f-f3ceaf6b10eb/insights/query",
+      "method": "POST",
+      "status": 200,
+      "ms": 266
+    },
+    {
+      "path": "/api/edu/batches/0d5d0a32-a4f9-45f7-9e0f-f3ceaf6b10eb/discoveries/query",
+      "method": "POST",
+      "status": 504,
+      "ms": 39972
+    },
+    {
+      "path": "/api/edu/batches/0d5d0a32-a4f9-45f7-9e0f-f3ceaf6b10eb/ai-investigation-tasks",
+      "method": "POST",
+      "status": 504,
+      "ms": 40014
+    }
+  ],
+  "pageErrors": [],
+  "analysis": [],
+  "normalDiagnosisLoaded": false,
+  "passed": false,
+  "failure": {
+    "checkpoint": "unknown-question",
+    "message": "TimeoutError: page.waitForResponse: Timeout 120000ms exceeded while waiting for event \"response\""
+  }
+}
