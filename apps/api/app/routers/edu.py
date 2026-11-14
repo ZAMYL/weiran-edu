@@ -39,6 +39,7 @@ from app.edu.models import (
 from app.edu.query import group_query, group_schema, read_query, request_schema
 from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
+from app.edu.summary import BatchSummary
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
@@ -374,6 +375,18 @@ def statistics(
         snapshot_id=snapshot_id,
         x_dimension=x_dimension,
         y_dimension=y_dimension,
+    )
+
+
+@router.get("/batches/{batch_id}/summary", response_model=BatchSummary)
+def batch_summary(
+    batch_id: str,
+    actor: Actor,
+    backend: Backend,
+    snapshot_id: str | None = None,
+) -> BatchSummary:
+    return AnalysisReader(backend.database, clock=backend.clock).summary(
+        actor, batch_id, snapshot_id=snapshot_id
     )
 
 

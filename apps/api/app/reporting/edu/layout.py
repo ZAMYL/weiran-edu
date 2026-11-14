@@ -129,6 +129,31 @@ class Sheet:
     rows: list[Row]
 
 
+def conclusion(report: ReportInput) -> tuple[str, tuple[str, ...]]:
+    """Deterministic wording only; no new threshold and no judgement about pass/fail."""
+    scored = [item for item in report.dimensions if item.mean is not None]
+    valid = sum(item.valid_count for item in report.dimensions)
+    missing = sum(item.missing_count for item in report.dimensions)
+    invalid = sum(item.invalid_count for item in report.dimensions)
+    if not scored or valid == 0:
+        return (f"本批 {report.record_count} 名学生没有有效评分，无法给出统计结论。", ())
+    low = min(scored, key=lambda item: item.mean)
+    high = max(scored, key=lambda item: item.mean)
+    headline = (
+        f"{len(scored)} 个维度中{label(low.code)}均值最低（{display(low.mean)}），"
+        f"{label(high.code)}最高（{display(high.mean)}）。"
+    )
+    points = []
+    if len(scored) > 1:
+        points.append(
+            f"维度间差距最大的是{label(low.code)}与{label(high.code)}，"
+            f"相差 {display(high.mean - low.mean)} 分。"
+        )
+    quality = f"缺失 {missing} 份、非法 {invalid} 份" if missing or invalid else "无缺失或非法评分"
+    points.append(f"数据质量：{quality}；统计基于 {valid} 份有效评分。")
+    return headline, tuple(points)
+
+
 def plan(
     report: ReportInput,
     include_details: bool,
@@ -170,8 +195,21 @@ def plan(
         add(info, "数据性质", "合成演示，不含真实学生数据")
     add(info, "测评记录数", report.record_count, formats={1: "#,##0"})
     add(info, "统计项目数", len(report.dimensions), formats={1: "#,##0"})
+    headline, points = conclusion(report)
+    add(info, "本次结论", headline, section=True)
+    for point in points:
+        add(info, "", point)
     if report.reviewed is not None:
         add(info, "教师已确认发现数", len(findings) + len(report.discoveries), formats={1: "#,##0"})
+    if report.reviewed is not None and not findings and not report.discoveries:
+        add(info, "未发现显著问题的原因", "本次运行没有达到统计口径阈值的发现。", section=True)
+        add(
+            info,
+            "",
+            f"样本 {report.record_count} 名学生；规则版本 {report.rule_version}；"
+            "当前为规则判定，未做显著性检验。",
+        )
+        add(info, "", "阈值与最小群体门槛未调整；调整后可能产生不同结果。")
     add(info, "分析范围", "完整批次" if report.scope_kind == "batch" else "已授权子范围")
     add(
         info,

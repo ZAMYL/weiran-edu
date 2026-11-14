@@ -37,6 +37,7 @@ from .auth import Principal
 from .models import Student, StudentScore
 from .reads import BatchReader
 from .service import _page, fail
+from .summary import BatchSummary, build_summary
 
 RULE_VERSION = "edu.statistics.v1"
 DIMENSION_MAP: dict[DimensionCode, Dimension] = {
@@ -241,6 +242,21 @@ class AnalysisReader(BatchReader):
                 ),
             )
         return self._statistics(batch, dataset, matrix=matrix)
+
+    def summary(
+        self,
+        principal: Principal,
+        batch_id: str,
+        *,
+        snapshot_id: str | None = None,
+    ) -> BatchSummary:
+        """One deterministic sentence set for pages and exported reports."""
+        with self.database.transaction() as connection:
+            batch = self._batch(connection, principal, batch_id, snapshot_id)
+            dataset, _ = self._load(connection, batch)
+        statistics = self._statistics(batch, dataset)
+        labels = {code: dimension.value for code, dimension in DIMENSION_MAP.items()}
+        return build_summary(statistics, student_count=statistics.scope.record_count, labels=labels)
 
     def group(self, principal: Principal, batch_id: str, query: GroupQuery) -> GroupResult:
         with self.database.transaction() as connection:
