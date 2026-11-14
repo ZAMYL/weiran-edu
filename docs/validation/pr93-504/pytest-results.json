@@ -1,0 +1,58 @@
+{
+  "fullSuite": {
+    "name": "1-cpu0",
+    "loadCount": 0,
+    "scope": "76-targeted",
+    "load": "0 or 2 independent CPU math loops, each with a 240s hard duration",
+    "ms": 146977,
+    "exitCode": 1,
+    "loadExitedBeforeTestEnd": []
+  },
+  "fullSuiteStdout": "..............",
+  "fullSuiteJunitCreated": false,
+  "normalTwo": [
+    {
+      "name": "1-cpu0",
+      "loadCount": 0,
+      "scope": "two-historical-failures",
+      "load": "0 or 2 independent CPU math loops, each with a 240s hard duration",
+      "ms": 76572,
+      "exitCode": 0,
+      "loadExitedBeforeTestEnd": []
+    }
+  ],
+  "loadedTwo": [
+    {
+      "name": "2-cpu2",
+      "loadCount": 2,
+      "scope": "two-historical-failures",
+      "load": "0 or 2 independent CPU math loops, each with a 240s hard duration",
+      "ms": 79982,
+      "exitCode": 0,
+      "loadExitedBeforeTestEnd": [false, false]
+    },
+    {
+      "name": "3-cpu2",
+      "loadCount": 2,
+      "scope": "two-historical-failures",
+      "load": "0 or 2 independent CPU math loops, each with a 240s hard duration",
+      "ms": 73954,
+      "exitCode": 0,
+      "loadExitedBeforeTestEnd": [false, false]
+    },
+    {
+      "name": "4-cpu2",
+      "loadCount": 2,
+      "scope": "two-historical-failures",
+      "load": "0 or 2 independent CPU math loops, each with a 240s hard duration",
+      "ms": 73181,
+      "exitCode": 0,
+      "loadExitedBeforeTestEnd": [false, false]
+    }
+  ],
+  "tests": [
+    "tests/durable_teacher_agent/test_tasks.py::test_persist_reload_evidence_review_and_report",
+    "tests/durable_teacher_agent/test_priority_questions.py::test_teacher_priority_alias_rejects_unsafe_text_and_reuses_controlled_task"
+  ],
+  "classification": "Historical failures passed normally and in three bounded-load rounds; 76-case suite remains INCONCLUSIVE after incomplete exit, not counted as passed."
+}

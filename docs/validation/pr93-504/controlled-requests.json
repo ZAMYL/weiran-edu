@@ -1,0 +1,6946 @@
+{
+  "environment": {
+    "os": "Windows 10.0.26100",
+    "python": "3.12.10",
+    "logicalCpus": 20,
+    "node": "24.15.0",
+    "productionNext": true,
+    "syntheticOnly": true,
+    "realQwen": "not_run"
+  },
+  "versions": {
+    "B": "da7c27920f3c40cf53e57efafa805c73894a3e84",
+    "C": "13cdc04184f5d96e13bddcd31ba2b5da83a8be8e",
+    "A": "15788491b536d408005030ddbed2cee2d1a9f6b2"
+  },
+  "dataSha256": {
+    "53": "079f4253826a05720b7c297ef15868b1a1e08da844cf5df78a8909f0706d515d",
+    "72": "8de6e5d7254572e46a914aee1ad78643bc2171e1a6823438ff698444be84ec1f",
+    "96": "d1fb0f5b9b9221113a31d19bb966a8a7d2ee71192b163599e5e5faa4112a7689",
+    "105": "fabb5c6650dede0352a49891c0b0a12e099cbf0db93cfa09c6a1f2698549ada4"
+  },
+  "before": [
+    {
+      "key": "A-72-direct-concurrent",
+      "version": "A",
+      "students": 72,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 243,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 352,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 26,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45003,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55004,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40033,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55006,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -45
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -70,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -67,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -52,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -50,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -47,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55424
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56622
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56641
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56644,
+          "gap_ms": 56811
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56683
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56687
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56715
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56718
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57736,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57743
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57882
+        }
+      ]
+    },
+    {
+      "key": "A-72-relay-concurrent",
+      "version": "A",
+      "students": 72,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 242,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 298,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 28,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40031,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55012,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40019,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55012,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -48
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -5
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -74,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -71,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -55,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -53,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -50,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55413
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56262
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56273
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56275,
+          "gap_ms": 56506
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56311
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56313
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56329
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56330
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57348,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57360
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57444
+        }
+      ]
+    },
+    {
+      "key": "A-53-direct-concurrent",
+      "version": "A",
+      "students": 53,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 157,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 208,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 18,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45009,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55001,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40043,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55006,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -26
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -3
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -43,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -39,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -30,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -28,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -27,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -2,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55464
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56717
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56730
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56737,
+          "gap_ms": 56922
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56747
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56750
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56766
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56768
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57788,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57794
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57923
+        }
+      ]
+    },
+    {
+      "key": "A-53-relay-concurrent",
+      "version": "A",
+      "students": 53,
+      "transport": "relay",
+      "load": "concurrent",
+      "cleanupRecovered": true,
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 194,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 252,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 23,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40031,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55005,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40030,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55007,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -34
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -5
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -57,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -53,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -41,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -39,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -36,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -2,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55427
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56787
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56804
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56813,
+          "gap_ms": 56885
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56825
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56828
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56845
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56847
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57868,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57870
+        },
+        {
+          "stage": "host_exit",
+          "ms": 58000
+        }
+      ]
+    },
+    {
+      "key": "A-105-direct-single",
+      "version": "A",
+      "students": 105,
+      "transport": "direct",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 87,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 196,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 34,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45011,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -82
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -5
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -110,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -107,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -89,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -87,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -84,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -2,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 44885
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 46051
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 46064
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 46066,
+          "gap_ms": 46094
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 46092
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 46095
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 46124
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 46126
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 47136,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 47138
+        },
+        {
+          "stage": "host_exit",
+          "ms": 47264
+        }
+      ]
+    },
+    {
+      "key": "A-105-relay-single",
+      "version": "A",
+      "students": 105,
+      "transport": "relay",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 53,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 153,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 20,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40035,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -63
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -4
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -85,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -83,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -68,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -66,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -64,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -2,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 39929
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 41168
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 41181
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 41183,
+          "gap_ms": 41424
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 41214
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 41216
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 41229
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 41231
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 42216,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 42220
+        },
+        {
+          "stage": "host_exit",
+          "ms": 42286
+        }
+      ]
+    },
+    {
+      "key": "B-72-direct-concurrent",
+      "version": "B",
+      "students": 72,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 259,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 304,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 27,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45010,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55007,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40039,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55006,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -46
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -73,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -69,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -53,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -51,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -48,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55425
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56596
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56607
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56615,
+          "gap_ms": 56620
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56623
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56626
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56644
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56646
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57659,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57661
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57726
+        }
+      ]
+    },
+    {
+      "key": "B-72-relay-concurrent",
+      "version": "B",
+      "students": 72,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 231,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 372,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 26,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40040,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55017,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40035,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55016,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -44
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -68,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -65,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -51,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -49,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -46,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55429
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56746
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56758
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56764,
+          "gap_ms": 56949
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56772
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56775
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56794
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56796
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57812,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57815
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57957
+        }
+      ]
+    },
+    {
+      "key": "B-53-direct-concurrent",
+      "version": "B",
+      "students": 53,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 193,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 259,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 24,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45006,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55006,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40028,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55009,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -35
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -59,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -56,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -42,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -40,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -37,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55444
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56667
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56680
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56686,
+          "gap_ms": 56894
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56696
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56699
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56714
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56715
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57738,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57741
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57865
+        }
+      ]
+    },
+    {
+      "key": "B-53-relay-concurrent",
+      "version": "B",
+      "students": 53,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 196,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 241,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 30,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40041,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55007,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40028,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55009,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -39
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -5
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -61,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -58,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -47,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -45,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -41,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55432
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56644
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56657
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56663,
+          "gap_ms": 56664
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56672
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56675
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56691
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56693
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57693,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57695
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57763
+        }
+      ]
+    },
+    {
+      "key": "B-105-direct-single",
+      "version": "B",
+      "students": 105,
+      "transport": "direct",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 63,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 157,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 26,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45013,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -83
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -113,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -109,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -90,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -88,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -84,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 44883
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 46064
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 46077
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 46080,
+          "gap_ms": 46242
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 46119
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 46122
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 46149
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 46151
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 47165,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 47168
+        },
+        {
+          "stage": "host_exit",
+          "ms": 47295
+        }
+      ]
+    },
+    {
+      "key": "B-105-relay-single",
+      "version": "B",
+      "students": 105,
+      "transport": "relay",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 124,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 197,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 24,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40037,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -88
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -113,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -110,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -94,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -92,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -90,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 39892
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 41115
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 41126
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 41128,
+          "gap_ms": 41260
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 41167
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 41170
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 41197
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 41200
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 42211,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 42213
+        },
+        {
+          "stage": "host_exit",
+          "ms": 42308
+        }
+      ]
+    },
+    {
+      "key": "C-72-direct-concurrent",
+      "version": "C",
+      "students": 72,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 241,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 304,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 25,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45009,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55005,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40041,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55007,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -43
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -68,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -64,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -50,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -48,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -45,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55442
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56652
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56668
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56677,
+          "gap_ms": 56853
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56691
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56694
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56710
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56712
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57718,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57720
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57783
+        }
+      ]
+    },
+    {
+      "key": "C-72-relay-concurrent",
+      "version": "C",
+      "students": 72,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 276,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 367,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 28,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40030,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55007,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40023,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55011,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -47
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -76,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -72,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -55,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -53,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -49,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55412
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56597
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56611
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56617,
+          "gap_ms": 56836
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56626
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56630
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56644
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56647
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57677,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57679
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57803
+        }
+      ]
+    },
+    {
+      "key": "C-53-direct-concurrent",
+      "version": "C",
+      "students": 53,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 225,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 314,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 32,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45017,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55017,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40038,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55019,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -36
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -59,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -56,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -42,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -41,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -38,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55457
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56631
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56643
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56650,
+          "gap_ms": 56712
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56659
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56661
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56676
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56678
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57689,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57691
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57818
+        }
+      ]
+    },
+    {
+      "key": "C-53-relay-concurrent",
+      "version": "C",
+      "students": 53,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 225,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 250,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 23,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40029,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 55007,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 40036,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 55011,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -49
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -71,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -68,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -56,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -54,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -51,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "control_stop",
+          "ms": 55428
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 56616
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 56627
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 56636,
+          "gap_ms": 56764
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 56646
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 56649
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 56665
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 56667
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 57694,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 57696
+        },
+        {
+          "stage": "host_exit",
+          "ms": 57822
+        }
+      ]
+    },
+    {
+      "key": "C-105-direct-single",
+      "version": "C",
+      "students": 105,
+      "transport": "direct",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 65,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 136,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 31,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 45011,
+          "status": null,
+          "failure": "TimeoutError: The operation was aborted due to timeout"
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -77
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -5
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -103,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -100,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -84,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -82,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -79,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "control_stop",
+          "ms": 44897
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 46132
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 46145
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 46147,
+          "gap_ms": 46368
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 46151
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 46154
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 46181
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 46183
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 47199,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 47201
+        },
+        {
+          "stage": "host_exit",
+          "ms": 47331
+        }
+      ]
+    },
+    {
+      "key": "C-105-relay-single",
+      "version": "C",
+      "students": 105,
+      "transport": "relay",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 59,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 157,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 24,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 40035,
+          "status": 504,
+          "code": "REQUEST_TIMEOUT",
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -79
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -110,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -106,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -86,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -84,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -80,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "control_stop",
+          "ms": 39895
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 41107
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 41120
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 41122,
+          "gap_ms": 41248
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 41126
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 41128
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 41145
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 41147
+        },
+        {
+          "stage": "worker_execute_error",
+          "ms": 42162,
+          "error": "APIError",
+          "code": "DISCOVERY_CANCELLED"
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 42164
+        },
+        {
+          "stage": "host_exit",
+          "ms": 42213
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "key": "A-72-direct-concurrent",
+      "version": "A",
+      "students": 72,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 299,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 368,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 35,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 3654,
+          "status": 200,
+          "code": null,
+          "retained": 32,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 1006,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 976,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 681,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -64
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -7
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3452
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3492
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -98,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -94,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -72,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -70,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -66,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 1000
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1013
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1018,
+          "gap_ms": 1091
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1204
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2652
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3026
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3038
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3049
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3053
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3056
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3070
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3072
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3073
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3075
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3452
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3492
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3547
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3720
+        }
+      ]
+    },
+    {
+      "key": "A-72-relay-concurrent",
+      "version": "A",
+      "students": 72,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 270,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 347,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 25,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 3693,
+          "status": 200,
+          "code": null,
+          "retained": 32,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 978,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 1008,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 669,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -47
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3495
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3544
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -74,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -71,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -55,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -53,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -49,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 991
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1004
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1010,
+          "gap_ms": 1015
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1194
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2563
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2936
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2948
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2960
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2995
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2999
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3011
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3014
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3015
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3017
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3495
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3544
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3590
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3758
+        }
+      ]
+    },
+    {
+      "key": "A-53-direct-concurrent",
+      "version": "A",
+      "students": 53,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 213,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 298,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 26,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 3217,
+          "status": 200,
+          "code": null,
+          "retained": 26,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 853,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 835,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 612,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -39
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -7
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3069
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3113
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -60,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -57,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -45,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -44,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -41,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 959
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 972
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 978,
+          "gap_ms": 1122
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1161
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2575
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2812
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2819
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2825
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2857
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2860
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 2873
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 2875
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 2877
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 2879
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3069
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3113
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3215
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3443
+        }
+      ]
+    },
+    {
+      "key": "A-53-relay-concurrent",
+      "version": "A",
+      "students": 53,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 214,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 285,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 24,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 3270,
+          "status": 200,
+          "code": null,
+          "retained": 26,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 872,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 903,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 634,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -38
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -5
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3099
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3130
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -72,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -68,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -54,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -52,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -48,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 931
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 947
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 955,
+          "gap_ms": 1148
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1132
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2549
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2819
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2826
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2834
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2865
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2868
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 2897
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 2899
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 2901
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 2903
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3099
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3130
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3234
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3413
+        }
+      ]
+    },
+    {
+      "key": "A-105-direct-single",
+      "version": "A",
+      "students": 105,
+      "transport": "direct",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 63,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 184,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 32,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 4954,
+          "status": 200,
+          "code": null,
+          "retained": 15,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -92
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4627
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4727
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -128,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -124,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -101,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -99,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -94,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 1044
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1060
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1060,
+          "gap_ms": 1255
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1252
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2818
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3564
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3616
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3648
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3682
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3686
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3712
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3714
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3717
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3719
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4627
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4727
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4832
+        },
+        {
+          "stage": "host_exit",
+          "ms": 5017
+        }
+      ]
+    },
+    {
+      "key": "A-105-relay-single",
+      "version": "A",
+      "students": 105,
+      "transport": "relay",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 69,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 189,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 26,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 4534,
+          "status": 200,
+          "code": null,
+          "retained": 15,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -88
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4233
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4316
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -118,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -115,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -96,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -94,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -91,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 969
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 984
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 984,
+          "gap_ms": 1078
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1184
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2633
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3251
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3294
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3321
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3326
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3329
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3350
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3352
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3354
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3356
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4233
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4316
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4418
+        },
+        {
+          "stage": "host_exit",
+          "ms": 4639
+        }
+      ]
+    },
+    {
+      "key": "B-72-direct-concurrent",
+      "version": "B",
+      "students": 72,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 283,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 353,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 48,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 3851,
+          "status": 200,
+          "code": null,
+          "retained": 32,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 981,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 963,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 618,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -46
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3456
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3505
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -77,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -73,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -56,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -54,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -50,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 950
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 965
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1160
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2610
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2978
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2989
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3000
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3005
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3008
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3028
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3030
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3032
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3034
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3456
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3505
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3788
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3957
+        }
+      ]
+    },
+    {
+      "key": "B-72-relay-concurrent",
+      "version": "B",
+      "students": 72,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 247,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 327,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 30,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 3851,
+          "status": 200,
+          "code": null,
+          "retained": 32,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 942,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 971,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 661,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -48
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -7
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3432
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3482
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -76,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -72,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -56,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -54,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -50,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 975
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 988
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 993,
+          "gap_ms": 1107
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1185
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2550
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2919
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2934
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2945
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2952
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2954
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 2981
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 2983
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 2985
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 2987
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3432
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3482
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3751
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3938
+        }
+      ]
+    },
+    {
+      "key": "B-53-direct-concurrent",
+      "version": "B",
+      "students": 53,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 195,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 258,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 23,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 3209,
+          "status": 200,
+          "code": null,
+          "retained": 26,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 837,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 821,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 592,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -43
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -7
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3000
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3032
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -69,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -66,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -52,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -48,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -45,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 953
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 966
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1168
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2540
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2764
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2772
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2778
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2782
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2785
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 2799
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 2802
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 2804
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 2806
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3000
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3032
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3134
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3324
+        }
+      ]
+    },
+    {
+      "key": "C-72-direct-concurrent",
+      "version": "C",
+      "students": 72,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 279,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 339,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 27,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 4271,
+          "status": 200,
+          "code": null,
+          "retained": 32,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 1074,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 1050,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 757,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -54
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -7
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3887
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3929
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -84,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -80,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -62,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -59,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -56,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 1077
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1091
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1096,
+          "gap_ms": 1110
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1298
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2956
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3448
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3463
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3476
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3481
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3484
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3500
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3503
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3505
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3507
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3887
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3929
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4185
+        },
+        {
+          "stage": "host_exit",
+          "ms": 4372
+        }
+      ]
+    },
+    {
+      "key": "C-72-relay-concurrent",
+      "version": "C",
+      "students": 72,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 252,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 320,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 30,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 4342,
+          "status": 200,
+          "code": null,
+          "retained": 32,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 1004,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 1025,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 689,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -63
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -18
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3919
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3967
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -90,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -87,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -72,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -70,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -66,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -5,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 990
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1009
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1015,
+          "gap_ms": 1162
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1213
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2796
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3294
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3313
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3325
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3353
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3357
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3383
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3385
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3389
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3391
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3919
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3967
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4251
+        },
+        {
+          "stage": "host_exit",
+          "ms": 4455
+        }
+      ]
+    },
+    {
+      "key": "C-53-direct-concurrent",
+      "version": "C",
+      "students": 53,
+      "transport": "direct",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 210,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 288,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 27,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 3341,
+          "status": 200,
+          "code": null,
+          "retained": 26,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 903,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 880,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 651,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -40
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -7
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3111
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3146
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -65,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -61,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -47,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -45,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -42,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 1008
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1022
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1027,
+          "gap_ms": 1157
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1247
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2637
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2876
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2883
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2890
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2895
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2898
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 2918
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 2922
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 2925
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 2928
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3111
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3146
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3354
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3569
+        }
+      ]
+    },
+    {
+      "key": "C-53-relay-concurrent",
+      "version": "C",
+      "students": 53,
+      "transport": "relay",
+      "load": "concurrent",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 233,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 309,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 27,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 3272,
+          "status": 200,
+          "code": null,
+          "retained": 26,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 846,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 875,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 623,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -37
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3060
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3094
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -60,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -57,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -44,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -42,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -39,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 945
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 965
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 972,
+          "gap_ms": 1152
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1160
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2576
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2815
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2822
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2830
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2835
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2837
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 2857
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 2859
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 2862
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 2863
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3060
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3094
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3259
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3447
+        }
+      ]
+    },
+    {
+      "key": "C-105-direct-single",
+      "version": "C",
+      "students": 105,
+      "transport": "direct",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 72,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 170,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 26,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 4868,
+          "status": 200,
+          "code": null,
+          "retained": 15,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -91
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4220
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4317
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -119,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -115,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -97,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -95,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -92,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 958
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 972
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 972,
+          "gap_ms": 1125
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1155
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2536
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3071
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3123
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3152
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3185
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3188
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3201
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3203
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3206
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3209
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4220
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4317
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4827
+        },
+        {
+          "stage": "host_exit",
+          "ms": 5055
+        }
+      ]
+    },
+    {
+      "key": "C-105-relay-single",
+      "version": "C",
+      "students": 105,
+      "transport": "relay",
+      "load": "single",
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 81,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 219,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 28,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 4446,
+          "status": 200,
+          "code": null,
+          "retained": 15,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -80
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3905
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3980
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -111,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -107,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -89,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -87,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -82,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 937
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 951
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1141
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2451
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2975
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3006
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3030
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3062
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3065
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3079
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3082
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3085
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3086
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3905
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3980
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4352
+        },
+        {
+          "stage": "host_exit",
+          "ms": 4568
+        }
+      ]
+    },
+    {
+      "key": "B-53-relay-concurrent",
+      "version": "B",
+      "students": 53,
+      "transport": "relay",
+      "load": "concurrent",
+      "retriedAfterSetupFailure": true,
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 234,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 256,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 26,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 3411,
+          "status": 200,
+          "code": null,
+          "retained": 26,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "direct",
+          "ms": 857,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-concurrent",
+          "via": "relay",
+          "ms": 881,
+          "status": 422,
+          "code": "AI_GOAL_UNSUPPORTED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-concurrent",
+          "via": "direct",
+          "ms": 621,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -37
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3199
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3234
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -60,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -57,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -44,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -42,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -39,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 3
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 950
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 964
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 970,
+          "gap_ms": 1167
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1158
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2692
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 2924
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 2931
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 2939
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 2972
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 2976
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3006
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3009
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3013
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3015
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 3199
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 3234
+        },
+        {
+          "stage": "control_stop",
+          "ms": 3401
+        },
+        {
+          "stage": "host_exit",
+          "ms": 3584
+        }
+      ]
+    },
+    {
+      "key": "B-105-direct-single",
+      "version": "B",
+      "students": 105,
+      "transport": "direct",
+      "load": "single",
+      "retriedAfterSetupFailure": true,
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 70,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 206,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 33,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "direct",
+          "ms": 5023,
+          "status": 200,
+          "code": null,
+          "retained": 15,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -213
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -8
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4281
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4355
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -320,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -315,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -262,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -249,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -235,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -4,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 1133
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1146
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1147,
+          "gap_ms": 1148
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1338
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2740
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3388
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3428
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3453
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3458
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3460
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3474
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3476
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3478
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3480
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4281
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4355
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4745
+        },
+        {
+          "stage": "host_exit",
+          "ms": 4951
+        }
+      ]
+    },
+    {
+      "key": "B-105-relay-single",
+      "version": "B",
+      "students": 105,
+      "transport": "relay",
+      "load": "single",
+      "retriedAfterSetupFailure": true,
+      "requests": [
+        {
+          "name": "unknown-alone",
+          "via": "direct",
+          "ms": 62,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "unknown-alone",
+          "via": "relay",
+          "ms": 170,
+          "status": 403,
+          "code": "AI_PURPOSE_REQUIRED",
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "ordinary-before",
+          "via": "direct",
+          "ms": 23,
+          "status": 200,
+          "code": null,
+          "retained": null,
+          "taskId": null
+        },
+        {
+          "name": "first-discovery",
+          "via": "relay",
+          "ms": 5002,
+          "status": 200,
+          "code": null,
+          "retained": 15,
+          "taskId": null
+        }
+      ],
+      "input": [
+        {
+          "stage": "input_load_begin",
+          "ms": -81
+        },
+        {
+          "stage": "input_load_end",
+          "ms": -6
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4415
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4497
+        }
+      ],
+      "databaseBeforeSpawn": {
+        "openAtSpawn": 0,
+        "tail": [
+          {
+            "stage": "db_begin",
+            "ms": -111,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -107,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -89,
+            "write": false
+          },
+          {
+            "stage": "db_begin",
+            "ms": -87,
+            "write": false
+          },
+          {
+            "stage": "db_acquired",
+            "ms": -83,
+            "write": false
+          },
+          {
+            "stage": "db_closed",
+            "ms": -3,
+            "write": false
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "worker_execute_begin",
+          "ms": 0
+        },
+        {
+          "stage": "process_start_begin",
+          "ms": 2
+        },
+        {
+          "stage": "process_start_end",
+          "ms": 1013
+        },
+        {
+          "stage": "parent_receive_begin",
+          "ms": 1028
+        },
+        {
+          "stage": "event_loop_gap",
+          "ms": 1029,
+          "gap_ms": 1205
+        },
+        {
+          "stage": "child_target_enter",
+          "ms": 1224
+        },
+        {
+          "stage": "child_worker_imported",
+          "ms": 2744
+        },
+        {
+          "stage": "child_send_begin",
+          "ms": 3402
+        },
+        {
+          "stage": "child_send_end",
+          "ms": 3444
+        },
+        {
+          "stage": "parent_receive_ok",
+          "ms": 3474
+        },
+        {
+          "stage": "process_terminate_begin",
+          "ms": 3504
+        },
+        {
+          "stage": "process_terminate_end",
+          "ms": 3507
+        },
+        {
+          "stage": "process_join_begin",
+          "ms": 3536
+        },
+        {
+          "stage": "process_join_end",
+          "ms": 3538
+        },
+        {
+          "stage": "worker_execute_ok",
+          "ms": 3540
+        },
+        {
+          "stage": "worker_execute_exit",
+          "ms": 3542
+        },
+        {
+          "stage": "input_load_begin",
+          "ms": 4415
+        },
+        {
+          "stage": "input_load_end",
+          "ms": 4497
+        },
+        {
+          "stage": "control_stop",
+          "ms": 4863
+        },
+        {
+          "stage": "host_exit",
+          "ms": 5032
+        }
+      ]
+    }
+  ],
+  "setupFailures": [
+    {
+      "key": "B-53-relay-concurrent",
+      "failure": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(i < 100)\n",
+      "requests": [],
+      "stages": [
+        {
+          "ms": 97075574.977,
+          "epoch_ms": 1794675416550,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "f26967656d",
+          "stage": "http_enter",
+          "path": "/api/v1/edu/imports/preview",
+          "method": "POST"
+        },
+        {
+          "ms": 97075796.106,
+          "epoch_ms": 1794675416771,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_begin",
+          "write": false
+        },
+        {
+          "ms": 97075806.963,
+          "epoch_ms": 1794675416782,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_acquired",
+          "write": false
+        },
+        {
+          "ms": 97075814.267,
+          "epoch_ms": 1794675416790,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_closed",
+          "write": false
+        },
+        {
+          "ms": 97075823.758,
+          "epoch_ms": 1794675416799,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_begin",
+          "write": false
+        },
+        {
+          "ms": 97075840.542,
+          "epoch_ms": 1794675416815,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_acquired",
+          "write": false
+        },
+        {
+          "ms": 97075851.286,
+          "epoch_ms": 1794675416827,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_closed",
+          "write": false
+        },
+        {
+          "ms": 97075855.523,
+          "epoch_ms": 1794675416830,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_begin",
+          "write": false
+        },
+        {
+          "ms": 97075860.378,
+          "epoch_ms": 1794675416835,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_acquired",
+          "write": false
+        },
+        {
+          "ms": 97075869.396,
+          "epoch_ms": 1794675416845,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_closed",
+          "write": false
+        },
+        {
+          "ms": 97076025.117,
+          "epoch_ms": 1794675417000,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_begin",
+          "write": false
+        },
+        {
+          "ms": 97076029.616,
+          "epoch_ms": 1794675417005,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_acquired",
+          "write": false
+        },
+        {
+          "ms": 97076037.181,
+          "epoch_ms": 1794675417012,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_closed",
+          "write": false
+        },
+        {
+          "ms": 97076074.913,
+          "epoch_ms": 1794675417050,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_begin",
+          "write": true
+        },
+        {
+          "ms": 97076079.346,
+          "epoch_ms": 1794675417054,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_acquired",
+          "write": true
+        },
+        {
+          "ms": 97076112.647,
+          "epoch_ms": 1794675417088,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_closed",
+          "write": true
+        },
+        {
+          "ms": 97076114.638,
+          "epoch_ms": 1794675417090,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_begin",
+          "write": false
+        },
+        {
+          "ms": 97076120.655,
+          "epoch_ms": 1794675417096,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_acquired",
+          "write": false
+        },
+        {
+          "ms": 97076136.606,
+          "epoch_ms": 1794675417112,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "f26967656d",
+          "stage": "db_closed",
+          "write": false
+        },
+        {
+          "ms": 97077275.417,
+          "epoch_ms": 1794675418250,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "f26967656d",
+          "stage": "http_status",
+          "status": 201
+        },
+        {
+          "ms": 97077278.118,
+          "epoch_ms": 1794675418253,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 1246
+        },
+        {
+          "ms": 97077281.683,
+          "epoch_ms": 1794675418257,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "f26967656d",
+          "stage": "http_body_done"
+        },
+        {
+          "ms": 97077286.335,
+          "epoch_ms": 1794675418261,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "04854e3112",
+          "stage": "http_enter",
+          "path": "/api/v1/edu/imports/417f83f2-c7ca-4613-82ba-94485626c903/commit",
+          "method": "POST"
+        },
+        {
+          "ms": 97077291.455,
+          "epoch_ms": 1794675418267,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "f26967656d",
+          "stage": "http_exit"
+        },
+        {
+          "ms": 97077295.145,
+          "epoch_ms": 1794675418271,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_begin",
+          "write": false
+        },
+        {
+          "ms": 97077298.231,
+          "epoch_ms": 1794675418274,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_acquired",
+          "write": false
+        },
+        {
+          "ms": 97077303.317,
+          "epoch_ms": 1794675418279,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_closed",
+          "write": false
+        },
+        {
+          "ms": 97077306.887,
+          "epoch_ms": 1794675418282,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_begin",
+          "write": false
+        },
+        {
+          "ms": 97077310.263,
+          "epoch_ms": 1794675418286,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_acquired",
+          "write": false
+        },
+        {
+          "ms": 97077316.426,
+          "epoch_ms": 1794675418291,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_closed",
+          "write": false
+        },
+        {
+          "ms": 97077448.821,
+          "epoch_ms": 1794675418424,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_begin",
+          "write": true
+        },
+        {
+          "ms": 97077453.736,
+          "epoch_ms": 1794675418429,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_acquired",
+          "write": true
+        },
+        {
+          "ms": 97077512.219,
+          "epoch_ms": 1794675418487,
+          "pid": 64476,
+          "thread": 14796,
+          "rid": "04854e3112",
+          "stage": "db_closed",
+          "write": true
+        },
+        {
+          "ms": 97077517.094,
+          "epoch_ms": 1794675418492,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "04854e3112",
+          "stage": "http_status",
+          "status": 201
+        },
+        {
+          "ms": 97077521.088,
+          "epoch_ms": 1794675418496,
+          "pid": 64476,
+          "thread": 25536,
+          "rid": "-",
+          "stage": "seed_commit",
+          "dataset": "53",
+          "status": 201,
+          "code": null
+        },
+        {
+          "ms": 97077521.439,
+          "epoch_ms": 1794675418496,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "04854e3112",
+          "stage": "http_body_done"
+        },
+        {
+          "ms": 97077526.651,
+          "epoch_ms": 1794675418501,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "04854e3112",
+          "stage": "http_exit"
+        },
+        {
+          "ms": 97077770.498,
+          "epoch_ms": 1794675418746,
+          "pid": 64476,
+          "thread": 25536,
+          "rid": "-",
+          "stage": "ready",
+          "mode": "poll_thread"
+        },
+        {
+          "ms": 97247947.181,
+          "epoch_ms": 1794675588923,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 2516
+        },
+        {
+          "ms": 97253573.235,
+          "epoch_ms": 1794675594549,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 1861
+        },
+        {
+          "ms": 97256070.291,
+          "epoch_ms": 1794675597046,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 1858
+        },
+        {
+          "ms": 97257743.085,
+          "epoch_ms": 1794675598719,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 1673
+        },
+        {
+          "ms": 97266054.831,
+          "epoch_ms": 1794675607030,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 2661
+        },
+        {
+          "ms": 97273882.325,
+          "epoch_ms": 1794675614857,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 1012
+        },
+        {
+          "ms": 97275100.276,
+          "epoch_ms": 1794675616076,
+          "pid": 64476,
+          "thread": 31756,
+          "rid": "-",
+          "stage": "event_loop_gap",
+          "gap_ms": 1218
+        },
+        {
+          "ms": 97279426.811,
+          "epoch_ms": 1794675620402,
+          "pid": 64476,
+          "thread": 25536,
+          "rid": "-",
+          "stage": "control_stop"
+        },
+        {
+          "ms": 97280030.44,
+          "epoch_ms": 1794675621005,
+          "pid": 64476,
+          "thread": 25536,
+          "rid": "-",
+          "stage": "host_exit"
+        }
+      ],
+      "classification": "setup failed before business requests; retained, then retried with unchanged code/data/deadlines"
+    },
+    {
+      "key": "B-105-direct-single",
+      "failure": "Error: host readiness timeout",
+      "requests": [],
+      "stages": [],
+      "classification": "setup failed before business requests; retained, then retried with unchanged code/data/deadlines"
+    },
+    {
+      "key": "B-105-relay-single",
+      "failure": "Error: host readiness timeout",
+      "requests": [],
+      "stages": [],
+      "classification": "setup failed before business requests; retained, then retried with unchanged code/data/deadlines"
+    }
+  ]
+}

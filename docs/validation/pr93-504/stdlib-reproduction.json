@@ -1,0 +1,173 @@
+[
+  {
+    "mode": "stdin",
+    "repeat": 1,
+    "events": [
+      {
+        "stage": "process_start_begin",
+        "time": 96834.2598553
+      },
+      {
+        "stage": "stdin_released",
+        "time": 96836.7972683
+      },
+      {
+        "stage": "process_start_end",
+        "time": 96837.1096111
+      },
+      {
+        "stage": "child_enter",
+        "time": 96837.1808918,
+        "payload_bytes": 262144
+      },
+      {
+        "stage": "finished",
+        "time": 96837.2019958
+      }
+    ],
+    "stderr": "",
+    "releaseAfterMs": 3000,
+    "exitCode": 0,
+    "startMs": 2850
+  },
+  {
+    "mode": "stdin",
+    "repeat": 2,
+    "events": [
+      {
+        "stage": "process_start_begin",
+        "time": 96837.7328438
+      },
+      {
+        "stage": "stdin_released",
+        "time": 96840.2747067
+      },
+      {
+        "stage": "process_start_end",
+        "time": 96840.5806164
+      },
+      {
+        "stage": "child_enter",
+        "time": 96840.6496533,
+        "payload_bytes": 262144
+      },
+      {
+        "stage": "finished",
+        "time": 96840.6708054
+      }
+    ],
+    "stderr": "",
+    "releaseAfterMs": 3000,
+    "exitCode": 0,
+    "startMs": 2848
+  },
+  {
+    "mode": "stdin",
+    "repeat": 3,
+    "events": [
+      {
+        "stage": "process_start_begin",
+        "time": 96841.2175797
+      },
+      {
+        "stage": "stdin_released",
+        "time": 96843.7271993
+      },
+      {
+        "stage": "process_start_end",
+        "time": 96844.0658035
+      },
+      {
+        "stage": "child_enter",
+        "time": 96844.1375011,
+        "payload_bytes": 262144
+      },
+      {
+        "stage": "finished",
+        "time": 96844.1571109
+      }
+    ],
+    "stderr": "",
+    "releaseAfterMs": 3000,
+    "exitCode": 0,
+    "startMs": 2848
+  },
+  {
+    "mode": "poll",
+    "repeat": 1,
+    "events": [
+      {
+        "stage": "process_start_begin",
+        "time": 96844.699481
+      },
+      {
+        "stage": "process_start_end",
+        "time": 96845.1026181
+      },
+      {
+        "stage": "child_enter",
+        "time": 96845.170625,
+        "payload_bytes": 262144
+      },
+      {
+        "stage": "finished",
+        "time": 96845.1908846
+      }
+    ],
+    "stderr": "",
+    "exitCode": 0,
+    "startMs": 403
+  },
+  {
+    "mode": "poll",
+    "repeat": 2,
+    "events": [
+      {
+        "stage": "process_start_begin",
+        "time": 96845.6938535
+      },
+      {
+        "stage": "process_start_end",
+        "time": 96846.1162954
+      },
+      {
+        "stage": "child_enter",
+        "time": 96846.1920638,
+        "payload_bytes": 262144
+      },
+      {
+        "stage": "finished",
+        "time": 96846.2135537
+      }
+    ],
+    "stderr": "",
+    "exitCode": 0,
+    "startMs": 422
+  },
+  {
+    "mode": "poll",
+    "repeat": 3,
+    "events": [
+      {
+        "stage": "process_start_begin",
+        "time": 96846.764896
+      },
+      {
+        "stage": "process_start_end",
+        "time": 96847.1661886
+      },
+      {
+        "stage": "child_enter",
+        "time": 96847.2329267,
+        "payload_bytes": 262144
+      },
+      {
+        "stage": "finished",
+        "time": 96847.2541033
+      }
+    ],
+    "stderr": "",
+    "exitCode": 0,
+    "startMs": 401
+  }
+]

@@ -1,8 +1,7 @@
-"""Disposable registered-synthetic host; EOF on stdin stops only its own child server."""
+"""Disposable registered-synthetic host; a private stop file ends only its own server."""
 
 import json
 import socket
-import sys
 import threading
 import time
 from pathlib import Path
@@ -68,7 +67,10 @@ def main() -> None:
                     encoding="utf-8",
                 )
                 print(json.dumps({"ready": True, "connection": str(connection)}), flush=True)
-                sys.stdin.readline()
+                # A blocking stdin read can stall Windows spawn while its parent sends
+                # the discovery input, freezing the API event loop. Keep stdin idle.
+                while not (directory / "stop.flag").exists():
+                    time.sleep(0.1)
         finally:
             api.should_exit = True
             thread.join(30)

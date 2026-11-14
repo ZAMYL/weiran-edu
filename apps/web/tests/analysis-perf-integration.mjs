@@ -31,6 +31,7 @@ const report = {
   pageErrors: [],
   analysis: [],
 };
+let hostDirectory;
 let browser,
   page,
   frontend,
@@ -73,6 +74,7 @@ const connectionReady = new Promise((resolve, reject) => {
 connectionReady.catch(() => {});
 try {
   const connectionPath = await connectionReady;
+  hostDirectory = path.dirname(connectionPath);
   const connection = JSON.parse(await readFile(connectionPath, 'utf8'));
   assert.equal(connection.synthetic_only, true);
   assert.equal(connection.execution_origin, 'http_mock');
@@ -200,11 +202,6 @@ try {
     for (const summary of await cards.locator('.focus-explanation > summary').all())
       await summary.click();
     const explanations = await cards.locator('.focus-explanation p').allInnerTexts();
-    assert.ok(
-      explanations.every(
-        (text) => text.length > 80 && text.includes(String(count)) && /查看|核查|核对/.test(text),
-      ),
-    );
     const ids = await cards.evaluateAll((elements) =>
       elements.map((element) => element.dataset.discoveryId),
     );
@@ -212,6 +209,25 @@ try {
       (id) => report.network.findLast((row) => row.detail?.discovery_id === id)?.detail,
     );
     assert.ok(details.every((detail) => detail?.scope.scope_record_count === count));
+    assert.equal(explanations.length, details.length);
+    details.forEach((detail, index) => {
+      const text = explanations[index];
+      assert.ok(text.length > 80 && /查看|核查|核对/.test(text));
+      // A legitimate group description can state 24 + 48 rather than repeat 72.
+      // Check the actual finding's denominators, not one literal class size.
+      const metrics = detail.metrics;
+      const counts = {
+        dimension_relation: [metrics.paired_count],
+        group_difference: [metrics.target_count, metrics.remainder_count],
+        rare_combination: [metrics.pair_count, metrics.match_count],
+        boundary_sensitivity: [metrics.strict_count, metrics.inclusive_count],
+      }[detail.type];
+      assert.ok(counts?.length && counts.every(Number.isSafeInteger));
+      assert.ok(
+        counts.every((number) => text.includes(String(number))),
+        detail.discovery_id,
+      );
+    });
     report.analysis.push({ case: name, students: count, titles, explanations });
     await screenshot('diagnosis-' + name);
     return { titles, explanations };
@@ -337,6 +353,29 @@ try {
   await screenshot('ai-score-evidence');
   await page.locator('.ant-drawer-open').last().locator('.ant-drawer-close').click();
   await sources.locator('.ant-drawer-close').click();
+  checkpoint = 'ai-profile-evidence';
+  assert.ok(report.ai.profileCount > 0, 'Exercise an actual AI profile, not an empty list');
+  const profileScoresReady = page.waitForResponse(
+    (r) => r.url().endsWith('/profiles/scores/query') && r.status() === 200,
+  );
+  await page
+    .getByTestId('ai-profile-card')
+    .first()
+    .getByRole('button', {
+      name: /^查看.+评分依据/,
+    })
+    .first()
+    .click();
+  const profileScores = await (await profileScoresReady).json();
+  assert.equal(profileScores.detail_status, 'available');
+  assert.ok(profileScores.items.length > 0);
+  const profileDrawer = page.getByRole('dialog', { name: / · 评分依据$/ });
+  await profileDrawer.getByRole('button', { name: '查看原评分依据', exact: true }).first().click();
+  await page.getByText('原始数值：', { exact: false }).waitFor();
+  await screenshot('ai-profile-score-evidence');
+  await page.locator('.ant-drawer-open').last().locator('.ant-drawer-close').click();
+  await profileDrawer.locator('.ant-drawer-close').click();
+  report.checks.push('AI profile score query 200 and its original score evidence visible');
   report.checks.push(
     'unknown question 422 preserved; shortcut only fills; explicit creation 202, polling completed 200, real AI Fact evidence visible; no real model',
   );
@@ -358,7 +397,7 @@ try {
   report.passed = true;
 } catch (error) {
   report.passed = false;
-  report.failure = { checkpoint, message: String(error) };
+  report.failure = { checkpoint, message: error.stack || String(error) };
   if (page)
     await page
       .screenshot({
@@ -376,7 +415,8 @@ try {
   await browser?.close();
   if (frontend?.exitCode === null) frontend.kill();
   const hostStopped = once(host, 'exit').catch(() => {});
-  if (host.exitCode === null) host.stdin.end('stop\n');
+  if (host.exitCode === null && hostDirectory)
+    await writeFile(path.join(hostDirectory, 'stop.flag'), 'stop\n');
   await Promise.race([hostStopped, sleep(45000)]);
   if (host.exitCode === null) host.kill();
   console.log(

@@ -1,0 +1,126 @@
+{
+  "classification": "test assertion incorrectly required every explanation to contain the literal class total; product untouched",
+  "failure": {
+    "checkpoint": "case-balanced72",
+    "message": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(\n"
+  },
+  "realRequests": [
+    {
+      "path": "/api/edu/test-session",
+      "method": "GET",
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "path": "/api/edu/scopes",
+      "method": "GET",
+      "status": 200,
+      "ms": 53
+    },
+    {
+      "path": "/api/edu/me",
+      "method": "GET",
+      "status": 200,
+      "ms": 57
+    },
+    {
+      "path": "/api/edu/batches",
+      "method": "GET",
+      "status": 200,
+      "ms": 60
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d",
+      "method": "GET",
+      "status": 200,
+      "ms": 26
+    },
+    {
+      "path": "/api/edu/batches",
+      "method": "GET",
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d/capabilities",
+      "method": "GET",
+      "status": 200,
+      "ms": 5
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d/insights/query",
+      "method": "POST",
+      "status": 200,
+      "ms": 862
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d/rubric",
+      "method": "GET",
+      "status": 200,
+      "ms": 864
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d/statistics",
+      "method": "GET",
+      "status": 200,
+      "ms": 864
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d/discoveries/query",
+      "method": "POST",
+      "status": 200,
+      "ms": 3782
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d/discoveries/d321e3a72555bf9feb8bbe91/query",
+      "method": "POST",
+      "status": 200,
+      "ms": 230
+    },
+    {
+      "path": "/api/edu/batches/7aa1eb31-190c-4ff7-8b98-e892cdab9d8d/discoveries/0243576848ef3a97d53ed2e5/query",
+      "method": "POST",
+      "status": 200,
+      "ms": 302
+    }
+  ],
+  "details": [
+    {
+      "type": "dimension_relation",
+      "scopeCount": 72,
+      "metrics": {
+        "left": "code_implementation",
+        "right": "solution_strategy",
+        "rho": {
+          "value": 1,
+          "method": "stdlib_float"
+        },
+        "paired_count": 72,
+        "excluded_count": 0,
+        "student_denominator": 72
+      }
+    },
+    {
+      "type": "group_difference",
+      "scopeCount": 72,
+      "metrics": {
+        "outcome_dimension": "algorithm_data_structure",
+        "target_count": 24,
+        "remainder_count": 48,
+        "unevaluable_count": 0,
+        "student_denominator": 72,
+        "eligible_denominator": 72,
+        "share_total": {
+          "numerator": 1,
+          "denominator": 3,
+          "display": "0.3333"
+        },
+        "share_eligible": {
+          "numerator": 1,
+          "denominator": 3,
+          "display": "0.3333"
+        }
+      }
+    }
+  ]
+}
