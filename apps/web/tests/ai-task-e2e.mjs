@@ -92,19 +92,21 @@ try {
       { teacher: me.teacher_id, id: ref.batch_id },
     );
     await page.reload();
-    await page.getByRole('heading', { name: 'AI 分析', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '这次测评有什么值得关注？', exact: true }).waitFor();
     return ref;
   }
   const normal = await openCase('normal');
   const shortcuts = page.getByRole('group', { name: '快捷提问' });
   const aiQuestion = page.getByLabel('想了解什么？', { exact: true });
   await shortcuts.getByRole('button').first().click();
+  assert.equal(await shortcuts.getByRole('button').first().getAttribute('aria-pressed'), 'true');
+  await page.locator('.ai-custom-question summary').click();
   assert.notEqual(await aiQuestion.inputValue(), '');
   assert.equal(requests.filter((request) => request.method === 'POST').length, 0);
   const unsupported = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 422,
   );
-  await page.getByLabel('想了解什么？', { exact: true }).fill('帮我分析一下');
+  await aiQuestion.fill('有什么问题');
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
   assert.equal((await (await unsupported).json()).error.code, 'AI_GOAL_UNSUPPORTED');
   await page.getByText(/暂不支持这个问题/).waitFor();
@@ -362,6 +364,7 @@ try {
   );
   for (const name of ['empty', 'evidence']) {
     const ref = await openCase(name);
+    await page.locator('.ai-custom-question summary').click();
     await page.getByLabel('想了解什么？', { exact: true }).fill(ref.question);
     await page.getByRole('button', { name: '开始分析', exact: true }).click();
     if (name === 'empty') {
@@ -386,6 +389,7 @@ try {
     );
   }
   const profileBatch = await openCase('balanced72');
+  await page.locator('.ai-custom-question summary').click();
   const profileCreated = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 202,
   );

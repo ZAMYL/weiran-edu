@@ -6,24 +6,17 @@ import { ReloadOutlined } from '@ant-design/icons';
 import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discovery-navigation';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
-import { ApiError } from '../../services/edu-api/client';
 import { describeDiscovery } from '../../services/edu-api/teacher-analysis';
 import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 import {
-  discoveryConditionsText,
   discoveryEvidenceNotes,
   discoveryPresentation,
   eligibleForFocus,
 } from '../../services/edu-api/discovery-presentation';
 import type { DiscoveryDetail, DiscoverySpec } from '../../services/edu-api/discovery-types';
 import type { ApiBatch, ApiStudent } from '../../services/edu-api/types';
-import {
-  conditionText,
-  dimensionName,
-  scoreDisplay,
-  ratioDisplay,
-} from '../../services/edu-api/view-model';
-import { DiscoveryChart, exactValue, scoreText } from './DiscoveryChart';
+import { conditionText, dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
+import { DiscoveryChart, scoreText } from './DiscoveryChart';
 import { LiveScoreDrawer } from './LiveStudents';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { useRemote } from './useRemote';
@@ -58,18 +51,6 @@ function sourceName(key: string) {
   return dim && codes[dim]
     ? `${side === 'target' ? '符合条件的学生' : '其他可判定学生'} · ${dimensionName(codes[dim])}`
     : '查看该指标评分依据';
-}
-function metricsText(d: DiscoveryDetail) {
-  switch (d.type) {
-    case 'dimension_relation':
-      return `配对学生 ${d.metrics.paired_count} 人；分析范围 ${d.metrics.student_denominator} 人；关联系数 ${d.metrics.rho ? scoreDisplay(d.metrics.rho.value) : '无法计算'}。`;
-    case 'group_difference':
-      return `符合条件的学生 ${d.metrics.target_count} 人，其他可判定学生 ${d.metrics.remainder_count} 人；分析范围 ${d.metrics.student_denominator} 人。比较指标：${dimensionName(d.metrics.outcome_dimension)}。`;
-    case 'rare_combination':
-      return `找到 ${d.metrics.match_count} 名学生；完整配对参考范围 ${d.metrics.pair_count} 人，占比 ${ratioDisplay(exactValue(d.metrics.share_pairs))}。`;
-    case 'boundary_sensitivity':
-      return `低于边界 ${d.metrics.strict_count} 人，包含边界 ${d.metrics.inclusive_count} 人，新增 ${d.metrics.added_count} 人；分析范围 ${d.metrics.student_denominator} 人。`;
-  }
 }
 function FocusMetrics({ detail }: { detail: DiscoveryDetail }) {
   const presentation = discoveryPresentation(detail);
@@ -127,7 +108,8 @@ export default function LiveDiscoveries({
   );
   const items = useMemo(() => resource.data?.items ?? [], [resource.data]);
   const candidatesKey = JSON.stringify(
-    items.slice(0, 10)
+    items
+      .slice(0, 10)
       .filter((card) => card.status !== 'insufficient_evidence')
       .map((card) => ({ id: card.discovery_id, type: card.type })),
   );
@@ -158,6 +140,7 @@ export default function LiveDiscoveries({
       : null,
     loadDetails,
     client.overviewCache,
+    resource.refreshing,
   );
   const focus = useMemo(
     () =>
@@ -314,7 +297,7 @@ export default function LiveDiscoveries({
                 />
                 <p className="muted small">
                   {items.length
-                    ? '可在下方全部发现中核查样本和评分依据。'
+                    ? '可在「更多评分线索」中查看样本和评分依据。'
                     : '未发现符合当前规则的现象，不代表没有学习问题。可先查看评分分布，再探索具体群体。'}
                 </p>
                 <div className="batch-actions">
@@ -355,11 +338,7 @@ export default function LiveDiscoveries({
             ) : (
               <p>当前范围没有这类评分线索。</p>
             )}
-            {resource.data.truncated && (
-              <p className="muted small">
-                这里展示本次分析保留的线索。
-              </p>
-            )}
+            {resource.data.truncated && <p className="muted small">这里展示本次分析保留的线索。</p>}
             {visible.length > visibleCount && (
               <Button onClick={() => setVisibleCount((count) => count + 10)}>查看更多线索</Button>
             )}
@@ -395,25 +374,11 @@ export function DiscoveryDetailDrawer({
   const router = useRouter();
   const [metric, setMetric] = useState<string | null>(null);
   const load = useCallback(
-    async (signal: AbortSignal) => {
-      // Sequential requests respect the backend's per-worker two-slot budget.
-      const detail = await client.discoveryDetail(batch, discoveryId, spec, signal);
-      const chart = await client.discoveryChart(batch, discoveryId, spec, signal);
-      if (
-        chart.input_key !== detail.input_key ||
-        chart.rule_version !== detail.rule_version ||
-        chart.type !== detail.type ||
-        JSON.stringify(chart.chart) !== JSON.stringify(detail.chart) ||
-        JSON.stringify(chart.conditions) !== JSON.stringify(detail.conditions) ||
-        JSON.stringify(chart.metrics) !== JSON.stringify(detail.metrics)
-      )
-        throw new ApiError(502, 'INVALID_API_RESPONSE');
-      return { detail, chart };
-    },
+    (signal: AbortSignal) => client.discoveryDetail(batch, discoveryId, spec, signal),
     [client, batch, discoveryId, spec],
   );
   const resource = useRemote(`discovery-detail:${discoveryId}:${JSON.stringify(spec)}`, load);
-  const d = resource.data?.detail;
+  const d = resource.data;
   const copy = d ? describeDiscovery(d) : null;
   const explorerOrigin = d && allowExplore ? originForDiscovery(d, spec) : null;
   return (
@@ -421,58 +386,60 @@ export function DiscoveryDetailDrawer({
       <Drawer title="发现详情" open onClose={onClose} size="min(720px, 100vw)">
         {resource.loading && <LoadingPanel />}
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
-        {d && resource.data && copy && (
+        {d && copy && (
           <>
             <h2>{discoveryPresentation(d).title}</h2>
             <p>分析范围：{conditionText(spec.scope_conditions)}</p>
-            {d.conditions.length > 0 && (
-              <p>分组或筛选条件：{discoveryConditionsText(d.conditions)}</p>
-            )}
-            <p data-testid="discovery-metrics">{metricsText(d)}</p>
             <p className="teacher-reading">{copy.numbers}</p>
-            <DiscoveryChart data={resource.data.chart} />
-            {d.type === 'group_difference' && (
-              <Table
-                size="small"
-                rowKey="dimension_code"
-                dataSource={d.chart}
-                pagination={false}
-                scroll={{ x: 550 }}
-                columns={[
-                  {
-                    title: '维度',
-                    render: (_, row) =>
-                      `${dimensionName(row.dimension_code)}${row.condition_defined ? '（筛选维度）' : ''}`,
-                  },
-                  { title: '符合条件学生均值', render: (_, row) => scoreText(row.target.mean) },
-                  {
-                    title: '其他可判定学生均值',
-                    render: (_, row) => scoreText(row.remainder.mean),
-                  },
-                  { title: '均值差', render: (_, row) => scoreText(row.difference) },
-                ]}
-              />
-            )}
-            <Button
-              type="primary"
-              disabled={!explorerOrigin}
-              onClick={() => {
-                if (!explorerOrigin) return;
-                exploreDiscovery(explorerOrigin);
-                onClose();
-                router.push(discoveryUrl(explorerOrigin));
-              }}
-            >
-              看看这组学生
-            </Button>
             <h3>查看学生与评分依据</h3>
-            <div className="live-metrics">
-              {d.controlled_queries.map((q) => (
-                <Button key={q.metric_key} onClick={() => setMetric(q.metric_key)}>
+            <div className="batch-actions">
+              {d.controlled_queries.map((q, index) => (
+                <Button
+                  key={q.metric_key}
+                  type={index === 0 ? 'primary' : 'default'}
+                  onClick={() => setMetric(q.metric_key)}
+                >
                   {sourceName(q.metric_key)}
                 </Button>
               ))}
+              {explorerOrigin && (
+                <Button
+                  onClick={() => {
+                    exploreDiscovery(explorerOrigin);
+                    onClose();
+                    router.push(discoveryUrl(explorerOrigin));
+                  }}
+                >
+                  看看这组学生
+                </Button>
+              )}
             </div>
+            <DiscoveryChart data={d} />
+            {d.type === 'group_difference' && (
+              <details className="discovery-evidence-notes">
+                <summary>详细对照数据</summary>
+                <Table
+                  size="small"
+                  rowKey="dimension_code"
+                  dataSource={d.chart}
+                  pagination={false}
+                  scroll={{ x: 550 }}
+                  columns={[
+                    {
+                      title: '维度',
+                      render: (_, row) =>
+                        `${dimensionName(row.dimension_code)}${row.condition_defined ? '（筛选维度）' : ''}`,
+                    },
+                    { title: '符合条件学生均值', render: (_, row) => scoreText(row.target.mean) },
+                    {
+                      title: '其他可判定学生均值',
+                      render: (_, row) => scoreText(row.remainder.mean),
+                    },
+                    { title: '均值差', render: (_, row) => scoreText(row.difference) },
+                  ]}
+                />
+              </details>
+            )}
             <details className="discovery-evidence-notes" aria-label="样本与使用限制">
               <summary>样本与使用限制</summary>
               {discoveryEvidenceNotes(d).map((note) => (

@@ -219,7 +219,10 @@ export async function teacherLayoutFlow({
 
   const pane = (value) => page.getByRole('radio', { name: value, exact: true }).locator('..');
   assert.equal(await page.getByRole('radio', { name: '重点关注', exact: true }).isChecked(), true);
-  const chosen = await focus().getByTestId('discovery-card').first().getAttribute('data-discovery-id');
+  const chosen = await focus()
+    .getByTestId('discovery-card')
+    .first()
+    .getAttribute('data-discovery-id');
   assert.notEqual(
     await focus().getByTestId('discovery-card').nth(1).getAttribute('data-discovery-id'),
     chosen,

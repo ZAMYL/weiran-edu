@@ -20,7 +20,6 @@ import {
   CheckCircleOutlined,
   DownOutlined,
   EditOutlined,
-  ExportOutlined,
 } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
@@ -577,15 +576,6 @@ function AnalysisEditor({
               <CheckCircleOutlined aria-hidden="true" />
               {dirty ? '未保存修改' : '已保存'}
             </span>
-            <Button
-              className="report-toolbar-export"
-              type="primary"
-              icon={<ExportOutlined aria-hidden="true" />}
-              disabled={dirty || operation.busy}
-              onClick={() => setExporting(true)}
-            >
-              导出报告
-            </Button>
           </>
         ) : undefined
       }

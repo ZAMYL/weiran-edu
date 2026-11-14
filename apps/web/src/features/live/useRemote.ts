@@ -12,6 +12,7 @@ export function useRemote<T>(
   identity: string | null,
   load: (signal: AbortSignal) => Promise<T>,
   cache?: OverviewCache,
+  defer = false,
 ) {
   const [attempt, setAttempt] = useState(0);
   const request = useMemo(
@@ -24,7 +25,7 @@ export function useRemote<T>(
     error: ApiError | null;
   }>({ request: null, data: null, error: null });
   useEffect(() => {
-    if (request === null) return;
+    if (request === null || defer) return;
     const controller = new AbortController();
     request
       .load(controller.signal)
@@ -48,7 +49,7 @@ export function useRemote<T>(
         }
       });
     return () => controller.abort();
-  }, [request, cache]);
+  }, [request, cache, defer]);
   const active = request !== null && result.request === request;
   const data = active ? result.data : request ? (cache?.read<T>(request.identity) ?? null) : null;
   return {

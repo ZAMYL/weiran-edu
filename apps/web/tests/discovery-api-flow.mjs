@@ -382,15 +382,17 @@ try {
     return await (await pending).json();
   }
   async function openCard(index = 0) {
-    const detail = nextResponse('/query'),
-      chart = nextResponse('/chart/query');
-    await page
-      .locator('.discoveries-panel')
-      .getByRole('button', { name: '查看具体评分', exact: true })
-      .nth(index)
-      .click();
-    await detail;
-    const full = await (await chart).json();
+    if ((await panel().getAttribute('open')) === null)
+      await panel().locator(':scope > summary').click();
+    const cards = panel().getByTestId('discovery-card');
+    await cards.first().waitFor();
+    while ((await cards.count()) <= index)
+      await panel().getByRole('button', { name: '查看更多线索', exact: true }).click();
+    const card = cards.nth(index);
+    const id = await card.getAttribute('data-discovery-id');
+    const detail = nextResponse(`/discoveries/${id}/query`);
+    await card.getByRole('button', { name: '查看具体评分', exact: true }).click();
+    const full = await (await detail).json();
     await page.getByTestId('discovery-chart').locator('svg').waitFor();
     return full;
   }
@@ -491,8 +493,6 @@ try {
     checkpoint = 'Excel upload, preview, commit and discovery list';
     const wide = await importThroughPage('wide', '合成发现五维测评');
     await panel().locator(':scope > summary').click();
-    for (const summary of await panel().locator('.discovery-type-group > summary').all())
-      await summary.click();
     const spec = {
       snapshot_id: wide.data.scope.snapshot_id,
       profile: 'edu.discovery.profile.v1',
@@ -508,17 +508,16 @@ try {
     checks.push(
       'UI Excel preview/commit -> real discovery list; exact full-range mean 619/212 and 53 students',
     );
-    checkpoint = 'discovery pagination';
-    const paged = nextResponse('/discoveries/query');
-    await panel().getByTitle('2', { exact: true }).click();
-    const second = await (await paged).json();
+    checkpoint = 'expand discovery list';
+    await panel().getByRole('button', { name: '查看更多线索', exact: true }).click();
+    assert.ok((await panel().getByTestId('discovery-card').count()) > 10);
+    const second = (
+      await post(`/batches/${wide.batchId}/discoveries/query`, { ...spec, offset: 10, limit: 10 })
+    ).body;
     assert.deepEqual(second.scope, wide.data.scope);
     assert.equal(second.page.offset, 10);
     assert.equal(second.retained_count, wide.data.retained_count);
-    const firstPage = nextResponse('/discoveries/query');
-    await panel().getByTitle('1', { exact: true }).click();
-    await firstPage;
-    checks.push('discovery pagination preserves complete scope, denominators and statistics');
+    checks.push('expandable discovery list and API pagination preserve scope and statistics');
     checkpoint = 'detail, full chart and original group';
     const full = await openCard();
     assert.equal(full.metrics.student_denominator, 53);
@@ -566,13 +565,7 @@ try {
     assert.equal(completeList.status, 200);
     const groupIndex = completeList.body.items.findIndex((c) => c.type === 'group_difference');
     assert.ok(groupIndex >= 0);
-    const groupPage = Math.floor(groupIndex / 10) + 1;
-    if (groupPage > 1) {
-      const pending = nextResponse('/discoveries/query');
-      await panel().getByTitle(String(groupPage), { exact: true }).click();
-      await pending;
-    }
-    const groupChart = await openCard(groupIndex % 10);
+    const groupChart = await openCard(groupIndex);
     assert.equal(groupChart.type, 'group_difference');
     assert.equal(
       groupChart.metrics.target_count +
@@ -621,13 +614,7 @@ try {
     assert.equal(boundary.status, 200);
     const boundaryIndex = boundary.body.items.findIndex((c) => c.type === 'boundary_sensitivity');
     assert.ok(boundaryIndex >= 0);
-    const boundaryPage = Math.floor(boundaryIndex / 10) + 1;
-    if (boundaryPage > 1) {
-      const pending = nextResponse('/discoveries/query');
-      await panel().getByTitle(String(boundaryPage), { exact: true }).click();
-      await pending;
-    }
-    const boundaryChart = await openCard(boundaryIndex % 10);
+    const boundaryChart = await openCard(boundaryIndex);
     assert.equal(boundaryChart.type, 'boundary_sensitivity');
     assert.equal(boundaryChart.metrics.student_denominator, 40);
     assert.equal(boundaryChart.metrics.added_count, 13);

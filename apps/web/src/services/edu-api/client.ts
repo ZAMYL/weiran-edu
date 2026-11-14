@@ -254,7 +254,22 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     body: unknown,
     signal?: AbortSignal,
   ) => {
-    const result = await post(`${base(batch)}/discoveries/${suffix}`, decoder, body, signal);
+    const path = `${base(batch)}/discoveries/${suffix}`;
+    const load = () => post(path, decoder, body, signal);
+    const result = await (async () => {
+      // Navigating can abort a browser request while the authorized server read is still finishing.
+      const waits = [400, 800, 1600, 2400];
+      for (const wait of waits) {
+        try {
+          return await load();
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY') throw error;
+          await new Promise((resolve) => setTimeout(resolve, wait));
+          signal?.throwIfAborted();
+        }
+      }
+      return load();
+    })();
     assertSnapshot(result.scope, batch);
     const canonical = (conditions: ApiCondition[]) =>
       JSON.stringify(

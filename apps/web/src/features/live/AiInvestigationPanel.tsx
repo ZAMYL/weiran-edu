@@ -221,7 +221,9 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       {showQuestion && (
         <details className="ai-custom-question">
           <summary>自拟问题</summary>
-          <label className="visually-hidden" htmlFor="ai-question">想了解什么？</label>
+          <label className="visually-hidden" htmlFor="ai-question">
+            想了解什么？
+          </label>
           <Input.TextArea
             id="ai-question"
             aria-describedby="ai-scope"

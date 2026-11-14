@@ -56,19 +56,7 @@ function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contextKey: s
     activeReport?.batchId === batch.batch_id && activeReport?.snapshotId === batch.snapshot_id;
   const load = useCallback(
     async (signal: AbortSignal) => {
-      const fetchCandidates = () => client.discoveries(batch, scope, 0, signal, 50);
-      let result;
-      for (let attempt = 0; ; attempt++) {
-        try {
-          result = await fetchCandidates();
-          break;
-        } catch (error) {
-          if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY' || attempt >= 2)
-            throw error;
-          // Diagnosis may still be releasing its discovery worker during navigation.
-          await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
-        }
-      }
+      const result = await client.discoveries(batch, scope, 0, signal, 50);
       if (result.items.length !== result.retained_count)
         throw new ApiError(502, 'INVALID_API_RESPONSE');
       return {

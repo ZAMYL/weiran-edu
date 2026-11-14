@@ -121,19 +121,11 @@ export async function teacherProductFlow(h) {
   assert.ok(index >= 0);
   if ((await panel().getAttribute('open')) === null)
     await panel().locator(':scope > summary').click();
-  const pageNumber = Math.floor(index / 10) + 1;
-  if (pageNumber > 1) {
-    const p = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 200);
-    await panel().getByTitle(String(pageNumber), { exact: true }).click();
-    await p;
-  }
-  if ((await panel().getAttribute('open')) === null)
-    await panel().locator(':scope > summary').click();
   const chosen = all.body.items[index];
-  await page.getByRole('combobox', { name: '查看发现类型', exact: true }).click();
-  await page.locator('.ant-select-dropdown:visible').getByText('全部发现', { exact: true }).click();
-  for (const summary of await panel().locator('.discovery-type-group > summary').all())
-    await summary.click();
+  await panel().getByTestId('discovery-card').first().waitFor();
+  for (let offset = 10; offset <= index; offset += 10) {
+    await panel().getByRole('button', { name: '查看更多线索', exact: true }).click();
+  }
   const chosenCard = panel().locator(`[data-discovery-id="${chosen.discovery_id}"]`);
   assert.equal(await chosenCard.getByRole('checkbox').count(), 0);
   const detailResponse = wait(

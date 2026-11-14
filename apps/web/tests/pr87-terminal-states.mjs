@@ -104,6 +104,7 @@ try {
   assert.equal(await pointer(), null);
   checks.push('404 restore clears the pointer and makes no promise about starting again');
 
+  await panel.locator('.ai-custom-question summary').click();
   await question.fill('有哪些值得关注的问题？');
   await Promise.all([waitForTaskResponse('POST', 202, collectionPath), startButton.click()]);
   const stopButton = panel.getByRole('button', { name: '停止分析', exact: true });
@@ -158,6 +159,7 @@ try {
   await Promise.all([waitForTaskResponse('GET', 410, taskPath), page.reload()]);
   await notice.waitFor();
   assert.equal(await pointer(), null);
+  await panel.locator('.ai-custom-question summary').click();
   await question.fill('有哪些值得关注的问题？');
   const [conflict] = await Promise.all([
     waitForTaskResponse('POST', 409, collectionPath),
