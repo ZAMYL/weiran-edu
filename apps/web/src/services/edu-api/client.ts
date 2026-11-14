@@ -120,9 +120,11 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
   let bearer: string | null = null;
   let testSession = false;
   let generation = 0;
+  let diagnosisSession = crypto.randomUUID();
   const pending = new Set<AbortController>();
   function clear() {
     generation++;
+    diagnosisSession = crypto.randomUUID();
     bearer = null;
     testSession = false;
     pending.forEach((c) => c.abort());
@@ -232,8 +234,18 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     decoder: Decoder<T>,
     body: unknown,
     signal?: AbortSignal,
+    diagnosisReuse = false,
   ) => {
-    const result = await post(`${base(batch)}/discoveries/${suffix}`, decoder, body, signal);
+    const result = await request(
+      `${base(batch)}/discoveries/${suffix}`,
+      decoder,
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+        ...(diagnosisReuse ? { headers: { 'X-EDU-Diagnosis-Session': diagnosisSession } } : {}),
+      },
+      signal,
+    );
     assertSnapshot(result.scope, batch);
     const canonical = (conditions: ApiCondition[]) =>
       JSON.stringify(
@@ -368,6 +380,31 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     },
     discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal) =>
       discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal),
+    diagnosisDiscoveries: (
+      batch: ApiBatch,
+      spec: DiscoverySpec,
+      offset = 0,
+      signal?: AbortSignal,
+    ) =>
+      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal, true),
+    diagnosisDiscoveryDetail: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      spec: DiscoverySpec,
+      signal?: AbortSignal,
+    ) => {
+      const result = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/query`,
+        discoveryDetailDto,
+        spec,
+        signal,
+        true,
+      );
+      if (result.discovery_id !== discoveryId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return result;
+    },
     discoveryDetail: async (
       batch: ApiBatch,
       discoveryId: string,

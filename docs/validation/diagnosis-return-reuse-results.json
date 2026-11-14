@@ -1,0 +1,485 @@
+{
+  "baseline_sha": "15788491b536d408005030ddbed2cee2d1a9f6b2",
+  "candidate_branch": "codex/edu-diagnosis-return-reuse",
+  "synthetic_only": true,
+  "real_qwen": "not_run",
+  "dataset": "precision105.xlsx for first/return; contrast105.xlsx and a separate 53-student teacher for isolation; wide.xlsx for revision",
+  "before": {
+    "startedAt": "2026-11-14T11:44:36.548Z",
+    "finishedAt": "2026-11-14T11:47:23.581Z",
+    "measurements": [
+      {
+        "label": "first",
+        "ms": 21033,
+        "focusMs": 21030,
+        "workerExecutions": 3,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-1",
+        "ms": 17138,
+        "focusMs": 17137,
+        "workerExecutions": 3,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-2",
+        "ms": 18028,
+        "focusMs": 18027,
+        "workerExecutions": 3,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-3",
+        "ms": 15410,
+        "focusMs": 15410,
+        "workerExecutions": 3,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      }
+    ],
+    "discoveryRequests": [
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/query",
+        "status": 200,
+        "ms": 8231
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/398da8baef43c2751c1078a1/query",
+        "status": 200,
+        "ms": 4942
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/212da4f4cf16cea8670c2a3c/query",
+        "status": 200,
+        "ms": 5518
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/query",
+        "status": 200,
+        "ms": 6558
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/398da8baef43c2751c1078a1/query",
+        "status": 200,
+        "ms": 4842
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/212da4f4cf16cea8670c2a3c/query",
+        "status": 200,
+        "ms": 4922
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/query",
+        "status": 200,
+        "ms": 7449
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/398da8baef43c2751c1078a1/query",
+        "status": 200,
+        "ms": 5086
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/212da4f4cf16cea8670c2a3c/query",
+        "status": 200,
+        "ms": 4778
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/query",
+        "status": 200,
+        "ms": 6269
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/398da8baef43c2751c1078a1/query",
+        "status": 200,
+        "ms": 4052
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/210229c4-2148-4aba-9041-725531455b23/discoveries/212da4f4cf16cea8670c2a3c/query",
+        "status": 200,
+        "ms": 4569
+      }
+    ],
+    "pageErrors": []
+  },
+  "after": {
+    "startedAt": "2026-11-14T11:55:08.940Z",
+    "finishedAt": "2026-11-14T11:58:35.976Z",
+    "measurements": [
+      {
+        "label": "first",
+        "ms": 9226,
+        "focusMs": 9223,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-1",
+        "ms": 4189,
+        "focusMs": 4188,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-2",
+        "ms": 4104,
+        "focusMs": 4103,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-3",
+        "ms": 4792,
+        "focusMs": 4791,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      }
+    ],
+    "discoveryRequests": [
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/query",
+        "status": 200,
+        "ms": 5791
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/e320d6034ac23b3ec2c51331/query",
+        "status": 200,
+        "ms": 747
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/822012c7eb90a3f42f161e9e/query",
+        "status": 200,
+        "ms": 770
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/query",
+        "status": 200,
+        "ms": 2205
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/e320d6034ac23b3ec2c51331/query",
+        "status": 200,
+        "ms": 808
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/822012c7eb90a3f42f161e9e/query",
+        "status": 200,
+        "ms": 801
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/query",
+        "status": 200,
+        "ms": 2230
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/e320d6034ac23b3ec2c51331/query",
+        "status": 200,
+        "ms": 658
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/822012c7eb90a3f42f161e9e/query",
+        "status": 200,
+        "ms": 918
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/query",
+        "status": 200,
+        "ms": 2632
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/e320d6034ac23b3ec2c51331/query",
+        "status": 200,
+        "ms": 776
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/60956125-129e-4eac-bf50-5d735a53437b/discoveries/822012c7eb90a3f42f161e9e/query",
+        "status": 200,
+        "ms": 796
+      }
+    ],
+    "pageErrors": []
+  },
+  "isolation": {
+    "passed": true,
+    "checks": [
+      "real chart/student/evidence reads 200; no reuse header",
+      "logout clears cards; teacher B sees own batch only",
+      "revoked membership: 404; zero old cards",
+      "token revoked: 401 and session cleared, zero old cards",
+      "real revision: new batch/snapshot computes independently; mismatched snapshot 409; authorized historical snapshot remains legal"
+    ],
+    "measurements": [
+      {
+        "label": "first",
+        "ms": 15046,
+        "focusMs": 15041,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-1",
+        "ms": 5239,
+        "focusMs": 5238,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-2",
+        "ms": 5672,
+        "focusMs": 5672,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-3",
+        "ms": 6280,
+        "focusMs": 6279,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "switch-batch",
+        "ms": 6621,
+        "focusMs": 6620,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈反向变化"
+      },
+      {
+        "label": "return-other-batch",
+        "ms": 2688,
+        "focusMs": 2687,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈反向变化"
+      },
+      {
+        "label": "reconnect-same-token",
+        "ms": 6767,
+        "focusMs": 6766,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈反向变化"
+      },
+      {
+        "label": "switch-teacher",
+        "ms": 5439,
+        "focusMs": 5438,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与解题策略评分呈反向变化"
+      },
+      {
+        "label": "reconnect-after-membership-restore",
+        "ms": 6241,
+        "focusMs": 6239,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与解题策略评分呈反向变化"
+      },
+      {
+        "label": "owner-reconnect",
+        "ms": 5938,
+        "focusMs": 5938,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈反向变化"
+      },
+      {
+        "label": "authorized-historical-snapshot",
+        "ms": 5416,
+        "focusMs": 5416,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "new-snapshot",
+        "ms": 4608,
+        "focusMs": 4606,
+        "workerExecutions": 2,
+        "discoveryRequests": 2,
+        "statuses": [
+          200,
+          200
+        ],
+        "title": "算法与数据结构与解题策略评分呈同向变化"
+      }
+    ],
+    "observedRejects": [
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/0c68c12d-d816-4f4e-bf0d-fc512c04d177/statistics",
+        "status": 404,
+        "ms": 94
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/0c68c12d-d816-4f4e-bf0d-fc512c04d177/capabilities",
+        "status": 404,
+        "ms": 153
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/0c68c12d-d816-4f4e-bf0d-fc512c04d177/rubric",
+        "status": 404,
+        "ms": 146
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/0c68c12d-d816-4f4e-bf0d-fc512c04d177/discoveries/query",
+        "status": 404,
+        "ms": 199
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/0c68c12d-d816-4f4e-bf0d-fc512c04d177/insights/query",
+        "status": 404,
+        "ms": 178
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/0c68c12d-d816-4f4e-bf0d-fc512c04d177/discoveries/query",
+        "status": 401,
+        "ms": 61
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/3bcb9bbf-da7b-489e-9c60-5ef213b2acef/discoveries/query",
+        "status": 409,
+        "ms": 23
+      }
+    ],
+    "pageErrors": []
+  }
+}

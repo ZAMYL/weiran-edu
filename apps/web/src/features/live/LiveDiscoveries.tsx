@@ -120,7 +120,7 @@ export default function LiveDiscoveries({
     [batch.snapshot_id, conditions],
   );
   const load = useCallback(
-    (signal: AbortSignal) => client.discoveries(batch, spec, offset, signal),
+    (signal: AbortSignal) => client.diagnosisDiscoveries(batch, spec, offset, signal),
     [client, batch, spec, offset],
   );
   const resource = useRemote(
@@ -143,7 +143,12 @@ export default function LiveDiscoveries({
       const represented = new Set<DiscoveryDetail['type']>();
       for (const card of needed) {
         if (represented.has(card.type)) continue;
-        const detail = await client.discoveryDetail(batch, card.discovery_id, spec, signal);
+        const detail = await client.diagnosisDiscoveryDetail(
+          batch,
+          card.discovery_id,
+          spec,
+          signal,
+        );
         result[card.discovery_id] = detail;
         if (eligibleForFocus(detail)) represented.add(detail.type);
         if (represented.size >= 3) break;

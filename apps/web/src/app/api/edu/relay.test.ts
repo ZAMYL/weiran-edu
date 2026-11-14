@@ -3,6 +3,34 @@ import { GET, POST, PATCH } from './[...path]/route';
 
 const bearer = 'Bearer synthetic-test-credential-not-real';
 const context = (path: string) => ({ params: Promise.resolve({ path: path.split('/') }) });
+
+it.each([
+  ['batches/b/discoveries/query', true],
+  [`batches/b/discoveries/${'a'.repeat(24)}/query`, true],
+  [`batches/b/discoveries/${'a'.repeat(24)}/records/query`, false],
+  ['batches/b/analysis-results', false],
+])('only forwards the diagnosis reuse session for aggregate %s', async (route, allowed) => {
+  vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json({ error: { code: 'SYNTHETIC_FAILURE' } }, { status: 503 }));
+  vi.stubGlobal('fetch', fetcher);
+  await POST(
+    new Request('http://localhost/api/edu/' + route, {
+      method: 'POST',
+      headers: {
+        authorization: bearer,
+        'x-edu-diagnosis-session': '11111111-1111-4111-8111-111111111111',
+      },
+      body: '{}',
+    }),
+    context(route),
+  );
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(new Headers(fetcher.mock.lastCall![1]?.headers).has('x-edu-diagnosis-session')).toBe(
+    allowed,
+  );
+});
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
