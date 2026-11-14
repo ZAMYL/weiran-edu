@@ -51,7 +51,7 @@ class ReviewedBudget(CampaignBudget):
     def __init__(
         self,
         approval: ReviewedApproval,
-        state_dir: Path,
+        state_dir: Path | None = None,
         *,
         authorize: Callable[[], None],
         transport: httpx.MockTransport | None = None,
