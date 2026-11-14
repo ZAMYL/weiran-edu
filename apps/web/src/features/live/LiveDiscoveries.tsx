@@ -9,6 +9,7 @@ import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
 import { describeDiscovery } from '../../services/edu-api/teacher-analysis';
+import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 import {
   discoveryConditionsText,
   discoveryEvidenceNotes,
@@ -29,8 +30,8 @@ import { LoadingPanel, RequestError } from './LiveStatus';
 import { useRemote } from './useRemote';
 
 const typeNames = {
-  dimension_relation: '维度关联',
-  group_difference: '群体差异',
+  dimension_relation: '两项评分的关系',
+  group_difference: '两组学生的评分差别',
   rare_combination: '少见评分组合',
   boundary_sensitivity: '边界比较',
 };
@@ -110,7 +111,7 @@ export default function LiveDiscoveries({
   const checked =
     reportDraft?.key === contextKey ? (reportDraft.discovery?.discovery_ids ?? []) : [];
   const [view, setView] = useState('all');
-  const [offset, setOffset] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(10);
   const [selected, setSelected] = useState<string | null>(null);
   const spec: DiscoverySpec = useMemo(
     () => ({
@@ -121,17 +122,19 @@ export default function LiveDiscoveries({
     [batch.snapshot_id, conditions],
   );
   const load = useCallback(
-    (signal: AbortSignal) => client.discoveries(batch, spec, offset, signal),
-    [client, batch, spec, offset],
+    (signal: AbortSignal) => client.discoveries(batch, spec, 0, signal, 50),
+    [client, batch, spec],
   );
   const resource = useRemote(
-    `discoveries:${batch.batch_id}:${JSON.stringify(spec)}:${offset}`,
+    `discovery-overview:${batch.batch_id}:${JSON.stringify(spec)}`,
     load,
+    client.overviewCache,
   );
   const items = useMemo(() => resource.data?.items ?? [], [resource.data]);
-  const needed = useMemo(
-    () => items.filter((card) => card.status !== 'insufficient_evidence'),
-    [items],
+  const candidatesKey = JSON.stringify(
+    items.slice(0, 10)
+      .filter((card) => card.status !== 'insufficient_evidence')
+      .map((card) => ({ id: card.discovery_id, type: card.type })),
   );
   const visible = useMemo(
     () => items.filter((card) => view === 'all' || card.type === view),
@@ -142,20 +145,24 @@ export default function LiveDiscoveries({
       const result: Record<string, DiscoveryDetail> = {};
       // Sequential, bounded reads retain the backend's eligibility and concurrency checks.
       const represented = new Set<DiscoveryDetail['type']>();
-      for (const card of needed) {
+      const candidates: { id: string; type: DiscoveryDetail['type'] }[] = JSON.parse(candidatesKey);
+      for (const card of candidates) {
         if (represented.has(card.type)) continue;
-        const detail = await client.discoveryDetail(batch, card.discovery_id, spec, signal);
-        result[card.discovery_id] = detail;
+        const detail = await client.discoveryDetail(batch, card.id, spec, signal);
+        result[card.id] = detail;
         if (eligibleForFocus(detail)) represented.add(detail.type);
         if (represented.size >= 3) break;
       }
       return result;
     },
-    [client, batch, spec, needed],
+    [client, batch, spec, candidatesKey],
   );
   const details = useRemote(
-    needed.length ? `discovery-card-details:${contextKey}:${offset}` : null,
+    candidatesKey !== '[]' && !resource.error
+      ? `discovery-card-details:${contextKey}:${candidatesKey}`
+      : null,
     loadDetails,
+    client.overviewCache,
   );
   const focus = useMemo(
     () =>
@@ -270,11 +277,14 @@ export default function LiveDiscoveries({
         >
           <div>
             <h3>{titleFor(card)}</h3>
-            {details.data?.[card.discovery_id] && (
-              <p className="muted small">
-                {discoveryPresentation(details.data[card.discovery_id]!).grouping}
-              </p>
-            )}
+            <p className="teacher-reading">
+              {details.data?.[card.discovery_id]
+                ? describeDiscovery(details.data[card.discovery_id]!).numbers
+                : discoverySummaryText(card.summary)
+                    .replace(/目标组(\d+)人，余组(\d+)人/g, '本组 $1 人，其他学生 $2 人')
+                    .replace('有效均值差为', '平均分相差 ')
+                    .replace('（目标减余组）', '（本组减其他学生）')}
+            </p>
             {(card.status === 'insufficient_evidence' ||
               (details.data?.[card.discovery_id] &&
                 !eligibleForFocus(details.data[card.discovery_id]!))) && (
@@ -341,7 +351,7 @@ export default function LiveDiscoveries({
       </div>
       {resource.data && (
         <>
-          {details.loading && needed.length ? (
+          {details.loading ? (
             <p role="status">正在读取发现依据…</p>
           ) : focus.length ? (
             renderCards(focus)
@@ -365,9 +375,6 @@ export default function LiveDiscoveries({
               </div>
             )
           )}
-          {focus.length > 0 && (
-            <p className="discovery-selection-note">更多发现见下方「全部发现和统计详情」。</p>
-          )}
         </>
       )}
       {onSelection && checked.length > 0 && (
@@ -389,51 +396,37 @@ export default function LiveDiscoveries({
     <>
       {children(focusPanel)}
       <details className="panel all-discoveries-panel">
-        <summary>全部发现和统计详情</summary>
+        <summary>更多评分线索</summary>
         <div className="discovery-toolbar">
           <p>分析范围：{conditionText(spec.scope_conditions)}</p>
           <Select
             aria-label="查看发现类型"
             value={view}
             options={[
-              { value: 'all', label: '全部发现' },
+              { value: 'all', label: '所有类型' },
               ...Object.entries(typeNames).map(([value, label]) => ({ value, label })),
             ]}
-            onChange={setView}
+            onChange={(next) => {
+              setView(next);
+              setVisibleCount(10);
+            }}
           />
         </div>
         {resource.data && (
           <>
-            {view === 'all' ? (
-              Object.entries(typeNames)
-                .filter(([type]) => items.some((card) => card.type === type))
-                .map(([type, label]) => (
-                  <details className="discovery-type-group" key={type}>
-                    <summary>
-                      {label} · 当前页 {items.filter((card) => card.type === type).length} 项
-                    </summary>
-                    {renderRows(items.filter((card) => card.type === type))}
-                  </details>
-                ))
-            ) : visible.length ? (
-              renderRows(visible)
+            {visible.length ? (
+              renderRows(visible.slice(0, visibleCount))
             ) : (
-              <p>当前页暂无此类型发现，可查看其他页。</p>
+              <p>当前范围没有这类评分线索。</p>
             )}
             {resource.data.truncated && (
               <p className="muted small">
-                本次保留 {resource.data.retained_count} 项结果，并非全部可能的发现。
+                这里展示本次分析保留的线索。
               </p>
             )}
-            <Pagination
-              current={offset / 10 + 1}
-              total={resource.data.retained_count}
-              pageSize={10}
-              showSizeChanger={false}
-              hideOnSinglePage
-              onChange={(p) => setOffset((p - 1) * 10)}
-              showTotal={(n) => `共 ${n} 项发现`}
-            />
+            {visible.length > visibleCount && (
+              <Button onClick={() => setVisibleCount((count) => count + 10)}>查看更多线索</Button>
+            )}
           </>
         )}
       </details>

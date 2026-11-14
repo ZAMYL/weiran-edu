@@ -102,7 +102,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
     },
     [client, batch],
   );
-  const stats = useRemote(`insight-stats:${batch.batch_id}:${batch.snapshot_id}`, loadStatistics);
+  const stats = useRemote(`insight-stats:${batch.batch_id}:${batch.snapshot_id}`, loadStatistics, client.overviewCache);
   const loadInsights = useCallback(
     (signal: AbortSignal) => client.insights(batch, spec, offset, signal),
     [client, batch, spec, offset],

@@ -196,31 +196,35 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const resultLabel = task?.result && stopLabels[task.result.stop_reason];
   const status = restoring ? '正在读取分析任务…' : (resultLabel ?? taskLabel);
   return (
-    <Panel title="AI 分析" className="ai-investigation-panel">
+    <Panel title="这次测评有什么值得关注？" className="ai-investigation-panel">
       <div className="ai-question-heading">
-        {showQuestion && <label htmlFor="ai-question">想了解什么？</label>}
         <span id="ai-scope" className="muted">
-          全体参评者 · {batch.student_count} 人
+          AI 分析 · {batch.student_count} 名参评者
         </span>
       </div>
-      {showQuestion && (
-        <Input.TextArea
-          id="ai-question"
-          aria-describedby="ai-scope"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          maxLength={300}
-          autoSize={{ minRows: 2, maxRows: 4 }}
-          placeholder="有哪些值得关注的问题？"
-          disabled={busy || restoring || running}
-        />
-      )}
       {canStart && !restoring && (
         <TeacherQuestionSuggestions
           items={batch.recognized_items ?? legacyItems}
           disabled={busy}
+          selected={question}
           onChoose={setQuestion}
         />
+      )}
+      {showQuestion && (
+        <details className="ai-custom-question">
+          <summary>自拟问题</summary>
+          <label className="visually-hidden" htmlFor="ai-question">想了解什么？</label>
+          <Input.TextArea
+            id="ai-question"
+            aria-describedby="ai-scope"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            maxLength={300}
+            autoSize={{ minRows: 2, maxRows: 4 }}
+            placeholder="例如：有哪些值得关注的问题？"
+            disabled={busy || restoring || running}
+          />
+        </details>
       )}
       {(showQuestion || (status && !task?.error_code)) && (
         <div className="ai-task-actions">

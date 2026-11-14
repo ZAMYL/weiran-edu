@@ -122,12 +122,31 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
   let testSession = false;
   let generation = 0;
   const pending = new Set<AbortController>();
+  // Only explicitly opted-in, aggregate display data. Each mount still checks live access.
+  const overviews = new Map<string, { at: number; data: unknown }>();
+  const overviewCache = {
+    read<T>(key: string): T | null {
+      const entry = overviews.get(key);
+      return entry && Date.now() - entry.at < 30_000 ? (entry.data as T) : null;
+    },
+    write<T>(key: string, data: T) {
+      if (overviews.size >= 12 && !overviews.has(key)) {
+        const oldest = overviews.keys().next().value;
+        if (oldest !== undefined) overviews.delete(oldest);
+      }
+      overviews.set(key, { at: Date.now(), data });
+    },
+    evict(key: string) {
+      overviews.delete(key);
+    },
+  };
   function clear() {
     generation++;
     bearer = null;
     testSession = false;
     pending.forEach((c) => c.abort());
     pending.clear();
+    overviews.clear();
   }
   function authenticate(token: string) {
     clear();
@@ -180,6 +199,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
           clear();
           onUnauthorized();
         }
+        if ([403, 404, 409, 410].includes(response.status)) overviews.clear();
         throw failure;
       }
       try {
@@ -247,6 +267,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     return result;
   };
   return {
+    overviewCache,
     startAiTask: async (batch: ApiBatch, question: string, key: string, signal?: AbortSignal) =>
       assertSnapshot(
         await post(
@@ -367,8 +388,8 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       if (receipt.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
       return receipt;
     },
-    discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal) =>
-      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal),
+    discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal, limit = 10) =>
+      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit }, signal),
     discoveryDetail: async (
       batch: ApiBatch,
       discoveryId: string,

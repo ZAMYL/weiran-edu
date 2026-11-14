@@ -552,6 +552,15 @@
   gap: 8px;
   margin: 10px 0;
 }
+.ai-custom-question {
+  margin-top: 12px;
+}
+.ai-custom-question summary {
+  cursor: pointer;
+}
+.ai-custom-question textarea {
+  margin-top: 8px;
+}
 .ai-question-suggestions .ant-btn {
   max-width: 100%;
   min-height: 32px;
