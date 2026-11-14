@@ -1,13 +1,19 @@
 'use client';
+import { useCallback, useMemo, useState } from 'react';
 import { useDataMode } from '../../app/data-mode';
-import { Button } from 'antd';
+import { Button, Checkbox } from 'antd';
 import { useRouter } from 'next/navigation';
 import { Panel } from '../../components/ui';
-import { NoBatch } from './LiveStatus';
+import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
 import { conditionText } from '../../services/edu-api/view-model';
+import { ApiError } from '../../services/edu-api/client';
+import type { ApiBatch } from '../../services/edu-api/types';
+import type { DiscoverySpec } from '../../services/edu-api/discovery-types';
 import AnalysisActions from './AnalysisActions';
+import { useRemote } from './useRemote';
+
 export default function LiveReportsPage() {
-  const { batch, conditions, reportDraft, setReportDraft, openAssessments } = useDataMode();
+  const { batch, conditions, openAssessments } = useDataMode();
   const router = useRouter();
   if (!batch) return <NoBatch />;
   if (batch.recognized_items)
@@ -26,73 +32,106 @@ export default function LiveReportsPage() {
       </Panel>
     );
   const key = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
-  const draft = reportDraft?.key === key ? reportDraft : null;
+  return <ReportWorkspace key={key} batch={batch} contextKey={key} />;
+}
+
+function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contextKey: string }) {
+  const { client, conditions, reportDraft, activeReport } = useDataMode();
+  const draft = reportDraft?.key === contextKey ? reportDraft : null;
   const spec = draft?.spec ?? {
     snapshot_id: batch.snapshot_id,
     conditions,
     include_dimensions: false,
   };
+  const scope = useMemo<DiscoverySpec>(
+    () => ({
+      snapshot_id: batch.snapshot_id,
+      scope_conditions: draft?.spec.conditions ?? conditions,
+      profile: 'edu.discovery.profile.v1',
+    }),
+    [batch.snapshot_id, draft?.spec.conditions, conditions],
+  );
+  const [excluded, setExcluded] = useState<string[]>([]);
+  const active =
+    activeReport?.batchId === batch.batch_id && activeReport?.snapshotId === batch.snapshot_id;
+  const load = useCallback(
+    async (signal: AbortSignal) => {
+      const fetchCandidates = () => client.discoveries(batch, scope, 0, signal, 50);
+      let result;
+      for (let attempt = 0; ; attempt++) {
+        try {
+          result = await fetchCandidates();
+          break;
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY' || attempt >= 2)
+            throw error;
+          // Diagnosis may still be releasing its discovery worker during navigation.
+          await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+        }
+      }
+      if (result.items.length !== result.retained_count)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return {
+        inputKey: result.scope.input_key,
+        items: result.items
+          .filter((item) => item.status !== 'insufficient_evidence')
+          .map((item) => ({ id: item.discovery_id, title: item.title })),
+      };
+    },
+    [client, batch, scope],
+  );
+  const candidates = useRemote(
+    !draft?.discovery && !active ? `report-discoveries:${contextKey}` : null,
+    load,
+  );
+  const items = draft?.discovery ? draft.names : (candidates.data?.items ?? []);
+  const inputKey = draft?.discovery?.input_key ?? candidates.data?.inputKey;
+  const included = items.filter((item) => !excluded.includes(item.id));
+  const discovery = inputKey
+    ? { input_key: inputKey, discovery_ids: included.map((item) => item.id) }
+    : undefined;
   return (
     <div className="page-stack reports-page">
       <AnalysisActions
-        key={key}
         batch={batch}
         spec={spec}
-        discovery={draft?.discovery}
+        discovery={discovery}
+        blocked={
+          candidates.loading
+            ? '正在读取发现…'
+            : candidates.error
+              ? '暂时无法读取报告内容。'
+              : undefined
+        }
         draftContent={
           <Panel title="本次报告内容" subtitle={batch.title}>
             <p>分析范围：{conditionText(spec.conditions)}</p>
-            {draft?.discovery?.discovery_ids.length ? (
-              <>
-                <p>已加入待保存的报告 · {draft.discovery.discovery_ids.length} 项发现</p>
-                <ul className="report-draft-list">
-                  {draft.names
-                    .filter((item) => draft.discovery?.discovery_ids.includes(item.id))
-                    .map((item) => (
-                      <li key={item.id}>
-                        <span>{item.title}</span>
-                        <Button
-                          size="small"
-                          type="text"
-                          aria-label={`移除 ${item.title}`}
-                          onClick={() =>
-                            setReportDraft({
-                              ...draft,
-                              discovery: {
-                                ...draft.discovery!,
-                                discovery_ids: draft.discovery!.discovery_ids.filter(
-                                  (id) => id !== item.id,
-                                ),
-                              },
-                              names: draft.names.filter((name) => name.id !== item.id),
-                            })
-                          }
-                        >
-                          移除
-                        </Button>
-                      </li>
-                    ))}
-                </ul>
-              </>
-            ) : (
-              <p className="teacher-reading">
-                可以先保存测评概况。如需整理发现，请到学情诊断选择要核查的发现。
-              </p>
+            {candidates.loading && <LoadingPanel />}
+            {candidates.error && <RequestError error={candidates.error} retry={candidates.retry} />}
+            {items.length > 0 && (
+              <ul className="report-draft-list">
+                {items.map((item) => (
+                  <li key={item.id}>
+                    <Checkbox
+                      value={item.id}
+                      checked={!excluded.includes(item.id)}
+                      onChange={(event) =>
+                        setExcluded((ids) =>
+                          event.target.checked
+                            ? ids.filter((id) => id !== item.id)
+                            : [...ids, item.id],
+                        )
+                      }
+                    >
+                      {item.title}
+                    </Checkbox>
+                  </li>
+                ))}
+              </ul>
             )}
-            {draft?.discovery?.discovery_ids.length ? (
-              <button
-                className="text-link"
-                onClick={() =>
-                  setReportDraft({
-                    ...draft,
-                    discovery: { ...draft.discovery!, discovery_ids: [] },
-                    names: [],
-                  })
-                }
-              >
-                清除待保存发现
-              </button>
-            ) : null}
+            {!items.length && !candidates.loading && !candidates.error && (
+              <p className="muted">当前范围可保存测评概况。</p>
+            )}
           </Panel>
         }
       />

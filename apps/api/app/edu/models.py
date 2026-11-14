@@ -145,6 +145,11 @@ class Batch(Model):
     revision_of_batch_id: str | None
     is_current: bool
     created_at: str
+    archived: bool = False
+
+
+class BatchArchive(Model):
+    archived: bool
 
 
 class BatchList(Model):

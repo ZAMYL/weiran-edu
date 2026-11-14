@@ -158,7 +158,7 @@ export default function AnalysisActions({
     session.activeReport?.batchId === batch.batch_id &&
     session.activeReport.snapshotId === batch.snapshot_id
       ? { resultId: session.activeReport.resultId }
-      : reportPage && (session.reportDraft?.showSaved || !session.reportDraft)
+      : reportPage && session.reportDraft?.showSaved
         ? { resultId: null }
         : null,
   );
@@ -286,9 +286,8 @@ function SaveAnalysis({
       <p>分析范围：{conditionText(spec.conditions)}</p>
       <p className="muted small">
         {discovery
-          ? `已选择 ${discovery.discovery_ids.length} 项发现；未选择时仅保存范围概况`
-          : '仅保存测评概况，不自动加入未选择的发现'}
-        ；完整统计与所选内容将在保存时核验，不受当前分页影响。
+          ? `本次保存 ${discovery.discovery_ids.length} 项发现，保存后可逐项核验。`
+          : '本次保存测评概况。'}
       </p>
       <div className="analysis-fields">
         <label htmlFor="save-analysis-title">分析名称</label>
@@ -765,7 +764,7 @@ function AnalysisEditor({
                       label: (
                         <span>
                           <i className={`decision-dot ${value}`} aria-hidden="true" />
-                          {label}
+                          {value === 'dismissed' ? '不纳入报告' : label}
                         </span>
                       ),
                     }))}

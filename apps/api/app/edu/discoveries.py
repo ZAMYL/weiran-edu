@@ -22,6 +22,7 @@ from .auth import Principal, deny
 from .discovery_bridge import DiscoveryInput, DiscoveryInputReader
 from .discovery_disconnect import CancelCheck, check_cancelled
 from .discovery_models import (
+    DISCOVERY_RETENTION_LIMIT,
     DiscoveryChart,
     DiscoveryDetail,
     DiscoveryList,
@@ -33,7 +34,11 @@ from .discovery_models import (
 )
 from .service import fail
 
-POLICY = Policy(search_budget=20, maximum_findings=50, maximum_students=bridge.MAX_RECORDS)
+POLICY = Policy(
+    search_budget=20,
+    maximum_findings=DISCOVERY_RETENTION_LIMIT,
+    maximum_students=bridge.MAX_RECORDS,
+)
 OPERATORS = {value.value: key for key, value in OPERATOR_MAP.items()}
 DETAIL_FIELDS = frozenset(DiscoveryDetail.model_fields) - {"scope", "input_key"}
 

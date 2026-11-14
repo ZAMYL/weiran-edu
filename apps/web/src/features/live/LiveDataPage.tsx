@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Drawer, Select, Table, Tag, Upload, Spin } from 'antd';
+import { Alert, Button, Drawer, Modal, Segmented, Select, Table, Tag, Upload, Spin } from 'antd';
 import { FileExcelTwoTone, UploadOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { AssessmentContext, Panel } from '../../components/ui';
@@ -18,8 +18,18 @@ import QuestionImportPreview from './QuestionImportPreview';
 import { isQuestionPreview } from '../../services/edu-api/question-types';
 
 export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'history' }) {
-  const { client, scopes, batch, notice, selectBatch, revision, uploadDraft, setUploadDraft } =
-    useDataMode();
+  const {
+    client,
+    scopes,
+    batch,
+    notice,
+    selectBatch,
+    revision,
+    batchListRevision,
+    batchArchiveChanged,
+    uploadDraft,
+    setUploadDraft,
+  } = useDataMode();
   const router = useRouter();
   const importScopes = scopes.filter((s) => s.can_import);
   const draft = uploadDraft ?? {
@@ -36,6 +46,10 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
   const { scope, preview, file: selectedFile } = draft;
   const setScope = (scope: string) => setUploadDraft({ ...draft, scope });
   const [offset, setOffset] = useState(0);
+  const [archived, setArchived] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState<ApiBatch | null>(null);
+  const [archiveBusy, setArchiveBusy] = useState(false);
+  const [archiveError, setArchiveError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -43,11 +57,13 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
   const uploadController = useRef<AbortController | null>(null);
   useEffect(() => () => uploadController.current?.abort(), []);
   const loadBatches = useCallback(
-    (signal: AbortSignal) => client.batches(offset, 10, signal),
-    [client, offset],
+    (signal: AbortSignal) => client.batches(offset, 10, signal, archived),
+    [client, offset, archived],
   );
   const batches = useRemote(
-    view === 'history' ? `data-batches:${revision}:${offset}` : null,
+    view === 'history'
+      ? `data-batches:${revision}:${batchListRevision}:${offset}:${archived}`
+      : null,
     loadBatches,
   );
   const allowed = scopes.some((s) => s.data_scope_id === scope && s.can_import);
@@ -109,6 +125,22 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     selectBatch(target);
     router.push('/insights');
   };
+  async function changeArchive(target: ApiBatch) {
+    if (archiveBusy) return;
+    setArchiveBusy(true);
+    setArchiveError(null);
+    try {
+      const result = await client.setBatchArchive(target, !archived);
+      if (result.archived === archived) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      setArchiveTarget(null);
+      if (offset && batches.data?.items.length === 1) setOffset(offset - 10);
+      batchArchiveChanged(target.batch_id, result.archived);
+    } catch (cause) {
+      if (cause instanceof ApiError) setArchiveError(cause);
+    } finally {
+      setArchiveBusy(false);
+    }
+  }
   if (view === 'upload' && preview) {
     return isQuestionPreview(preview) ? (
       <QuestionImportPreview initial={preview} onCancel={() => setUploadDraft(null)} />
@@ -201,6 +233,18 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
           }
           className="batches-panel"
         >
+          <Segmented
+            aria-label="历史测评状态"
+            value={archived ? 'archived' : 'active'}
+            options={[
+              { value: 'active', label: '使用中' },
+              { value: 'archived', label: '已归档' },
+            ]}
+            onChange={(value) => {
+              setOffset(0);
+              setArchived(value === 'archived');
+            }}
+          />
           {batches.loading && <LoadingPanel />}
           {batches.error && <RequestError error={batches.error} retry={batches.retry} />}
           {batches.data && (
@@ -234,9 +278,22 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
                   title: '操作',
                   render: (_, target) => (
                     <div className="batch-actions">
-                      <Button onClick={() => setQualityBatch(target)}>评分概况</Button>
-                      <Button type="primary" onClick={() => enter(target)}>
-                        查看学情
+                      {!archived && (
+                        <>
+                          <Button onClick={() => setQualityBatch(target)}>评分概况</Button>
+                          <Button type="primary" onClick={() => enter(target)}>
+                            查看学情
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        danger={!archived}
+                        onClick={() => {
+                          setArchiveError(null);
+                          setArchiveTarget(target);
+                        }}
+                      >
+                        {archived ? '恢复' : '删除'}
                       </Button>
                     </div>
                   ),
@@ -245,6 +302,26 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
             />
           )}
         </Panel>
+      )}
+      {archiveTarget && (
+        <Modal
+          open
+          title={archived ? '恢复测评' : '从历史测评删除'}
+          okText={archived ? '恢复' : '归档'}
+          cancelText="取消"
+          confirmLoading={archiveBusy}
+          closable={!archiveBusy}
+          mask={{ closable: !archiveBusy }}
+          cancelButtonProps={{ disabled: archiveBusy }}
+          onCancel={() => {
+            if (!archiveBusy) setArchiveTarget(null);
+          }}
+          onOk={() => void changeArchive(archiveTarget)}
+        >
+          <p>{archiveTarget.title}</p>
+          {!archived && <p>归档仅影响当前教师账户，可从「已归档」恢复。原始评分与报告会保留。</p>}
+          {archiveError && <RequestError error={archiveError} />}
+        </Modal>
       )}
       {qualityBatch && <BatchOverview batch={qualityBatch} onClose={() => setQualityBatch(null)} />}
     </div>

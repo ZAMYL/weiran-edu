@@ -7,7 +7,12 @@ from pydantic import Field, field_validator, model_validator
 from app.importing.edu.preview import Page
 
 from .analysis_models import Statistics, StatValue
-from .discovery_models import DiscoveryDetail, DiscoveryScope, DiscoverySpec
+from .discovery_models import (
+    DISCOVERY_RETENTION_LIMIT,
+    DiscoveryDetail,
+    DiscoveryScope,
+    DiscoverySpec,
+)
 from .insight_models import InsightCard, InsightSpec
 from .models import Identifier, Model, Student, Title
 
@@ -51,7 +56,7 @@ class TextReviewPreview(TextReview):
 
 class DiscoverySelection(Model):
     input_key: Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
-    discovery_ids: Annotated[tuple[Identifier, ...], Field(max_length=3)]
+    discovery_ids: Annotated[tuple[Identifier, ...], Field(max_length=DISCOVERY_RETENTION_LIMIT)]
 
     @field_validator("discovery_ids", mode="before")
     @classmethod
@@ -98,7 +103,9 @@ class AnalysisPatch(Model):
     expected_version: PositiveVersion
     title: Title | None = None
     note: Note | None = None
-    decisions: Annotated[tuple[FindingDecision, ...], Field(max_length=6)] = ()
+    decisions: Annotated[
+        tuple[FindingDecision, ...], Field(max_length=DISCOVERY_RETENTION_LIMIT)
+    ] = ()
 
     @field_validator("decisions", mode="before")
     @classmethod

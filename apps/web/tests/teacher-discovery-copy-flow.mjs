@@ -107,11 +107,11 @@ export async function teacherDiscoveryCopyFlow({
   await page.getByTestId('discovery-record-count').waitFor();
   await closeTop();
   await closeTop();
-  await card.getByRole('checkbox').check();
-  await navigation('分析报告');
-  await page
-    .getByText('算法与数据结构评分不高于 3.49 分：代码实现能力平均分更高', { exact: true })
-    .waitFor();
+  assert.equal(await card.getByRole('checkbox').count(), 0);
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
+  const included = page.locator(`.report-draft-list input[value="${summary.discovery_id}"]`);
+  await included.waitFor();
+  assert.equal(await included.isChecked(), true);
   await navigation('学情诊断');
   await waitFocus();
   await card.getByRole('button', { name: '看看这组学生', exact: true }).click();

@@ -44,6 +44,8 @@ interface SessionState {
   mode: Mode;
   assessmentPanel: 'upload' | 'history' | null;
   assessmentRevision: number;
+  batchListRevision: number;
+  hasArchivedBatches: boolean;
   ready: boolean;
   reportDraft: ReportDraft | null;
   testMode: boolean;
@@ -64,6 +66,8 @@ const initial: SessionState = {
   mode: 'live',
   assessmentPanel: null,
   assessmentRevision: 0,
+  batchListRevision: 0,
+  hasArchivedBatches: false,
   ready: false,
   reportDraft: null,
   testMode: false,
@@ -92,6 +96,7 @@ interface DataMode extends SessionState {
   setConditions: (conditions: ApiCondition[]) => void;
   exploreDiscovery: (origin: DiscoveryOrigin) => void;
   batchChanged: (batch: ApiBatch) => void;
+  batchArchiveChanged: (batchId: string, archived: boolean) => void;
 }
 const Context = createContext<DataMode | null>(null);
 export function useDataMode() {
@@ -152,6 +157,11 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           client.batches(),
         ]);
         if (!connecting.isCurrent(sequence)) return;
+        const hasArchivedBatches =
+          batches.total_count === 0 &&
+          (await client.batches(0, 1, undefined, true).catch(() => null))?.items.some(
+            (batch) => batch.archived,
+          ) === true;
         const origin = readDiscoveryOrigin(window.location.search);
         let selected = batches.items[0] ?? null;
         if (!origin) {
@@ -163,7 +173,8 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           }
           if (pointer && /^[a-zA-Z0-9_-]{1,100}$/.test(pointer)) {
             try {
-              selected = await client.batch(pointer);
+              const previous = await client.batch(pointer);
+              if (!previous.archived) selected = previous;
             } catch (error) {
               if (!(error instanceof ApiError) || ![403, 404].includes(error.status)) throw error;
             }
@@ -190,6 +201,7 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           assessmentPanel: null,
           teacherId: me.teacher_id,
           scopes: scopes.items,
+          hasArchivedBatches,
           batch: selected,
           discoveryOrigin: selected && origin ? origin : null,
           conditions: selected && origin ? origin.spec.scope_conditions : [],
@@ -252,9 +264,11 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
     };
   }, [state.mode, connect, client, connecting]);
   useEffect(() => {
-    if (!state.connected || !state.teacherId || !state.batch) return;
+    if (!state.connected || !state.teacherId) return;
     try {
-      localStorage.setItem(`weiran.edu.current-batch.${state.teacherId}`, state.batch.batch_id);
+      const key = `weiran.edu.current-batch.${state.teacherId}`;
+      if (state.batch) localStorage.setItem(key, state.batch.batch_id);
+      else localStorage.removeItem(key);
     } catch {
       /* Backend recovery still works when storage is unavailable. */
     }
@@ -299,6 +313,28 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
         setMode,
         openLogin: (loginOpen) => setState((s) => ({ ...s, loginOpen })),
         selectBatch,
+        batchArchiveChanged: (batchId, archived) => {
+          if (archived && state.batch?.batch_id === batchId) {
+            clearPointer();
+            setState((s) => ({
+              ...s,
+              batch: null,
+              reportDraft: null,
+              activeReport: null,
+              discoveryOrigin: null,
+              conditions: [],
+              revision: s.revision + 1,
+              batchListRevision: s.batchListRevision + 1,
+              hasArchivedBatches: true,
+            }));
+          } else {
+            setState((s) => ({
+              ...s,
+              batchListRevision: s.batchListRevision + 1,
+              hasArchivedBatches: archived || s.hasArchivedBatches,
+            }));
+          }
+        },
         batchChanged: (batch) => {
           selectBatch(batch);
           setState((s) => ({ ...s, uploadDraft: null }));
@@ -461,13 +497,17 @@ export function ModePage({ demo, live }: { demo: ReactNode; live: ReactNode }) {
   );
 }
 export function LiveBatchSelect() {
-  const { client, batch, connected, revision, selectBatch, syntheticAi } = useDataMode();
+  const { client, batch, connected, revision, batchListRevision, selectBatch, syntheticAi } =
+    useDataMode();
   const [offset, setOffset] = useState(0);
   const load = useCallback(
     (signal: AbortSignal) => client.batches(offset, 20, signal),
     [client, offset],
   );
-  const resource = useRemote(connected ? `batch-list:${revision}:${offset}` : null, load);
+  const resource = useRemote(
+    connected ? `batch-list:${revision}:${batchListRevision}:${offset}` : null,
+    load,
+  );
   const { message } = App.useApp();
   const batchLabel = (title: string) => (syntheticAi ? `合成测评 · ${title}` : title);
   const options =

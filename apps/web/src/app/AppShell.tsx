@@ -44,6 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     dataMode.mode === 'live' &&
     dataMode.connected &&
     !dataMode.batch &&
+    !dataMode.hasArchivedBatches &&
     !dataMode.notice &&
     dataMode.assessmentPanel === null;
   const sampleAccount =

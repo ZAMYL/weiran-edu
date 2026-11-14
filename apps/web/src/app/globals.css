@@ -478,7 +478,6 @@
 }
 
 .discovery-focus-toolbar,
-.discovery-report-actions,
 .review-progress,
 .report-action-bar,
 .report-draft-list li {
@@ -501,21 +500,6 @@
 .discovery-focus-picker .ant-select {
   width: 100%;
   min-width: 0;
-}
-.discovery-report-actions {
-  margin-top: 16px;
-  padding: 14px 0 0;
-  border-top: 1px solid #e5edfb;
-  color: #536480;
-}
-.discovery-report-actions.has-selection {
-  padding: 14px;
-  border: 0;
-  border-radius: var(--radius);
-  background: #eff5ff;
-}
-.discovery-report-actions > span {
-  flex: 1 1 180px;
 }
 .discovery-selection-note {
   margin: 16px 0 0;
@@ -598,21 +582,9 @@
 .ai-task-actions > .ant-btn-primary {
   min-inline-size: 132px;
 }
-.ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
-  display: inline-flex;
-  align-items: center;
-  min-height: 52px;
-  font-size: 16px;
-  margin-inline-start: auto;
-}
 @media (max-width: 960px) {
   .ai-fact-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-}
-@media (max-width: 640px) {
-  .ai-fact-grid .ai-fact-actions .ant-checkbox-wrapper {
-    margin-inline-start: 0;
   }
 }
 .focus-metrics {
@@ -851,14 +823,6 @@
     margin-left: 0;
   }
 }
-.discovery-detail-selection {
-  display: grid;
-  gap: 8px;
-  padding: 14px;
-  margin: 16px 0;
-  background: #eff5ff;
-  border-radius: var(--radius);
-}
 .discovery-empty {
   padding: 12px 0 24px;
 }
@@ -880,10 +844,6 @@
 .report-draft-list li {
   padding: 12px 0;
   border-bottom: 1px solid #e5edfb;
-}
-.report-draft-list li > span:first-child {
-  flex: 1;
-  min-width: 160px;
 }
 .report-action-bar {
   position: sticky;

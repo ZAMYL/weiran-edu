@@ -117,7 +117,7 @@ export async function teacherAnalysisFlow({
     await drawer()
       .locator('.review-finding')
       .nth(1)
-      .getByRole('radio', { name: '不采纳', exact: true })
+      .getByRole('radio', { name: '不纳入报告', exact: true })
       .locator('xpath=ancestor::label[1]')
       .click();
     await drawer().locator('.review-finding').nth(0).locator('textarea').fill('合成核验备注');

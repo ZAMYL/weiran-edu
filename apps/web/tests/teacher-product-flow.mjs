@@ -135,7 +135,7 @@ export async function teacherProductFlow(h) {
   for (const summary of await panel().locator('.discovery-type-group > summary').all())
     await summary.click();
   const chosenCard = panel().locator(`[data-discovery-id="${chosen.discovery_id}"]`);
-  await chosenCard.getByRole('checkbox').check();
+  assert.equal(await chosenCard.getByRole('checkbox').count(), 0);
   const detailResponse = wait(
     (r) => r.url().endsWith(`/${chosen.discovery_id}/query`) && r.status() === 200,
   );
@@ -189,6 +189,21 @@ export async function teacherProductFlow(h) {
     '53: import/preview/commit → real discovery/chart → exact original 26/27 group → reload → owned evidence',
   );
   console.log('Joint E2E: save original discovery and review');
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
+  const initialDraft = page.locator('.report-draft-workspace');
+  await initialDraft.locator('.report-draft-list, .live-error').first().waitFor();
+  assert.equal(
+    await initialDraft.locator('.live-error').count(),
+    0,
+    await initialDraft.innerText(),
+  );
+  const draftItems = page.locator('.report-draft-list input[type=checkbox]');
+  await draftItems.first().waitFor();
+  assert.ok((await draftItems.count()) >= 1);
+  for (const checkbox of await draftItems.all()) {
+    assert.equal(await checkbox.isChecked(), true);
+    if ((await checkbox.getAttribute('value')) !== chosen.discovery_id) await checkbox.uncheck();
+  }
   const created = await save('合成正式发现闭环');
   assert.deepEqual(created.analysis.query.conditions, []);
   assert.equal(created.analysis.matched_count, 53);
@@ -219,14 +234,17 @@ export async function teacherProductFlow(h) {
     true,
   );
   await navigation('学情诊断');
-  await page.locator('.discoveries-panel').getByRole('checkbox').first().check();
-  await page.getByRole('button', { name: '前往报告', exact: true }).click();
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
   await page.getByRole('heading', { name: '本次报告内容', exact: true }).waitFor();
-  await page
-    .getByRole('button', { name: /^移除 / })
-    .first()
-    .click();
-  assert.equal(await page.locator('.report-draft-list li').count(), 0);
+  await initialDraft.locator('.report-draft-list, .live-error').first().waitFor();
+  assert.equal(
+    await initialDraft.locator('.live-error').count(),
+    0,
+    await initialDraft.textContent(),
+  );
+  await draftItems.first().uncheck();
+  assert.equal(await draftItems.first().isChecked(), false);
+  await draftItems.first().check();
   await page.getByRole('button', { name: '已保存分析', exact: true }).click();
   await page.getByRole('button', { name: '查看与核验', exact: true }).first().click();
   await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
@@ -309,6 +327,27 @@ export async function teacherProductFlow(h) {
   checks.push(
     'save stores full outer scope and selected formal discovery; confirmed persists; MD/XLSX reopened; actual 409 preserves edits',
   );
+  await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+  const history = page.locator('.batches-panel');
+  const archivedRow = history.getByRole('row').filter({ hasText: '合成联合验收53人' });
+  await archivedRow.getByRole('button', { name: '删除', exact: true }).click();
+  const archive = wait((r) => r.url().endsWith('/archive') && r.request().method() === 'PATCH');
+  await page.getByRole('dialog').getByRole('button', { name: '归档', exact: true }).click();
+  assert.equal((await archive).status(), 200);
+  await archivedRow.waitFor({ state: 'detached' });
+  await page.reload();
+  await page.locator('.live-workspace').waitFor();
+  const openHistory = page.getByRole('button', { name: '查看历史测评', exact: true });
+  if (!(await history.isVisible())) await openHistory.click();
+  await history.getByText('已归档', { exact: true }).click();
+  await archivedRow.getByRole('button', { name: '恢复', exact: true }).click();
+  const restore = wait((r) => r.url().endsWith('/archive') && r.request().method() === 'PATCH');
+  await page.getByRole('dialog').getByRole('button', { name: '恢复', exact: true }).click();
+  assert.equal((await restore).status(), 200);
+  await history.getByText('使用中', { exact: true }).click();
+  await archivedRow.getByRole('button', { name: '查看学情', exact: true }).click();
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).waitFor();
+  checks.push('account archive persists after reload and restores the original assessment');
   console.log('Joint E2E: empty discoveries, manual exploration and narrow screen');
   await navigation('学情诊断');
   const constant = await importThroughPage('constant', '合成同分17人');
@@ -326,7 +365,7 @@ export async function teacherProductFlow(h) {
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
   await page.locator('.match-summary').filter({ hasText: '17 / 17' }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
   await shot('05-empty-discovery-manual-mobile');
   await page.setViewportSize({ width: 1440, height: 1000 });
   await navigation('学情诊断');

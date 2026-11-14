@@ -1,4 +1,4 @@
-import { ContractError, type Decoder } from './schema';
+import { ContractError, flag, object, type Decoder } from './schema';
 import { teacherAiError } from './teacher-ai-guidance';
 import {
   discoveriesDto,
@@ -388,8 +388,13 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       if (receipt.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
       return receipt;
     },
-    discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal, limit = 10) =>
-      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit }, signal),
+    discoveries: (
+      batch: ApiBatch,
+      spec: DiscoverySpec,
+      offset = 0,
+      signal?: AbortSignal,
+      limit = 10,
+    ) => discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit }, signal),
     discoveryDetail: async (
       batch: ApiBatch,
       discoveryId: string,
@@ -452,10 +457,19 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     },
     me: (signal?: AbortSignal) => get('/me', meDto, signal),
     scopes: (signal?: AbortSignal) => get('/scopes', scopesDto, signal),
-    batches: (offset = 0, limit = 20, signal?: AbortSignal) =>
-      get(`/batches?offset=${offset}&limit=${limit}&include_dynamic=true`, batchListDto, signal),
+    batches: (offset = 0, limit = 20, signal?: AbortSignal, archived = false) =>
+      get(
+        `/batches?offset=${offset}&limit=${limit}&include_dynamic=true${archived ? '&archived=true' : ''}`,
+        batchListDto,
+        signal,
+      ),
     batch: (batchId: string, signal?: AbortSignal) =>
       get(`/batches/${id(batchId)}`, batchDto, signal),
+    setBatchArchive: (batch: ApiBatch, archived: boolean) =>
+      request(`${base(batch)}/archive`, object({ archived: flag }), {
+        method: 'PATCH',
+        body: JSON.stringify({ archived }),
+      }),
     itemStatistics: async (batch: ApiBatch, signal?: AbortSignal, itemId?: string) => {
       const result = assertSnapshot(
         await get(

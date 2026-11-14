@@ -36,7 +36,7 @@ const routes: Record<string, RegExp[]> = {
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/profiles\/scores\/query$/,
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/review-submissions$/,
   ],
-  PATCH: [/^imports\/[^/]+$/, /^batches\/[^/]+\/analysis-results\/[^/]+$/],
+  PATCH: [/^imports\/[^/]+$/, /^batches\/[^/]+\/(archive|analysis-results\/[^/]+)$/],
 };
 const queryNames = new Set([
   'snapshot_id',
@@ -52,6 +52,7 @@ const queryNames = new Set([
   'student_limit',
   'data_scope_id',
   'include_revisions',
+  'archived',
   'include_dynamic',
   'item_id',
   'expected_version',

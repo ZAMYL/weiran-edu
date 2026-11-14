@@ -32,7 +32,6 @@ import AnalysisActions from './AnalysisActions';
 import AssessmentItemPage from './AssessmentItemPage';
 import AiInvestigationPanel from './AiInvestigationPanel';
 import { ScoreReading } from './TeacherScoreReading';
-import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
   const { batch, assessmentPanel, assessmentRevision } = useDataMode();
@@ -48,25 +47,10 @@ export default function LiveInsightsPage() {
   );
 }
 function Insights({ batch }: { batch: ApiBatch }) {
-  const { client, conditions, reportDraft, setReportDraft, syntheticAi } = useDataMode();
+  const { client, conditions, syntheticAi } = useDataMode();
   const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
-  const discovery = reportDraft?.key === contextKey ? reportDraft.discovery : undefined;
-  const onSelection = useCallback(
-    (selection: DiscoverySelection, names: { id: string; title: string }[] = []) =>
-      setReportDraft({
-        key: contextKey,
-        spec: {
-          snapshot_id: batch.snapshot_id,
-          conditions: conditions.map((c) => ({ ...c })),
-          include_dimensions: false,
-        },
-        discovery: selection,
-        names,
-      }),
-    [contextKey, batch.snapshot_id, conditions, setReportDraft],
-  );
   const [rightView, setRightView] = useState<'focus' | 'statistics'>('focus');
   const analysisSwitch = (
     <Segmented
@@ -171,7 +155,6 @@ function Insights({ batch }: { batch: ApiBatch }) {
       <LiveDiscoveries
         key={contextKey}
         batch={batch}
-        onSelection={onSelection}
         focusAction={analysisSwitch}
         onShowStatistics={() => setRightView('statistics')}
       >
@@ -297,7 +280,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
           </>
         )}
       </LiveDiscoveries>
-      <AnalysisActions batch={batch} spec={spec} discovery={discovery} />
+      <AnalysisActions batch={batch} spec={spec} />
       <MetricEvidenceDrawer
         key={`${selection?.candidateId}:${selection?.metricKey}`}
         batch={batch}

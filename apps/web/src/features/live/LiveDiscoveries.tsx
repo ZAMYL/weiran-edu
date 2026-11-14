@@ -1,9 +1,8 @@
 'use client';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { Checkbox, Button, Drawer, Empty, Pagination, Select, Table } from 'antd';
+import { Button, Drawer, Empty, Pagination, Select, Table } from 'antd';
 import { useRouter } from 'next/navigation';
 import { ReloadOutlined } from '@ant-design/icons';
-import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discovery-navigation';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
@@ -94,22 +93,18 @@ function FocusMetrics({ detail }: { detail: DiscoveryDetail }) {
 }
 export default function LiveDiscoveries({
   batch,
-  onSelection,
   children,
   focusAction,
   onShowStatistics,
 }: {
   batch: ApiBatch;
-  onSelection?: (selection: DiscoverySelection, names?: { id: string; title: string }[]) => void;
   children: (focus: ReactNode) => ReactNode;
   focusAction?: ReactNode;
   onShowStatistics?: () => void;
 }) {
-  const { client, conditions, reportDraft, exploreDiscovery } = useDataMode();
+  const { client, conditions, exploreDiscovery } = useDataMode();
   const router = useRouter();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
-  const checked =
-    reportDraft?.key === contextKey ? (reportDraft.discovery?.discovery_ids ?? []) : [];
   const [view, setView] = useState('all');
   const [visibleCount, setVisibleCount] = useState(10);
   const [selected, setSelected] = useState<string | null>(null);
@@ -179,20 +174,6 @@ export default function LiveDiscoveries({
     const detail = details.data?.[card.discovery_id];
     return detail ? discoveryPresentation(detail).title : card.title;
   };
-  const choose = (ids: string[]) => {
-    if (!resource.data || !onSelection) return;
-    const names = [
-      ...new Map(
-        [
-          ...(reportDraft?.key === contextKey ? reportDraft.names : []),
-          ...items.map((card) => ({ id: card.discovery_id, title: titleFor(card) })),
-        ]
-          .filter((item) => ids.includes(item.id))
-          .map((item) => [item.id, item]),
-      ).values(),
-    ];
-    onSelection({ input_key: resource.data.scope.input_key, discovery_ids: ids }, names);
-  };
   const renderCards = (cards: typeof items) => (
     <div className="discovery-grid">
       {cards.map((card) => {
@@ -244,22 +225,6 @@ export default function LiveDiscoveries({
               >
                 看看这组学生
               </Button>
-              {onSelection && (
-                <Checkbox
-                  aria-label={`加入报告 ${titleFor(card)}`}
-                  checked={checked.includes(card.discovery_id)}
-                  disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
-                  onChange={(e) =>
-                    choose(
-                      e.target.checked
-                        ? [...checked, card.discovery_id]
-                        : checked.filter((id) => id !== card.discovery_id),
-                    )
-                  }
-                >
-                  {checked.includes(card.discovery_id) ? '已加入待保存' : '加入报告'}
-                </Checkbox>
-              )}
             </div>
           </section>
         );
@@ -293,22 +258,6 @@ export default function LiveDiscoveries({
           </div>
           <div className="batch-actions">
             <Button onClick={() => setSelected(card.discovery_id)}>查看具体评分</Button>
-            {onSelection && (
-              <Checkbox
-                aria-label={`加入报告 ${titleFor(card)}`}
-                checked={checked.includes(card.discovery_id)}
-                disabled={!checked.includes(card.discovery_id) && checked.length >= 3}
-                onChange={(event) =>
-                  choose(
-                    event.target.checked
-                      ? [...checked, card.discovery_id]
-                      : checked.filter((id) => id !== card.discovery_id),
-                  )
-                }
-              >
-                {checked.includes(card.discovery_id) ? '已加入待保存' : '加入报告'}
-              </Checkbox>
-            )}
           </div>
         </li>
       ))}
@@ -377,19 +326,6 @@ export default function LiveDiscoveries({
           )}
         </>
       )}
-      {onSelection && checked.length > 0 && (
-        <div className="discovery-report-actions has-selection" aria-label="待保存发现">
-          <span className="small" role="status">
-            已加入待保存 {checked.length} 项
-          </span>
-          <Button type="link" onClick={() => choose([])}>
-            清空已选
-          </Button>
-          <Button type="primary" onClick={() => router.push('/reports')}>
-            前往报告
-          </Button>
-        </div>
-      )}
     </Panel>
   );
   return (
@@ -437,18 +373,6 @@ export default function LiveDiscoveries({
           spec={spec}
           discoveryId={selected}
           onClose={() => setSelected(null)}
-          reportSelection={
-            onSelection
-              ? {
-                  checked: checked.includes(selected),
-                  disabled: !checked.includes(selected) && checked.length >= 3,
-                  onChange: (include) =>
-                    choose(
-                      include ? [...checked, selected] : checked.filter((id) => id !== selected),
-                    ),
-                }
-              : undefined
-          }
         />
       )}
     </>
@@ -460,18 +384,12 @@ export function DiscoveryDetailDrawer({
   discoveryId,
   onClose,
   allowExplore = true,
-  reportSelection,
 }: {
   batch: ApiBatch;
   spec: DiscoverySpec;
   discoveryId: string;
   onClose: () => void;
   allowExplore?: boolean;
-  reportSelection?: {
-    checked: boolean;
-    disabled: boolean;
-    onChange: (include: boolean) => void;
-  };
 }) {
   const { client, exploreDiscovery } = useDataMode();
   const router = useRouter();
@@ -512,22 +430,6 @@ export function DiscoveryDetailDrawer({
             )}
             <p data-testid="discovery-metrics">{metricsText(d)}</p>
             <p className="teacher-reading">{copy.numbers}</p>
-            {reportSelection && (
-              <div className="discovery-detail-selection">
-                <Checkbox
-                  checked={reportSelection.checked}
-                  disabled={reportSelection.disabled}
-                  onChange={(event) => reportSelection.onChange(event.target.checked)}
-                >
-                  {reportSelection.checked ? '已加入待保存' : '加入报告'}
-                </Checkbox>
-                <span className="muted small">
-                  {reportSelection.disabled
-                    ? '已选满三项，可返回调整选择。'
-                    : '加入后仍需在分析报告中保存和核验，不会自动确认为结论。'}
-                </span>
-              </div>
-            )}
             <DiscoveryChart data={resource.data.chart} />
             {d.type === 'group_difference' && (
               <Table

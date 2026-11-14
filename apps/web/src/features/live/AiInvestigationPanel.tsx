@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Button, Checkbox, Drawer, Input, Pagination, Segmented, Select, Table } from 'antd';
+import { Alert, Button, Drawer, Input, Pagination, Segmented, Select, Table } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useDataMode } from '../../app/data-mode';
 import type { ApiBatch, ApiCondition } from '../../services/edu-api/types';
@@ -68,7 +68,6 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const router = useRouter();
   const [question, setQuestion] = useState('');
   const [task, setTask] = useState<AiTask | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
   const [sources, setSources] = useState<AiFact | null>(null);
   const [profileEvidence, setProfileEvidence] = useState<{
     profile: AiProfile;
@@ -165,7 +164,6 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       const value = await client.startAiTask(batch, text, submission.current!.key, signal);
       if (signal.aborted) return;
       setTask(value);
-      setSelected([]);
       try {
         sessionStorage.setItem(storageKey, value.task_id);
       } catch {
@@ -174,15 +172,22 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
     });
   }
   function review() {
-    if (!task || !selected.length) return;
+    if (!task || !reportFacts.length) return;
     void operate(async (signal) => {
-      const receipt = await client.submitAiReview(batch, task.task_id, selected, signal);
+      const prefix = `/api/v1/edu/batches/${batch.batch_id}/analysis-results/`;
+      const existing = task.review_result_path?.startsWith(prefix)
+        ? task.review_result_path.slice(prefix.length)
+        : '';
+      const resultId = /^[a-zA-Z0-9_-]{1,128}$/.test(existing)
+        ? existing
+        : (await client.submitAiReview(batch, task.task_id, reportFacts, signal)).result_id;
       if (signal.aborted) return;
+      setTask({ ...task, review_result_path: prefix + resultId });
       setReportDraft(null);
       setActiveReport({
         batchId: batch.batch_id,
         snapshotId: batch.snapshot_id,
-        resultId: receipt.result_id,
+        resultId,
       });
       router.push('/reports');
     });
@@ -190,6 +195,9 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const facts =
     task?.result?.facts.filter((fact) => task.result!.selected_fact_ids.includes(fact.fact_id)) ??
     [];
+  const reportFacts = facts
+    .filter((fact) => fact.qualified && fact.source_verified)
+    .map((fact) => fact.fact_id);
   const projection = task?.result?.profile_projection;
   const profiles = projection?.profiles ?? [];
   const taskLabel = task ? taskStateLabels[task.state] : undefined;
@@ -338,21 +346,6 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                         继续探索
                       </Button>
                     )}
-                    {fact.qualified && fact.source_verified && (
-                      <Checkbox
-                        checked={selected.includes(fact.fact_id)}
-                        disabled={!selected.includes(fact.fact_id) && selected.length >= 3}
-                        onChange={(e) =>
-                          setSelected((ids) =>
-                            e.target.checked
-                              ? [...ids, fact.fact_id]
-                              : ids.filter((id) => id !== fact.fact_id),
-                          )
-                        }
-                      >
-                        加入待核查
-                      </Checkbox>
-                    )}
                   </div>
                 </section>
               ))}
@@ -446,9 +439,9 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                 本轮未发现符合条件的群体画像
               </p>
             )}
-          {!!selected.length && (
+          {!!reportFacts.length && (
             <Button className="ai-review-submit" type="primary" loading={busy} onClick={review}>
-              提交待核查（{selected.length}）
+              前往报告核查
             </Button>
           )}
         </>
