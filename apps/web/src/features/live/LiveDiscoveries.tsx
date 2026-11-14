@@ -8,6 +8,7 @@ import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discove
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
+import { describeDiscovery } from '../../services/edu-api/teacher-analysis';
 import {
   discoveryConditionsText,
   discoveryEvidenceNotes,
@@ -167,7 +168,6 @@ export default function LiveDiscoveries({
         .slice(0, 3),
     [items, details.data],
   );
-  const focused = focus[0];
   const titleFor = (card: (typeof items)[number]) => {
     const detail = details.data?.[card.discovery_id];
     return detail ? discoveryPresentation(detail).title : card.title;
@@ -190,6 +190,7 @@ export default function LiveDiscoveries({
     <div className="discovery-grid">
       {cards.map((card) => {
         const detail = details.data?.[card.discovery_id];
+        const copy = detail ? describeDiscovery(detail) : null;
         const origin = detail ? originForDiscovery(detail, spec) : null;
         return (
           <section
@@ -201,10 +202,9 @@ export default function LiveDiscoveries({
             <div className="finding-top">
               <h3>{titleFor(card)}</h3>
             </div>
-            {detail && <p className="focus-grouping">{discoveryPresentation(detail).grouping}</p>}
-            {detail?.type === 'group_difference' && detail.metrics.unevaluable_count > 0 && (
-              <p className="focus-group-exclusions">
-                另有 {detail.metrics.unevaluable_count} 人无法判定分组条件，未进入比较
+            {copy && (
+              <p className="teacher-reading">
+                {copy.numbers} {detail?.type === 'group_difference' && copy.whyItMatters}
               </p>
             )}
             {detail ? (
@@ -215,12 +215,16 @@ export default function LiveDiscoveries({
               </p>
             )}
             <details className="focus-explanation">
-              <summary>发现说明</summary>
-              {detail && <p>{discoveryPresentation(detail).explanation}</p>}
+              <summary>如何理解这条发现</summary>
+              {copy && (
+                <p>
+                  {detail?.type !== 'group_difference' && copy.whyItMatters} {copy.limitation}
+                </p>
+              )}
             </details>
             <div className="batch-actions focus-card-actions">
               <Button type="primary" onClick={() => setSelected(card.discovery_id)}>
-                查看发现与依据
+                查看具体评分
               </Button>
               <Button
                 disabled={!origin}
@@ -231,7 +235,7 @@ export default function LiveDiscoveries({
                   }
                 }}
               >
-                继续探索这组学生
+                看看这组学生
               </Button>
               {onSelection && (
                 <Checkbox
@@ -278,7 +282,7 @@ export default function LiveDiscoveries({
             )}
           </div>
           <div className="batch-actions">
-            <Button onClick={() => setSelected(card.discovery_id)}>查看发现与依据</Button>
+            <Button onClick={() => setSelected(card.discovery_id)}>查看具体评分</Button>
             {onSelection && (
               <Checkbox
                 aria-label={`加入报告 ${titleFor(card)}`}
@@ -339,7 +343,7 @@ export default function LiveDiscoveries({
         <>
           {details.loading && needed.length ? (
             <p role="status">正在读取发现依据…</p>
-          ) : focused ? (
+          ) : focus.length ? (
             renderCards(focus)
           ) : (
             !details.error && (
@@ -361,7 +365,9 @@ export default function LiveDiscoveries({
               </div>
             )
           )}
-          {focused && <p className="discovery-selection-note">当前页代表发现，非全量排序。</p>}
+          {focus.length > 0 && (
+            <p className="discovery-selection-note">更多发现见下方「全部发现和统计详情」。</p>
+          )}
         </>
       )}
       {onSelection && checked.length > 0 && (
@@ -497,12 +503,14 @@ export function DiscoveryDetailDrawer({
   );
   const resource = useRemote(`discovery-detail:${discoveryId}:${JSON.stringify(spec)}`, load);
   const d = resource.data?.detail;
+  const copy = d ? describeDiscovery(d) : null;
+  const explorerOrigin = d && allowExplore ? originForDiscovery(d, spec) : null;
   return (
     <>
       <Drawer title="发现详情" open onClose={onClose} size="min(720px, 100vw)">
         {resource.loading && <LoadingPanel />}
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
-        {d && resource.data && (
+        {d && resource.data && copy && (
           <>
             <h2>{discoveryPresentation(d).title}</h2>
             <p>分析范围：{conditionText(spec.scope_conditions)}</p>
@@ -510,6 +518,7 @@ export function DiscoveryDetailDrawer({
               <p>分组或筛选条件：{discoveryConditionsText(d.conditions)}</p>
             )}
             <p data-testid="discovery-metrics">{metricsText(d)}</p>
+            <p className="teacher-reading">{copy.numbers}</p>
             {reportSelection && (
               <div className="discovery-detail-selection">
                 <Checkbox
@@ -551,16 +560,15 @@ export function DiscoveryDetailDrawer({
             )}
             <Button
               type="primary"
-              disabled={!allowExplore}
+              disabled={!explorerOrigin}
               onClick={() => {
-                const origin = originForDiscovery(d, spec);
-                if (!origin) return;
-                exploreDiscovery(origin);
+                if (!explorerOrigin) return;
+                exploreDiscovery(explorerOrigin);
                 onClose();
-                router.push(discoveryUrl(origin));
+                router.push(discoveryUrl(explorerOrigin));
               }}
             >
-              继续探索这组学生
+              看看这组学生
             </Button>
             <h3>查看学生与评分依据</h3>
             <div className="live-metrics">
@@ -570,12 +578,12 @@ export function DiscoveryDetailDrawer({
                 </Button>
               ))}
             </div>
-            <section className="discovery-evidence-notes" aria-label="样本与使用限制">
-              <h3>样本与使用限制</h3>
+            <details className="discovery-evidence-notes" aria-label="样本与使用限制">
+              <summary>样本与使用限制</summary>
               {discoveryEvidenceNotes(d).map((note) => (
                 <p key={note}>{note}</p>
               ))}
-            </section>
+            </details>
           </>
         )}
       </Drawer>

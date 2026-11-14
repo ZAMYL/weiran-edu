@@ -523,6 +523,12 @@
   font-size: 14px;
   line-height: 1.6;
 }
+.teacher-reading {
+  margin: 8px 0 12px;
+  color: #344865;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
 .ai-fact-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -539,6 +545,19 @@
   flex-wrap: wrap;
   gap: 4px 12px;
   margin-bottom: 8px;
+}
+.ai-question-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+.ai-question-suggestions .ant-btn {
+  max-width: 100%;
+  min-height: 32px;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .ai-task-actions,
 .ai-fact-actions {

@@ -139,7 +139,7 @@ export async function teacherProductFlow(h) {
   const detailResponse = wait(
     (r) => r.url().endsWith(`/${chosen.discovery_id}/query`) && r.status() === 200,
   );
-  await chosenCard.getByRole('button', { name: '查看发现与依据', exact: true }).click();
+  await chosenCard.getByRole('button', { name: '查看具体评分', exact: true }).click();
   const detail = await (await detailResponse).json();
   assert.deepEqual(
     [detail.metrics.target_count, detail.metrics.remainder_count].sort((a, b) => a - b),
@@ -155,7 +155,7 @@ export async function teacherProductFlow(h) {
   const membersResponse = wait((r) => r.url().endsWith('/records/query') && r.status() === 200);
   await page
     .getByRole('dialog', { name: '发现详情', exact: true })
-    .getByRole('button', { name: '继续探索这组学生', exact: true })
+    .getByRole('button', { name: '看看这组学生', exact: true })
     .click();
   const original = await (await membersResponse).json();
   assert.equal(original.total_count, detail.metrics.target_count);

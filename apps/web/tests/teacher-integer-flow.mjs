@@ -99,11 +99,11 @@ export async function teacherIntegerFlow(h) {
   }
   await focus.getByTestId('discovery-card').waitFor();
   assert.equal(await focus.locator('.live-error').count(), 0);
-  await focus.getByRole('button', { name: '查看发现与依据', exact: true }).click();
+  await focus.getByRole('button', { name: '查看具体评分', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: '发现详情', exact: true });
   await page.getByTestId('discovery-chart').locator('svg').waitFor();
   await page.screenshot({ path: path.join(artifacts, '105-discovery-detail.png'), fullPage: true });
-  await drawer.getByRole('button', { name: '继续探索这组学生', exact: true }).click();
+  await drawer.getByRole('button', { name: '看看这组学生', exact: true }).click();
   await page.waitForURL('**/explorer?discovery=*');
   const pointer = JSON.parse(new URL(page.url()).searchParams.get('discovery'));
   assert.deepEqual(pointer.spec, spec);

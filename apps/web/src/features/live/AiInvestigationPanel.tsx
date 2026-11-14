@@ -21,6 +21,7 @@ import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { LiveScoreDrawer } from './LiveStudents';
 import TeacherQuestionSuggestions from './TeacherQuestionSuggestions';
+import { describeProfile } from '../../services/edu-api/teacher-analysis';
 import { DIMENSIONS } from '../../services/edu-api/types';
 
 const legacyItems = DIMENSIONS.map((d) => ({
@@ -357,68 +358,80 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             <section className="ai-profile-section" aria-labelledby="ai-profiles-heading">
               <h2 id="ai-profiles-heading">群体画像</h2>
               <div className="ai-profile-grid">
-                {profiles.map((profile) => (
-                  <section
-                    className="discovery-card ai-profile-card"
-                    data-testid="ai-profile-card"
-                    key={profile.profile_id}
-                  >
-                    <h3>{profile.title}</h3>
-                    <p className="ai-profile-summary">{profile.summary}</p>
-                    <table
-                      className="ai-profile-dimensions"
-                      aria-label={`${profile.title}评分对照（分）`}
+                {profiles.map((profile) => {
+                  const primaryIndex = profile.dimensions.findIndex(
+                    (dimension) => !dimension.condition_defined,
+                  );
+                  const verifiedReading = describeProfile(profile)[primaryIndex];
+                  return (
+                    <section
+                      className="discovery-card ai-profile-card"
+                      data-testid="ai-profile-card"
+                      key={profile.profile_id}
                     >
-                      <thead>
-                        <tr>
-                          <th scope="col">评分维度</th>
-                          <th scope="col">本组</th>
-                          <th scope="col">对照组</th>
-                          <th scope="col">均分差</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {profile.dimensions.map((dimension) => (
-                          <tr key={dimension.dimension_code}>
-                            <th scope="row">
-                              <button
-                                type="button"
-                                className="ai-profile-dimension-action"
-                                onClick={() => setProfileEvidence({ profile, dimension })}
-                                aria-label={`查看${dimension.label}评分依据${dimension.condition_defined ? '（分组条件）' : ''}`}
-                              >
-                                <span>{dimension.label}</span>
-                                <span aria-hidden="true">›</span>
-                              </button>
-                            </th>
-                            <td>{dimension.target.mean.display}</td>
-                            <td>{dimension.remainder.mean.display}</td>
-                            <td>{dimension.difference.display}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div className="ai-fact-actions">
-                      <Button
-                        onClick={() => {
-                          setConditions(profileConditions(profile));
-                          router.push('/explorer');
-                        }}
-                      >
-                        继续探索该群体
-                      </Button>
-                      <details className="ai-profile-note">
-                        <summary>分组与使用说明</summary>
-                        <p>{profile.common_pattern}</p>
-                        <p>{profile.why_show}</p>
-                        <p>
-                          报告仅收录教师确认的发现。评分明细须满足至少 {projection.minimum_cell}{' '}
-                          人的隐私要求。
+                      <h3>{profile.title}</h3>
+                      <p className="ai-profile-summary">{profile.summary}</p>
+                      {verifiedReading && (
+                        <p className="teacher-reading">
+                          {profile.dimensions[primaryIndex]?.label}：{verifiedReading.numbers}
+                          点击评分项目即可查看两组的原评分。
                         </p>
-                      </details>
-                    </div>
-                  </section>
-                ))}
+                      )}
+                      <table
+                        className="ai-profile-dimensions"
+                        aria-label={`${profile.title}评分对照（分）`}
+                      >
+                        <thead>
+                          <tr>
+                            <th scope="col">评分维度</th>
+                            <th scope="col">本组</th>
+                            <th scope="col">对照组</th>
+                            <th scope="col">均分差</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {profile.dimensions.map((dimension) => (
+                            <tr key={dimension.dimension_code}>
+                              <th scope="row">
+                                <button
+                                  type="button"
+                                  className="ai-profile-dimension-action"
+                                  onClick={() => setProfileEvidence({ profile, dimension })}
+                                  aria-label={`查看${dimension.label}评分依据${dimension.condition_defined ? '（分组条件）' : ''}`}
+                                >
+                                  <span>{dimension.label}</span>
+                                  <span aria-hidden="true">›</span>
+                                </button>
+                              </th>
+                              <td>{dimension.target.mean.display}</td>
+                              <td>{dimension.remainder.mean.display}</td>
+                              <td>{dimension.difference.display}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      <div className="ai-fact-actions">
+                        <Button
+                          onClick={() => {
+                            setConditions(profileConditions(profile));
+                            router.push('/explorer');
+                          }}
+                        >
+                          继续探索该群体
+                        </Button>
+                        <details className="ai-profile-note">
+                          <summary>分组与使用说明</summary>
+                          <p>{profile.common_pattern}</p>
+                          <p>{profile.why_show}</p>
+                          <p>
+                            报告仅收录教师确认的发现。评分明细须满足至少 {projection.minimum_cell}{' '}
+                            人的隐私要求。
+                          </p>
+                        </details>
+                      </div>
+                    </section>
+                  );
+                })}
               </div>
             </section>
           )}

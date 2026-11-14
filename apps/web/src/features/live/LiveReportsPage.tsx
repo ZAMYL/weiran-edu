@@ -75,7 +75,9 @@ export default function LiveReportsPage() {
                 </ul>
               </>
             ) : (
-              <p className="muted">当前可保存测评概况；没有选定发现时不会生成诊断结论。</p>
+              <p className="teacher-reading">
+                可以先保存测评概况。如需整理发现，请到学情诊断选择要核查的发现。
+              </p>
             )}
             {draft?.discovery?.discovery_ids.length ? (
               <button

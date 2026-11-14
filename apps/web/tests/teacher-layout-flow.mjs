@@ -238,7 +238,7 @@ export async function teacherLayoutFlow({
   await pane('重点关注').click();
   assert.equal(await focus().getByRole('checkbox').first().isChecked(), true);
   await focus().getByRole('checkbox').first().uncheck();
-  await focus().getByRole('button', { name: '查看发现与依据', exact: true }).first().click();
+  await focus().getByRole('button', { name: '查看具体评分', exact: true }).first().click();
   await page.getByTestId('discovery-chart').locator('svg').waitFor();
   const detailSelection = page.locator('.discovery-detail-selection').getByRole('checkbox');
   await detailSelection.check();
@@ -265,7 +265,7 @@ export async function teacherLayoutFlow({
   await closeTop();
   await closeTop();
   await closeTop();
-  await focus().getByRole('button', { name: '继续探索这组学生', exact: true }).first().click();
+  await focus().getByRole('button', { name: '看看这组学生', exact: true }).first().click();
   await page.locator('.match-summary').filter({ hasText: '105 / 105' }).waitFor();
   assert.ok(new URL(page.url()).searchParams.has('discovery'));
   const portraitReply = page

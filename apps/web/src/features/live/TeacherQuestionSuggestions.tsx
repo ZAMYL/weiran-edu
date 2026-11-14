@@ -16,7 +16,7 @@ export default function TeacherQuestionSuggestions({
   if (!questions.length) return null;
   return (
     <div>
-      <div className="batch-actions" role="group" aria-label="快捷提问">
+      <div className="ai-question-suggestions" role="group" aria-label="快捷提问">
         {questions.map((question) => (
           <Button
             key={question.id}
@@ -29,9 +29,7 @@ export default function TeacherQuestionSuggestions({
           </Button>
         ))}
       </div>
-      <p className="muted small">
-        受控模拟分析；未调用真实 Qwen。选择问题后，点击“开始分析”再发起调查。
-      </p>
+      <p className="muted small">可核查评分差别、评分关联和缺分。选择问题后，由你确认开始分析。</p>
     </div>
   );
 }

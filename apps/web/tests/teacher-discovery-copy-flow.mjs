@@ -53,10 +53,6 @@ export async function teacherDiscoveryCopyFlow({
     await card.getByRole('heading', { level: 3 }).innerText(),
     '算法与数据结构评分不高于 3.49 分：代码实现能力平均分更高',
   );
-  assert.equal(
-    await card.locator('.focus-grouping').innerText(),
-    '分组依据：算法与数据结构 ≤ 3.49 分',
-  );
   assert.deepEqual(await card.locator('.focus-metrics strong').allTextContents(), [
     '3.69',
     '3.00',
@@ -64,12 +60,10 @@ export async function teacherDiscoveryCopyFlow({
   ]);
   assert.match(await card.locator('.focus-metrics dt').first().innerText(), /15 人/);
   assert.match(await card.locator('.focus-metrics dt').nth(1).innerText(), /38 人/);
-  await card.locator('.focus-explanation > summary').click();
   assert.match(
-    await card.locator('.focus-explanation').innerText(),
+    await card.locator('.teacher-reading').innerText(),
     /15 人中，15 人的有效评分平均为 3\.69 分/,
   );
-  await card.locator('.focus-explanation > summary').click();
   await clean();
   for (const [width, height] of [
     [1920, 1080],
@@ -93,9 +87,11 @@ export async function teacherDiscoveryCopyFlow({
     });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  await card.getByRole('button', { name: '查看发现与依据', exact: true }).click();
+  await card.getByRole('button', { name: '查看具体评分', exact: true }).click();
   const drawer = page.locator('.ant-drawer-open').last();
   await drawer.locator('.discovery-evidence-notes').waitFor();
+  assert.equal(await drawer.locator('.discovery-evidence-notes').getAttribute('open'), null);
+  await drawer.locator('.discovery-evidence-notes summary').click();
   const notes = await drawer.locator('.discovery-evidence-notes').innerText();
   assert.ok(notes.includes(`支持样本 ${d.ranking.support_count} 人`));
   assert.ok(notes.includes(`计划 ${d.ranking.robustness.planned} 次`));
@@ -118,7 +114,7 @@ export async function teacherDiscoveryCopyFlow({
     .waitFor();
   await navigation('学情诊断');
   await waitFocus();
-  await card.getByRole('button', { name: '继续探索这组学生', exact: true }).click();
+  await card.getByRole('button', { name: '看看这组学生', exact: true }).click();
   await page.waitForURL('**/explorer?discovery=*');
   const pointer = JSON.parse(new URL(page.url()).searchParams.get('discovery'));
   assert.equal(pointer.batch_id, imported.batchId);

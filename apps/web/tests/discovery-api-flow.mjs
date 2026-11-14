@@ -386,7 +386,7 @@ try {
       chart = nextResponse('/chart/query');
     await page
       .locator('.discoveries-panel')
-      .getByRole('button', { name: '查看发现与依据', exact: true })
+      .getByRole('button', { name: '查看具体评分', exact: true })
       .nth(index)
       .click();
     await detail;

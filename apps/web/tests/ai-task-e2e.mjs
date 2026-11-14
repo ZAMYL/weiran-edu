@@ -96,6 +96,11 @@ try {
     return ref;
   }
   const normal = await openCase('normal');
+  const shortcuts = page.getByRole('group', { name: '快捷提问' });
+  const aiQuestion = page.getByLabel('想了解什么？', { exact: true });
+  await shortcuts.getByRole('button').first().click();
+  assert.notEqual(await aiQuestion.inputValue(), '');
+  assert.equal(requests.filter((request) => request.method === 'POST').length, 0);
   const unsupported = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 422,
   );

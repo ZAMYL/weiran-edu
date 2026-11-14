@@ -177,6 +177,9 @@ export default function AnalysisActions({
           {!history && draftContent}
           <section className="panel analysis-actions">
             {!reportPage && <h2>分析报告</h2>}
+            {reportPage && !blocked && (
+              <p className="teacher-reading">保存后可核查发现，再导出报告。</p>
+            )}
             <div className="batch-actions">
               <Button
                 type="primary"
@@ -367,7 +370,9 @@ function SavedAnalyses({
       {list.error && <RequestError error={list.error} retry={list.retry} />}
       {list.data && (
         <>
-          {!list.data.items.length && <Empty description="本次测评还没有保存的分析。" />}
+          {!list.data.items.length && (
+            <Empty description="本次测评还没有报告。选择「新建分析报告」开始整理。" />
+          )}
           <div className="saved-analysis-list">
             {list.data.items.map((item) => (
               <Panel

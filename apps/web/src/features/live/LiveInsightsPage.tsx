@@ -31,6 +31,7 @@ import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
 import AssessmentItemPage from './AssessmentItemPage';
 import AiInvestigationPanel from './AiInvestigationPanel';
+import { ScoreReading } from './TeacherScoreReading';
 import type { DiscoverySelection } from '../../services/edu-api/analysis-types';
 
 export default function LiveInsightsPage() {
@@ -107,7 +108,9 @@ function Insights({ batch }: { batch: ApiBatch }) {
     [client, batch, spec, offset],
   );
   const insights = useRemote(
-    `insights:${batch.batch_id}:${JSON.stringify(spec)}:${offset}`,
+    rightView === 'statistics' || selection
+      ? `insights:${batch.batch_id}:${JSON.stringify(spec)}:${offset}`
+      : null,
     loadInsights,
   );
   const openMetric = (card: InsightCard, metricKey: string) =>
@@ -195,6 +198,11 @@ function Insights({ batch }: { batch: ApiBatch }) {
                 {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
                 {stats.data && (
                   <>
+                    <ScoreReading
+                      statistics={stats.data.statistics}
+                      rubric={stats.data.rubric}
+                      distribution={mode === 'distribution'}
+                    />
                     <ServerAbilityChart
                       statistics={stats.data.statistics}
                       rubric={stats.data.rubric}
@@ -202,9 +210,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
                     />
                     <details className="chart-reading-note">
                       <summary>评分说明</summary>
-                      <p>
-                        按各维度有效评分计算，原始精度不变；各维度有效人数可能不同。评分现象不直接解释学习成因。
-                      </p>
+                      <p>平均分只使用有效评分，各项目参与计算的人数可能不同。</p>
                     </details>
                     <Button type="link" onClick={() => router.push('/explorer')}>
                       进入画像探索 →

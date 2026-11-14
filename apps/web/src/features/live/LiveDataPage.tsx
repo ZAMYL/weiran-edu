@@ -153,7 +153,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
                 <Button type="primary" tabIndex={-1} disabled={!allowed}>
                   选择文件
                 </Button>
-                <p>.xlsx · 最大 10 MB，也可拖入文件</p>
+                <p>选择或拖入 .xlsx 测评表（最大 10 MB），系统会先检查评分数据。</p>
               </div>
             </Upload.Dragger>
           </div>
