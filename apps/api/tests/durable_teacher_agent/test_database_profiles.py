@@ -116,7 +116,7 @@ def start(
                 "post_seconds": post_seconds,
                 "task_execution_seconds": execution_seconds[0],
                 "get_seconds": get_seconds,
-                "proof_replay_seconds": replay_seconds[-1],
+                "proof_replay_seconds": replay_seconds[-1] if replay_seconds else None,
                 "model_requests": view["model_requests"],
                 "tool_attempts": view["tool_attempts"],
                 "projection": None
