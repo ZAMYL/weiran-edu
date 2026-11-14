@@ -125,7 +125,7 @@ it('expresses the real 53 / 15 / 38 comparison with 3.69, 3.00 and +0.69, withou
   const d = group();
   const before = JSON.stringify(d);
   const p = discoveryPresentation(d);
-  expect(p.title).toBe('符合条件的学生，代码实现能力评分较高');
+  expect(p.title).toBe('算法与数据结构评分不高于 3.49 分：代码实现能力平均分更高');
   expect(p.grouping).toBe('分组依据：算法与数据结构 ≤ 3.49 分');
   expect(p.metrics.map((m) => m.value)).toEqual(['3.69', '3.00', '+0.69']);
   expect(p.metrics.map((m) => m.label)).toEqual([
@@ -133,7 +133,9 @@ it('expresses the real 53 / 15 / 38 comparison with 3.69, 3.00 and +0.69, withou
     '其他可判定学生 · 38 人',
     '平均分相差',
   ]);
-  expect(p.explanation).not.toMatch(/15|38|3\.69|3\.00|0\.69|目标组|余组|互斥/);
+  expect(p.explanation).toContain('15 人中，15 人的有效评分平均为 3.69 分');
+  expect(p.explanation).toContain('另外 38 人中，38 人的有效评分平均为 3.00 分');
+  expect(p.explanation).not.toMatch(/目标组|余组|互斥/);
   expect(eligibleForFocus(d)).toBe(true);
   expect(JSON.stringify(d)).toBe(before);
 });
@@ -149,7 +151,7 @@ it('preserves the original group orientation and AND conditions when the differe
     threshold: exact(325, 100),
   });
   const p = discoveryPresentation(d);
-  expect(p.title).toContain('评分较低');
+  expect(p.title).toContain('平均分更低');
   expect(p.metrics[2]?.value).toBe('-0.69');
   expect(discoveryConditionsText(d.conditions)).toBe(
     '算法与数据结构 ≤ 3.49 分 且 解题策略 ≥ 3.25 分',
@@ -215,9 +217,9 @@ it('describes positive and negative correlation without asserting causality', ()
       },
       chart: [],
     });
-  expect(discoveryPresentation(make(0.8)).title).toContain('同向变化');
-  expect(discoveryPresentation(make(-0.8)).title).toContain('反向变化');
-  expect(discoveryPresentation(make(0.8)).explanation).toContain('相关不代表因果');
+  expect(discoveryPresentation(make(0.8)).title).toContain('一起较高或较低');
+  expect(discoveryPresentation(make(-0.8)).title).toContain('另一项往往较低');
+  expect(discoveryPresentation(make(0.8)).explanation).toContain('不能据此判断一项影响了另一项');
   expect(eligibleForFocus(make(null))).toBe(false);
 });
 
@@ -248,7 +250,7 @@ it('keeps individual rare combinations out of priority discoveries without inven
   expect(discoveryEvidenceNotes(make(1)).join('')).toContain('依据不足');
   const many = make(6);
   expect(eligibleForFocus(many)).toBe(true);
-  expect(discoveryPresentation(many).explanation).toContain('不能直接解释为能力缺陷或评分错误');
+  expect(discoveryPresentation(many).explanation).toContain('不说明评分有误');
 });
 
 it('explains boundary changes as filtering rather than a teaching conclusion', () => {
@@ -273,7 +275,7 @@ it('explains boundary changes as filtering rather than a teaching conclusion', (
       { operator: 'lte', count: 15 },
     ],
   });
-  expect(discoveryPresentation(d).title).toContain('多选出 5 名学生');
-  expect(discoveryPresentation(d).explanation).toContain('不是新增教学诊断');
+  expect(discoveryPresentation(d).title).toContain('增加 5 人');
+  expect(discoveryPresentation(d).explanation).toContain('不是新增的教学结论');
   expect(discoveryPresentation(d).metrics.map((m) => m.value)).toEqual(['10', '15', '5']);
 });

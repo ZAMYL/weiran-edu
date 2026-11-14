@@ -1,0 +1,6 @@
+[
+  { "id": "priority", "question": "有哪些值得关注的问题？", "goal": "priority" },
+  { "id": "relation", "question": "比较 算法与数据结构、代码实现能力 的关联", "goal": "relation" },
+  { "id": "group", "question": "比较 算法与数据结构、代码实现能力 的群体差异", "goal": "group" },
+  { "id": "quality", "question": "检查所有项目的缺分", "goal": "quality" }
+]

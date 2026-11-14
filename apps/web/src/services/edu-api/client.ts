@@ -1,4 +1,5 @@
 import { ContractError, type Decoder } from './schema';
+import { teacherAiError } from './teacher-ai-guidance';
 import {
   discoveriesDto,
   discoveryDetailDto,
@@ -68,8 +69,7 @@ const STATUS_MESSAGES: Record<number, string> = {
   504: '请求超时，请检查连接后重试。',
 };
 const FILE_MESSAGES: Record<string, string> = {
-  AI_GOAL_UNSUPPORTED:
-    '暂不支持这个问题。可以问「有哪些值得关注的问题？」或询问评分关联、群体差异。',
+  AI_GOAL_UNSUPPORTED: `暂不支持这个问题。${teacherAiError('AI_GOAL_UNSUPPORTED')!.message} ${teacherAiError('AI_GOAL_UNSUPPORTED')!.action}`,
   AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
   IMPORT_FORMAT_UNSUPPORTED: '这份表格的结构暂不支持。请核对测评表格后重新选择。',

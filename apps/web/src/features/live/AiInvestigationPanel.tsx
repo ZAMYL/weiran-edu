@@ -20,6 +20,15 @@ import { Panel } from '../../components/ui';
 import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { LiveScoreDrawer } from './LiveStudents';
+import TeacherQuestionSuggestions from './TeacherQuestionSuggestions';
+import { DIMENSIONS } from '../../services/edu-api/types';
+
+const legacyItems = DIMENSIONS.map((d) => ({
+  item_id: d.code,
+  display_name: d.name,
+  kind: 'competency' as const,
+  scale: null,
+}));
 
 const metricLabels: Record<string, string> = {
   'metrics.rho': '相关系数',
@@ -183,6 +192,11 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
         autoSize={{ minRows: 2, maxRows: 4 }}
         placeholder="有哪些值得关注的问题？"
         disabled={busy || restoring || aiRunning(task)}
+      />
+      <TeacherQuestionSuggestions
+        items={batch.recognized_items ?? legacyItems}
+        disabled={busy || restoring || aiRunning(task)}
+        onChoose={setQuestion}
       />
       <div className="ai-task-actions">
         <Button
