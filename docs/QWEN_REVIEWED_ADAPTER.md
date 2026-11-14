@@ -23,7 +23,11 @@ Do not expose this constructor or approval file to a browser/client.
 
 Approval binds campaign ID, exact source fingerprints, model, endpoint SHA256, price
 fingerprint, expiration, at most 6 requests / 800 output tokens, token and CNY caps.
-Use a fresh campaign ID and persistent operator-owned state directory outside Git.
+Use a fresh campaign ID for each authorized run. The campaign journal is owned by the
+server, not by the caller: it lives under `WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT` (default
+`%LOCALAPPDATA%\weiran-edu\campaign-ledgers` on Windows, `$XDG_DATA_HOME` or
+`~/.local/share` elsewhere) and no CLI flag, working directory or report path can move it.
+A relative root is rejected, and one human approval reference may fund only one campaign.
 The conservative six-request upper bound at current full-context reservation is
 4.7736384 CNY (5,955,648 tokens); approve 4.78 CNY only if acceptable. Actual list-price
 cost is computed from returned usage and is not an invoice. Unknown usage retains the
@@ -33,8 +37,9 @@ After independent review AND explicit fee approval, operator execution is:
 
 ```powershell
 # DASHSCOPE_API_KEY and DASHSCOPE_BASE_URL are server environment variables only.
+# WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT pins the ledger; keep it constant across runs.
 uv run --project apps/api --locked python -m prototypes.qwen_execution.cli `
-  --execute --approval <external-approval.json> --state-dir <external-ledger-directory>
+  --execute --approval <external-approval.json>
 ```
 
 Replacing/deleting the approval revokes it; access is checked before each reservation,

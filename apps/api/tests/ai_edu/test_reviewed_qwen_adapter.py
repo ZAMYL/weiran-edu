@@ -8,10 +8,6 @@ from decimal import Decimal
 
 import httpx
 import pytest
-from app.ai.edu.discovery.models import AgentError
-from app.ai.edu.qwen_config import QwenSettings
-from pydantic import SecretStr
-
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.demo import MOCK_BASE, mock_authorization, native_response
 from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261112 as PRICE
@@ -23,6 +19,10 @@ from prototypes.qwen_execution.runtime import (
     code_fingerprint,
     run_reviewed_profiles,
 )
+from pydantic import SecretStr
+
+from app.ai.edu.discovery.models import AgentError
+from app.ai.edu.qwen_config import QwenSettings
 
 RECIPE = "profile-balanced-72"
 SETTINGS = QwenSettings(SecretStr("synthetic-placeholder-only"), MOCK_BASE)
@@ -146,8 +146,15 @@ def test_shared_budget_does_not_reset_and_source_cannot_change(tmp_path):
             budget.reserve()
     finally:
         budget.close()
+    # Reopening must reuse the same origin: live journals live under the server root,
+    # the offline rehearsal journal under this directory.
     with pytest.raises(AgentError, match="campaign_already_consumed"):
-        ReviewedBudget(approval(max_requests=1), tmp_path, authorize=lambda: None)
+        ReviewedBudget(
+            approval(max_requests=1),
+            tmp_path,
+            authorize=lambda: None,
+            transport=httpx.MockTransport(lambda _: httpx.Response(500)),
+        )
 
 
 def test_teacher_objects_and_insufficient_cost_are_rejected_before_request(tmp_path):

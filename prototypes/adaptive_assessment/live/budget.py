@@ -18,6 +18,28 @@ from ..synthetic import AdmittedSynthetic, admit
 from .pricing import reviewed_price
 from .safety import deny_live
 
+LEDGER_ROOT_ENV = "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT"
+_APPROVAL_INDEX_DIRECTORY = "approvals"
+
+
+def ledger_root() -> Path:
+    """The one server-owned directory for live campaign journals.
+
+    A request, CLI flag, working directory or report path must never choose it:
+    otherwise the same approval can be replayed against a fresh empty directory and
+    reserve the whole budget again. The fallback sits in the user profile, so a local
+    server needs no extra configuration while every run still resolves to one ledger.
+    """
+    configured = os.environ.get(LEDGER_ROOT_ENV)
+    if configured:
+        root = Path(configured).expanduser()
+        if not root.is_absolute():
+            raise AgentError("campaign_ledger_root_must_be_absolute")
+        return root
+    base = os.environ.get("LOCALAPPDATA") or os.environ.get("XDG_DATA_HOME")
+    profile = Path(base) if base else Path.home() / ".local" / "share"
+    return profile / "weiran-edu" / "campaign-ledgers"
+
 
 class SyntheticLiveAuthorization(Strict):
     campaign_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{8,64}$")
@@ -122,12 +144,15 @@ class CampaignBudget:
     The exclusive campaign journal prevents ordinary process/client restart from restoring
     budgets. An existing campaign cannot resume automatically. OS operators can delete
     state; this is not a multi-tenant billing or authentication service.
+
+    `state_dir` is only accepted for the offline `http_mock` rehearsal ledger. Live
+    origins resolve `ledger_root()` instead, so no per-run path can reset a budget.
     """
 
     def __init__(
         self,
         authorization: SyntheticLiveAuthorization | OfflineSnapshotPermit,
-        state_dir: Path,
+        state_dir: Path | None = None,
         *,
         origin: Literal["synthetic_live", "http_mock"],
         today: date | None = None,
@@ -146,7 +171,7 @@ class CampaignBudget:
             raise AgentError("invalid_live_authorization")
         self._initialize(authorization, state_dir, origin=origin, today=today)
 
-    def _initialize(self, authorization, state_dir, *, origin, today=None):
+    def _initialize(self, authorization, state_dir=None, *, origin, today=None):
         """Shared journal mechanics; admission belongs to each execution entry point."""
         self._today = today if origin == "http_mock" else None
         self.authorization = (
@@ -164,20 +189,69 @@ class CampaignBudget:
         self._claimed = False
         self._blocked = None
         self._closed = False
-        state_dir.mkdir(parents=True, exist_ok=True)
+        directory = self._journal_directory(state_dir)
+        directory.mkdir(parents=True, exist_ok=True)
+        journal = directory / (authorization.campaign_id + ".jsonl")
         try:
-            self._fd = os.open(
-                state_dir / (authorization.campaign_id + ".jsonl"),
-                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
-                0o600,
-            )
+            self._fd = os.open(journal, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         except FileExistsError:
             raise AgentError("campaign_already_consumed") from None
+        self._journal = journal
         try:
             self._persist()
         except AgentError:
             self.close()
+            journal.unlink(missing_ok=True)
             raise
+        try:
+            self._bind_approval(directory)
+        except AgentError:
+            # Nothing was reserved yet: roll the journal back so a rejected approval
+            # does not burn the campaign id.
+            self.close()
+            journal.unlink(missing_ok=True)
+            raise
+
+    def _journal_directory(self, state_dir):
+        """Live journals follow the server root; only offline rehearsal picks a path."""
+        if self._origin == "http_mock":
+            if state_dir is None:
+                raise AgentError("offline_ledger_directory_required")
+            directory = Path(state_dir).expanduser()
+            if not directory.is_absolute():
+                raise AgentError("offline_ledger_directory_must_be_absolute")
+            return directory
+        root = ledger_root()
+        if state_dir is not None and Path(state_dir).expanduser().resolve() != root.resolve():
+            raise AgentError("live_ledger_root_is_server_owned")
+        return root
+
+    def _bind_approval(self, directory):
+        """One human approval may fund at most one campaign, whatever its campaign id."""
+        authorization = self.authorization
+        if self._origin == "http_mock" or type(authorization) is OfflineSnapshotPermit:
+            # Offline rehearsal approvals are placeholders, not human approvals.
+            return
+        index = directory / _APPROVAL_INDEX_DIRECTORY
+        index.mkdir(parents=True, exist_ok=True)
+        key = sha256(authorization.human_approval_reference.encode()).hexdigest()
+        path = index / (key + ".json")
+        record = json.dumps(
+            {
+                "campaign_id": authorization.campaign_id,
+                "authorization_fingerprint": self._authorization_fingerprint,
+            },
+            sort_keys=True,
+        ).encode()
+        try:
+            descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        except FileExistsError:
+            raise AgentError("approval_already_bound") from None
+        try:
+            os.write(descriptor, record)
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
 
     @property
     def price(self):

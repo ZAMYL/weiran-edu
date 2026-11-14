@@ -11,6 +11,17 @@ def isolate_database_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
+def isolate_campaign_ledger(
+    monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    # Live campaign journals are server-owned; each case gets its own root, and a
+    # stale journal from an earlier run can never decide a later test.
+    monkeypatch.setenv(
+        "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT", str(tmp_path_factory.mktemp("campaign-ledger"))
+    )
+
+
+@pytest.fixture(autouse=True)
 def block_external_connections(monkeypatch: pytest.MonkeyPatch) -> None:
     original_connect = socket.socket.connect
     original_connect_ex = socket.socket.connect_ex
