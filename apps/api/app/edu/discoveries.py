@@ -31,6 +31,7 @@ from .discovery_models import (
     DiscoverySpec,
     DiscoverySummary,
 )
+from .discovery_reuse import CompletedDiscoveryReuse
 from .service import fail
 
 POLICY = Policy(search_budget=20, maximum_findings=50, maximum_students=bridge.MAX_RECORDS)
@@ -118,6 +119,7 @@ class DiscoveryReader(DiscoveryInputReader):
         *,
         request: Request | None = None,
         cancelled: CancelCheck | None = None,
+        reuse: tuple[CompletedDiscoveryReuse, str] | None = None,
     ):
         started = perf_counter()
         disconnect = getattr(request.state, "edu_discovery_disconnect", None) if request else None
@@ -129,24 +131,36 @@ class DiscoveryReader(DiscoveryInputReader):
                 return disconnect.is_set()
             return await request.is_disconnected() if request else False
 
-        async with _snapshot(self, actor, batch_id, query) as data:
-            try:
-                result = await worker.execute(
-                    data.dataset,
-                    batch_id,
-                    query.snapshot_id,
-                    data.student_ids,
-                    _boundaries(data.spec),
-                    POLICY,
-                    timeout=max(0, bridge.MAX_SECONDS - (perf_counter() - started)),
-                    disconnected=disconnected,
+        try:
+            async with _snapshot(self, actor, batch_id, query) as data:
+                result = (
+                    await run_in_threadpool(reuse[0].read, actor, reuse[1], data) if reuse else None
                 )
+                if result is None:
+                    result = await worker.execute(
+                        data.dataset,
+                        batch_id,
+                        query.snapshot_id,
+                        data.student_ids,
+                        _boundaries(data.spec),
+                        POLICY,
+                        timeout=max(0, bridge.MAX_SECONDS - (perf_counter() - started)),
+                        disconnected=disconnected,
+                    )
                 self.check_result(data, result)
                 check_cancelled(cancelled)
                 yield data, result
                 check_cancelled(cancelled)
-            except (AnalysisInputError, ValidationError, KeyError, TypeError, ValueError):
-                fail("DATA_INTEGRITY_ERROR", 503)
+        except (AnalysisInputError, ValidationError, KeyError, TypeError, ValueError):
+            if reuse:
+                reuse[0].discard(actor, reuse[1])
+            fail("DATA_INTEGRITY_ERROR", 503)
+        except BaseException:
+            if reuse:
+                reuse[0].discard(actor, reuse[1])
+            raise
+        if reuse:
+            await run_in_threadpool(reuse[0].remember, actor, reuse[1], data, result)
 
     async def query(
         self,
@@ -166,7 +180,19 @@ class DiscoveryReader(DiscoveryInputReader):
 
             await run_in_threadpool(authorize)
             deny(404)
-        async with self.calculation(actor, batch_id, query, request=request) as (data, result):
+        reuse = None
+        if request is not None and operation in {"list", "detail"}:
+            session = request.headers.get("x-edu-diagnosis-session", "")
+            if re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", session):
+                store = getattr(request.app.state, "edu_diagnosis_reuse", None)
+                if store is None:
+                    store = CompletedDiscoveryReuse()
+                    request.app.state.edu_diagnosis_reuse = store
+                reuse = store, session
+        async with self.calculation(actor, batch_id, query, request=request, reuse=reuse) as (
+            data,
+            result,
+        ):
             return await run_in_threadpool(
                 self._response, actor, data, result, query, operation, discovery_id
             )
