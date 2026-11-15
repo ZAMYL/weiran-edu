@@ -331,6 +331,7 @@ try {
       python,
       env: process.env,
       reference: {
+        savedResult: confirmed,
         studentCount: 53,
         discoveryIds: exportedIds,
         batchId: normal.batch_id,

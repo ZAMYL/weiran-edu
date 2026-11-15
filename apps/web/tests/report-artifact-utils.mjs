@@ -2,7 +2,27 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 
 // Check real downloaded reports against the actual saved/reviewed API response.
+export function confirmedReportFindings(saved) {
+  assert.ok(Array.isArray(saved.findings) && Array.isArray(saved.discovery_findings));
+  const candidateIds = saved.findings
+    .filter((f) => f.teacher_review.status === 'confirmed')
+    .map((f) => f.candidate.candidate_id);
+  const discoveryIds = saved.discovery_findings
+    .filter((f) => f.teacher_review.status === 'confirmed')
+    .map((f) => f.discovery.discovery_id);
+  assert.equal(new Set(candidateIds).size, candidateIds.length);
+  assert.equal(new Set(discoveryIds).size, discoveryIds.length);
+  return {
+    candidateIds,
+    discoveryIds,
+    confirmedFindingCount: candidateIds.length + discoveryIds.length,
+  };
+}
 export function verifyReportArtifact({ format, bytes, destination, python, env, reference }) {
+  const confirmed = confirmedReportFindings(reference.savedResult);
+  assert.deepEqual(reference.discoveryIds, confirmed.discoveryIds);
+  assert.equal(reference.resultId, reference.savedResult.result_id);
+  assert.equal(reference.version, reference.savedResult.version);
   let rows, sheets, discoveryReferences;
   if (format === 'md') {
     const text = bytes.toString('utf8');
@@ -41,7 +61,7 @@ export function verifyReportArtifact({ format, bytes, destination, python, env, 
   }
   const expected = [
     ['测评记录数', reference.studentCount],
-    ['教师已确认发现数', reference.discoveryIds.length],
+    ['教师已确认发现数', confirmed.confirmedFindingCount],
     ['测评批次引用', reference.batchId],
     ['数据快照引用', reference.snapshotId],
     ['保存结果引用', reference.resultId],
@@ -71,6 +91,7 @@ export function verifyReportArtifact({ format, bytes, destination, python, env, 
     sheets,
     verifiedMetadataFields: expected.length,
     confirmedDiscoveryCount: reference.discoveryIds.length,
+    confirmedFindingCount: confirmed.confirmedFindingCount,
     verifiedFactRows: reference.factRows?.length ?? 0,
   };
 }

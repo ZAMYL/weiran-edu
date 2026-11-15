@@ -15,42 +15,28 @@ param(
   [ValidateSet('first', 'sample')]
   [string]$Identity = 'first',
   [int]$Port = 3000,
-  [int]$HostSeconds = 3600
+  [int]$HostSeconds = 3600,
+  [switch]$NoBrowser
 )
 $ErrorActionPreference = 'Stop'
 $Repo    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $Web     = Join-Path $Repo 'apps\web'
 $Api     = Join-Path $Repo 'apps\api'
 $Python  = Join-Path $Api '.venv\Scripts\python.exe'
-$Private = Join-Path $env:LOCALAPPDATA 'weiran-edu-ai-integration'
+$Private = Join-Path (Join-Path $env:LOCALAPPDATA 'weiran-edu-ai-integration') ('session-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Force -Path $Private | Out-Null
 $hostProc = $null
 $webProc  = $null
 
-function Stop-Tree([int]$ProcId) {
-  if ($ProcId -and (Get-Process -Id $ProcId -ErrorAction SilentlyContinue)) {
-    try { & taskkill /PID $ProcId /T /F 2>$null | Out-Null } catch { }
+function Stop-Tree([System.Diagnostics.Process]$OwnedProcess) {
+  if ($OwnedProcess -and -not $OwnedProcess.HasExited) {
+    try { & taskkill /PID $OwnedProcess.Id /T /F 2>$null | Out-Null } catch { }
   }
 }
 
-function Stop-DemoProcesses {
-  $patterns = @('node_modules/next/dist/bin/next start', 'prototypes.durable_teacher_agent.serve')
-  $killed = 0
-  foreach ($pattern in $patterns) {
-    $procs = Get-CimInstance Win32_Process -Filter "Name='node.exe' OR Name='python.exe'" -ErrorAction SilentlyContinue |
-      Where-Object { $_.CommandLine -like "*$pattern*" }
-    foreach ($proc in $procs) {
-      if (Get-Process -Id $proc.ProcessId -ErrorAction SilentlyContinue) {
-        try { & taskkill /PID $proc.ProcessId /T /F 2>$null | Out-Null } catch { }
-        $killed = $killed + 1
-      }
-    }
-  }
-  return $killed
-}
-
-$stale = Stop-DemoProcesses
-if ($stale -gt 0) { Write-Host "已清理 $stale 个遗留演示进程。" -ForegroundColor Yellow }
+$portProbe = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Loopback, $Port)
+try { $portProbe.Start() } catch { throw "端口 $Port 已占用。请使用 -Port 指定空闲端口；不会关闭现有服务。" } finally { $portProbe.Stop() }
+Write-Host "本次会话目录：$Private"
 
 try {
   # ---------- 1. 启动合成后端宿主（含空教师与样例教师两种身份） ----------
@@ -78,6 +64,7 @@ try {
     }
     $hostProc = Start-Process @hostParams
     Set-Content -LiteralPath (Join-Path $Private 'demo-host.pid') -Value $hostProc.Id
+    @{ ProcessId=$hostProc.Id; StartedUtcTicks=$hostProc.StartTime.ToUniversalTime().Ticks } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Private 'demo-host.owner.json')
     Write-Host ('正在启动合成后端宿主（真实 HTTP + SQLite）... 第 ' + $hostAttempt + ' 次尝试') -ForegroundColor Cyan
     $deadline = (Get-Date).AddSeconds(300)
     while ((Get-Date) -lt $deadline -and -not $connectionPath) {
@@ -89,7 +76,7 @@ try {
       }
     }
     if ($connectionPath) { break }
-    if ($hostProc -and -not $hostProc.HasExited) { Stop-Tree $hostProc.Id }
+    if ($hostProc -and -not $hostProc.HasExited) { Stop-Tree $hostProc }
     if ($hostAttempt -eq 3) {
       $tail = Get-Content $hostErr -Tail 20 -ErrorAction SilentlyContinue
       throw "合成后端宿主多次启动均未成功，请查看日志：$hostErr；末尾内容：$tail"
@@ -131,6 +118,7 @@ try {
   }
   $webProc = Start-Process @webParams
   Set-Content -LiteralPath (Join-Path $Private 'demo-web.pid') -Value $webProc.Id
+  @{ ProcessId=$webProc.Id; StartedUtcTicks=$webProc.StartTime.ToUniversalTime().Ticks } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Private 'demo-web.owner.json')
 
   Write-Host "正在启动 Next.js（127.0.0.1:$Port）..." -ForegroundColor Cyan
   $ready = $false
@@ -186,7 +174,7 @@ try {
   }
   Write-Host "  合成宿主 $HostSeconds 秒后自动撤销凭证并清理；Ctrl+C 可提前停止。" -ForegroundColor DarkGray
   try {
-    Start-Process "http://127.0.0.1:$Port/insights"
+    if (-not $NoBrowser) { Start-Process "http://127.0.0.1:$Port/insights" }
   } catch {
     Write-Host '未能自动打开浏览器，请手动访问上面的地址。'
   }
@@ -200,8 +188,8 @@ try {
   }
 } finally {
   Write-Host '正在停止...'
-  if ($webProc)  { Stop-Tree $webProc.Id }
-  if ($hostProc) { Stop-Tree $hostProc.Id }
+  if ($webProc)  { Stop-Tree $webProc }
+  if ($hostProc) { Stop-Tree $hostProc }
   Remove-Item (Join-Path $Private 'demo-web.pid'), (Join-Path $Private 'demo-host.pid') -ErrorAction SilentlyContinue
   Write-Host '已停止（宿主凭证最长 1 小时后过期）'
 }

@@ -240,6 +240,7 @@ export async function teacherProductFlow(h) {
   assert.ok(text.includes(chosen.discovery_id));
   assert.doesNotMatch(text, /合成私密姓名|未审核合成私密评语|合成私密依据/);
   const reportReference = {
+    savedResult: reviewed,
     batchId: batch.batch_id,
     snapshotId: batch.snapshot_id,
     resultId: created.result_id,

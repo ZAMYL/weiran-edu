@@ -198,6 +198,7 @@ export async function teacherIntegerFlow(h) {
       python,
       env,
       reference: {
+        savedResult: reopened,
         batchId: batch.batch_id,
         snapshotId: batch.snapshot_id,
         resultId: saved.result_id,
