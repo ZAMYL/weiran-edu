@@ -40,6 +40,8 @@ export function verifyReportArtifact({ format, bytes, destination, python, env, 
           .slice(1, -1)
           .map((cell) => cell.trim()),
       );
+    for (const match of text.matchAll(/^教师已确认发现数：([0-9]+)\s*$/gm))
+      rows.push(['教师已确认发现数', match[1]]);
     sheets = [];
   } else {
     assert.equal(format, 'xlsx');
@@ -67,11 +69,13 @@ export function verifyReportArtifact({ format, bytes, destination, python, env, 
     ['保存结果引用', reference.resultId],
     ['教师核验版本', reference.version],
   ];
-  for (const [label, value] of expected)
+  for (const [label, value] of expected) {
+    const actual = rows.filter((row) => row[0] === label);
     assert.ok(
-      rows.some((row) => row[0] === label && row[1] === String(value)),
+      actual.length > 0 && actual.every((row) => row[1] === String(value)),
       `${format}: mismatched ${label}`,
     );
+  }
   for (const [label, value] of reference.factRows ?? [])
     assert.ok(
       rows.some((row) => row[0] === label && row[1] === String(value)),

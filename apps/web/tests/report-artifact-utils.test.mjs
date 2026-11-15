@@ -11,12 +11,10 @@ test('counts both saved finding families, excluding pending and dismissed', () =
       candidate: { candidate_id: `ordinary-${i}` },
       teacher_review: { status },
     })),
-    discovery_findings: statuses
-      .slice(0, 3)
-      .map((status, i) => ({
-        discovery: { discovery_id: String(i).padStart(24, 'a') },
-        teacher_review: { status },
-      })),
+    discovery_findings: statuses.slice(0, 3).map((status, i) => ({
+      discovery: { discovery_id: String(i).padStart(24, 'a') },
+      teacher_review: { status },
+    })),
   };
   const result = confirmedReportFindings(saved);
   assert.equal(result.confirmedFindingCount, 3);
@@ -35,6 +33,21 @@ test('counts both saved finding families, excluding pending and dismissed', () =
     verifyReportArtifact({ format: 'md', bytes: Buffer.from(text), reference })
       .confirmedFindingCount,
     3,
+  );
+  const paragraph = text.replace('|教师已确认发现数|3|', '教师已确认发现数：3');
+  assert.equal(
+    verifyReportArtifact({ format: 'md', bytes: Buffer.from(paragraph), reference })
+      .confirmedFindingCount,
+    3,
+  );
+  assert.throws(
+    () =>
+      verifyReportArtifact({
+        format: 'md',
+        bytes: Buffer.from(paragraph.replace('教师已确认发现数：3', '教师已确认发现数：1')),
+        reference,
+      }),
+    /教师已确认发现数/,
   );
   assert.throws(
     () =>
