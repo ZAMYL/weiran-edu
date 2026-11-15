@@ -4631,10 +4631,6 @@ h1 {
 .radar-axis-short {
   display: none;
 }
-.explorer-next-action {
-  display: flex;
-  justify-content: flex-end;
-}
 .pending-filter-status {
   color: #b36b00;
   font-size: 14px;

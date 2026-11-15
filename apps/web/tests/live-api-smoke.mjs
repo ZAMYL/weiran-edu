@@ -565,7 +565,7 @@ try {
     'synthetic competition assessment uses neutral labels without class/course assumptions or invented course/date metadata',
   );
   checkpoint = 'metric query replay';
-  await page.getByRole('button', { name: '查看这组评分洞察' }).click();
+  await page.getByRole('link', { name: '学情诊断', exact: true }).click();
   await page.getByRole('radio', { name: '评分统计', exact: true }).locator('..').click();
   await page.locator('.insights-right .live-candidate').first().waitFor();
   const batch = await request(`/batches/${normalCommit.batch_id}`);

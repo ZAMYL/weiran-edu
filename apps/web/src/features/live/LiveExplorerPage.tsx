@@ -1,6 +1,5 @@
 'use client';
 import { useCallback, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Alert, Button, Empty, Input, Pagination, Segmented, Select } from 'antd';
 import { createPortal } from 'react-dom';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
@@ -49,7 +48,6 @@ export default function LiveExplorerPage() {
 }
 function Explorer({ batch }: { batch: ApiBatch }) {
   const { client, conditions, setConditions, discoveryOrigin } = useDataMode();
-  const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const [view, setView] = useState<'group' | 'student'>('group');
   const [portraitStudent, setPortraitStudent] = useState<ApiStudent | null>(null);
@@ -596,15 +594,6 @@ function Explorer({ batch }: { batch: ApiBatch }) {
               />
             )}
           </Panel>
-          <section className="explorer-next-action">
-            <Button
-              type="primary"
-              disabled={!group.data?.matched}
-              onClick={() => router.push('/insights')}
-            >
-              查看这组评分洞察
-            </Button>
-          </section>
           <AnalysisActions
             batch={batch}
             spec={{ snapshot_id: batch.snapshot_id, conditions, include_dimensions: true }}
