@@ -322,7 +322,7 @@ def test_validation_scope_fails_closed_if_source_changes_mid_phase(tmp_path, mon
             nonlocal calls
             calls += 1
             captured = capture(*args)
-            if calls == 2:
+            if calls == 1:
                 with service.store.database.transaction(write=True) as connection:
                     connection.execute("DROP TRIGGER immutable_evaluations_update")
                     connection.execute(
@@ -335,7 +335,7 @@ def test_validation_scope_fails_closed_if_source_changes_mid_phase(tmp_path, mon
         try:
             response = client.get(path, params={"snapshot_id": batch["snapshot_id"]})
             assert response.status_code == 503, response.text
-            assert calls >= 3
+            assert calls >= 2
         finally:
             monkeypatch.setattr(service.provider, "capture", capture)
             with service.store.database.transaction(write=True) as connection:

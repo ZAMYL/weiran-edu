@@ -80,12 +80,18 @@ class DatabaseSource:
         self.envelope.validate()
 
     @contextmanager
-    def validation_scope(self):
-        """Reuse a verified snapshot only inside one fail-closed validation phase."""
+    def validation_scope(self, *, prevalidated: bool = False):
+        """Reuse a verified snapshot only inside one fail-closed validation phase.
+
+        `prevalidated=True` is for a caller that has just materialized and compared
+        this exact source in the same request; the phase still re-checks the whole
+        source on exit, so a change during the phase is never returned as verified.
+        """
 
         state = self.envelope.validation_state
         outermost = state.depth == 0
-        self.validate()
+        if not prevalidated:
+            self.validate()
         state.depth += 1
         try:
             yield self
