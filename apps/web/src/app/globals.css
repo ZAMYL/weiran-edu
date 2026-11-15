@@ -2613,7 +2613,7 @@ h1 {
     border: 1px solid #e5edfb;
     border-radius: var(--radius);
   }
-  .history-assessment-table .history-assessment-row > td {
+  .history-assessment-table .ant-table-tbody > .history-assessment-row > .ant-table-cell {
     min-width: 0;
     padding: 0;
     border: 0;
@@ -2624,7 +2624,6 @@ h1 {
   }
   .history-assessment-table .ant-table-cell.history-actions-cell {
     width: auto;
-    padding-top: 4px;
   }
   .history-actions-cell .batch-actions {
     justify-content: flex-start;
