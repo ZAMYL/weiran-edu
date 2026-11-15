@@ -3,6 +3,7 @@
 from fractions import Fraction
 
 from app.edu.discovery_models import (
+    DISCOVERY_RETENTION_LIMIT,
     BoundaryMetrics,
     DiscoveryDetail,
     DiscoveryExact,
@@ -63,7 +64,8 @@ def exact(value: DiscoveryExact | None) -> Fraction | None:
 
 def validate_discoveries(report: ReportInput) -> None:
     require(
-        isinstance(report.discoveries, tuple) and len(report.discoveries) <= 3,
+        isinstance(report.discoveries, tuple)
+        and len(report.discoveries) <= DISCOVERY_RETENTION_LIMIT,
         "discovery_report_limit",
     )
     require(report.reviewed is not None, "saved_discovery_review_required")

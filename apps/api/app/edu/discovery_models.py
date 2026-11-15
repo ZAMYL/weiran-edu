@@ -12,6 +12,7 @@ from .insight_models import InsightParticipant
 from .models import Identifier, Model
 
 PROFILE = "edu.discovery.profile.v1"
+DISCOVERY_RETENTION_LIMIT = 50
 
 
 class DiscoverySpec(Model):

@@ -54,6 +54,73 @@ def test_paginated_candidates_save_complete_scope_and_original_charts(client, fo
     assert "未审核合成" not in saved.text and "合成私密姓名" not in saved.text
 
 
+def test_all_retained_discoveries_can_be_saved_and_reviewed_together(client, custom_batch):
+    base, batch = custom_batch(
+        [(1, 1, 1, 1, 1)] * 10 + [(3, 3, 3, 3, 3)] * 10 + [(5, 5, 5, 5, 5)] * 10
+    )
+    listed = query(client, base, batch, limit=50).json()
+    ids = [item["discovery_id"] for item in listed["items"]]
+    assert len(ids) == 50
+    saved = save(
+        client,
+        base,
+        batch,
+        listed,
+        discovery={"input_key": listed["scope"]["input_key"], "discovery_ids": ids},
+    )
+    assert saved.status_code == 201, saved.text
+    path = base + "/analysis-results/" + saved.json()["result_id"]
+    updated = client.patch(
+        path,
+        json={
+            "snapshot_id": batch["snapshot_id"],
+            "expected_version": 1,
+            "decisions": [
+                {"candidate_id": item, "status": "dismissed" if index == 0 else "confirmed"}
+                for index, item in enumerate(ids)
+            ],
+        },
+    )
+    assert updated.status_code == 200, updated.text
+    reviews = [
+        finding["teacher_review"]["status"]
+        for finding in client.get(path).json()["discovery_findings"]
+    ]
+    assert reviews == ["dismissed"] + ["confirmed"] * 49
+    result = updated.json()
+    confirmed = ids[1:]
+    for format in ("xlsx", "md"):
+        check = client.post(
+            path + "/export-check",
+            json={
+                "snapshot_id": batch["snapshot_id"],
+                "expected_version": result["version"],
+                "format": format,
+            },
+        )
+        assert check.status_code == 200, check.text
+        assert check.json()["confirmed_finding_count"] == len(confirmed)
+        response = exported(client, base, batch, result, format)
+        assert response.status_code == 200, response.text[:200]
+        if format == "xlsx":
+            with BytesIO(response.content) as content:
+                workbook = load_workbook(content, read_only=True)
+                try:
+                    audit = tuple(
+                        cell
+                        for row in workbook["技术附录"].values
+                        for cell in row
+                        if isinstance(cell, str)
+                    )
+                finally:
+                    workbook.close()
+            assert all(identifier in audit for identifier in confirmed)
+            assert ids[0] not in audit
+        else:
+            assert all(identifier in response.text for identifier in confirmed)
+            assert ids[0] not in response.text
+
+
 def test_selection_requires_same_scope_and_never_accepts_client_facts(client, formal_batch):
     base, batch, _ = formal_batch(17)
     listed = query(client, base, batch).json()

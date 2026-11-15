@@ -100,6 +100,7 @@ const batchFieldsDto = object({
   revision_of_batch_id: nullable(text),
   is_current: flag,
   created_at: text,
+  archived: optional(flag),
 });
 export type ApiBatch = Pick<
   Decoded<typeof batchFieldsDto>,

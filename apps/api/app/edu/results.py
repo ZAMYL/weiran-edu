@@ -17,6 +17,7 @@ from .analysis import DIMENSION_MAP, OPERATOR_MAP, stat
 from .auth import Principal, deny
 from .discovery_bridge import DiscoveryInput, DiscoveryInputReader
 from .discovery_disconnect import CancelCheck, check_cancelled
+from .discovery_models import DISCOVERY_RETENTION_LIMIT
 from .insight_models import InsightSpec
 from .insights import InsightReader, card_view
 from .privacy import checked_text
@@ -100,7 +101,7 @@ class ResultService(BatchReader):
         if discovery is not None and (
             snapshot.candidates
             or snapshot.query.include_dimensions
-            or len(discovery.findings) > 3
+            or len(discovery.findings) > DISCOVERY_RETENTION_LIMIT
             or len(discovery_ids) != len(discovery.findings)
             or discovery.spec.snapshot_id != row["snapshot_id"]
             or set(discovery.spec.scope_conditions) != set(snapshot.query.conditions)

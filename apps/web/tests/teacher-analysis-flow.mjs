@@ -4,8 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 async function reportAction(region, name) {
   const button = region.getByRole('button', { name, exact: true });
-  if (!(await button.isVisible()))
-    await region.locator('.report-editor-info > details > summary').click();
+  if (!(await button.isVisible())) await region.locator('.technical-details > summary').click();
   await button.click();
 }
 
@@ -31,7 +30,7 @@ async function checkDecisionAlignment(region) {
         };
       }),
     );
-  assert.equal(boxes.length, 3);
+  assert.equal(boxes.length, 2);
   assert.ok(
     boxes.every(
       (box) =>
@@ -107,19 +106,18 @@ export async function teacherAnalysisFlow({
     await drawer().locator('.review-finding').first().waitFor();
     await checkDecisionAlignment(drawer());
     assert.equal(await drawer().locator('.review-finding').count(), created.findings.length);
-    await drawer()
-      .locator('.review-finding')
-      .nth(0)
-      .getByRole('radio', { name: '已确认', exact: true })
-      .locator('xpath=ancestor::label[1]')
-      .click();
+    assert.equal(
+      await drawer().locator('.review-finding input[value=confirmed]').first().isChecked(),
+      true,
+    );
     await drawer().locator('.review-finding').nth(1).locator('summary').first().click();
     await drawer()
       .locator('.review-finding')
       .nth(1)
-      .getByRole('radio', { name: '不采纳', exact: true })
+      .getByRole('radio', { name: '不加入报告', exact: true })
       .locator('xpath=ancestor::label[1]')
       .click();
+    await drawer().locator('.review-finding').nth(0).locator('summary').click();
     await drawer().locator('.review-finding').nth(0).locator('textarea').fill('合成核验备注');
     assert.equal(
       await drawer().getByRole('button', { name: '导出测评报告', exact: true }).isDisabled(),
@@ -134,7 +132,7 @@ export async function teacherAnalysisFlow({
     const posted = updatedResponse.request().postDataJSON();
     assert.equal(posted.expected_version, 1);
     assert.equal(posted.snapshot_id, batch.snapshot_id);
-    assert.equal(posted.decisions.length, 2);
+    assert.equal(posted.decisions.length, created.findings.length);
     assert.deepEqual(Object.keys(posted).sort(), [
       'decisions',
       'expected_version',
@@ -148,7 +146,7 @@ export async function teacherAnalysisFlow({
     assert.equal(stored.version, 2);
     assert.equal(stored.findings[0].teacher_review.status, 'confirmed');
     assert.equal(stored.findings[1].teacher_review.status, 'dismissed');
-    assert.ok(stored.findings.slice(2).every((f) => f.teacher_review.status === 'pending'));
+    assert.ok(stored.findings.slice(2).every((f) => f.teacher_review.status === 'confirmed'));
     await shot('analysis-review-desktop');
     const evidenceHTTP = page.waitForResponse((r) => r.url().endsWith('/records/query'));
     await drawer()
@@ -165,8 +163,8 @@ export async function teacherAnalysisFlow({
     assert.doesNotMatch(await exportDialog().innerText(), /班级|全班|课堂成绩|算法比赛/);
     assert.equal(preflight.result_version, 2);
     assert.equal(preflight.member_count, 12);
-    assert.equal(preflight.confirmed_finding_count, 1);
-    assert.ok(preflight.warnings.some((w) => w.code === 'PENDING_FINDINGS_EXCLUDED'));
+    assert.equal(preflight.confirmed_finding_count, created.findings.length - 1);
+    assert.ok(!preflight.warnings.some((w) => w.code === 'PENDING_FINDINGS_EXCLUDED'));
     assert.ok(preflight.warnings.some((w) => w.code === 'DISMISSED_FINDINGS_EXCLUDED'));
     assert.equal(
       await exportDialog().getByRole('button', { name: '下载 XLSX', exact: true }).isDisabled(),
@@ -329,7 +327,7 @@ export async function teacherAnalysisFlow({
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
     );
-    await reportAction(drawer(), '返回草稿');
+    await reportAction(drawer(), '返回报告列表');
     await page.setViewportSize({ width: 1440, height: 1000 });
     checks.push('saved analysis server pagination and 390px review drawer');
     await navigation('画像探索');
@@ -358,9 +356,8 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
   );
   if (!new URL(page.url()).pathname.startsWith('/reports'))
     await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-  await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
-  await page.getByLabel('分析名称', { exact: true }).fill(title);
-  await page.getByRole('button', { name: '保存分析', exact: true }).click();
+  await page.getByLabel('报告名称', { exact: true }).fill(title);
+  await page.getByRole('button', { name: '保存报告', exact: true }).click();
   const response = await createdHTTP;
   assert.equal(response.status(), 201);
   const result = await response.json();
@@ -386,5 +383,5 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
     );
     await dialog.locator('.ant-modal-close').click();
   }
-  await reportAction(drawer, '返回草稿');
+  await reportAction(drawer, '返回报告列表');
 }

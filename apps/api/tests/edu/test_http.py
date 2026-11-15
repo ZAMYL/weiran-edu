@@ -72,6 +72,38 @@ def test_http_end_to_end_upload_report_commit_batch_students_and_evidence(
     assert not cleared["preview_available"] and cleared["rows"] is None
 
 
+def test_batch_archive_is_account_scoped_and_reversible(client, runtime, book, pack):
+    batch_id = commit(client, upload(client, runtime, book, pack).json()).json()["batch_id"]
+    batches = "/api/v1/edu/batches"
+    batch = f"{batches}/{batch_id}"
+    archive = f"{batch}/archive"
+    owner = client.headers["Authorization"]
+    reader = "Bearer " + runtime.other_token
+
+    assert client.patch(archive, json={"archived": "true"}).status_code == 422
+    for _ in range(2):
+        assert client.patch(archive, json={"archived": True}).json() == {"archived": True}
+    assert client.get(batches).json()["total_count"] == 0
+    assert client.get(batches + "?archived=true").json()["items"][0]["batch_id"] == batch_id
+    assert client.get(batch).json()["archived"] is True
+    assert client.get(batch + "/students").json()["total_count"] == 2
+
+    client.headers["Authorization"] = reader
+    assert client.patch(archive, json={"archived": True}).status_code == 404
+    runtime.admin.set_member(runtime.other, runtime.scope, can_import=False)
+    runtime.admin.grant_read(runtime.other, batch_id)
+    assert client.get(batches).json()["total_count"] == 1
+    assert client.get(batches + "?archived=true").json()["total_count"] == 0
+    assert client.patch(archive, json={"archived": True}).status_code == 200
+
+    client.headers["Authorization"] = owner
+    assert client.patch(archive, json={"archived": False}).json() == {"archived": False}
+    assert client.get(batch).json()["archived"] is False
+    assert client.get(batches).json()["total_count"] == 1
+    client.headers["Authorization"] = reader
+    assert client.get(batches).json()["total_count"] == 0
+
+
 def test_anonymous_upload_is_denied_before_reading_or_parsing(client):
     client.headers.pop("Authorization")
     response = client.post(

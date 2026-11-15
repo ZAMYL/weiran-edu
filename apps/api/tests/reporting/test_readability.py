@@ -76,6 +76,18 @@ def test_teacher_body_and_audit_reconcile_without_debug_fields(size):
     assert group_values["符合条件人数"].number_format == "#,##0"
     assert group_values["占全部测评人数比例"].value == pytest.approx(matched / size)
     assert group_values["占全部测评人数比例"].number_format == "0.00%"
+    facts = workbook["教师确认发现"]
+    assert tuple(cell.value for cell in facts[5]) == ("发现", "关键结果", "评分依据状态")
+    assert facts["B6"].value and not facts.row_dimensions[6].hidden
+    assert facts.row_dimensions[6].collapsed and facts.row_dimensions[7].outlineLevel == 1
+    assert facts.row_dimensions[7].hidden
+    audit_sheet = workbook["技术附录"]
+    assert audit_sheet.sheet_properties.outlinePr.summaryBelow is False
+    assert any(
+        audit_sheet.row_dimensions[cell.row].collapsed
+        for cell in audit_sheet["A"]
+        if cell.value == "维度精确统计"
+    )
     assert all(
         cell.data_type != "f" and cell.hyperlink is None
         for sheet in workbook
@@ -137,6 +149,17 @@ def test_nonzero_quality_issues_are_visible_and_not_converted_to_zero_scores():
     workbook = load_workbook(BytesIO(files.xlsx))
     row = next(row for row in workbook["维度统计"] if row[0].value == "算法与数据结构")
     assert row[1].value == 2 and row[2].value == 2  # Not the incorrect 4-student mean of 1.
+    assert [cell.value for cell in row[6:8]] == [1, 1]
+    table = workbook["维度统计"]
+    assert [table[f"{column}7"].value for column in "BCD"] == [
+        "评分（分）",
+        "人数",
+        "占有效评分比例",
+    ]
+    assert [table[f"{column}8"].value for column in "BCD"] == [1, 1, 0.5]
+    assert [table[f"{column}9"].value for column in "BCD"] == [3, 1, 0.5]
+    assert table["D8"].number_format == "0.0%"
+    assert len(table.conditional_formatting) == 1
     workbook.close()
 
 

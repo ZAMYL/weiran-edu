@@ -1,6 +1,5 @@
 'use client';
 import { useCallback, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Alert, Button, Empty, Input, Pagination, Segmented, Select } from 'antd';
 import { createPortal } from 'react-dom';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
@@ -24,6 +23,8 @@ import {
 import { useRemote } from './useRemote';
 import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
 import { SparseMatrix, ServerAbilityChart } from './ServerCharts';
+import { ScoreReading } from './TeacherScoreReading';
+import { describeDiscovery } from '../../services/edu-api/teacher-analysis';
 import { LiveScoreDrawer, LiveStudentDrawer, LiveStudentTable } from './LiveStudents';
 import AnalysisActions from './AnalysisActions';
 import { DiscoveryChart, scoreText } from './DiscoveryChart';
@@ -47,7 +48,6 @@ export default function LiveExplorerPage() {
 }
 function Explorer({ batch }: { batch: ApiBatch }) {
   const { client, conditions, setConditions, discoveryOrigin } = useDataMode();
-  const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const [view, setView] = useState<'group' | 'student'>('group');
   const [portraitStudent, setPortraitStudent] = useState<ApiStudent | null>(null);
@@ -437,15 +437,28 @@ function Explorer({ batch }: { batch: ApiBatch }) {
         <>
           <div className="explorer-grid">
             <Panel title={conditions.length && !origin ? '当前群体评分分布' : '能力组合分布'}>
-              {origin && group.data?.detail && <DiscoveryChart data={group.data.detail} />}
+              {origin && group.data?.detail && (
+                <>
+                  <p className="teacher-reading">{describeDiscovery(group.data.detail).numbers}</p>
+                  <DiscoveryChart data={group.data.detail} />
+                </>
+              )}
               {rubric.loading && <LoadingPanel />}
               {rubric.error && <RequestError error={rubric.error} retry={rubric.retry} />}
               {!origin && conditions.length > 0 && group.data?.statistics && rubric.data && (
-                <ServerAbilityChart
-                  statistics={group.data.statistics}
-                  rubric={rubric.data}
-                  mode="distribution"
-                />
+                <>
+                  <ScoreReading
+                    statistics={group.data.statistics}
+                    rubric={rubric.data}
+                    distribution
+                    scopeCount={group.data.matched}
+                  />
+                  <ServerAbilityChart
+                    statistics={group.data.statistics}
+                    rubric={rubric.data}
+                    mode="distribution"
+                  />
+                </>
               )}
               {!origin && conditions.length === 0 && (
                 <>
@@ -474,11 +487,19 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                   {stats.loading && <LoadingPanel />}
                   {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
                   {stats.data && (
-                    <SparseMatrix
-                      statistics={stats.data}
-                      conditions={conditions}
-                      onCell={selectCell}
-                    />
+                    <>
+                      {stats.data.matrix && (
+                        <p className="teacher-reading">
+                          {stats.data.matrix.paired_count}{' '}
+                          人在这两项都有有效评分。点选图中的分数组合，可查看对应的学生。
+                        </p>
+                      )}
+                      <SparseMatrix
+                        statistics={stats.data}
+                        conditions={conditions}
+                        onCell={selectCell}
+                      />
+                    </>
                   )}
                 </>
               )}
@@ -573,22 +594,8 @@ function Explorer({ batch }: { batch: ApiBatch }) {
               />
             )}
           </Panel>
-          <section className="explorer-next-action">
-            <Button
-              type="primary"
-              disabled={!group.data?.matched}
-              onClick={() => router.push('/insights')}
-            >
-              查看这组评分洞察
-            </Button>
-          </section>
           <AnalysisActions
             batch={batch}
-            discoveryNames={
-              origin && group.data?.detail
-                ? [{ id: origin.discovery_id, title: group.data.detail.title }]
-                : undefined
-            }
             spec={{ snapshot_id: batch.snapshot_id, conditions, include_dimensions: true }}
             discovery={
               origin && group.data?.detail

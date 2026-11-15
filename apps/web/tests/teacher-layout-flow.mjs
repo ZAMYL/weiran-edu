@@ -219,7 +219,6 @@ export async function teacherLayoutFlow({
 
   const pane = (value) => page.getByRole('radio', { name: value, exact: true }).locator('..');
   assert.equal(await page.getByRole('radio', { name: '重点关注', exact: true }).isChecked(), true);
-  await focus().getByRole('checkbox').first().check();
   const chosen = await focus()
     .getByTestId('discovery-card')
     .first()
@@ -228,23 +227,19 @@ export async function teacherLayoutFlow({
     await focus().getByTestId('discovery-card').nth(1).getAttribute('data-discovery-id'),
     chosen,
   );
-  assert.equal(await focus().getByRole('checkbox').nth(1).isChecked(), false);
-  assert.equal(await focus().getByRole('checkbox').first().isChecked(), true);
+  assert.equal(await focus().getByRole('checkbox').count(), 0);
   await pane('评分统计').click();
   await page.getByRole('combobox', { name: '查看洞察方面', exact: true }).waitFor();
   assert.equal(await focus().isVisible(), false);
   await matchedCards();
   await capture(page, artifacts, 'statistics');
   await pane('重点关注').click();
-  assert.equal(await focus().getByRole('checkbox').first().isChecked(), true);
-  await focus().getByRole('checkbox').first().uncheck();
-  await focus().getByRole('button', { name: '查看发现与依据', exact: true }).first().click();
+  await focus().getByRole('button', { name: '查看具体评分', exact: true }).first().click();
   await page.getByTestId('discovery-chart').locator('svg').waitFor();
-  const detailSelection = page.locator('.discovery-detail-selection').getByRole('checkbox');
-  await detailSelection.check();
-  assert.equal(await focus().getByRole('checkbox').first().isChecked(), true);
-  await detailSelection.uncheck();
-  assert.equal(await focus().getByRole('checkbox').first().isChecked(), false);
+  assert.equal(
+    await page.getByRole('dialog', { name: '发现详情' }).getByRole('checkbox').count(),
+    0,
+  );
   await page.getByRole('button', { name: '配对评分学生', exact: true }).click();
   await page.getByTestId('discovery-record-count').filter({ hasText: '105' }).waitFor();
   const proofResponse = page.waitForResponse(
@@ -265,7 +260,7 @@ export async function teacherLayoutFlow({
   await closeTop();
   await closeTop();
   await closeTop();
-  await focus().getByRole('button', { name: '继续探索这组学生', exact: true }).first().click();
+  await focus().getByRole('button', { name: '看看这组学生', exact: true }).first().click();
   await page.locator('.match-summary').filter({ hasText: '105 / 105' }).waitFor();
   assert.ok(new URL(page.url()).searchParams.has('discovery'));
   const portraitReply = page
@@ -422,13 +417,25 @@ export async function teacherLayoutFlow({
   );
   await navigation('学情诊断');
   await ready();
-  await focus().getByRole('checkbox').first().check();
-  await navigation('分析报告');
-  await page.getByText('已加入待保存的报告 · 1 项发现', { exact: true }).waitFor();
-  await capture(page, artifacts, 'report-draft');
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
+  const reportItems = page.locator('.review-finding input[value=confirmed]');
+  await reportItems.first().waitFor({ state: 'attached' });
+  for (const item of await reportItems.all()) assert.equal(await item.isChecked(), true);
+  const geometry = await page.locator('.report-editor-grid').evaluate((grid) => {
+    const info = grid.querySelector('.report-editor-info').getBoundingClientRect();
+    const findings = grid.querySelector('.report-editor-findings').getBoundingClientRect();
+    const list = grid.querySelector('.report-finding-list');
+    list.scrollTop = list.scrollHeight;
+    return { bottomDifference: Math.abs(info.bottom - findings.bottom), scrollTop: list.scrollTop };
+  });
+  assert.ok(geometry.bottomDifference <= 1 && geometry.scrollTop > 0, JSON.stringify(geometry));
+  await page.locator('.report-finding-list').evaluate((list) => {
+    list.scrollTop = 0;
+  });
+  await capture(page, artifacts, 'report-editor');
   await navigation('学情诊断');
   await ready();
-  assert.equal(await focus().getByRole('checkbox').first().isChecked(), true);
+  assert.equal(await focus().getByRole('checkbox').count(), 0);
   const second = await importThroughPage('constant', '合成阶段测评 · 17人零发现');
   assert.notEqual(second.batchId, imported.batchId);
   assert.equal(second.data.scope.batch_record_count, 17);
@@ -443,7 +450,7 @@ export async function teacherLayoutFlow({
   await page.locator('.stat-grid strong').filter({ hasText: /^17$/ }).waitFor();
   await capture(page, artifacts, 'zero-17');
   await navigation('分析报告');
-  assert.equal(await page.getByText('已加入待保存的报告 · 1 项发现', { exact: true }).count(), 0);
+  assert.equal(await reportItems.count(), 0);
   await navigation('学情诊断');
   await selectBatch('合成竞赛测评 · 105人');
   await ready();

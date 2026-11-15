@@ -109,6 +109,22 @@ def visible_metric(metric: FindingMetric) -> bool:
     )
 
 
+def discovery_summary(kind: str, metrics: tuple[tuple[str, object, str], ...]) -> str:
+    values = {name: value for name, value, _ in metrics}
+    if kind == "dimension_relation":
+        coefficient = values["等级相关系数"]
+        return f"{values['有效成对人数']:,} 人有两项有效评分 · 相关系数 {coefficient}"
+    if kind == "group_difference":
+        target = values.get("所选群体平均分")
+        remainder = values.get("其余群体平均分")
+        if target is not None and remainder is not None:
+            return f"所选组均分 {display(target)} · 其余组均分 {display(remainder)}"
+        return f"两组可判定人数 {values['符合条件人数']:,} / {values['其余可判定人数']:,} 人"
+    if kind == "rare_combination":
+        return f"{values['符合复核条件人数']:,} / {values['有效成对人数']:,} 人符合复核条件"
+    return f"纳入阈值后由 {values['严格低于阈值人数']:,} 人变为 {values['包含阈值人数']:,} 人"
+
+
 @dataclass(frozen=True)
 class Cell:
     value: object
@@ -120,6 +136,8 @@ class Row:
     cells: tuple[Cell, ...]
     header: bool = False
     section: bool = False
+    span: bool = False
+    percentage_bar: bool = False
 
 
 @dataclass
@@ -159,6 +177,8 @@ def plan(
     include_details: bool,
     limits: ExportLimits,
     checkpoint: Callable[[], None] | None = None,
+    *,
+    spreadsheet: bool = False,
 ) -> tuple[Sheet, ...]:
     info = Sheet("测评概况", (30, 86), [])
     stats = Sheet("维度统计", (30, 18, 18, 18, 18, 18), [])
@@ -167,16 +187,25 @@ def plan(
     facts = Sheet("教师确认发现", (40, 26, 62), []) if findings or report.discoveries else None
     details = Sheet("授权学生明细", (18, 32, 18), []) if include_details and report.groups else None
     audit = Sheet("技术附录", (38, 38, 38, 18, 56), [])
+    if spreadsheet:
+        stats.widths = (28, 13, 13, 18, 12, 12, 13, 13)
+        audit.widths = (29, 40, 33, 19, 48)
+        if facts is not None:
+            facts.widths = (51, 52, 25)
+        if groups is not None:
+            groups.widths = (29, 51, 33)
+        if details is not None:
+            details.widths = (14, 30, 12)
     sheets = tuple(s for s in (info, stats, groups, facts, details, audit) if s is not None)
     used = 0
     reserved = sum(len(sheet.widths) + 1 for sheet in sheets)
 
-    def add(sheet, *values, header=False, section=False, formats=None):
+    def add(sheet, *values, header=False, section=False, formats=None, span=False, bar=False):
         nonlocal used
         if checkpoint is not None:
             checkpoint()
         formats = formats or {}
-        used += len(values)
+        used += max(len(values), len(sheet.widths)) if section or span else len(values)
         require(
             len(sheet.rows) + 5 <= limits.max_rows_per_sheet
             and used + reserved <= limits.max_total_cells,
@@ -187,6 +216,8 @@ def plan(
                 tuple(Cell(v, formats.get(i, "General")) for i, v in enumerate(values)),
                 header,
                 section,
+                span,
+                bar,
             )
         )
 
@@ -222,7 +253,10 @@ def plan(
         add(info, "使用说明", note)
 
     def dimension_rows(dims, total):
-        add(stats, "维度", "有效人数", "平均分", "中位数", "最低分", "最高分", header=True)
+        quality = ("缺失人数", "无效人数") if spreadsheet else ()
+        add(
+            stats, "维度", "有效人数", "平均分", "中位数", "最低分", "最高分", *quality, header=True
+        )
         for item in sorted(dims, key=lambda d: d.code):
             add(
                 stats,
@@ -232,10 +266,19 @@ def plan(
                 item.median,
                 item.minimum,
                 item.maximum,
-                formats={1: "#,##0", 2: "0.00", 3: "0.00", 4: "0.00", 5: "0.00"},
+                *((item.missing_count, item.invalid_count) if spreadsheet else ()),
+                formats={
+                    1: "#,##0",
+                    2: "0.00",
+                    3: "0.00",
+                    4: "0.00",
+                    5: "0.00",
+                    6: "#,##0",
+                    7: "#,##0",
+                },
             )
         affected = [d for d in dims if d.missing_count or d.invalid_count]
-        if affected:
+        if affected and not spreadsheet:
             add(stats, "评分质量说明", section=True)
             add(stats, "维度", "缺失人数", "无效人数", "影响说明", header=True)
             for item in sorted(affected, key=lambda d: d.code):
@@ -248,19 +291,34 @@ def plan(
                     formats={1: "#,##0", 2: "#,##0"},
                 )
         if any(d.valid_count == 0 for d in dims):
-            add(stats, "阅读说明", "无有效评分的统计项留空，不按零分计算。")
+            add(stats, "阅读说明", "无有效评分的统计项留空，不按零分计算。", span=spreadsheet)
 
     if report.dimensions:
         dimension_rows(report.dimensions, report.record_count)
     else:
-        add(stats, "当前范围没有统计项目。")
+        add(stats, "当前范围没有统计项目。", span=spreadsheet)
+
+    if spreadsheet and any(item.valid_count for item in report.dimensions):
+        add(stats, "本次测评评分分布", section=True)
+        add(stats, "维度", "评分（分）", "人数", "占有效评分比例", header=True)
+        for item in sorted(report.dimensions, key=lambda d: d.code):
+            for cell in sorted(item.distribution, key=lambda f: f.score):
+                add(
+                    stats,
+                    label(item.code),
+                    cell.score,
+                    cell.count,
+                    Fraction(cell.count, item.valid_count),
+                    formats={1: "0.00####", 2: "#,##0", 3: "0.0%"},
+                    bar=True,
+                )
 
     sorted_groups = sorted(report.groups, key=lambda g: g.group_id)
     for index, group in enumerate(sorted_groups, 1):
         scope = f"群体 {index}"
         add(groups, scope, section=True)
         add(groups, "项目", "结果", "统计口径", header=True)
-        add(groups, "筛选条件", condition_text(group))
+        add(groups, "筛选条件", condition_text(group), span=spreadsheet)
         for name, value, denominator, rate in (
             ("符合条件人数", group.matched_count, group.total_count, False),
             ("全部测评人数", group.total_count, group.total_count, False),
@@ -305,15 +363,35 @@ def plan(
                         cell.value,
                         formats={0: "#,##0", 2: score_format(scale)},
                     )
-        if len(sorted_groups) > 1:
+        if len(sorted_groups) > 1 and not spreadsheet:
             add(groups, "人数说明", "不同群体可能重叠，人数不能直接相加。")
 
+    if spreadsheet and len(sorted_groups) > 1:
+        add(groups, "人数说明", "不同群体可能重叠，人数不能直接相加。", span=True)
+
     if facts is not None:
-        add(facts, "核验说明", "", REVIEW_NOTICE)
+        if spreadsheet:
+            add(facts, "展开左侧「＋」查看数据与统计口径。 " + REVIEW_NOTICE, span=True)
+            add(facts, "发现", "关键结果", "评分依据状态", header=True)
+        else:
+            add(facts, "核验说明", "", REVIEW_NOTICE)
         for index, finding in enumerate(findings, 1):
-            add(facts, f"发现 {index}：{finding_title(finding)}（教师已确认）", section=True)
+            title = f"发现 {index}：{finding_title(finding)}"
+            if spreadsheet:
+                metrics_by_name = {m.key: m.value for m in finding.metrics if m.at_score is None}
+                if finding.candidate_type == "ability_group":
+                    key_result = f"符合条件 {int(metrics_by_name['matched_count']):,} 人"
+                else:
+                    key_result = (
+                        f"有效评分 {int(metrics_by_name['valid_count']):,} 人 · "
+                        f"平均分 {display(metrics_by_name['mean'])}"
+                    )
+                status = "评分充足" if finding.status == "observed" else "有效评分不足"
+                add(facts, title, key_result, status, section=True)
+            else:
+                add(facts, title + "（教师已确认）", section=True)
             if finding.candidate_type == "ability_group":
-                add(facts, "筛选条件", condition_text(report.reviewed))
+                add(facts, "筛选条件", condition_text(report.reviewed), span=spreadsheet)
             add(facts, "指标", "结果", "统计口径", header=True)
             for metric in sorted(
                 filter(visible_metric, finding.metrics), key=lambda m: METRIC_ORDER[m.key]
@@ -340,20 +418,37 @@ def plan(
     if report.discoveries:
         from .discovery import evidence_notes, exact, rows
 
+        common_notes = ()
+        if spreadsheet and len(report.discoveries) > 1:
+            first, *others = report.discoveries
+            common_notes = tuple(
+                note
+                for note in first.limitations
+                if all(note in finding.limitations for finding in others)
+            )
         for index, finding in enumerate(report.discoveries, len(findings) + 1):
             title, metrics = rows(finding, label)
-            add(facts, f"发现 {index}：{title}（教师已确认）", section=True)
-            evidence_status, notes = evidence_notes(finding)
-            add(facts, "系统证据状态", evidence_status, "与教师核验判断分别保留")
-            for note in notes:
-                add(facts, "解释限制", note)
+            status, notes = evidence_notes(finding)
+            title = f"发现 {index}：{title}"
+            text = ""
             if finding.conditions:
                 text = "，且".join(
                     f"{label(c.dimension_code)}{OPS[c.operator]} "
                     f"{number_text(exact(c.threshold))} 分"
                     for c in finding.conditions
                 )
-                add(facts, "群体筛选条件", text, "用于本项发现；整体分析范围见概况")
+            if spreadsheet:
+                key_result = discovery_summary(finding.type, metrics)
+                if text:
+                    key_result += "\n" + text
+                add(facts, title, key_result, status, section=True)
+            else:
+                add(facts, title + "（教师已确认）", section=True)
+                add(facts, "系统证据状态", status, "与教师核验判断分别保留")
+                for note in notes:
+                    add(facts, "解释限制", note)
+                if text:
+                    add(facts, "群体筛选条件", text, "用于本项发现；整体分析范围见概况")
             add(facts, "指标", "结果", "统计口径", header=True)
             for name, value, note in metrics:
                 if value is None:
@@ -367,22 +462,55 @@ def plan(
                         1: "#,##0" if type(value) is int else "0.00%" if note == "比例" else "0.00"
                     },
                 )
-            add(facts, "使用说明", "仅反映本次测评记录；供教师复核，不作为能力标签。")
+            if spreadsheet:
+                for note in notes:
+                    if note not in common_notes:
+                        add(facts, "解释限制", note, span=True)
+            else:
+                add(facts, "使用说明", "仅反映本次测评记录；供教师复核，不作为能力标签。")
+        if spreadsheet:
+            add(facts, "共同使用限制", section=True, span=True)
+            add(facts, "仅反映本次测评记录；供教师复核，不作为能力标签。", span=True)
+            for note in common_notes:
+                add(facts, note, span=True)
 
-    add(audit, "核查说明", "本附录保留溯源引用与精确值；有理数的分母不是学生人数。")
-    add(audit, "核查说明", "不同量表不默认可比；评分范围、步长和版本见下表。")
-    add(audit, "项目", "值", header=True)
+    add(
+        audit,
+        "核查说明",
+        (
+            "展开左侧「＋」核查精确值与评分依据。分数形式的分母不代表样本人数。"
+            if spreadsheet
+            else "本附录保留溯源引用与精确值；有理数的分母不是学生人数。"
+        ),
+        span=spreadsheet,
+    )
+    add(
+        audit,
+        "量表说明" if spreadsheet else "核查说明",
+        "不同量表不默认可比；评分范围、步长和版本见下表。",
+        span=spreadsheet,
+    )
+    if spreadsheet:
+        add(audit, "来源与版本", "引用或内容", header=True, span=True)
+    else:
+        add(audit, "项目", "值", header=True)
     for name, value in (
         ("测评批次引用", report.source.batch_id),
         ("数据快照引用", report.source.snapshot_id),
         ("统计规则版本", report.rule_version),
         ("匿名明细", "已按授权导出" if include_details else "默认仅汇总"),
     ):
-        add(audit, name, value)
+        add(audit, name, value, span=spreadsheet)
     if report.reviewed is not None:
-        add(audit, "保存结果引用", report.reviewed.result_id)
-        add(audit, "教师核验版本", report.reviewed.result_version, formats={1: "#,##0"})
-        add(audit, "报告适配版本", report.reviewed.projection_version)
+        add(audit, "保存结果引用", report.reviewed.result_id, span=spreadsheet)
+        add(
+            audit,
+            "教师核验版本",
+            report.reviewed.result_version,
+            formats={1: "#,##0"},
+            span=spreadsheet,
+        )
+        add(audit, "报告适配版本", report.reviewed.projection_version, span=spreadsheet)
 
     scopes = [
         (
@@ -493,17 +621,35 @@ def plan(
         from .discovery import rows
 
         add(audit, "已确认主动发现溯源", section=True)
+        if spreadsheet:
+            add(audit, "发现", "核查项", "引用或精确值", "人数", "规则或口径", header=True)
         for index, finding in enumerate(report.discoveries, 1):
             ref = f"主动发现 {index}"
-            add(audit, ref, finding.discovery_id, finding.rule_id, finding.rule_version)
-            add(audit, "分析范围引用", finding.input_key)
+            if spreadsheet:
+                add(
+                    audit,
+                    ref,
+                    "发现引用",
+                    finding.discovery_id,
+                    None,
+                    f"{finding.rule_id} / {finding.rule_version}",
+                )
+                add(audit, ref, "分析范围引用", finding.input_key)
+            else:
+                add(audit, ref, finding.discovery_id, finding.rule_id, finding.rule_version)
+                add(audit, "分析范围引用", finding.input_key)
             for name, value, note in rows(finding, label)[1]:
                 if isinstance(value, Fraction):
-                    add(audit, name, rational(value), note)
+                    if spreadsheet:
+                        add(audit, ref, name, rational(value), None, note)
+                    else:
+                        add(audit, name, rational(value), note)
             if finding.type == "dimension_relation" and finding.metrics.rho is not None:
-                add(audit, "等级相关系数原值", str(finding.metrics.rho.value))
+                prefix = (ref,) if spreadsheet else ()
+                add(audit, *prefix, "等级相关系数原值", str(finding.metrics.rho.value))
             for query in finding.controlled_queries:
-                add(audit, "授权证据查询指标", query.metric_key)
+                prefix = (ref,) if spreadsheet else ()
+                add(audit, *prefix, "授权证据查询指标", query.metric_key)
     if details is not None:
         add(audit, "授权明细引用", section=True)
         add(

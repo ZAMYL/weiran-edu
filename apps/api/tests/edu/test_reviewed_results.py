@@ -632,11 +632,17 @@ def test_three_migration_database_upgrade_keeps_existing_facts(runtime, stage):
     batch = commit(runtime, stage())
     before = runtime.reader.students(runtime.p, batch.batch_id)
     with runtime.db.transaction(write=True) as connection:
-        for table in ("analysis_result_versions", "analysis_results", "text_reviews"):
+        for table in (
+            "analysis_result_versions",
+            "analysis_results",
+            "text_reviews",
+            "teacher_batch_archive",
+        ):
             connection.execute("DROP TABLE " + table)
         connection.execute("DROP INDEX batches_snapshot_reference")
         connection.execute(
-            "DELETE FROM schema_migrations WHERE version='004_reviewed_analysis.sql'"
+            "DELETE FROM schema_migrations WHERE version IN "
+            "('004_reviewed_analysis.sql','005_teacher_batch_archive.sql')"
         )
         previous = [
             tuple(row)

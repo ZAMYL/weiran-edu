@@ -11,6 +11,7 @@ import { LoadingPanel, RequestError } from './LiveStatus';
 import { ProjectAbilityRadar } from './ServerCharts';
 import { useRemote } from './useRemote';
 import QuestionEvidenceDrawer from './QuestionEvidenceDrawer';
+import { ItemReading } from './TeacherScoreReading';
 
 export default function AssessmentItemPage({
   batch,
@@ -43,6 +44,7 @@ export default function AssessmentItemPage({
   const statistics = new Map(resource.data?.item_statistics.map((entry) => [entry.item_id, entry]));
   const rows = items.map((item) => ({ ...item, stats: statistics.get(item.item_id) }));
   const selected = rows.find((item) => item.item_id === selection) ?? rows[0];
+  const analysisScope = { batchId: batch.batch_id, snapshotId: batch.snapshot_id };
   const questions = items.filter((item) => item.kind === 'question').length;
   const summary =
     questions === items.length
@@ -77,6 +79,9 @@ export default function AssessmentItemPage({
       <div className="page-stack">
         {radar && (
           <Panel title="能力画像">
+            <p className="teacher-reading">
+              {batch.student_count} 人参与测评。雷达图展示同一量表下各项目的有效评分均值。
+            </p>
             <ProjectAbilityRadar axes={radar} />
           </Panel>
         )}
@@ -94,9 +99,7 @@ export default function AssessmentItemPage({
           }
         >
           <h3>{selected.display_name}</h3>
-          <p className="muted">
-            {itemScaleLabel(selected.scale)} · {selected.stats.valid_count} 人有有效得分
-          </p>
+          <ItemReading item={selected} statistics={selected.stats} scope={analysisScope} />
           <ItemDistribution stats={selected.stats} allParticipants={!!batch.format} />
           {!!selected.stats.evidence_ids?.length && (
             <Button
@@ -124,6 +127,9 @@ export default function AssessmentItemPage({
     <div className="page-stack">
       {view === 'diagnosis' && radar && (
         <Panel title="能力画像">
+          <p className="teacher-reading">
+            {batch.student_count} 人参与测评。雷达图展示同一量表下各项目的有效评分均值。
+          </p>
           <ProjectAbilityRadar axes={radar} />
         </Panel>
       )}
@@ -132,6 +138,11 @@ export default function AssessmentItemPage({
         subtitle={`${summary} · ${batch.student_count} 名参评者`}
       >
         {!resource.data && <p className="muted">当前测评尚未开放项目统计。</p>}
+        {resource.data && (
+          <p className="teacher-reading">
+            可按原量表查看各项目的平均分。选择「分布」可看到各分数有多少人。
+          </p>
+        )}
         <Table
           aria-label={questions === items.length ? '逐题统计' : '评分项目统计'}
           rowKey="item_id"
@@ -211,9 +222,10 @@ export default function AssessmentItemPage({
           ]}
         />
       </Panel>
-      {selection && rows.find((item) => item.item_id === selection)?.stats && (
-        <Panel title={rows.find((item) => item.item_id === selection)?.display_name}>
-          <ItemDistribution stats={statistics.get(selection)!} allParticipants={!!batch.format} />
+      {selection && selected?.stats && (
+        <Panel title={selected.display_name}>
+          <ItemReading item={selected} statistics={selected.stats} scope={analysisScope} />
+          <ItemDistribution stats={selected.stats} allParticipants={!!batch.format} />
         </Panel>
       )}
       {evidence && (

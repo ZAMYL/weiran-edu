@@ -53,10 +53,6 @@ export async function teacherDiscoveryCopyFlow({
     await card.getByRole('heading', { level: 3 }).innerText(),
     '算法与数据结构评分不高于 3.49 分：代码实现能力平均分更高',
   );
-  assert.equal(
-    await card.locator('.focus-grouping').innerText(),
-    '分组依据：算法与数据结构 ≤ 3.49 分',
-  );
   assert.deepEqual(await card.locator('.focus-metrics strong').allTextContents(), [
     '3.69',
     '3.00',
@@ -64,12 +60,19 @@ export async function teacherDiscoveryCopyFlow({
   ]);
   assert.match(await card.locator('.focus-metrics dt').first().innerText(), /15 人/);
   assert.match(await card.locator('.focus-metrics dt').nth(1).innerText(), /38 人/);
-  await card.locator('.focus-explanation > summary').click();
+  assert.equal(await page.locator('.radar-panel .teacher-reading').count(), 0);
+  assert.equal(await page.getByText('评分说明', { exact: true }).count(), 0);
+  const more = page.locator('.all-discoveries-panel');
+  assert.notEqual(await more.getAttribute('open'), null);
+  const explanation = card.locator('.focus-explanation');
+  assert.equal(await explanation.getAttribute('open'), null);
+  assert.equal(await explanation.locator('.teacher-reading').isVisible(), false);
+  await explanation.locator('summary').click();
   assert.match(
-    await card.locator('.focus-explanation').innerText(),
+    await explanation.locator('.teacher-reading').innerText(),
     /15 人中，15 人的有效评分平均为 3\.69 分/,
   );
-  await card.locator('.focus-explanation > summary').click();
+  await explanation.locator('summary').click();
   await clean();
   for (const [width, height] of [
     [1920, 1080],
@@ -82,6 +85,21 @@ export async function teacherDiscoveryCopyFlow({
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
     );
+    const actions = await card.locator('.focus-card-actions').evaluate((row) => {
+      const [left, right] = [...row.querySelectorAll('button')].map((button) =>
+        button.getBoundingClientRect(),
+      );
+      const { width } = row.getBoundingClientRect();
+      return {
+        widthDifference: Math.abs(left.width - right.width),
+        topDifference: Math.abs(left.top - right.top),
+        unusedWidth: Math.abs(right.right - left.left - width),
+      };
+    });
+    assert.ok(
+      Object.values(actions).every((difference) => difference <= 1),
+      JSON.stringify(actions),
+    );
     if (width > 960) {
       const a = await page.locator('.radar-panel').boundingBox();
       const b = await page.locator('.insights-right').boundingBox();
@@ -93,10 +111,13 @@ export async function teacherDiscoveryCopyFlow({
     });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  await card.getByRole('button', { name: '查看发现与依据', exact: true }).click();
+  await card.getByRole('button', { name: '查看具体评分', exact: true }).click();
   const drawer = page.locator('.ant-drawer-open').last();
-  await drawer.locator('.discovery-evidence-notes').waitFor();
-  const notes = await drawer.locator('.discovery-evidence-notes').innerText();
+  const notesSection = drawer.getByRole('group', { name: '样本与使用限制' });
+  await notesSection.waitFor();
+  assert.equal(await notesSection.getAttribute('open'), null);
+  await notesSection.locator('summary').click();
+  const notes = await notesSection.innerText();
   assert.ok(notes.includes(`支持样本 ${d.ranking.support_count} 人`));
   assert.ok(notes.includes(`计划 ${d.ranking.robustness.planned} 次`));
   assert.ok(notes.includes(`完成 ${d.ranking.robustness.evaluated} 次`));
@@ -111,14 +132,16 @@ export async function teacherDiscoveryCopyFlow({
   await page.getByTestId('discovery-record-count').waitFor();
   await closeTop();
   await closeTop();
-  await card.getByRole('checkbox').check();
-  await navigation('分析报告');
-  await page
-    .getByText('算法与数据结构评分不高于 3.49 分：代码实现能力平均分更高', { exact: true })
-    .waitFor();
+  assert.equal(await card.getByRole('checkbox').count(), 0);
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
+  const included = page.locator(
+    `.review-finding[data-finding-id="${summary.discovery_id}"] input[value=confirmed]`,
+  );
+  await included.waitFor({ state: 'attached' });
+  assert.equal(await included.isChecked(), true);
   await navigation('学情诊断');
   await waitFocus();
-  await card.getByRole('button', { name: '继续探索这组学生', exact: true }).click();
+  await card.getByRole('button', { name: '看看这组学生', exact: true }).click();
   await page.waitForURL('**/explorer?discovery=*');
   const pointer = JSON.parse(new URL(page.url()).searchParams.get('discovery'));
   assert.equal(pointer.batch_id, imported.batchId);

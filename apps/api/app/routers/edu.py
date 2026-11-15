@@ -25,6 +25,7 @@ from app.edu.insight_models import (
 from app.edu.insights import InsightReader
 from app.edu.models import (
     Batch,
+    BatchArchive,
     BatchList,
     CommitRequest,
     CommitResult,
@@ -299,6 +300,7 @@ def batches(
     backend: Backend,
     data_scope_id: str | None = None,
     include_revisions: bool = False,
+    archived: bool = False,
     offset: Offset = 0,
     limit: Limit = 20,
 ) -> BatchList:
@@ -306,6 +308,7 @@ def batches(
         actor,
         data_scope_id=data_scope_id,
         include_revisions=include_revisions,
+        archived=archived,
         offset=offset,
         limit=limit,
     )
@@ -314,6 +317,13 @@ def batches(
 @router.get("/batches/{batch_id}", response_model=Batch)
 def batch(batch_id: str, actor: Actor, backend: Backend) -> Batch:
     return backend.get_batch(actor, batch_id)
+
+
+@router.patch("/batches/{batch_id}/archive", response_model=BatchArchive)
+def archive_batch(
+    batch_id: str, body: BatchArchive, actor: Actor, backend: Backend
+) -> BatchArchive:
+    return backend.set_batch_archive(actor, batch_id, body)
 
 
 @router.get("/batches/{batch_id}/students", response_model=StudentList)

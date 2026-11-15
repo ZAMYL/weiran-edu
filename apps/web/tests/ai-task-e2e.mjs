@@ -93,14 +93,39 @@ try {
     );
     await page.reload();
     await page.getByRole('heading', { name: 'AI 分析', exact: true }).waitFor();
-    await page.getByLabel('想了解什么？', { exact: true }).waitFor();
     return ref;
   }
   const normal = await openCase('normal');
+  const shortcuts = page.getByRole('group', { name: '快捷提问' });
+  const aiQuestion = page.getByLabel('想了解什么？', { exact: true });
+  await aiQuestion.waitFor();
+  assert.equal(await aiQuestion.inputValue(), '有哪些值得关注的问题？');
+  const relationShortcut = shortcuts.getByRole('button', { name: '评分关联', exact: true });
+  await relationShortcut.click();
+  assert.equal(await relationShortcut.getAttribute('aria-pressed'), 'true');
+  assert.equal(await aiQuestion.inputValue(), '比较 算法与数据结构、代码实现能力 的关联');
+  await shortcuts.getByRole('button', { name: '优先核查', exact: true }).click();
+  const startAction = page.getByRole('button', { name: '开始分析', exact: true });
+  const geometry = async () => ({
+    question: await aiQuestion.boundingBox(),
+    action: await startAction.boundingBox(),
+  });
+  const desktop = await geometry();
+  assert.ok(Math.abs(desktop.question.y - desktop.action.y) <= 1);
+  assert.ok(Math.abs(desktop.question.height - desktop.action.height) <= 1);
+  await page.screenshot({ path: path.join(artifacts, 'composer-desktop.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobile = await geometry();
+  assert.ok(mobile.action.y > mobile.question.y);
+  assert.ok(Math.abs(mobile.action.width - mobile.question.width) <= 1);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({ path: path.join(artifacts, 'composer-mobile.png') });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  assert.equal(requests.filter((request) => request.method === 'POST').length, 0);
   const unsupported = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 422,
   );
-  await page.getByLabel('想了解什么？', { exact: true }).fill('帮我分析一下');
+  await aiQuestion.fill('有什么问题');
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
   assert.equal((await (await unsupported).json()).error.code, 'AI_GOAL_UNSUPPORTED');
   await page.getByText(/暂不支持这个问题/).waitFor();
@@ -132,6 +157,8 @@ try {
   const start = await createdResponse.json();
   assert.equal(start.execution_origin, 'http_mock');
   await page.getByTestId('ai-fact-card').first().waitFor({ timeout: 240000 });
+  const startButton = page.getByRole('button', { name: '开始分析', exact: true });
+  assert.equal(await startButton.count(), 0, 'completed tasks cannot be started again');
   assert.doesNotMatch(
     await page.locator('main').innerText(),
     /Demo|联调测试|正式版|HTTP Mock|AI 分析演示|Agent Fact|确定性重放|主 Fact|真实评分重放/,
@@ -185,7 +212,7 @@ try {
   await fullscreenTitle.waitFor({ state: 'hidden' });
   checks.push('synthetic sample identity remains visible in fullscreen');
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
   await page.screenshot({ path: path.join(artifacts, 'normal-mobile.png'), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
   const cards = page.getByTestId('ai-fact-card');
@@ -216,23 +243,39 @@ try {
   await page.getByText('应用筛选', { exact: true }).waitFor();
   await page.getByRole('link', { name: '学情诊断', exact: true }).click();
   await page.getByTestId('ai-fact-card').first().waitFor();
-  for (const checkbox of await cards
-    .getByRole('checkbox', { name: '加入待核查', exact: true })
-    .all())
-    await checkbox.check();
+  assert.equal(await startButton.count(), 0, 'restored completed tasks cannot be started again');
+  assert.equal(await cards.getByRole('checkbox').count(), 0);
   const reviewResponse = page.waitForResponse(
     (r) => r.url().endsWith('/review-submissions') && r.status() === 200,
   );
-  await page.getByRole('button', { name: /提交待核查/ }).click();
+  await page.getByRole('button', { name: '前往报告核查', exact: true }).click();
+  const submitted = (await reviewResponse).request().postDataJSON().fact_ids;
+  assert.deepEqual(
+    submitted,
+    completed.result.facts
+      .filter(
+        (fact) =>
+          completed.result.selected_fact_ids.includes(fact.fact_id) &&
+          fact.qualified &&
+          fact.source_verified,
+      )
+      .map((fact) => fact.fact_id),
+  );
   const receipt = await (await reviewResponse).json();
   assert.equal(receipt.status, 'pending_teacher_review');
   const review = page.getByRole('region', { name: '分析核验', exact: true });
   await review.waitFor();
-  for (const finding of await review.locator('.review-finding').all()) {
+  await review.locator('.review-finding').first().waitFor();
+  const reviewFindings = await review.locator('.review-finding').all();
+  assert.equal(reviewFindings.length, submitted.length);
+  for (const [index, finding] of reviewFindings.entries()) {
     if ((await finding.getAttribute('open')) === null)
       await finding.locator(':scope > summary').click();
     await finding
-      .getByRole('radio', { name: '已确认', exact: true })
+      .getByRole('radio', {
+        name: index === 0 && reviewFindings.length > 1 ? '不加入报告' : '已确认',
+        exact: true,
+      })
       .locator('xpath=ancestor::label[1]')
       .click();
   }
@@ -242,9 +285,15 @@ try {
   await review.getByRole('button', { name: '保存核验结果', exact: true }).click();
   const confirmed = await (await patched).json();
   assert.equal(confirmed.version, 2);
-  assert.ok(
-    confirmed.discovery_findings.every((finding) => finding.teacher_review.status === 'confirmed'),
+  assert.deepEqual(
+    confirmed.discovery_findings.map((finding) => finding.teacher_review.status),
+    reviewFindings.map((_, index) =>
+      index === 0 && reviewFindings.length > 1 ? 'dismissed' : 'confirmed',
+    ),
   );
+  const exportedIds = confirmed.discovery_findings
+    .filter((finding) => finding.teacher_review.status === 'confirmed')
+    .map((finding) => finding.discovery.discovery_id);
   await review.getByText('已保存版本 2', { exact: true }).waitFor();
   await page.screenshot({
     path: path.join(artifacts, 'normal-reviewed-report.png'),
@@ -283,7 +332,7 @@ try {
       env: process.env,
       reference: {
         studentCount: 53,
-        discoveryIds: receipt.candidate_ids,
+        discoveryIds: exportedIds,
         batchId: normal.batch_id,
         snapshotId: normal.snapshot_id,
         resultId: receipt.result_id,
@@ -341,7 +390,10 @@ try {
         .getByText('本轮未发现符合条件的结果', { exact: true })
         .waitFor({ timeout: 240000 });
       assert.equal(await cards.count(), 0);
-      assert.equal(await page.getByRole('button', { name: /提交待核查/ }).count(), 0);
+      assert.equal(
+        await page.getByRole('button', { name: '前往报告核查', exact: true }).count(),
+        0,
+      );
       assert.equal(await page.getByTestId('ai-profile-card').count(), 0);
     } else {
       await page.getByText('进一步解释需要补充资料', { exact: true }).waitFor({ timeout: 240000 });
@@ -423,6 +475,11 @@ try {
   await profileDrawer.locator('.ant-drawer-close').click();
   await page.reload();
   await profileCards.first().waitFor({ timeout: 240000 });
+  assert.equal(
+    await startButton.count(),
+    0,
+    'restored profiles remain read-only for task creation',
+  );
   assert.equal(
     await page.getByRole('heading', { name: '群体画像', exact: true }).count(),
     1,

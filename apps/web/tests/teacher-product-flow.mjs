@@ -7,8 +7,7 @@ import { verifyReportArtifact } from './report-artifact-utils.mjs';
 
 async function reportAction(region, name) {
   const button = region.getByRole('button', { name, exact: true });
-  if (!(await button.isVisible()))
-    await region.locator('.report-editor-info > details > summary').click();
+  if (!(await button.isVisible())) await region.locator('.technical-details > summary').click();
   await button.click();
 }
 
@@ -67,13 +66,14 @@ export async function teacherProductFlow(h) {
     );
     if (!new URL(page.url()).pathname.startsWith('/reports'))
       await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-    await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
-    await page.getByLabel('分析名称', { exact: true }).fill(title);
-    await page.getByRole('button', { name: '保存分析', exact: true }).click();
+    await review().getByLabel('报告名称', { exact: true }).fill(title);
+    await review().getByRole('button', { name: '保存报告', exact: true }).click();
     const response = await pending;
     assert.equal(response.status(), 201, JSON.stringify(await response.json()));
     const data = await response.json();
-    await review().locator('.saved-version').waitFor();
+    await review()
+      .getByText(data.discovery_findings?.length ? '已保存版本 2' : '已保存版本 1', { exact: true })
+      .waitFor();
     return data;
   }
   async function download(format) {
@@ -121,25 +121,17 @@ export async function teacherProductFlow(h) {
   assert.ok(index >= 0);
   if ((await panel().getAttribute('open')) === null)
     await panel().locator(':scope > summary').click();
-  const pageNumber = Math.floor(index / 10) + 1;
-  if (pageNumber > 1) {
-    const p = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 200);
-    await panel().getByTitle(String(pageNumber), { exact: true }).click();
-    await p;
-  }
-  if ((await panel().getAttribute('open')) === null)
-    await panel().locator(':scope > summary').click();
   const chosen = all.body.items[index];
-  await page.getByRole('combobox', { name: '查看发现类型', exact: true }).click();
-  await page.locator('.ant-select-dropdown:visible').getByText('全部发现', { exact: true }).click();
-  for (const summary of await panel().locator('.discovery-type-group > summary').all())
-    await summary.click();
+  await panel().getByTestId('discovery-card').first().waitFor();
+  for (let offset = 10; offset <= index; offset += 10) {
+    await panel().getByRole('button', { name: '查看更多线索', exact: true }).click();
+  }
   const chosenCard = panel().locator(`[data-discovery-id="${chosen.discovery_id}"]`);
-  await chosenCard.getByRole('checkbox').check();
+  assert.equal(await chosenCard.getByRole('checkbox').count(), 0);
   const detailResponse = wait(
     (r) => r.url().endsWith(`/${chosen.discovery_id}/query`) && r.status() === 200,
   );
-  await chosenCard.getByRole('button', { name: '查看发现与依据', exact: true }).click();
+  await chosenCard.getByRole('button', { name: '查看具体评分', exact: true }).click();
   const detail = await (await detailResponse).json();
   assert.deepEqual(
     [detail.metrics.target_count, detail.metrics.remainder_count].sort((a, b) => a - b),
@@ -155,7 +147,7 @@ export async function teacherProductFlow(h) {
   const membersResponse = wait((r) => r.url().endsWith('/records/query') && r.status() === 200);
   await page
     .getByRole('dialog', { name: '发现详情', exact: true })
-    .getByRole('button', { name: '继续探索这组学生', exact: true })
+    .getByRole('button', { name: '看看这组学生', exact: true })
     .click();
   const original = await (await membersResponse).json();
   assert.equal(original.total_count, detail.metrics.target_count);
@@ -189,47 +181,56 @@ export async function teacherProductFlow(h) {
     '53: import/preview/commit → real discovery/chart → exact original 26/27 group → reload → owned evidence',
   );
   console.log('Joint E2E: save original discovery and review');
+  await navigation('学情诊断');
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
+  const findings = review().locator('.review-finding');
+  await findings.first().waitFor();
+  assert.equal(await page.getByRole('heading', { name: '本次报告内容', exact: true }).count(), 0);
+  assert.equal(await review().getByRole('radio', { name: '待教师确认', exact: true }).count(), 0);
+  assert.equal(await review().getByText('使用限制', { exact: true }).count(), 1);
+  const exportButton = review()
+    .getByRole('complementary', { name: '报告信息' })
+    .getByRole('button', { name: '导出测评报告' });
+  assert.equal(await exportButton.isDisabled(), true);
+  const entries = all.body.items.filter((item) => item.status !== 'insufficient_evidence');
+  assert.equal(await findings.count(), entries.length);
+  for (const [index, entry] of entries.entries()) {
+    const item = findings.nth(index);
+    assert.equal(await item.getAttribute('data-finding-id'), entry.discovery_id);
+    assert.equal(await item.locator('input[value=confirmed]').isChecked(), true);
+    if (entry.discovery_id !== chosen.discovery_id) {
+      if ((await item.getAttribute('open')) === null) await item.locator('summary').click();
+      await item
+        .getByRole('radio', { name: '不加入报告', exact: true })
+        .locator('xpath=ancestor::label[1]')
+        .click();
+    }
+  }
+  const expectedVersion = wait(
+    (r) => r.request().method() === 'PATCH' && /\/analysis-results\//.test(r.url()),
+  );
   const created = await save('合成正式发现闭环');
+  const updated = await expectedVersion;
+  assert.equal(updated.status(), 200);
+  const reviewed = await updated.json();
   assert.deepEqual(created.analysis.query.conditions, []);
   assert.equal(created.analysis.matched_count, 53);
   assert.equal(created.analysis.members.length, 53);
-  assert.equal(created.discovery_findings.length, 1);
-  assert.equal(created.discovery_findings[0].discovery.discovery_id, chosen.discovery_id);
-  assert.equal(created.discovery_findings[0].teacher_review.status, 'pending');
+  assert.equal(created.discovery_findings.length, entries.length);
   assert.deepEqual(created.analysis.discovery.spec, spec);
-  assert.equal(await page.getByRole('heading', { name: '本次报告内容', exact: true }).count(), 0);
-  await review()
-    .locator('.review-finding')
-    .getByRole('radio', { name: '已确认', exact: true })
-    .locator('xpath=ancestor::label[1]')
-    .click();
-  const updated = wait(
-    (r) => r.url().endsWith('/' + created.result_id) && r.request().method() === 'PATCH',
-  );
-  await review().getByRole('button', { name: '保存核验结果', exact: true }).click();
-  const reviewed = await (await updated).json();
   assert.equal(reviewed.version, 2);
-  assert.equal(reviewed.discovery_findings[0].teacher_review.status, 'confirmed');
-  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  assert.deepEqual(
+    reviewed.discovery_findings
+      .filter((finding) => finding.teacher_review.status === 'confirmed')
+      .map((finding) => finding.discovery.discovery_id),
+    [chosen.discovery_id],
+  );
+  assert.equal(await exportButton.isEnabled(), true);
   await navigation('学情诊断');
   await navigation('分析报告');
-  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
-  assert.equal(
-    await review().getByRole('radio', { name: '已确认', exact: true }).isChecked(),
-    true,
-  );
-  await navigation('学情诊断');
-  await page.locator('.discoveries-panel').getByRole('checkbox').first().check();
-  await page.getByRole('button', { name: '前往报告', exact: true }).click();
-  await page.getByRole('heading', { name: '本次报告内容', exact: true }).waitFor();
-  await page
-    .getByRole('button', { name: /^移除 / })
-    .first()
-    .click();
-  assert.equal(await page.locator('.report-draft-list li').count(), 0);
-  await page.getByRole('button', { name: '已保存分析', exact: true }).click();
-  await page.getByRole('button', { name: '查看与核验', exact: true }).first().click();
-  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  await review().getByText('已保存版本 2', { exact: true }).waitFor();
+  const selectedFinding = review().locator(`[data-finding-id="${chosen.discovery_id}"]`);
+  assert.equal(await selectedFinding.locator('input[value=confirmed]').isChecked(), true);
   await shot('03-reviewed-discovery');
   const md = await download('md');
   assert.equal(md.preflight.confirmed_finding_count, 1);
@@ -305,9 +306,60 @@ export async function teacherProductFlow(h) {
   await reportAction(review(), '加载最新版本');
   await page.getByRole('button', { name: '放弃修改', exact: true }).click();
   await review().locator('.saved-version').filter({ hasText: '已保存版本 3' }).waitFor();
-  await reportAction(review(), '返回草稿');
+  await reportAction(review(), '返回报告列表');
   checks.push(
     'save stores full outer scope and selected formal discovery; confirmed persists; MD/XLSX reopened; actual 409 preserves edits',
+  );
+  await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
+  const history = page.locator('.batches-panel');
+  const archivedRow = history.getByRole('row').filter({ hasText: '合成联合验收53人' });
+  await archivedRow.waitFor();
+  const desktopLayout = await archivedRow.evaluate((row) => {
+    const cell = row.querySelector('.history-actions-cell').getBoundingClientRect();
+    const lastAction = row
+      .querySelector('.batch-actions button:last-child')
+      .getBoundingClientRect();
+    const table = row.closest('.history-assessment-table');
+    const filter = table.parentElement.querySelector('.history-status-filter');
+    return {
+      rightGap: cell.right - lastAction.right,
+      filterGap: table.getBoundingClientRect().top - filter.getBoundingClientRect().bottom,
+    };
+  });
+  assert.ok(
+    desktopLayout.rightGap <= 20 && desktopLayout.filterGap >= 12,
+    JSON.stringify(desktopLayout),
+  );
+  await shot('history-desktop');
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await archivedRow.evaluate((row) => getComputedStyle(row).display), 'grid');
+  assert.ok(await history.evaluate((panel) => panel.scrollWidth <= panel.clientWidth + 1));
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await archivedRow.getByRole('button', { name: '评分概况', exact: true }).click();
+  const qualityOverview = page.getByRole('dialog', { name: '测评评分概况', exact: true });
+  await qualityOverview.waitFor();
+  await closeTop();
+  await shot('history-mobile');
+  await archivedRow.getByRole('button', { name: '删除', exact: true }).click();
+  const archive = wait((r) => r.url().endsWith('/archive') && r.request().method() === 'PATCH');
+  await page.getByRole('dialog').getByRole('button', { name: '归档', exact: true }).click();
+  assert.equal((await archive).status(), 200);
+  await archivedRow.waitFor({ state: 'detached' });
+  await page.reload();
+  await page.locator('.live-workspace').waitFor();
+  const openHistory = page.getByRole('button', { name: '查看历史测评', exact: true });
+  if (!(await history.isVisible())) await openHistory.click();
+  await history.getByText('已归档', { exact: true }).click();
+  await archivedRow.getByRole('button', { name: '恢复', exact: true }).click();
+  const restore = wait((r) => r.url().endsWith('/archive') && r.request().method() === 'PATCH');
+  await page.getByRole('dialog').getByRole('button', { name: '恢复', exact: true }).click();
+  assert.equal((await restore).status(), 200);
+  await history.getByText('使用中', { exact: true }).click();
+  await archivedRow.getByRole('button', { name: '查看学情', exact: true }).click();
+  await page.getByRole('button', { name: '准备分析报告', exact: true }).waitFor();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  checks.push(
+    'history actions align right on desktop and fit 390px; archive and restore work on mobile',
   );
   console.log('Joint E2E: empty discoveries, manual exploration and narrow screen');
   await navigation('学情诊断');
@@ -320,13 +372,13 @@ export async function teacherProductFlow(h) {
   assert.equal(empty.discovery_findings?.length ?? 0, 0);
   const emptyMd = await download('md');
   assert.equal(emptyMd.preflight.confirmed_finding_count, 0);
-  await reportAction(review(), '返回草稿');
+  await reportAction(review(), '返回报告列表');
   await navigation('画像探索');
   await page.getByRole('button', { name: '添加条件', exact: true }).click();
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
   await page.locator('.match-summary').filter({ hasText: '17 / 17' }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
   await shot('05-empty-discovery-manual-mobile');
   await page.setViewportSize({ width: 1440, height: 1000 });
   await navigation('学情诊断');
@@ -359,12 +411,13 @@ export async function teacherProductFlow(h) {
   });
   assert.equal(forbiddenSave.status, 403);
   assert.equal(forbiddenSave.body.error.code, 'FORBIDDEN');
-  await reportAction(review(), '返回草稿');
-  await navigation('学情诊断');
+  await reportAction(review(), '返回报告列表');
+  await navigation('画像探索');
   admin('batch-revoke-read', '--teacher-id', reader, '--batch-id', batch.batch_id);
   const denied = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 404);
-  await page.getByRole('button', { name: '刷新发现', exact: true }).click();
+  await navigation('学情诊断');
   await denied;
+  await page.locator('.discoveries-panel .live-error').waitFor();
   assert.equal(await page.getByTestId('discovery-card').count(), 0);
   await setToken(token);
   await page.reload();
@@ -373,7 +426,7 @@ export async function teacherProductFlow(h) {
     '17 constant: zero qualified discoveries, valid empty report and manual exploration; batch switch clears origin; reader/revoked access enforced',
   );
   // Expire only this harness's synthetic credential in its disposable database.
-  await page.getByRole('button', { name: '刷新发现', exact: true }).waitFor();
+  await navigation('画像探索');
   await page.waitForLoadState('networkidle');
   execFileSync(
     python,
@@ -384,9 +437,8 @@ export async function teacherProductFlow(h) {
     ],
     { cwd: apiRoot, env, windowsHide: true },
   );
-  await navigation('学情诊断');
-  const expired = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 401);
-  await page.getByRole('button', { name: '刷新发现', exact: true }).click();
+  const expired = page.waitForResponse((r) => r.url().includes('/api/edu/') && r.status() === 401);
+  await page.getByRole('link', { name: '学情诊断', exact: true }).click();
   await expired;
   await page.getByRole('heading', { name: '正在连接数据', exact: true }).waitFor();
   assert.equal(await page.locator('.live-workspace').count(), 0);

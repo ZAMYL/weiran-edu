@@ -27,6 +27,7 @@ from app.storage.database import Database
 from .auth import Principal, accessible_batch, deny, require_scope, require_teacher
 from .models import (
     Batch,
+    BatchArchive,
     BatchList,
     CommitRequest,
     CommitResult,
@@ -67,10 +68,10 @@ def _page(offset: int, limit: int, returned: int, total: int) -> Page:
     return Page(offset=offset, limit=limit, returned=returned, has_more=offset + returned < total)
 
 
-def batch_dto(row: sqlite3.Row) -> Batch:
+def batch_dto(row: sqlite3.Row, *, archived: bool = False) -> Batch:
     # Explicit model field whitelist; never serialize owner columns or private source data.
-    values = {key: row[key] for key in Batch.model_fields if key != "is_current"}
-    return Batch(**values, is_current=bool(row["is_current"]))
+    values = {key: row[key] for key in Batch.model_fields if key not in {"is_current", "archived"}}
+    return Batch(**values, is_current=bool(row["is_current"]), archived=archived)
 
 
 class EduService:
@@ -574,7 +575,31 @@ class EduService:
     def get_batch(self, principal: Principal, batch_id: str) -> Batch:
         with self.database.transaction() as connection:
             self._teacher(connection, principal)
-            return batch_dto(accessible_batch(connection, principal, batch_id))
+            row = accessible_batch(connection, principal, batch_id)
+            archived = connection.execute(
+                "SELECT 1 FROM teacher_batch_archive WHERE teacher_id=? AND batch_id=?",
+                (principal.teacher_id, batch_id),
+            ).fetchone()
+            return batch_dto(row, archived=archived is not None)
+
+    def set_batch_archive(
+        self, principal: Principal, batch_id: str, body: BatchArchive
+    ) -> BatchArchive:
+        with self.database.transaction(write=True) as connection:
+            self._teacher(connection, principal)
+            accessible_batch(connection, principal, batch_id)
+            key = (principal.teacher_id, batch_id)
+            if body.archived:
+                connection.execute(
+                    "INSERT INTO teacher_batch_archive (teacher_id,batch_id) VALUES (?,?) "
+                    "ON CONFLICT (teacher_id,batch_id) DO NOTHING",
+                    key,
+                )
+            else:
+                connection.execute(
+                    "DELETE FROM teacher_batch_archive WHERE teacher_id=? AND batch_id=?", key
+                )
+        return body
 
     def list_batches(
         self,
@@ -582,6 +607,7 @@ class EduService:
         *,
         data_scope_id: str | None = None,
         include_revisions: bool = False,
+        archived: bool = False,
         offset: int = 0,
         limit: int = 20,
     ) -> BatchList:
@@ -594,12 +620,16 @@ class EduService:
                 "OR EXISTS(SELECT 1 FROM batch_access a "
                 "WHERE a.batch_id=b.batch_id AND a.teacher_id=?)) "
                 "AND (? IS NULL OR b.data_scope_id=?) AND (? OR NOT EXISTS(SELECT 1 "
-                "FROM batches n WHERE n.revision_of_batch_id=b.batch_id))"
+                "FROM batches n WHERE n.revision_of_batch_id=b.batch_id)) "
+                "AND EXISTS(SELECT 1 FROM teacher_batch_archive a "
+                "WHERE a.teacher_id=? AND a.batch_id=b.batch_id)=?"
             )
             params = (principal.teacher_id,) * 3 + (
                 data_scope_id,
                 data_scope_id,
-                int(include_revisions),
+                int(include_revisions or archived),
+                principal.teacher_id,
+                int(archived),
             )
             total = connection.execute("SELECT COUNT(*)" + where, params).fetchone()[0]
             ids = connection.execute(
@@ -609,7 +639,10 @@ class EduService:
                 params + (limit, offset),
             ).fetchall()
             items = tuple(
-                batch_dto(accessible_batch(connection, principal, item["batch_id"])) for item in ids
+                batch_dto(
+                    accessible_batch(connection, principal, item["batch_id"]), archived=archived
+                )
+                for item in ids
             )
             return BatchList(
                 total_count=total, items=items, page=_page(offset, limit, len(items), total)

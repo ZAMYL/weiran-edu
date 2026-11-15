@@ -1,4 +1,4 @@
-import { ContractError, type Decoder } from './schema';
+import { ContractError, flag, object, type Decoder } from './schema';
 import { teacherAiError } from './teacher-ai-guidance';
 import {
   discoveriesDto,
@@ -69,11 +69,10 @@ const STATUS_MESSAGES: Record<number, string> = {
   504: '请求超时，请检查连接后重试。',
 };
 const FILE_MESSAGES: Record<string, string> = {
+  AI_CAMPAIGN_ALREADY_USED: '这份测评的 AI 分析机会已使用。',
   AI_GOAL_UNSUPPORTED: `暂不支持这个问题。${teacherAiError('AI_GOAL_UNSUPPORTED')!.message} ${teacherAiError('AI_GOAL_UNSUPPORTED')!.action}`,
   AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
-  AI_SYNTHETIC_SOURCE_REQUIRED:
-    '当前 AI 演示仅支持本次服务登记的合成样例原件。此测评仍可查看评分统计。',
   IMPORT_FORMAT_UNSUPPORTED: '这份表格的结构暂不支持。请核对测评表格后重新选择。',
   IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
   IMPORT_FILE_INVALID: '无法读取这份表格，请保留原文件，并检查表格格式和文件大小。',
@@ -124,6 +123,24 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
   let generation = 0;
   let diagnosisSession = crypto.randomUUID();
   const pending = new Set<AbortController>();
+  // Only explicitly opted-in, aggregate display data. Each mount still checks live access.
+  const overviews = new Map<string, { at: number; data: unknown }>();
+  const overviewCache = {
+    read<T>(key: string): T | null {
+      const entry = overviews.get(key);
+      return entry && Date.now() - entry.at < 30_000 ? (entry.data as T) : null;
+    },
+    write<T>(key: string, data: T) {
+      if (overviews.size >= 12 && !overviews.has(key)) {
+        const oldest = overviews.keys().next().value;
+        if (oldest !== undefined) overviews.delete(oldest);
+      }
+      overviews.set(key, { at: Date.now(), data });
+    },
+    evict(key: string) {
+      overviews.delete(key);
+    },
+  };
   function clear() {
     generation++;
     diagnosisSession = crypto.randomUUID();
@@ -131,6 +148,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     testSession = false;
     pending.forEach((c) => c.abort());
     pending.clear();
+    overviews.clear();
   }
   function authenticate(token: string) {
     clear();
@@ -183,6 +201,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
           clear();
           onUnauthorized();
         }
+        if ([403, 404, 409, 410].includes(response.status)) overviews.clear();
         throw failure;
       }
       try {
@@ -238,16 +257,25 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     signal?: AbortSignal,
     diagnosisReuse = false,
   ) => {
-    const result = await request(
-      `${base(batch)}/discoveries/${suffix}`,
-      decoder,
-      {
-        method: 'POST',
-        body: JSON.stringify(body),
-        ...(diagnosisReuse ? { headers: { 'X-EDU-Diagnosis-Session': diagnosisSession } } : {}),
-      },
-      signal,
-    );
+    const path = `${base(batch)}/discoveries/${suffix}`;
+    const load = () => request(path, decoder, {
+      method: 'POST', body: JSON.stringify(body),
+      ...(diagnosisReuse ? { headers: { 'X-EDU-Diagnosis-Session': diagnosisSession } } : {}),
+    }, signal);
+    const result = await (async () => {
+      // Navigating can abort a browser request while the authorized server read is still finishing.
+      const waits = [400, 800, 1600, 2400];
+      for (const wait of waits) {
+        try {
+          return await load();
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY') throw error;
+          await new Promise((resolve) => setTimeout(resolve, wait));
+          signal?.throwIfAborted();
+        }
+      }
+      return load();
+    })();
     assertSnapshot(result.scope, batch);
     const canonical = (conditions: ApiCondition[]) =>
       JSON.stringify(
@@ -260,6 +288,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     return result;
   };
   return {
+    overviewCache,
     startAiTask: async (batch: ApiBatch, question: string, key: string, signal?: AbortSignal) =>
       assertSnapshot(
         await post(
@@ -380,30 +409,17 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       if (receipt.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
       return receipt;
     },
-    discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal) =>
-      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal),
-    diagnosisDiscoveries: (
+    discoveries: (
       batch: ApiBatch,
       spec: DiscoverySpec,
       offset = 0,
       signal?: AbortSignal,
-    ) =>
-      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal, true),
-    diagnosisDiscoveryDetail: async (
-      batch: ApiBatch,
-      discoveryId: string,
-      spec: DiscoverySpec,
-      signal?: AbortSignal,
-    ) => {
-      const result = await discovery(
-        batch,
-        spec,
-        `${id(discoveryId)}/query`,
-        discoveryDetailDto,
-        spec,
-        signal,
-        true,
-      );
+      limit = 10,
+    ) => discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit }, signal),
+    diagnosisDiscoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal, limit = 10) =>
+      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit }, signal, true),
+    diagnosisDiscoveryDetail: async (batch: ApiBatch, discoveryId: string, spec: DiscoverySpec, signal?: AbortSignal) => {
+      const result = await discovery(batch, spec, `${id(discoveryId)}/query`, discoveryDetailDto, spec, signal, true);
       if (result.discovery_id !== discoveryId) throw new ApiError(502, 'INVALID_API_RESPONSE');
       return result;
     },
@@ -469,10 +485,19 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     },
     me: (signal?: AbortSignal) => get('/me', meDto, signal),
     scopes: (signal?: AbortSignal) => get('/scopes', scopesDto, signal),
-    batches: (offset = 0, limit = 20, signal?: AbortSignal) =>
-      get(`/batches?offset=${offset}&limit=${limit}&include_dynamic=true`, batchListDto, signal),
+    batches: (offset = 0, limit = 20, signal?: AbortSignal, archived = false) =>
+      get(
+        `/batches?offset=${offset}&limit=${limit}&include_dynamic=true${archived ? '&archived=true' : ''}`,
+        batchListDto,
+        signal,
+      ),
     batch: (batchId: string, signal?: AbortSignal) =>
       get(`/batches/${id(batchId)}`, batchDto, signal),
+    setBatchArchive: (batch: ApiBatch, archived: boolean) =>
+      request(`${base(batch)}/archive`, object({ archived: flag }), {
+        method: 'PATCH',
+        body: JSON.stringify({ archived }),
+      }),
     itemStatistics: async (batch: ApiBatch, signal?: AbortSignal, itemId?: string) => {
       const result = assertSnapshot(
         await get(
