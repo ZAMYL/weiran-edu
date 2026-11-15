@@ -26,7 +26,7 @@ def bootstrap(client, host, service):
     for case in ("normal", "evidence", "empty", "balanced72", "zero81", "overlap96"):
         response = client.post(
             "/api/v1/edu/imports/preview",
-            files={"file": ("synthetic.xlsx", host.books[case], "application/octet-stream")},
+            files={"file": (f"{case}.xlsx", host.books[case], "application/octet-stream")},
         )
         response.raise_for_status()
         preview = response.json()["import"]
