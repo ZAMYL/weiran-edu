@@ -662,9 +662,10 @@ try {
     await records('配对评分学生');
     await closeTop();
     await closeTop();
+    await navigation('画像探索');
     admin('batch-revoke-read', '--teacher-id', reader, '--batch-id', wide.batchId);
     const denied = nextResponse('/discoveries/query', 404);
-    await page.getByRole('button', { name: '刷新发现', exact: true }).click();
+    await navigation('学情诊断');
     await denied;
     await page
       .locator('.discoveries-panel')
@@ -675,9 +676,11 @@ try {
       'read-only grant reads discoveries; actual revoked grant returns 404 and clears previous cards',
     );
     checkpoint = 'expired teacher session';
+    await navigation('画像探索');
+    await page.waitForLoadState('networkidle');
     admin('token-revoke', '--teacher-id', reader);
-    const expired = nextResponse('/discoveries/query', 401);
-    await page.getByRole('button', { name: '刷新发现', exact: true }).click();
+    const expired = waitResponse((r) => r.url().includes('/api/edu/') && r.status() === 401);
+    await page.getByRole('link', { name: '学情诊断', exact: true }).click();
     await expired;
     await page.getByRole('heading', { name: '正在连接数据', exact: true }).waitFor();
     assert.equal(await page.locator('.live-workspace').count(), 0);

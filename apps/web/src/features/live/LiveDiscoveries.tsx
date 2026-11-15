@@ -2,7 +2,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Button, Drawer, Empty, Pagination, Select, Table } from 'antd';
 import { useRouter } from 'next/navigation';
-import { ReloadOutlined } from '@ant-design/icons';
 import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discovery-navigation';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
@@ -249,33 +248,8 @@ export default function LiveDiscoveries({
     </>
   );
   const focusPanel = (
-    <Panel
-      className="discoveries-panel"
-      title="学情分析"
-      action={focusAction ?? <Button onClick={resource.retry}>刷新发现</Button>}
-    >
+    <Panel className="discoveries-panel" title="学情分析" action={focusAction}>
       {status}
-      <div className="discovery-focus-toolbar">
-        {resource.data && (
-          <p data-testid="discovery-scope">
-            {resource.data.scope.scope_record_count === resource.data.scope.batch_record_count ? (
-              <>
-                本次测评 <strong>{resource.data.scope.batch_record_count}</strong> 人
-              </>
-            ) : (
-              <>
-                当前范围 <strong>{resource.data.scope.scope_record_count}</strong> / 本次测评{' '}
-                {resource.data.scope.batch_record_count} 人
-              </>
-            )}
-          </p>
-        )}
-        {focusAction && (
-          <Button type="text" icon={<ReloadOutlined aria-hidden="true" />} onClick={resource.retry}>
-            刷新发现
-          </Button>
-        )}
-      </div>
       {resource.data && (
         <>
           {details.loading ? (

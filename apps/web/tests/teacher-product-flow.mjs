@@ -412,11 +412,12 @@ export async function teacherProductFlow(h) {
   assert.equal(forbiddenSave.status, 403);
   assert.equal(forbiddenSave.body.error.code, 'FORBIDDEN');
   await reportAction(review(), '返回报告列表');
-  await navigation('学情诊断');
+  await navigation('画像探索');
   admin('batch-revoke-read', '--teacher-id', reader, '--batch-id', batch.batch_id);
   const denied = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 404);
-  await page.getByRole('button', { name: '刷新发现', exact: true }).click();
+  await navigation('学情诊断');
   await denied;
+  await page.locator('.discoveries-panel .live-error').waitFor();
   assert.equal(await page.getByTestId('discovery-card').count(), 0);
   await setToken(token);
   await page.reload();
@@ -425,7 +426,7 @@ export async function teacherProductFlow(h) {
     '17 constant: zero qualified discoveries, valid empty report and manual exploration; batch switch clears origin; reader/revoked access enforced',
   );
   // Expire only this harness's synthetic credential in its disposable database.
-  await page.getByRole('button', { name: '刷新发现', exact: true }).waitFor();
+  await navigation('画像探索');
   await page.waitForLoadState('networkidle');
   execFileSync(
     python,
@@ -436,9 +437,8 @@ export async function teacherProductFlow(h) {
     ],
     { cwd: apiRoot, env, windowsHide: true },
   );
-  await navigation('学情诊断');
-  const expired = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 401);
-  await page.getByRole('button', { name: '刷新发现', exact: true }).click();
+  const expired = page.waitForResponse((r) => r.url().includes('/api/edu/') && r.status() === 401);
+  await page.getByRole('link', { name: '学情诊断', exact: true }).click();
   await expired;
   await page.getByRole('heading', { name: '正在连接数据', exact: true }).waitFor();
   assert.equal(await page.locator('.live-workspace').count(), 0);
