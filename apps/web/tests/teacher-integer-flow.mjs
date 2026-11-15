@@ -97,9 +97,10 @@ export async function teacherIntegerFlow(h) {
       'BUG REPRODUCTION ONLY: real 105/525 upload + diagnostic list/detail HTTP 200, UI INVALID_API_RESPONSE; full workflow blocked, not accepted',
     ];
   }
-  await focus.getByTestId('discovery-card').waitFor();
+  const focusCard = focus.locator(`[data-discovery-id="${chosen.discovery_id}"]`);
+  await focusCard.waitFor();
   assert.equal(await focus.locator('.live-error').count(), 0);
-  await focus.getByRole('button', { name: '查看具体评分', exact: true }).click();
+  await focusCard.getByRole('button', { name: '查看具体评分', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: '发现详情', exact: true });
   await page.getByTestId('discovery-chart').locator('svg').waitFor();
   await page.screenshot({ path: path.join(artifacts, '105-discovery-detail.png'), fullPage: true });
@@ -122,6 +123,18 @@ export async function teacherIntegerFlow(h) {
   await closeTop();
   await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
   await page.getByLabel('报告名称', { exact: true }).fill('合成105人精确整数回归报告');
+  const reportFindings = page
+    .getByRole('region', { name: '分析核验', exact: true })
+    .locator('[data-finding-id]');
+  for (const item of await reportFindings.all()) {
+    if ((await item.getAttribute('data-finding-id')) !== chosen.discovery_id) {
+      if ((await item.getAttribute('open')) === null) await item.locator('summary').click();
+      await item
+        .getByRole('radio', { name: '不加入报告', exact: true })
+        .locator('xpath=ancestor::label[1]')
+        .click();
+    }
+  }
   const reviewedResponse = wait(
     (r) => r.request().method() === 'PATCH' && /\/analysis-results\//.test(r.url()),
   );
@@ -131,15 +144,25 @@ export async function teacherIntegerFlow(h) {
   await page.getByRole('button', { name: '保存报告', exact: true }).click();
   const saved = await (await savedResponse).json();
   assert.equal(saved.analysis.members.length, 105);
-  assert.equal(saved.discovery_findings.length, 1);
-  assert.equal(saved.discovery_findings[0].discovery.discovery_id, chosen.discovery_id);
+  const selectedSaved = saved.discovery_findings.find(
+    (f) => f.discovery.discovery_id === chosen.discovery_id,
+  );
+  assert.ok(selectedSaved);
   assert.deepEqual(saved.analysis.discovery.spec, spec);
-  assert.deepEqual(saved.analysis.discovery.findings[0].ranking, detailResult.body.ranking);
-  assert.deepEqual(saved.discovery_findings[0].discovery.ranking, detailResult.body.ranking);
+  assert.deepEqual(
+    saved.analysis.discovery.findings.find((f) => f.discovery_id === chosen.discovery_id).ranking,
+    detailResult.body.ranking,
+  );
+  assert.deepEqual(selectedSaved.discovery.ranking, detailResult.body.ranking);
   const review = page.getByRole('region', { name: '分析核验', exact: true });
   const reviewed = await (await reviewedResponse).json();
   assert.equal(reviewed.version, 2);
-  assert.equal(reviewed.discovery_findings[0].teacher_review.status, 'confirmed');
+  assert.deepEqual(
+    reviewed.discovery_findings
+      .filter((f) => f.teacher_review.status === 'confirmed')
+      .map((f) => f.discovery.discovery_id),
+    [chosen.discovery_id],
+  );
   await review.locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
   // Refresh and reopen via the saved list, exercising a fresh GET and the nested DTO.
   await page.reload({ waitUntil: 'networkidle' });
@@ -159,9 +182,19 @@ export async function teacherIntegerFlow(h) {
   assert.equal(reopened.version, reviewed.version);
   assert.deepEqual(reopened.analysis.discovery, reviewed.analysis.discovery);
   assert.deepEqual(reopened.discovery_findings, reviewed.discovery_findings);
-  assert.deepEqual(reopened.discovery_findings[0].discovery.ranking, detailResult.body.ranking);
+  assert.deepEqual(
+    reopened.discovery_findings.find((f) => f.discovery.discovery_id === chosen.discovery_id)
+      .discovery.ranking,
+    detailResult.body.ranking,
+  );
   await review.locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
-  assert.equal(await review.getByRole('radio', { name: '已确认', exact: true }).isChecked(), true);
+  assert.equal(
+    await review
+      .locator(`[data-finding-id="${chosen.discovery_id}"]`)
+      .getByRole('radio', { name: '已确认', exact: true })
+      .isChecked(),
+    true,
+  );
   await page.screenshot({
     path: path.join(artifacts, '105-confirmed-reopened.png'),
     fullPage: true,
@@ -219,7 +252,7 @@ export async function teacherIntegerFlow(h) {
     await dialog.locator('.ant-modal-close').click();
   }
   await navigation('学情诊断');
-  await focus.getByTestId('discovery-card').waitFor();
+  await focus.getByTestId('discovery-card').first().waitFor();
   await page.screenshot({ path: path.join(artifacts, '105-after-fix.png'), fullPage: true });
   await writeFile(
     path.join(artifacts, 'acceptance-record.json'),

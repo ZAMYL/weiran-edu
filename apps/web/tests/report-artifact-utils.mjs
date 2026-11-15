@@ -21,8 +21,8 @@ export function confirmedReportFindings(saved) {
 export function verifyReportArtifact({ format, bytes, destination, python, env, reference }) {
   const confirmed = confirmedReportFindings(reference.savedResult);
   assert.deepEqual(reference.discoveryIds, confirmed.discoveryIds);
-  assert.equal(reference.resultId, reference.savedResult.result_id);
-  assert.equal(reference.version, reference.savedResult.version);
+  assert.equal(reference.resultId, reference.savedResult.result_id, 'mismatched 保存结果引用');
+  assert.equal(reference.version, reference.savedResult.version, 'mismatched 教师核验版本');
   let rows, sheets, discoveryReferences;
   if (format === 'md') {
     const text = bytes.toString('utf8');
