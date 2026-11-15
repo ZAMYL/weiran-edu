@@ -1,0 +1,182 @@
+{
+  "status": "accepted_for_local_owner_preview",
+  "date": "2026-11-16",
+  "platform": "Windows / Python 3.12.10 / Node 24.15.0 / pnpm 11.25.0 / Chromium Edge",
+  "synthetic_only": true,
+  "execution_origin": "http_mock",
+  "real_qwen": "not_run",
+  "teacher_product": {
+    "checks": [
+      "53: import/preview/commit → real discovery/chart → exact original 26/27 group → reload → owned evidence",
+      "save stores full outer scope and selected formal discovery; confirmed persists; MD/XLSX reopened; actual 409 preserves edits",
+      "history actions align right on desktop and fit 390px; archive and restore work on mobile",
+      "17 constant: zero qualified discoveries, valid empty report and manual exploration; batch switch clears origin; reader/revoked access enforced",
+      "actually expired temporary credential receives 401 and clears all formal workspace data"
+    ],
+    "pageErrors": [],
+    "unexpectedConsoleErrors": [],
+    "http_error_evidence": [
+      {
+        "status": 404,
+        "code": null,
+        "path": "/api/edu/batches/{batch_id}/discoveries/{discovery_id}/query"
+      },
+      {
+        "status": 404,
+        "code": "RESOURCE_NOT_FOUND",
+        "path": "/api/edu/batches/{batch_id}/discoveries/query"
+      },
+      {
+        "status": 401,
+        "code": "UNAUTHORIZED",
+        "path": "/api/edu/batches/{batch_id}/discoveries/query"
+      }
+    ],
+    "discovery_success_count": 16
+  },
+  "precision105": {
+    "status": "complete",
+    "students": 105,
+    "score_rows": 525,
+    "discoveries_http_status": 200,
+    "detail_http_status": 200,
+    "stale_snapshot_status": 409,
+    "downloads": [
+      {
+        "format": "xlsx",
+        "bytes": 45659,
+        "reopened": true,
+        "sheets": [
+          "测评概况",
+          "维度统计",
+          "教师确认发现",
+          "技术附录"
+        ],
+        "verifiedMetadataFields": 6,
+        "confirmedDiscoveryCount": 1,
+        "confirmedFindingCount": 1,
+        "verifiedFactRows": 3
+      },
+      {
+        "format": "md",
+        "bytes": 79395,
+        "reopened": true,
+        "sheets": [],
+        "verifiedMetadataFields": 6,
+        "confirmedDiscoveryCount": 1,
+        "confirmedFindingCount": 1,
+        "verifiedFactRows": 3
+      }
+    ]
+  },
+  "ai": {
+    "status": "complete",
+    "checks": [
+      "unsupported question receives 422 without creating a task or consuming the batch campaign",
+      "synthetic sample identity remains visible in fullscreen",
+      "202 creation / real task polling / verified facts / original evidence / exploration / pending / teacher confirmation / original MD and XLSX reopened",
+      "original question sent unchanged, priority completed; stale snapshot and cross-batch task both preserve 409",
+      "real zero-finding and zero-profile task has no fabricated cards",
+      "evidence gaps retain verified observations without invented explanations",
+      "72-person database profile / five dimensions at 1440px and 390px / click-only evidence / target and comparison / original record / refresh restoration",
+      "actual source membership revocation returns 404 and displays permission failure"
+    ],
+    "page_errors": [],
+    "rejected_question_task_count": 0,
+    "stale_snapshot_status": 409,
+    "http_status_counts": {
+      "POST:422": 1,
+      "POST:202": 4,
+      "GET:200": 41,
+      "GET:409": 2,
+      "POST:200": 4,
+      "POST:404": 1
+    }
+  },
+  "first_use_uploaded_ai_report": {
+    "passed": true,
+    "execution_origin": "http_mock",
+    "real_qwen": "not_run",
+    "scenario": "registered first-use XLSX upload through saved AI report in one batch",
+    "page_errors": [],
+    "api_failures": [],
+    "downloads": [
+      {
+        "sheets": [],
+        "verifiedMetadataFields": 6,
+        "confirmedDiscoveryCount": 1,
+        "confirmedFindingCount": 1,
+        "verifiedFactRows": 0
+      },
+      {
+        "sheets": [
+          "测评概况",
+          "维度统计",
+          "教师确认发现",
+          "技术附录"
+        ],
+        "verifiedMetadataFields": 6,
+        "confirmedDiscoveryCount": 1,
+        "confirmedFindingCount": 1,
+        "verifiedFactRows": 0
+      }
+    ]
+  },
+  "startup_shutdown": [
+    {
+      "port": 3644,
+      "identity": "first",
+      "batch_count": 0,
+      "original_session_remained_200": true,
+      "duplicate_refused": true,
+      "stop_pass": true,
+      "startup_pass": true
+    },
+    {
+      "port": 1949,
+      "identity": "sample",
+      "batch_count": 6,
+      "original_session_remained_200": true,
+      "duplicate_refused": true,
+      "stop_pass": true,
+      "startup_pass": true
+    }
+  ],
+  "pytest": {
+    "backend-regression": {
+      "tests": "132",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "370.690"
+    },
+    "profile-safety-regression": {
+      "tests": "30",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "326.497"
+    }
+  },
+  "source_tree_equivalence": {
+    "apps/web/src": "eff1ec6dde63844c0cf50978c8e655f15d6f0b96",
+    "apps/api/app": "3440cbd5e6cbf1d0e0c7f144281e386743217d40",
+    "apps/api/uv.lock": "a29c478c5a315479a46b79782e55055f237cf2b2",
+    "apps/web/pnpm-lock.yaml": "debd8ec5d7c2811e55495abf2d7d622add5871ec",
+    "scripts/local/start-demo.ps1": "8856c1bb6180e020cd4585f01736b9ec7c8a6482",
+    "scripts/local/stop-demo.ps1": "c01b2b9803deb1e48156f7a187fbbd7157c27fc8"
+  },
+  "first_use_execution_head": "aafbcb8496e772d0294d41ab14334ab4d9d03a32",
+  "ai_browser_execution_head": "aafbcb8496e772d0294d41ab14334ab4d9d03a32",
+  "source_equivalence_comparison_head": "5cd7ddc57a99ce1240900a1078d1484cf423fd42",
+  "not_run": [
+    "full backend pytest",
+    "new-SHA GitHub CI",
+    "8-client load retest",
+    "real Qwen"
+  ],
+  "prototype_change_since_earlier_browser_run": [
+    "prototypes/durable_teacher_agent/serve.py"
+  ],
+  "prototype_change_description": "Registered synthetic bootstrap filename only; final first-use and AI checks use named samples."
+}

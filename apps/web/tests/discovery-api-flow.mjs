@@ -729,6 +729,17 @@ try {
   );
   assert.deepEqual(unexpectedConsoleErrors, []);
   const successCount = responses.filter((r) => r.status() === 200).length;
+  const httpErrorEvidence = await Promise.all(
+    responses
+      .filter((r) => r.status() >= 400)
+      .map(async (r) => ({
+        status: r.status(),
+        code: (await r.json().catch(() => null))?.error?.code ?? null,
+        path: new URL(r.url()).pathname
+          .replace(/batches\/[^/]+/g, 'batches/{batch_id}')
+          .replace(/discoveries\/[a-f0-9]{24}/g, 'discoveries/{discovery_id}'),
+      })),
+  );
   await writeFile(
     path.join(artifacts, 'result.json'),
     JSON.stringify(
@@ -737,6 +748,7 @@ try {
         pageErrors: errors,
         consoleErrors,
         unexpectedConsoleErrors,
+        httpErrorEvidence,
         discoveryResponses: responses.map((r) => ({
           status: r.status(),
           path: new URL(r.url()).pathname
