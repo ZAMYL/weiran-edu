@@ -313,6 +313,33 @@ export async function teacherProductFlow(h) {
   await page.getByRole('button', { name: '查看历史测评', exact: true }).click();
   const history = page.locator('.batches-panel');
   const archivedRow = history.getByRole('row').filter({ hasText: '合成联合验收53人' });
+  await archivedRow.waitFor();
+  const desktopLayout = await archivedRow.evaluate((row) => {
+    const cell = row.querySelector('.history-actions-cell').getBoundingClientRect();
+    const lastAction = row
+      .querySelector('.batch-actions button:last-child')
+      .getBoundingClientRect();
+    const table = row.closest('.history-assessment-table');
+    const filter = table.parentElement.querySelector('.history-status-filter');
+    return {
+      rightGap: cell.right - lastAction.right,
+      filterGap: table.getBoundingClientRect().top - filter.getBoundingClientRect().bottom,
+    };
+  });
+  assert.ok(
+    desktopLayout.rightGap <= 20 && desktopLayout.filterGap >= 12,
+    JSON.stringify(desktopLayout),
+  );
+  await shot('history-desktop');
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await archivedRow.evaluate((row) => getComputedStyle(row).display), 'grid');
+  assert.ok(await history.evaluate((panel) => panel.scrollWidth <= panel.clientWidth + 1));
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await archivedRow.getByRole('button', { name: '评分概况', exact: true }).click();
+  const qualityOverview = page.getByRole('dialog', { name: '测评评分概况', exact: true });
+  await qualityOverview.waitFor();
+  await closeTop();
+  await shot('history-mobile');
   await archivedRow.getByRole('button', { name: '删除', exact: true }).click();
   const archive = wait((r) => r.url().endsWith('/archive') && r.request().method() === 'PATCH');
   await page.getByRole('dialog').getByRole('button', { name: '归档', exact: true }).click();
@@ -330,7 +357,10 @@ export async function teacherProductFlow(h) {
   await history.getByText('使用中', { exact: true }).click();
   await archivedRow.getByRole('button', { name: '查看学情', exact: true }).click();
   await page.getByRole('button', { name: '准备分析报告', exact: true }).waitFor();
-  checks.push('account archive persists after reload and restores the original assessment');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  checks.push(
+    'history actions align right on desktop and fit 390px; archive and restore work on mobile',
+  );
   console.log('Joint E2E: empty discoveries, manual exploration and narrow screen');
   await navigation('学情诊断');
   const constant = await importThroughPage('constant', '合成同分17人');

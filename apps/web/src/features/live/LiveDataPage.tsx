@@ -233,30 +233,34 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
           }
           className="batches-panel"
         >
-          <Segmented
-            aria-label="历史测评状态"
-            value={archived ? 'archived' : 'active'}
-            options={[
-              { value: 'active', label: '使用中' },
-              { value: 'archived', label: '已归档' },
-            ]}
-            onChange={(value) => {
-              setOffset(0);
-              setArchived(value === 'archived');
-            }}
-          />
+          <div className="history-status-filter">
+            <Segmented
+              aria-label="历史测评状态"
+              value={archived ? 'archived' : 'active'}
+              options={[
+                { value: 'active', label: '使用中' },
+                { value: 'archived', label: '已归档' },
+              ]}
+              onChange={(value) => {
+                setOffset(0);
+                setArchived(value === 'archived');
+              }}
+            />
+          </div>
           {batches.loading && <LoadingPanel />}
           {batches.error && <RequestError error={batches.error} retry={batches.retry} />}
           {batches.data && (
             <Table<ApiBatch>
+              className="history-assessment-table"
               rowKey="batch_id"
+              rowClassName="history-assessment-row"
               dataSource={batches.data.items}
-              scroll={{ x: 780 }}
               size="small"
               pagination={{
                 current: Math.floor(offset / 10) + 1,
                 total: batches.data.total_count,
                 pageSize: 10,
+                responsive: true,
                 showSizeChanger: false,
                 onChange: (page) => setOffset((page - 1) * 10),
                 showTotal: (total) => `共 ${total} 份测评`,
@@ -264,18 +268,41 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
               columns={[
                 {
                   title: '测评名称',
-                  dataIndex: 'title',
-                  render: (value, target) => (
+                  render: (_, target) => (
                     <div className="batch-title">
-                      <strong>{value}</strong>
+                      <strong>{target.title}</strong>
                       {target.batch_id === batch?.batch_id && <Tag color="cyan">当前测评</Tag>}
                     </div>
                   ),
                 },
-                { title: '参评人数', dataIndex: 'student_count' },
-                { title: '评分记录', dataIndex: 'evaluation_count' },
+                {
+                  title: '参评人数',
+                  width: '15%',
+                  render: (_, target) => (
+                    <>
+                      <span className="history-stat-label" aria-hidden="true">
+                        参评人数
+                      </span>
+                      {target.student_count}
+                    </>
+                  ),
+                },
+                {
+                  title: '评分记录',
+                  width: '15%',
+                  render: (_, target) => (
+                    <>
+                      <span className="history-stat-label" aria-hidden="true">
+                        评分记录
+                      </span>
+                      {target.evaluation_count}
+                    </>
+                  ),
+                },
                 {
                   title: '操作',
+                  align: 'right',
+                  className: 'history-actions-cell',
                   render: (_, target) => (
                     <div className="batch-actions">
                       {!archived && (
@@ -338,7 +365,7 @@ function BatchOverview({ batch, onClose }: { batch: ApiBatch; onClose: () => voi
     load,
   );
   return (
-    <Drawer title="测评评分概况" open onClose={onClose} size={550}>
+    <Drawer title="测评评分概况" open onClose={onClose} size="min(550px, 100vw)">
       <AssessmentContext title={batch.title} course={batch.course} date={batch.assessment_date} />
       {batch.recognized_items && <AssessmentItemPage batch={batch} view="overview" />}
       {resource.loading && <LoadingPanel />}
