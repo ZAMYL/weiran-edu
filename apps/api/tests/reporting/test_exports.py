@@ -40,6 +40,23 @@ def test_scale_reports_come_from_actual_statistics(size):
     }
     assert info["测评记录数"] == size
     assert info["统计项目数"] == len(report.dimensions)
+    charts = workbook["测评概况"]._charts
+    assert len(charts) == (2 if size else 0)
+    if size:
+        score, coverage = charts
+        assert score.y_axis.scaling.min == 0 and score.y_axis.scaling.max == 5
+        assert coverage.y_axis.scaling.min == 0 and coverage.y_axis.scaling.max == size
+        assert [series.tx.strRef.strCache.pt[0].v for series in score.series] == [
+            "平均分",
+            "中位数",
+        ]
+        table = workbook["维度统计"]
+        for series, column in zip([*score.series, *coverage.series], ("C", "D", "B"), strict=True):
+            assert series.cat.strRef.f == "'维度统计'!$A$5:$A$9"
+            assert series.val.numRef.f == f"'维度统计'!${column}$5:${column}$9"
+            assert [float(point.v) for point in series.val.numRef.numCache.pt] == [
+                table[f"{column}{row}"].value for row in range(5, 10)
+            ]
     assert "合成演示" in result.markdown
     assert "synthetic-member-" not in all_text(result.xlsx)
     assert "synthetic-evidence-" not in result.markdown
@@ -236,7 +253,13 @@ def test_unavailable_rubric_and_different_scales_are_explicit():
         dimensions=(replace(report.dimensions[0], scale=changed), report.dimensions[1]),
         groups=(),
     )
-    assert "不同量表不默认可比" in generate_report(mixed).markdown
+    result = generate_report(mixed)
+    assert "不同量表不默认可比" in result.markdown
+    workbook = load_workbook(BytesIO(result.xlsx))
+    charts = workbook["测评概况"]._charts
+    assert len(charts) == 1
+    assert charts[0].series[0].tx.strRef.strCache.pt[0].v == "有效人数"
+    workbook.close()
 
 
 def test_synthetic_flag_is_not_an_authorization_or_safe_identifier_bypass():

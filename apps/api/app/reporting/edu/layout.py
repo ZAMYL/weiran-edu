@@ -151,7 +151,7 @@ def plan(
         if checkpoint is not None:
             checkpoint()
         formats = formats or {}
-        used += len(values)
+        used += max(len(values), len(sheet.widths)) if section else len(values)
         require(
             len(sheet.rows) + 5 <= limits.max_rows_per_sheet
             and used + reserved <= limits.max_total_cells,
