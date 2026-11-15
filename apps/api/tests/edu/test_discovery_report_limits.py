@@ -57,7 +57,8 @@ def test_reports_keep_system_evidence_status_separate_from_teacher_confirmation(
     assert saved["analysis"] == original_snapshot
     assert saved["discovery_findings"][0]["discovery"] == detail
     text = document_text(exported(client, base, batch, saved, format), format)
-    assert "教师已确认" in text and "系统证据状态" in text
+    status_heading = "系统证据状态" if format == "md" else "评分依据状态"
+    assert "教师已确认" in text and status_heading in text
     assert all(note in text for note in detail["limitations"])
     if repetitions == 1:
         assert detail["status"] == "interpret_cautiously"

@@ -76,8 +76,13 @@ def test_dynamic_statistics_items_do_not_change_upload_scheme(quantity):
     report = replace(report, dimensions=tuple(source[:quantity]), groups=())
     result = generate_report(report)
     workbook = load_workbook(BytesIO(result.xlsx))
-    means = [row for row in workbook["维度统计"].iter_rows(values_only=True) if type(row[1]) is int]
+    table = workbook["维度统计"]
+    means = [row for row in table.iter_rows(values_only=True) if type(row[6]) is int]
     assert len(means) == quantity
+    frequencies = [
+        row for row in table.iter_rows(values_only=True) if type(row[2]) is int and row[6] is None
+    ]
+    assert sum(row[2] for row in frequencies) == sum(item.valid_count for item in report.dimensions)
     assert f"| 统计项目数 | {quantity} |" in result.markdown
     workbook.close()
 
@@ -113,6 +118,8 @@ def test_fraction_denominator_is_not_headcount_and_missing_is_not_zero():
         row for row in wb["维度统计"].iter_rows(values_only=True) if row[0] == "算法与数据结构"
     )
     assert mean[1] == 0 and mean[2:6] == (None, None, None, None)
+    assert mean[6:8] == (3, 1)
+    assert len(wb["维度统计"].conditional_formatting) == 0
     assert "缺失人数" in data.markdown and "无效人数" in data.markdown
     workbook.close()
     wb.close()
