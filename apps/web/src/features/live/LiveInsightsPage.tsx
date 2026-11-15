@@ -31,7 +31,6 @@ import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
 import AssessmentItemPage from './AssessmentItemPage';
 import AiInvestigationPanel from './AiInvestigationPanel';
-import { ScoreReading } from './TeacherScoreReading';
 
 export default function LiveInsightsPage() {
   const { batch, assessmentPanel, assessmentRevision } = useDataMode();
@@ -185,20 +184,11 @@ function Insights({ batch }: { batch: ApiBatch }) {
                 {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
                 {stats.data && (
                   <>
-                    <ScoreReading
-                      statistics={stats.data.statistics}
-                      rubric={stats.data.rubric}
-                      distribution={mode === 'distribution'}
-                    />
                     <ServerAbilityChart
                       statistics={stats.data.statistics}
                       rubric={stats.data.rubric}
                       mode={mode}
                     />
-                    <details className="chart-reading-note">
-                      <summary>评分说明</summary>
-                      <p>平均分只使用有效评分，各项目参与计算的人数可能不同。</p>
-                    </details>
                     <Button type="link" onClick={() => router.push('/explorer')}>
                       进入画像探索 →
                     </Button>

@@ -92,16 +92,35 @@ try {
       { teacher: me.teacher_id, id: ref.batch_id },
     );
     await page.reload();
-    await page.getByRole('heading', { name: '这次测评有什么值得关注？', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'AI 分析', exact: true }).waitFor();
     return ref;
   }
   const normal = await openCase('normal');
   const shortcuts = page.getByRole('group', { name: '快捷提问' });
   const aiQuestion = page.getByLabel('想了解什么？', { exact: true });
-  await shortcuts.getByRole('button').first().click();
-  assert.equal(await shortcuts.getByRole('button').first().getAttribute('aria-pressed'), 'true');
-  await page.locator('.ai-custom-question summary').click();
-  assert.notEqual(await aiQuestion.inputValue(), '');
+  await aiQuestion.waitFor();
+  assert.equal(await aiQuestion.inputValue(), '有哪些值得关注的问题？');
+  const relationShortcut = shortcuts.getByRole('button', { name: '评分关联', exact: true });
+  await relationShortcut.click();
+  assert.equal(await relationShortcut.getAttribute('aria-pressed'), 'true');
+  assert.equal(await aiQuestion.inputValue(), '比较 算法与数据结构、代码实现能力 的关联');
+  await shortcuts.getByRole('button', { name: '优先核查', exact: true }).click();
+  const startAction = page.getByRole('button', { name: '开始分析', exact: true });
+  const geometry = async () => ({
+    question: await aiQuestion.boundingBox(),
+    action: await startAction.boundingBox(),
+  });
+  const desktop = await geometry();
+  assert.ok(Math.abs(desktop.question.y - desktop.action.y) <= 1);
+  assert.ok(Math.abs(desktop.question.height - desktop.action.height) <= 1);
+  await page.screenshot({ path: path.join(artifacts, 'composer-desktop.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobile = await geometry();
+  assert.ok(mobile.action.y > mobile.question.y);
+  assert.ok(Math.abs(mobile.action.width - mobile.question.width) <= 1);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.screenshot({ path: path.join(artifacts, 'composer-mobile.png') });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   assert.equal(requests.filter((request) => request.method === 'POST').length, 0);
   const unsupported = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 422,
@@ -364,7 +383,6 @@ try {
   );
   for (const name of ['empty', 'evidence']) {
     const ref = await openCase(name);
-    await page.locator('.ai-custom-question summary').click();
     await page.getByLabel('想了解什么？', { exact: true }).fill(ref.question);
     await page.getByRole('button', { name: '开始分析', exact: true }).click();
     if (name === 'empty') {
@@ -389,7 +407,6 @@ try {
     );
   }
   const profileBatch = await openCase('balanced72');
-  await page.locator('.ai-custom-question summary').click();
   const profileCreated = page.waitForResponse(
     (r) => r.url().endsWith('/ai-investigation-tasks') && r.status() === 202,
   );

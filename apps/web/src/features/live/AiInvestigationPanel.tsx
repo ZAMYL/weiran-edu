@@ -21,6 +21,7 @@ import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { LiveScoreDrawer } from './LiveStudents';
 import TeacherQuestionSuggestions from './TeacherQuestionSuggestions';
+import { teacherQuestions } from '../../services/edu-api/teacher-ai-guidance';
 import { describeProfile } from '../../services/edu-api/teacher-analysis';
 import { DIMENSIONS } from '../../services/edu-api/types';
 
@@ -64,9 +65,11 @@ const exactScore = (value: { numerator: number | string; denominator: number | s
   exactToNumber(value).toFixed(2);
 
 export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
-  const { client, teacherId, setConditions, setActiveReport, setReportDraft } = useDataMode();
+  const { client, teacherId, conditions, setConditions, setActiveReport, setReportDraft } =
+    useDataMode();
   const router = useRouter();
-  const [question, setQuestion] = useState('');
+  const questions = teacherQuestions(batch.recognized_items ?? legacyItems);
+  const [question, setQuestion] = useState(() => questions[0]?.question ?? '');
   const [task, setTask] = useState<AiTask | null>(null);
   const [sources, setSources] = useState<AiFact | null>(null);
   const [profileEvidence, setProfileEvidence] = useState<{
@@ -83,7 +86,6 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const running = aiRunning(task);
   const campaignUsed = error?.status === 409 && error.code === 'AI_CAMPAIGN_ALREADY_USED';
   const canStart = !task && !campaignUsed;
-  const showQuestion = canStart || running;
   useEffect(() => {
     const controller = new AbortController();
     let taskId: string | null = null;
@@ -204,50 +206,56 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const resultLabel = task?.result && stopLabels[task.result.stop_reason];
   const status = restoring ? '正在读取分析任务…' : (resultLabel ?? taskLabel);
   return (
-    <Panel title="这次测评有什么值得关注？" className="ai-investigation-panel">
-      <div className="ai-question-heading">
-        <span id="ai-scope" className="muted">
-          AI 分析 · {batch.student_count} 名参评者
-        </span>
-      </div>
+    <Panel
+      title="AI 分析"
+      className="ai-investigation-panel"
+      subtitle={
+        conditions.length > 0 ? `分析范围：全部 ${batch.student_count} 名参评者` : undefined
+      }
+    >
       {canStart && !restoring && (
-        <TeacherQuestionSuggestions
-          items={batch.recognized_items ?? legacyItems}
-          disabled={busy}
-          selected={question}
-          onChoose={setQuestion}
-        />
-      )}
-      {showQuestion && (
-        <details className="ai-custom-question">
-          <summary>自拟问题</summary>
-          <label className="visually-hidden" htmlFor="ai-question">
-            想了解什么？
-          </label>
-          <Input.TextArea
-            id="ai-question"
-            aria-describedby="ai-scope"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            maxLength={300}
-            autoSize={{ minRows: 2, maxRows: 4 }}
-            placeholder="例如：有哪些值得关注的问题？"
-            disabled={busy || restoring || running}
+        <form
+          className="ai-question-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            start();
+          }}
+        >
+          <TeacherQuestionSuggestions
+            questions={questions}
+            disabled={busy}
+            selected={question}
+            onChoose={setQuestion}
           />
-        </details>
-      )}
-      {(showQuestion || (status && !task?.error_code)) && (
-        <div className="ai-task-actions">
-          {canStart && (
+          <div className="ai-question-compose">
+            <label className="visually-hidden" htmlFor="ai-question">
+              想了解什么？
+            </label>
+            <Input.TextArea
+              id="ai-question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              maxLength={300}
+              autoSize={{ minRows: 1, maxRows: 4 }}
+              placeholder="输入想核查的评分问题"
+              disabled={busy}
+            />
             <Button
               type="primary"
-              disabled={!question.trim() || busy || restoring}
+              htmlType="submit"
+              disabled={!question.trim() || busy}
               loading={busy}
-              onClick={start}
             >
               开始分析
             </Button>
-          )}
+          </div>
+        </form>
+      )}
+      {status && !task?.error_code && (
+        <div className="ai-task-actions">
+          <span className="ai-task-status" role="status">
+            {status}
+          </span>
           {running && task && (
             <Button
               disabled={busy}
@@ -260,11 +268,6 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             >
               停止分析
             </Button>
-          )}
-          {status && !task?.error_code && (
-            <span className="ai-task-status" role="status">
-              {status}
-            </span>
           )}
         </div>
       )}

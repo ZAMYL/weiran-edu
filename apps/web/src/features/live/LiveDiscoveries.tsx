@@ -173,11 +173,6 @@ export default function LiveDiscoveries({
             <div className="finding-top">
               <h3>{titleFor(card)}</h3>
             </div>
-            {copy && (
-              <p className="teacher-reading">
-                {copy.numbers} {detail?.type === 'group_difference' && copy.whyItMatters}
-              </p>
-            )}
             {detail ? (
               <FocusMetrics detail={detail} />
             ) : (
@@ -188,12 +183,12 @@ export default function LiveDiscoveries({
             <details className="focus-explanation">
               <summary>如何理解这条发现</summary>
               {copy && (
-                <p>
-                  {detail?.type !== 'group_difference' && copy.whyItMatters} {copy.limitation}
+                <p className="teacher-reading">
+                  {copy.numbers} {copy.whyItMatters} {copy.limitation}
                 </p>
               )}
             </details>
-            <div className="batch-actions focus-card-actions">
+            <div className="focus-card-actions">
               <Button type="primary" onClick={() => setSelected(card.discovery_id)}>
                 查看具体评分
               </Button>
@@ -314,7 +309,7 @@ export default function LiveDiscoveries({
   return (
     <>
       {children(focusPanel)}
-      <details className="panel all-discoveries-panel">
+      <details className="panel all-discoveries-panel" open>
         <summary>更多评分线索</summary>
         <div className="discovery-toolbar">
           <p>分析范围：{conditionText(spec.scope_conditions)}</p>

@@ -23,25 +23,25 @@ export function teacherQuestions(items: readonly AssessmentItem[]): TeacherQuest
   return [
     {
       id: 'priority',
-      label: '先看看哪些评分值得核查',
+      label: '优先核查',
       question: '有哪些值得关注的问题？',
       explanation: '在本次测评的已有评分中查找值得进一步查看的群体与记录。',
     },
     {
       id: 'relation',
-      label: `对照${left}和${right}的评分`,
+      label: '评分关联',
       question: `比较 ${left}、${right} 的关联`,
       explanation: '查看两项评分是否往往一起较高或较低，不判断因果。',
     },
     {
       id: 'group',
-      label: `按${left}评分分组后，看看${right}`,
+      label: '群体差异',
       question: `比较 ${left}、${right} 的群体差异`,
       explanation: '核查按第一项评分分组后，第二项评分的两组差别。',
     },
     {
       id: 'quality',
-      label: '先检查哪些项目缺少评分',
+      label: '缺失评分',
       question: '检查所有项目的缺分',
       explanation: '核对已有评分的完整情况，不补造缺少的数据。',
     },

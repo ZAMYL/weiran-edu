@@ -60,10 +60,19 @@ export async function teacherDiscoveryCopyFlow({
   ]);
   assert.match(await card.locator('.focus-metrics dt').first().innerText(), /15 人/);
   assert.match(await card.locator('.focus-metrics dt').nth(1).innerText(), /38 人/);
+  assert.equal(await page.locator('.radar-panel .teacher-reading').count(), 0);
+  assert.equal(await page.getByText('评分说明', { exact: true }).count(), 0);
+  const more = page.locator('.all-discoveries-panel');
+  assert.notEqual(await more.getAttribute('open'), null);
+  const explanation = card.locator('.focus-explanation');
+  assert.equal(await explanation.getAttribute('open'), null);
+  assert.equal(await explanation.locator('.teacher-reading').isVisible(), false);
+  await explanation.locator('summary').click();
   assert.match(
-    await card.locator('.teacher-reading').innerText(),
+    await explanation.locator('.teacher-reading').innerText(),
     /15 人中，15 人的有效评分平均为 3\.69 分/,
   );
+  await explanation.locator('summary').click();
   await clean();
   for (const [width, height] of [
     [1920, 1080],
@@ -75,6 +84,21 @@ export async function teacherDiscoveryCopyFlow({
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
+    );
+    const actions = await card.locator('.focus-card-actions').evaluate((row) => {
+      const [left, right] = [...row.querySelectorAll('button')].map((button) =>
+        button.getBoundingClientRect(),
+      );
+      const { width } = row.getBoundingClientRect();
+      return {
+        widthDifference: Math.abs(left.width - right.width),
+        topDifference: Math.abs(left.top - right.top),
+        unusedWidth: Math.abs(right.right - left.left - width),
+      };
+    });
+    assert.ok(
+      Object.values(actions).every((difference) => difference <= 1),
+      JSON.stringify(actions),
     );
     if (width > 960) {
       const a = await page.locator('.radar-panel').boundingBox();

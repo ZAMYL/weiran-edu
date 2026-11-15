@@ -492,7 +492,7 @@ try {
     assert.equal(await page.locator('#teacher-access-token').count(), 0);
     checkpoint = 'Excel upload, preview, commit and discovery list';
     const wide = await importThroughPage('wide', '合成发现五维测评');
-    await panel().locator(':scope > summary').click();
+    assert.notEqual(await panel().getAttribute('open'), null);
     const spec = {
       snapshot_id: wide.data.scope.snapshot_id,
       profile: 'edu.discovery.profile.v1',

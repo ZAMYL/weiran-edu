@@ -522,34 +522,48 @@
   display: flex;
   flex-direction: column;
 }
-.ai-question-heading {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-bottom: 8px;
+.ai-question-form,
+.ai-question-suggestions {
+  display: grid;
+  gap: 12px;
 }
 .ai-question-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0;
-}
-.ai-custom-question {
-  margin-top: 12px;
-}
-.ai-custom-question summary {
-  cursor: pointer;
-}
-.ai-custom-question textarea {
-  margin-top: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .ai-question-suggestions .ant-btn {
-  max-width: 100%;
-  min-height: 32px;
-  height: auto;
+  min-width: 0;
+  min-height: 46px;
   white-space: normal;
-  overflow-wrap: anywhere;
+}
+.ai-question-suggestions .ant-btn[aria-pressed='true'] {
+  color: var(--primary);
+  background: #eff5ff;
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+.ai-question-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+.ai-question-compose .ant-input,
+.ai-question-compose .ant-btn {
+  min-height: 48px;
+}
+.ai-question-compose .ant-input {
+  padding-block: 12px;
+}
+.ai-question-compose .ant-btn {
+  min-inline-size: 132px;
+}
+@media (max-width: 600px) {
+  .ai-question-suggestions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ai-question-compose {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .ai-task-actions,
 .ai-fact-actions {
@@ -577,9 +591,6 @@
   min-inline-size: 112px;
   padding-inline: 16px;
   font-size: 16px;
-}
-.ai-task-actions > .ant-btn-primary {
-  min-inline-size: 132px;
 }
 @media (max-width: 960px) {
   .ai-fact-grid {
@@ -764,14 +775,17 @@
   margin-top: 10px;
 }
 .focus-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   border-top: 1px solid #e5edfb;
   padding-top: 20px;
   gap: 10px;
 }
-.focus-card-actions .ant-checkbox-wrapper {
-  margin-left: auto;
-  font-size: 13px;
-  color: #71809f;
+.focus-card-actions .ant-btn {
+  min-height: 40px;
+  min-width: 0;
+  padding-inline: 8px;
+  white-space: normal;
 }
 .focus-grouping {
   margin: 12px 0 0;
@@ -817,9 +831,6 @@
   }
   .focus-metrics > div:last-child dd {
     margin-top: 0;
-  }
-  .focus-card-actions .ant-checkbox-wrapper {
-    margin-left: 0;
   }
 }
 .discovery-empty {
@@ -933,16 +944,6 @@
 }
 .live-insights .radar-panel .chart-caption {
   margin-top: auto;
-}
-.chart-reading-note {
-  margin-top: auto;
-  padding: 12px 0;
-  color: #71809f;
-  font-size: 12px;
-  line-height: 1.7;
-}
-.chart-reading-note summary {
-  cursor: pointer;
 }
 .workspace-summary {
   display: flex;
