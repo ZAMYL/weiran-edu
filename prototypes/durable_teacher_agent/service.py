@@ -248,7 +248,10 @@ class TaskService:
         source = self.source(row, actor)
         result = None
         if row["state"] == "completed":
-            with source.validation_scope():
+            # source() has just materialized and checked this exact snapshot, so the
+            # enclosing phase skips its duplicate entry capture and still re-checks the
+            # whole source on exit before anything is returned.
+            with source.validation_scope(prevalidated=True):
                 result, _ = self.verified_result(actor, row, source=source)
         else:
             # source() has just verified the current snapshot fingerprint.
