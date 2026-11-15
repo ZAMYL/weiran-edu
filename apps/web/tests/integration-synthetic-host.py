@@ -31,13 +31,19 @@ def main() -> None:
             }
         )
         host.app.state.edu_service.parser = parse_excel
-        provider = DatabaseProvider(host.app.state.edu_service, tuple(host.books.values()))
+        provider = DatabaseProvider(
+            host.app.state.edu_service, tuple(host.books.values())
+        )
         service = install(host.app, provider, directory / "campaigns")
         sock = socket.socket()
         sock.bind(("127.0.0.1", 0))
         origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
-        api = uvicorn.Server(uvicorn.Config(host.app, log_level="critical", access_log=False))
-        thread = threading.Thread(target=api.run, kwargs={"sockets": [sock]}, daemon=True)
+        api = uvicorn.Server(
+            uvicorn.Config(host.app, log_level="critical", access_log=False)
+        )
+        thread = threading.Thread(
+            target=api.run, kwargs={"sockets": [sock]}, daemon=True
+        )
         thread.start()
         try:
             deadline = time.monotonic() + 30
@@ -61,12 +67,16 @@ def main() -> None:
                             "synthetic_only": True,
                             "execution_origin": "http_mock",
                             "real_qwen": "not_run",
+                            "production_enabled": False,
                             "batches": batches,
                         }
                     ),
                     encoding="utf-8",
                 )
-                print(json.dumps({"ready": True, "connection": str(connection)}), flush=True)
+                print(
+                    json.dumps({"ready": True, "connection": str(connection)}),
+                    flush=True,
+                )
                 # A blocking stdin read can stall Windows spawn while its parent sends
                 # the discovery input, freezing the API event loop. Keep stdin idle.
                 while not (directory / "stop.flag").exists():

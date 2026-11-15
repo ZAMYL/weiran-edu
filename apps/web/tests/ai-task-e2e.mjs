@@ -508,7 +508,13 @@ try {
       normal.batch_id,
     ],
     {
-      env: { ...process.env, PYTHONPATH: path.join(process.env.EDU_AI_API_ROOT, 'apps/api') },
+      env: {
+        ...process.env,
+        PYTHONPATH: path.join(
+          process.env.EDU_AI_API_ROOT ?? path.resolve(web, '../..'),
+          'apps/api',
+        ),
+      },
       windowsHide: true,
     },
   );

@@ -15,9 +15,12 @@ await mkdir(artifacts, { recursive: true });
 const env = {
   ...process.env,
   PYTHONUTF8: '1',
+  EDU_AI_API_ROOT: repo,
   PYTHONPATH: `${repo};${path.join(repo, 'apps/api')}`,
 };
-const result = { realQwen: 'not_run', executionOrigin: 'http_mock', stages: [] };
+const stage = process.env.EDU_OWNER_STAGE ?? 'all';
+assert.ok(['all', 'ai'].includes(stage));
+const result = { coverage: stage, realQwen: 'not_run', executionOrigin: 'http_mock', stages: [] };
 let host, connection;
 async function run(script, extra = {}) {
   const label = extra.EDU_PRODUCT_FLOW
@@ -45,8 +48,10 @@ async function run(script, extra = {}) {
   assert.equal(code, 0, script + ' failed; see its artifact log');
 }
 try {
-  await run('tests/discovery-api-flow.mjs', { EDU_PRODUCT_FLOW: '1' });
-  await run('tests/discovery-api-flow.mjs', { EDU_INTEGER_FLOW: '1' });
+  if (stage === 'all') {
+    await run('tests/discovery-api-flow.mjs', { EDU_PRODUCT_FLOW: '1' });
+    await run('tests/discovery-api-flow.mjs', { EDU_INTEGER_FLOW: '1' });
+  }
   host = spawn(python, ['-u', path.join(web, 'tests/integration-synthetic-host.py')], {
     cwd: repo,
     env,
