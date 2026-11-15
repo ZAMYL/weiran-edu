@@ -143,6 +143,15 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
   const connect = useCallback(
     async (token: string | null) => {
       const sequence = connecting.next();
+      setState((s) => ({
+        ...initial,
+        ready: true,
+        mode: s.mode,
+        testMode: s.testMode,
+        syntheticAi: s.syntheticAi,
+        loginOpen: s.loginOpen,
+        revision: s.revision + 1,
+      }));
       if (token === null) client.useTestSession();
       else client.authenticate(token);
       try {

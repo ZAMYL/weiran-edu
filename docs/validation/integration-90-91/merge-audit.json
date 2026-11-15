@@ -1,0 +1,122 @@
+{
+  "base": "15788491b536d408005030ddbed2cee2d1a9f6b2",
+  "pr90": "31db912412a36c492f0c38c40ac7999e577a2b1b",
+  "pr91": "da7c27920f3c40cf53e57efafa805c73894a3e84",
+  "testedProductMerge": "deebf4b1a96f53b2b4fcfaf431780dccc79abf85",
+  "overlap": [
+    "apps/web/src/features/live/LiveDiscoveries.tsx",
+    "apps/web/src/services/edu-api/client.ts"
+  ],
+  "nonOverlappingFilesPreserved": [
+    {
+      "path": "apps/api/app/edu/discoveries.py",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/api/app/edu/discovery_reuse.py",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/api/tests/edu/test_discovery_reuse.py",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/web/src/app/api/edu/[...path]/route.ts",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/web/src/app/api/edu/relay.test.ts",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/web/src/app/data-mode.tsx",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/web/src/features/live/AiInvestigationPanel.tsx",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/src/features/live/TeacherQuestionSuggestions.tsx",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/src/services/edu-api/diagnosis-reuse.test.ts",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/web/src/services/edu-api/discovery-presentation.test.ts",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/src/services/edu-api/discovery-presentation.ts",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/src/services/edu-api/teacher-ai-guidance.test.ts",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/src/services/edu-api/teacher-ai-guidance.ts",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/src/services/edu-api/teacher-analysis.test.ts",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/src/services/edu-api/teacher-analysis.ts",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/tests/check-teacher-questions.py",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/tests/diagnosis-return-reuse.mjs",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/web/tests/diagnosis-reuse-server.py",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "apps/web/tests/fixtures/teacher-analysis.synthetic.json",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/tests/fixtures/teacher-questions.synthetic.json",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/tests/make-teacher-analysis-examples.py",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/tests/teacher-discovery-copy-flow.mjs",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "apps/web/tests/teacher-layout-flow.mjs",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "docs/DIAGNOSIS_RETURN_REUSE.md",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    },
+    {
+      "path": "docs/TEACHER_ANALYSIS_EXAMPLES.md",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "docs/TEACHER_ANALYSIS_HANDOFF.md",
+      "source": "31db912412a36c492f0c38c40ac7999e577a2b1b"
+    },
+    {
+      "path": "docs/validation/diagnosis-return-reuse-results.json",
+      "source": "da7c27920f3c40cf53e57efafa805c73894a3e84"
+    }
+  ],
+  "onlyDeliveredProductChanges": true,
+  "textConflicts": 0
+}

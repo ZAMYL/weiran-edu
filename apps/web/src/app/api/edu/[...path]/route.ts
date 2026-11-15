@@ -160,6 +160,15 @@ async function relay(
   });
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('Content-Type', contentType);
+  const diagnosisSession = request.headers.get('x-edu-diagnosis-session');
+  if (
+    request.method === 'POST' &&
+    /^batches\/[^/]+\/discoveries\/(?:query|[0-9a-f]{24}\/query)$/.test(route) &&
+    diagnosisSession &&
+    /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(diagnosisSession)
+  ) {
+    headers.set('X-EDU-Diagnosis-Session', diagnosisSession);
+  }
   let upstreamRequestId: string | null = null;
   try {
     const init: RequestInit & { duplex?: 'half' } = {

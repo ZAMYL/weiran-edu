@@ -47,13 +47,11 @@ export async function teacherDiscoveryCopyFlow({
   assert.equal(row.target.mean.numerator / row.target.mean.denominator, 3.69);
   assert.equal(row.remainder.mean.numerator / row.remainder.mean.denominator, 3);
   assert.equal(row.difference.numerator / row.difference.denominator, 0.69);
-  await focus().getByRole('combobox', { name: '查看重点发现', exact: true }).click();
-  await page.locator('.ant-select-dropdown:visible').getByText('群体差异', { exact: true }).click();
-  const card = focus().getByTestId('discovery-card');
+  let card = focus().locator(`[data-discovery-id="${summary.discovery_id}"]`);
   assert.equal(await card.getAttribute('data-discovery-id'), summary.discovery_id);
   assert.equal(
     await card.getByRole('heading', { level: 3 }).innerText(),
-    '符合条件的学生，代码实现能力评分较高',
+    '算法与数据结构评分不高于 3.49 分：代码实现能力平均分更高',
   );
   assert.equal(
     await card.locator('.focus-grouping').innerText(),
@@ -67,9 +65,9 @@ export async function teacherDiscoveryCopyFlow({
   assert.match(await card.locator('.focus-metrics dt').first().innerText(), /15 人/);
   assert.match(await card.locator('.focus-metrics dt').nth(1).innerText(), /38 人/);
   await card.locator('.focus-explanation > summary').click();
-  assert.doesNotMatch(
+  assert.match(
     await card.locator('.focus-explanation').innerText(),
-    /15|38|3\.69|3\.00|0\.69/,
+    /15 人中，15 人的有效评分平均为 3\.69 分/,
   );
   await card.locator('.focus-explanation > summary').click();
   await clean();
@@ -115,11 +113,11 @@ export async function teacherDiscoveryCopyFlow({
   await closeTop();
   await card.getByRole('checkbox').check();
   await navigation('分析报告');
-  await page.getByText('符合条件的学生，代码实现能力评分较高', { exact: true }).waitFor();
+  await page
+    .getByText('算法与数据结构评分不高于 3.49 分：代码实现能力平均分更高', { exact: true })
+    .waitFor();
   await navigation('学情诊断');
   await waitFocus();
-  await focus().getByRole('combobox', { name: '查看重点发现', exact: true }).click();
-  await page.locator('.ant-select-dropdown:visible').getByText('群体差异', { exact: true }).click();
   await card.getByRole('button', { name: '继续探索这组学生', exact: true }).click();
   await page.waitForURL('**/explorer?discovery=*');
   const pointer = JSON.parse(new URL(page.url()).searchParams.get('discovery'));
@@ -153,10 +151,11 @@ export async function teacherDiscoveryCopyFlow({
   );
   assert.equal(boundaryDetail.status, 200);
   assert.equal(boundaryDetail.body.metrics.added_count, 15);
+  card = focus().locator(`[data-discovery-id="${boundary.discovery_id}"]`);
   assert.equal(await card.getAttribute('data-discovery-id'), boundary.discovery_id);
-  assert.match(await card.getByRole('heading', { level: 3 }).innerText(), /多选出 15 名学生/);
+  assert.match(await card.getByRole('heading', { level: 3 }).innerText(), /增加 15 人/);
   await card.locator('.focus-explanation > summary').click();
-  assert.match(await card.locator('.focus-explanation').innerText(), /不是新增教学诊断/);
+  assert.match(await card.locator('.focus-explanation').innerText(), /不是新增的教学结论/);
   await clean();
   await page.screenshot({
     path: path.join(artifacts, 'teacher-discovery-boundary.png'),

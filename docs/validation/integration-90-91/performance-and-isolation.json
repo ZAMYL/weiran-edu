@@ -1,0 +1,1570 @@
+{
+  "beforeSha": "da7c27920f3c40cf53e57efafa805c73894a3e84",
+  "combinedProductSha": "deebf4b1a96f53b2b4fcfaf431780dccc79abf85",
+  "dataset": "deterministic precision105, with separate contrast105/teacher53/revision53 isolation cases",
+  "before": {
+    "measurements": [
+      {
+        "label": "first",
+        "ms": 9970,
+        "focusMs": 9967,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-1",
+        "ms": 5161,
+        "focusMs": 5159,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-2",
+        "ms": 5079,
+        "focusMs": 5078,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      },
+      {
+        "label": "return-3",
+        "ms": 5162,
+        "focusMs": 5161,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构与代码实现能力评分呈同向变化"
+      }
+    ],
+    "requests": [
+      {
+        "transport": "direct",
+        "path": "/imports/preview",
+        "status": 201,
+        "ms": 6640
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/4168c34e-aca5-445f-b41e-f5914a21bdfe/commit",
+        "status": 201,
+        "ms": 5463
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/e9dc6786-efbc-45c0-9f8f-dbebaa7e3af8",
+        "status": 200,
+        "ms": 29
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/preview",
+        "status": 201,
+        "ms": 5447
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/008bfbd0-2f36-4789-b04b-9aca70940f2d/commit",
+        "status": 201,
+        "ms": 4948
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095",
+        "status": 200,
+        "ms": 29
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/preview",
+        "status": 201,
+        "ms": 5014
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/caadd7c2-e821-4a52-b384-81e83ebccc9b/commit",
+        "status": 201,
+        "ms": 5215
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/1f095450-63f0-4dc6-9271-811349550840",
+        "status": 200,
+        "ms": 27
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/test-session",
+        "status": 200,
+        "ms": 66
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/me",
+        "status": 200,
+        "ms": 64
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/scopes",
+        "status": 200,
+        "ms": 72
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 89
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 96
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/capabilities",
+        "status": 200,
+        "ms": 90
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/insights/query",
+        "status": 200,
+        "ms": 3356
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/rubric",
+        "status": 200,
+        "ms": 3428
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/statistics",
+        "status": 200,
+        "ms": 3429
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/query",
+        "status": 200,
+        "ms": 5900
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/03a5b946637d9823e3c465dc/query",
+        "status": 200,
+        "ms": 970
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/1fe082c82438093b92d7c109/query",
+        "status": 200,
+        "ms": 1070
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/capabilities",
+        "status": 200,
+        "ms": 78
+      },
+      {
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/students",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/capabilities",
+        "status": 200,
+        "ms": 260
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/rubric",
+        "status": 200,
+        "ms": 357
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/insights/query",
+        "status": 200,
+        "ms": 787
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/statistics",
+        "status": 200,
+        "ms": 905
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/query",
+        "status": 200,
+        "ms": 2633
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/03a5b946637d9823e3c465dc/query",
+        "status": 200,
+        "ms": 929
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/1fe082c82438093b92d7c109/query",
+        "status": 200,
+        "ms": 1003
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/capabilities",
+        "status": 200,
+        "ms": 47
+      },
+      {
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/students",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/capabilities",
+        "status": 200,
+        "ms": 123
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/rubric",
+        "status": 200,
+        "ms": 240
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/statistics",
+        "status": 200,
+        "ms": 1745
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/insights/query",
+        "status": 200,
+        "ms": 2103
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/query",
+        "status": 200,
+        "ms": 2541
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/03a5b946637d9823e3c465dc/query",
+        "status": 200,
+        "ms": 1145
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/1fe082c82438093b92d7c109/query",
+        "status": 200,
+        "ms": 1108
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/capabilities",
+        "status": 200,
+        "ms": 42
+      },
+      {
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/students",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/capabilities",
+        "status": 200,
+        "ms": 207
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/rubric",
+        "status": 200,
+        "ms": 262
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/statistics",
+        "status": 200,
+        "ms": 738
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/insights/query",
+        "status": 200,
+        "ms": 819
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/query",
+        "status": 200,
+        "ms": 2620
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/03a5b946637d9823e3c465dc/query",
+        "status": 200,
+        "ms": 927
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/33a79c2c-c138-4374-9b2f-e1ca87ecf095/discoveries/1fe082c82438093b92d7c109/query",
+        "status": 200,
+        "ms": 955
+      }
+    ]
+  },
+  "combined": {
+    "measurements": [
+      {
+        "label": "first",
+        "ms": 10424,
+        "focusMs": 10421,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：两项评分往往一起较高或较低"
+      },
+      {
+        "label": "return-1",
+        "ms": 5097,
+        "focusMs": 5096,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：两项评分往往一起较高或较低"
+      },
+      {
+        "label": "return-2",
+        "ms": 5110,
+        "focusMs": 5109,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：两项评分往往一起较高或较低"
+      },
+      {
+        "label": "return-3",
+        "ms": 5079,
+        "focusMs": 5077,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：两项评分往往一起较高或较低"
+      },
+      {
+        "label": "switch-batch",
+        "ms": 5724,
+        "focusMs": 5723,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：一项评分较高时，另一项往往较低"
+      },
+      {
+        "label": "return-other-batch",
+        "ms": 2007,
+        "focusMs": 2006,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：一项评分较高时，另一项往往较低"
+      },
+      {
+        "label": "reconnect-same-token",
+        "ms": 6039,
+        "focusMs": 6037,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：一项评分较高时，另一项往往较低"
+      },
+      {
+        "label": "switch-teacher",
+        "ms": 5821,
+        "focusMs": 5820,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、解题策略：一项评分较高时，另一项往往较低"
+      },
+      {
+        "label": "reconnect-after-membership-restore",
+        "ms": 5085,
+        "focusMs": 5084,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、解题策略：一项评分较高时，另一项往往较低"
+      },
+      {
+        "label": "owner-reconnect",
+        "ms": 6048,
+        "focusMs": 6048,
+        "workerExecutions": 1,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：一项评分较高时，另一项往往较低"
+      },
+      {
+        "label": "authorized-historical-snapshot",
+        "ms": 5755,
+        "focusMs": 5754,
+        "workerExecutions": 0,
+        "discoveryRequests": 3,
+        "statuses": [
+          200,
+          200,
+          200
+        ],
+        "title": "算法与数据结构、代码实现能力：两项评分往往一起较高或较低"
+      },
+      {
+        "label": "new-snapshot",
+        "ms": 12037,
+        "focusMs": 11988,
+        "workerExecutions": 2,
+        "discoveryRequests": 2,
+        "statuses": [
+          200,
+          200
+        ],
+        "title": "代码实现能力、解题策略：两项评分往往一起较高或较低"
+      }
+    ],
+    "checks": [
+      "real chart/student/evidence reads 200; no reuse header",
+      "logout clears cards; teacher B sees own batch only",
+      "revoked membership: 404; zero old cards",
+      "token revoked: 401 and session cleared, zero old cards",
+      "real revision: new batch/snapshot computes independently; mismatched snapshot 409; authorized historical snapshot remains legal"
+    ],
+    "requests": [
+      {
+        "transport": "direct",
+        "path": "/imports/preview",
+        "status": 201,
+        "ms": 6687
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/3d03e75e-fb0e-46d3-984a-14b43a43254c/commit",
+        "status": 201,
+        "ms": 5669
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6b8704df-937b-4462-b77e-18681e712763",
+        "status": 200,
+        "ms": 32
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/preview",
+        "status": 201,
+        "ms": 6113
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/7c6abf0d-0abb-4a2d-b11d-b148ed4786ff/commit",
+        "status": 201,
+        "ms": 5669
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba",
+        "status": 200,
+        "ms": 32
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/preview",
+        "status": 201,
+        "ms": 5769
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/6b590a78-4a9a-47b0-ae22-8bf370308a62/commit",
+        "status": 201,
+        "ms": 5665
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b",
+        "status": 200,
+        "ms": 25
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/test-session",
+        "status": 200,
+        "ms": 77
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/me",
+        "status": 200,
+        "ms": 74
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/scopes",
+        "status": 200,
+        "ms": 80
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 102
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 85
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 79
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "status": 200,
+        "ms": 4148
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/rubric",
+        "status": 200,
+        "ms": 4152
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/insights/query",
+        "status": 200,
+        "ms": 4365
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 200,
+        "ms": 6532
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/95e223d4750979ebf2ff5057/query",
+        "status": 200,
+        "ms": 898
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/d2d1b14baaedfb145ab369b2/query",
+        "status": 200,
+        "ms": 923
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 62
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/students",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 228
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/rubric",
+        "status": 200,
+        "ms": 317
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "status": 200,
+        "ms": 676
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/insights/query",
+        "status": 200,
+        "ms": 921
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 200,
+        "ms": 2528
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/95e223d4750979ebf2ff5057/query",
+        "status": 200,
+        "ms": 1011
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/d2d1b14baaedfb145ab369b2/query",
+        "status": 200,
+        "ms": 957
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 55
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/students",
+        "status": 200,
+        "ms": 125
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 92
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/rubric",
+        "status": 200,
+        "ms": 209
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/insights/query",
+        "status": 200,
+        "ms": 679
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "status": 200,
+        "ms": 903
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 200,
+        "ms": 2492
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/95e223d4750979ebf2ff5057/query",
+        "status": 200,
+        "ms": 887
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/d2d1b14baaedfb145ab369b2/query",
+        "status": 200,
+        "ms": 1086
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 41
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/students",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 158
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "status": 200,
+        "ms": 369
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/rubric",
+        "status": 200,
+        "ms": 382
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/insights/query",
+        "status": 200,
+        "ms": 914
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 200,
+        "ms": 2616
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/95e223d4750979ebf2ff5057/query",
+        "status": 200,
+        "ms": 880
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/d2d1b14baaedfb145ab369b2/query",
+        "status": 200,
+        "ms": 931
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 33
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/capabilities",
+        "status": 200,
+        "ms": 86
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/rubric",
+        "status": 200,
+        "ms": 114
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/statistics",
+        "status": 200,
+        "ms": 215
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/insights/query",
+        "status": 200,
+        "ms": 419
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/query",
+        "status": 200,
+        "ms": 4600
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/2bcee68e1cd3ecd4e9edcf41/query",
+        "status": 200,
+        "ms": 352
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/1fe00fac24c27c90ebd7f7b5/query",
+        "status": 200,
+        "ms": 457
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/capabilities",
+        "status": 200,
+        "ms": 37
+      },
+      {
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/students",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/capabilities",
+        "status": 200,
+        "ms": 58
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/rubric",
+        "status": 200,
+        "ms": 479
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/query",
+        "status": 200,
+        "ms": 695
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/insights/query",
+        "status": 200,
+        "ms": 829
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/statistics",
+        "status": 200,
+        "ms": 853
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/2bcee68e1cd3ecd4e9edcf41/query",
+        "status": 200,
+        "ms": 468
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/1fe00fac24c27c90ebd7f7b5/query",
+        "status": 200,
+        "ms": 464
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/query",
+        "status": 200,
+        "ms": 4707
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/2bcee68e1cd3ecd4e9edcf41/query",
+        "status": 200,
+        "ms": 4145
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/2bcee68e1cd3ecd4e9edcf41/chart/query",
+        "status": 200,
+        "ms": 4400
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6b8704df-937b-4462-b77e-18681e712763/students",
+        "status": 200,
+        "ms": 40
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6b8704df-937b-4462-b77e-18681e712763/students/5cd362ed-12fa-48eb-bbb9-61d81b7ee3d6/evidence?snapshot_id=6d58b638-920b-4418-a011-7150b829ead2",
+        "status": 200,
+        "ms": 38
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/me",
+        "status": 200,
+        "ms": 39
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/scopes",
+        "status": 200,
+        "ms": 69
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 76
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763",
+        "status": 200,
+        "ms": 33
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 59
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/capabilities",
+        "status": 200,
+        "ms": 68
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/rubric",
+        "status": 200,
+        "ms": 193
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/insights/query",
+        "status": 200,
+        "ms": 3452
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/statistics",
+        "status": 200,
+        "ms": 3489
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/query",
+        "status": 200,
+        "ms": 4417
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/2bcee68e1cd3ecd4e9edcf41/query",
+        "status": 200,
+        "ms": 377
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/1fe00fac24c27c90ebd7f7b5/query",
+        "status": 200,
+        "ms": 379
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/me",
+        "status": 200,
+        "ms": 43
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/scopes",
+        "status": 200,
+        "ms": 109
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 127
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 168
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/capabilities",
+        "status": 200,
+        "ms": 451
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/statistics",
+        "status": 200,
+        "ms": 520
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/rubric",
+        "status": 200,
+        "ms": 546
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/insights/query",
+        "status": 200,
+        "ms": 4154
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/query",
+        "status": 200,
+        "ms": 4664
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/099b1a101bb48e1a1ec956d4/query",
+        "status": 200,
+        "ms": 289
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/2ee986516926edc190492781/query",
+        "status": 200,
+        "ms": 266
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/capabilities",
+        "status": 200,
+        "ms": 8
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/statistics",
+        "status": 200,
+        "ms": 8
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/students",
+        "status": 200,
+        "ms": 8
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/query",
+        "status": 404,
+        "ms": 65
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/capabilities",
+        "status": 404,
+        "ms": 4668
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/statistics",
+        "status": 404,
+        "ms": 4667
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/rubric",
+        "status": 404,
+        "ms": 4661
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/insights/query",
+        "status": 404,
+        "ms": 4661
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/me",
+        "status": 200,
+        "ms": 42
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 64
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/scopes",
+        "status": 200,
+        "ms": 68
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b",
+        "status": 200,
+        "ms": 35
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 29
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/capabilities",
+        "status": 200,
+        "ms": 49
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/rubric",
+        "status": 200,
+        "ms": 3293
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/insights/query",
+        "status": 200,
+        "ms": 3297
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/statistics",
+        "status": 200,
+        "ms": 3352
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/query",
+        "status": 200,
+        "ms": 3873
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/099b1a101bb48e1a1ec956d4/query",
+        "status": 200,
+        "ms": 410
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/2ee986516926edc190492781/query",
+        "status": 200,
+        "ms": 221
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/capabilities",
+        "status": 200,
+        "ms": 10
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/statistics",
+        "status": 200,
+        "ms": 10
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/students",
+        "status": 200,
+        "ms": 5
+      },
+      {
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/capabilities",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/rubric",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/insights/query",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/4c67ca27-c3ad-4b88-a3db-1c33b9aac19b/discoveries/query",
+        "status": 401,
+        "ms": 112
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/me",
+        "status": 200,
+        "ms": 31
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/scopes",
+        "status": 200,
+        "ms": 39
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 54
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763",
+        "status": 200,
+        "ms": 32
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 63
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/capabilities",
+        "status": 200,
+        "ms": 88
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/rubric",
+        "status": 200,
+        "ms": 175
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/statistics",
+        "status": 200,
+        "ms": 235
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/insights/query",
+        "status": 200,
+        "ms": 321
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/query",
+        "status": 200,
+        "ms": 4507
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/2bcee68e1cd3ecd4e9edcf41/query",
+        "status": 200,
+        "ms": 532
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6b8704df-937b-4462-b77e-18681e712763/discoveries/1fe00fac24c27c90ebd7f7b5/query",
+        "status": 200,
+        "ms": 367
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 24
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 61
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/rubric",
+        "status": 200,
+        "ms": 209
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "status": 200,
+        "ms": 321
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/insights/query",
+        "status": 200,
+        "ms": 784
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 200,
+        "ms": 6462
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/95e223d4750979ebf2ff5057/query",
+        "status": 200,
+        "ms": 1000
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/d2d1b14baaedfb145ab369b2/query",
+        "status": 200,
+        "ms": 1161
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 57
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "status": 200,
+        "ms": 411
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/students",
+        "status": 200,
+        "ms": 527
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/preview",
+        "status": 201,
+        "ms": 6050
+      },
+      {
+        "transport": "direct",
+        "path": "/imports/45ea1e9f-9e14-4d3b-97d1-11d0122a0650/commit",
+        "status": 201,
+        "ms": 5822
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/b67de72b-9ea4-4466-8e14-a2a05e3e0467",
+        "status": 200,
+        "ms": 33
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 454
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/rubric",
+        "status": 200,
+        "ms": 1536
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/insights/query",
+        "status": 200,
+        "ms": 2079
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "status": 200,
+        "ms": 2178
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 200,
+        "ms": 2800
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/95e223d4750979ebf2ff5057/query",
+        "status": 200,
+        "ms": 1179
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/d2d1b14baaedfb145ab369b2/query",
+        "status": 200,
+        "ms": 1303
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 200,
+        "ms": 9380
+      },
+      {
+        "transport": "direct",
+        "path": "/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "status": 409,
+        "ms": 24
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/test-session",
+        "status": 200,
+        "ms": 18
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/me",
+        "status": 200,
+        "ms": 98
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/scopes",
+        "status": 200,
+        "ms": 123
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 142
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba",
+        "status": 200,
+        "ms": 38
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 62
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/capabilities",
+        "status": 200,
+        "ms": 76
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/rubric",
+        "status": 200,
+        "ms": 212
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/statistics",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/insights/query",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "path": "/api/edu/batches/6f2b8b3f-4f44-4b55-bf80-aacc10f00dba/discoveries/query",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/b67de72b-9ea4-4466-8e14-a2a05e3e0467/capabilities",
+        "status": 200,
+        "ms": 2722
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches",
+        "status": 200,
+        "ms": 2746
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/b67de72b-9ea4-4466-8e14-a2a05e3e0467/rubric",
+        "status": 200,
+        "ms": 2783
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/b67de72b-9ea4-4466-8e14-a2a05e3e0467/insights/query",
+        "status": 200,
+        "ms": 2915
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/b67de72b-9ea4-4466-8e14-a2a05e3e0467/statistics",
+        "status": 200,
+        "ms": 2995
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/b67de72b-9ea4-4466-8e14-a2a05e3e0467/discoveries/query",
+        "status": 200,
+        "ms": 9347
+      },
+      {
+        "transport": "proxy",
+        "path": "/api/edu/batches/b67de72b-9ea4-4466-8e14-a2a05e3e0467/discoveries/33e9a02cf8701d3c811d8bd0/query",
+        "status": 200,
+        "ms": 389
+      }
+    ]
+  },
+  "pageErrors": {
+    "before": [],
+    "combined": []
+  },
+  "limitations": "This 105-student success does not replace the failed registered 72-student AI-host discovery acceptance."
+}

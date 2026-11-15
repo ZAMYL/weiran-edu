@@ -1,0 +1,108 @@
+
+Event loop stalled 6.612s
+Thread 59284
+  File "D:\CC\python\Lib\threading.py", line 1032, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\CC\python\Lib\threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "D:\CC\python\Lib\threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\AI\weiran\.worktrees\edu-504-blocker-diagnosis-20261114\apps\web\tests\blocker_trace_host.py", line 278, in watchdog
+    trace_file.write(f"Thread {identity}\n" + "".join(traceback.format_stack(frame)))
+Thread 52948
+  File "D:\CC\python\Lib\threading.py", line 1032, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\CC\python\Lib\threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 1089, in run
+    item = self.queue.get()
+  File "D:\CC\python\Lib\queue.py", line 171, in get
+    self.not_empty.wait()
+  File "D:\CC\python\Lib\threading.py", line 355, in wait
+    waiter.acquire()
+Thread 3568
+  File "D:\CC\python\Lib\threading.py", line 1032, in _bootstrap
+    self._bootstrap_inner()
+  File "D:\CC\python\Lib\threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "D:\CC\python\Lib\threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\uvicorn\server.py", line 86, in run
+    return asyncio_run(self.serve(sockets=sockets), loop_factory=self.config.get_loop_factory())
+  File "D:\CC\python\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+  File "D:\CC\python\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "D:\CC\python\Lib\asyncio\base_events.py", line 678, in run_until_complete
+    self.run_forever()
+  File "D:\CC\python\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "D:\CC\python\Lib\asyncio\base_events.py", line 645, in run_forever
+    self._run_once()
+  File "D:\CC\python\Lib\asyncio\base_events.py", line 1999, in _run_once
+    handle._run()
+  File "D:\CC\python\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\anyio\_core\_tasks.py", line 327, in _run_coro
+    retval = await self._coro
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\starlette\routing.py", line 678, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 2788, in app
+    await route.handle(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 1819, in handle
+    await self.original_router.handle(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 2871, in handle
+    await included_router._handle_selected(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 1845, in _handle_selected
+    await original_route.handle(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 1308, in handle
+    await effective_context.app(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 165, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 151, in app
+    response = await f(request)
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 727, in app
+    raw_response = await run_endpoint_function(
+  File "D:\AI\weiran\.worktrees\edu-final-acceptance-20261113\apps\api\.venv\Lib\site-packages\fastapi\routing.py", line 360, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\AI\weiran\.worktrees\edu-analysis-perf-integration-20261114\apps\api\app\routers\edu_discoveries.py", line 70, in discoveries
+    return await _query(batch_id, request, actor, backend, DiscoveryQuery, "list")
+  File "D:\AI\weiran\.worktrees\edu-analysis-perf-integration-20261114\apps\api\app\routers\edu_discoveries.py", line 58, in _query
+    return await reader.query(
+  File "D:\AI\weiran\.worktrees\edu-analysis-perf-integration-20261114\apps\api\app\edu\discoveries.py", line 192, in query
+    async with self.calculation(actor, batch_id, query, request=request, reuse=reuse) as (
+  File "D:\CC\python\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+  File "D:\AI\weiran\.worktrees\edu-analysis-perf-integration-20261114\apps\api\app\edu\discoveries.py", line 140, in calculation
+    result = await worker.execute(
+  File "D:\AI\weiran\.worktrees\edu-504-blocker-diagnosis-20261114\apps\web\tests\blocker_trace_host.py", line 122, in execution
+    value = await execute(*args, **kwargs)
+  File "D:\AI\weiran\.worktrees\edu-analysis-perf-integration-20261114\apps\api\app\edu\discovery_worker.py", line 101, in execute
+    process.start()
+  File "D:\AI\weiran\.worktrees\edu-504-blocker-diagnosis-20261114\apps\web\tests\blocker_trace_host.py", line 108, in call
+    value = method(self, *args, **kwargs)
+  File "D:\CC\python\Lib\multiprocessing\process.py", line 121, in start
+    self._popen = self._Popen(self)
+  File "D:\CC\python\Lib\multiprocessing\context.py", line 337, in _Popen
+    return Popen(process_obj)
+  File "D:\CC\python\Lib\multiprocessing\popen_spawn_win32.py", line 95, in __init__
+    reduction.dump(process_obj, to_child)
+  File "D:\CC\python\Lib\multiprocessing\reduction.py", line 60, in dump
+    ForkingPickler(file, protocol).dump(obj)
+Thread 49560
+  File "D:\AI\weiran\.worktrees\edu-504-blocker-diagnosis-20261114\apps\web\tests\blocker_trace_host.py", line 309, in <module>
+    main()
+  File "D:\AI\weiran\.worktrees\edu-504-blocker-diagnosis-20261114\apps\web\tests\blocker_trace_host.py", line 298, in main
+    bootstrap_and_control()
+  File "D:\AI\weiran\.worktrees\edu-504-blocker-diagnosis-20261114\apps\web\tests\blocker_trace_host.py", line 283, in bootstrap_and_control
+    sys.stdin.readline()

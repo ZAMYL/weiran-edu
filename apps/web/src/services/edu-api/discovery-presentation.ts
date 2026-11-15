@@ -1,6 +1,7 @@
 import type { DiscoveryDetail, DiscoveryExact } from './discovery-types';
 import { exactToNumber as value } from './exact';
 import { dimensionName, operatorLabels, ratioDisplay, scoreDisplay } from './view-model';
+import { describeDiscovery } from './teacher-analysis';
 
 const score = (v: DiscoveryExact | null) =>
   v === null
@@ -62,17 +63,24 @@ export function discoveryPresentation(d: DiscoveryDetail): {
   metrics: FindingMetric[];
   primary: number;
 } {
+  const copy = describeDiscovery(d);
+  const explanation = [
+    copy.finding,
+    copy.numbers,
+    copy.whyItMatters,
+    copy.nextCheck,
+    copy.limitation,
+  ]
+    .filter(Boolean)
+    .join(' ');
   switch (d.type) {
     case 'group_difference': {
       const row = d.chart.find((r) => r.dimension_code === d.metrics.outcome_dimension);
       const delta = row?.difference ? value(row.difference) : null;
-      const direction =
-        delta === null ? '有待核对' : delta > 0 ? '较高' : delta < 0 ? '较低' : '相同';
       return {
-        title: `符合条件的学生，${dimensionName(d.metrics.outcome_dimension)}评分${direction}`,
+        title: copy.title,
         grouping: `分组依据：${discoveryConditionsText(d.conditions) || '未提供分组条件'}`,
-        explanation:
-          '比较符合上述全部条件的学生与其他可判定学生；筛选评分缺失或无效时，不归入任一组。平均分只使用各组有效评分，缺失或无效评分不按零分计入。',
+        explanation,
         metrics: [
           {
             label: `符合条件的学生 · ${d.metrics.target_count} 人`,
@@ -104,12 +112,14 @@ export function discoveryPresentation(d: DiscoveryDetail): {
     }
     case 'dimension_relation':
       return {
-        title: `${dimensionName(d.metrics.left)}与${dimensionName(d.metrics.right)}评分${d.metrics.rho === null ? '暂不足以判断关系' : d.metrics.rho.value > 0 ? '呈同向变化' : d.metrics.rho.value < 0 ? '呈反向变化' : '未呈现同向或反向变化'}`,
+        title: copy.title,
         grouping: `比较项目：${dimensionName(d.metrics.left)}、${dimensionName(d.metrics.right)}`,
-        explanation:
-          '使用同时具有这两项有效评分的学生，比较评分排序的变化关系；缺少任一项评分的记录不参与配对。相关不代表因果。',
+        explanation,
         metrics: [
-          { label: '评分关联系数', value: d.metrics.rho ? scoreDisplay(d.metrics.rho.value) : '—' },
+          {
+            label: '两项评分对应程度',
+            value: d.metrics.rho ? scoreDisplay(d.metrics.rho.value) : '—',
+          },
           { label: '两项评分均有效', value: String(d.metrics.paired_count), unit: '人' },
           { label: '未参与配对', value: String(d.metrics.excluded_count), unit: '人' },
         ],
@@ -117,9 +127,9 @@ export function discoveryPresentation(d: DiscoveryDetail): {
       };
     case 'rare_combination':
       return {
-        title: `${dimensionName(d.metrics.left)}与${dimensionName(d.metrics.right)}存在少见评分组合`,
+        title: copy.title,
         grouping: `比较项目：${dimensionName(d.metrics.left)}、${dimensionName(d.metrics.right)}`,
-        explanation: `按前一项减后一项计算分差，查看分差${d.metrics.side === 'upper' ? '高于' : '低于'} ${scoreDisplay(value(d.metrics.side === 'upper' ? d.metrics.upper_fence : d.metrics.lower_fence))} 分的记录。分差范围是探索线索，不能直接解释为能力缺陷或评分错误。`,
+        explanation,
         metrics: [
           { label: '出现这类组合', value: String(d.metrics.match_count), unit: '人' },
           { label: '两项评分均有效', value: String(d.metrics.pair_count), unit: '人' },
@@ -129,10 +139,9 @@ export function discoveryPresentation(d: DiscoveryDetail): {
       };
     case 'boundary_sensitivity':
       return {
-        title: `把边界分数计入筛选，会多选出 ${d.metrics.added_count} 名学生`,
+        title: copy.title,
         grouping: `筛选依据：${discoveryConditionsText(d.conditions) || '当前评分边界'}`,
-        explanation:
-          '仅将同一分数边界从“小于”改为“小于或等于”，其余条件不变。这是筛选定义带来的人数变化，不是新增教学诊断，也没有改变任何评分。',
+        explanation,
         metrics: [
           { label: '不含边界分数', value: String(d.metrics.strict_count), unit: '人' },
           { label: '包含边界分数', value: String(d.metrics.inclusive_count), unit: '人' },

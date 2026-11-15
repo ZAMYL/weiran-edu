@@ -1,4 +1,5 @@
 import { ContractError, type Decoder } from './schema';
+import { teacherAiError } from './teacher-ai-guidance';
 import {
   discoveriesDto,
   discoveryDetailDto,
@@ -68,8 +69,7 @@ const STATUS_MESSAGES: Record<number, string> = {
   504: '请求超时，请检查连接后重试。',
 };
 const FILE_MESSAGES: Record<string, string> = {
-  AI_GOAL_UNSUPPORTED:
-    '暂不支持这个问题。可以问「有哪些值得关注的问题？」或询问评分关联、群体差异。',
+  AI_GOAL_UNSUPPORTED: `暂不支持这个问题。${teacherAiError('AI_GOAL_UNSUPPORTED')!.message} ${teacherAiError('AI_GOAL_UNSUPPORTED')!.action}`,
   AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
   AI_SYNTHETIC_SOURCE_REQUIRED:
@@ -122,9 +122,11 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
   let bearer: string | null = null;
   let testSession = false;
   let generation = 0;
+  let diagnosisSession = crypto.randomUUID();
   const pending = new Set<AbortController>();
   function clear() {
     generation++;
+    diagnosisSession = crypto.randomUUID();
     bearer = null;
     testSession = false;
     pending.forEach((c) => c.abort());
@@ -234,8 +236,18 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     decoder: Decoder<T>,
     body: unknown,
     signal?: AbortSignal,
+    diagnosisReuse = false,
   ) => {
-    const result = await post(`${base(batch)}/discoveries/${suffix}`, decoder, body, signal);
+    const result = await request(
+      `${base(batch)}/discoveries/${suffix}`,
+      decoder,
+      {
+        method: 'POST',
+        body: JSON.stringify(body),
+        ...(diagnosisReuse ? { headers: { 'X-EDU-Diagnosis-Session': diagnosisSession } } : {}),
+      },
+      signal,
+    );
     assertSnapshot(result.scope, batch);
     const canonical = (conditions: ApiCondition[]) =>
       JSON.stringify(
@@ -370,6 +382,31 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     },
     discoveries: (batch: ApiBatch, spec: DiscoverySpec, offset = 0, signal?: AbortSignal) =>
       discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal),
+    diagnosisDiscoveries: (
+      batch: ApiBatch,
+      spec: DiscoverySpec,
+      offset = 0,
+      signal?: AbortSignal,
+    ) =>
+      discovery(batch, spec, 'query', discoveriesDto, { ...spec, offset, limit: 10 }, signal, true),
+    diagnosisDiscoveryDetail: async (
+      batch: ApiBatch,
+      discoveryId: string,
+      spec: DiscoverySpec,
+      signal?: AbortSignal,
+    ) => {
+      const result = await discovery(
+        batch,
+        spec,
+        `${id(discoveryId)}/query`,
+        discoveryDetailDto,
+        spec,
+        signal,
+        true,
+      );
+      if (result.discovery_id !== discoveryId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return result;
+    },
     discoveryDetail: async (
       batch: ApiBatch,
       discoveryId: string,

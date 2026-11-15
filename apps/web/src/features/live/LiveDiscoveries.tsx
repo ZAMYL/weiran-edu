@@ -90,12 +90,6 @@ function FocusMetrics({ detail }: { detail: DiscoveryDetail }) {
     </dl>
   );
 }
-const fallbackTitles = {
-  dimension_relation: '查看两项评分的关联',
-  group_difference: '查看两组学生的评分比较',
-  rare_combination: '查看少见的评分组合',
-  boundary_sensitivity: '查看筛选边界的人数变化',
-};
 export default function LiveDiscoveries({
   batch,
   onSelection,
@@ -115,7 +109,6 @@ export default function LiveDiscoveries({
   const checked =
     reportDraft?.key === contextKey ? (reportDraft.discovery?.discovery_ids ?? []) : [];
   const [view, setView] = useState('all');
-  const [focusId, setFocusId] = useState('');
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const spec: DiscoverySpec = useMemo(
@@ -127,7 +120,7 @@ export default function LiveDiscoveries({
     [batch.snapshot_id, conditions],
   );
   const load = useCallback(
-    (signal: AbortSignal) => client.discoveries(batch, spec, offset, signal),
+    (signal: AbortSignal) => client.diagnosisDiscoveries(batch, spec, offset, signal),
     [client, batch, spec, offset],
   );
   const resource = useRemote(
@@ -150,7 +143,12 @@ export default function LiveDiscoveries({
       const represented = new Set<DiscoveryDetail['type']>();
       for (const card of needed) {
         if (represented.has(card.type)) continue;
-        const detail = await client.discoveryDetail(batch, card.discovery_id, spec, signal);
+        const detail = await client.diagnosisDiscoveryDetail(
+          batch,
+          card.discovery_id,
+          spec,
+          signal,
+        );
         result[card.discovery_id] = detail;
         if (eligibleForFocus(detail)) represented.add(detail.type);
         if (represented.size >= 3) break;
@@ -174,10 +172,10 @@ export default function LiveDiscoveries({
         .slice(0, 3),
     [items, details.data],
   );
-  const focused = focus.find((item) => item.discovery_id === focusId) ?? focus[0];
+  const focused = focus[0];
   const titleFor = (card: (typeof items)[number]) => {
     const detail = details.data?.[card.discovery_id];
-    return detail ? discoveryPresentation(detail).title : fallbackTitles[card.type];
+    return detail ? discoveryPresentation(detail).title : card.title;
   };
   const choose = (ids: string[]) => {
     if (!resource.data || !onSelection) return;
@@ -344,24 +342,10 @@ export default function LiveDiscoveries({
       </div>
       {resource.data && (
         <>
-          {focus.length > 1 && (
-            <div className="discovery-focus-picker">
-              <Select
-                id="focus-discovery"
-                aria-label="查看重点发现"
-                value={focused?.discovery_id}
-                onChange={setFocusId}
-                options={focus.map((item) => ({
-                  value: item.discovery_id,
-                  label: typeNames[item.type],
-                }))}
-              />
-            </div>
-          )}
           {details.loading && needed.length ? (
             <p role="status">正在读取发现依据…</p>
           ) : focused ? (
-            renderCards([focused])
+            renderCards(focus)
           ) : (
             !details.error && (
               <div className="discovery-empty">
