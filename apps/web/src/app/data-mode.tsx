@@ -25,7 +25,6 @@ export interface ReportDraft {
   key: string;
   spec: InsightSpec;
   discovery?: DiscoverySelection;
-  names: { id: string; title: string }[];
   showSaved?: boolean;
 }
 type Mode = 'live' | 'demo';

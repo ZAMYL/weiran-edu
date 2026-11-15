@@ -1,12 +1,10 @@
 'use client';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import type { DrawerProps } from 'antd';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Alert,
   Button,
   Checkbox,
-  Drawer,
   Empty,
   Input,
   Modal,
@@ -26,9 +24,8 @@ import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
 import {
   allowed,
-  decisionLabels,
   type AnalysisResult,
-  type DecisionStatus,
+  type Capabilities,
   type FindingDecision,
   type ReportFormat,
   type DiscoverySelection,
@@ -41,54 +38,21 @@ import { LoadingPanel, RequestError } from './LiveStatus';
 import { useRemote } from './useRemote';
 import { DiscoveryDetailDrawer } from './LiveDiscoveries';
 import { discoverySummaryText } from '../../services/edu-api/discovery-view';
+import type { DiscoverySpec, DiscoverySummary } from '../../services/edu-api/discovery-types';
 
-function AnalysisSurface({
-  inline,
-  heading,
-  actions,
-  workspace,
-  ...props
-}: DrawerProps & {
-  inline?: boolean;
-  heading?: ReactNode;
-  actions?: ReactNode;
-  workspace?: boolean;
-}) {
-  if (inline && workspace)
-    return (
-      <section
-        role="region"
-        aria-label={typeof props.title === 'string' ? props.title : '报告结果'}
-        className="report-surface report-editor-surface"
-      >
-        <header className="report-top-toolbar">{actions}</header>
-        {props.children}
-      </section>
-    );
-  return inline ? (
-    <section
-      role="region"
-      aria-label={typeof props.title === 'string' ? props.title : '报告结果'}
-      className="report-surface"
-    >
-      <Panel
-        title={heading ?? props.title}
-        action={
-          actions ??
-          (props.onClose ? (
-            <Button disabled={props.closable === false} onClick={props.onClose}>
-              返回草稿
-            </Button>
-          ) : undefined)
-        }
-      >
-        {props.children}
-      </Panel>
-    </section>
-  ) : (
-    <Drawer {...props} />
-  );
+const reportDecisions = [
+  { value: 'confirmed', label: '已确认' },
+  { value: 'dismissed', label: '不加入报告' },
+] as const;
+
+interface ReportPreview {
+  spec: DiscoverySpec;
+  discovery: DiscoverySelection;
+  items: DiscoverySummary[];
+  matched: number;
+  total: number;
 }
+
 // Mutations are cancelled with the containing batch/session UI, including streamed downloads.
 function useOperation() {
   const pending = useRef<AbortController | null>(null);
@@ -121,308 +85,225 @@ export default function AnalysisActions({
   spec,
   blocked,
   discovery,
-  discoveryNames,
-  draftContent,
 }: {
   batch: ApiBatch;
   spec: InsightSpec;
   blocked?: string;
   discovery?: DiscoverySelection;
-  discoveryNames?: { id: string; title: string }[];
-  draftContent?: ReactNode;
 }) {
-  const session = useDataMode();
-  const { client } = session;
+  const { setReportDraft } = useDataMode();
   const router = useRouter();
-  const reportPage = usePathname() === '/reports';
   const prepare = (showSaved = false) => {
-    session.setActiveReport(null);
-    session.setReportDraft({
-      key: `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(spec.conditions)}`,
+    setReportDraft({
+      key: reportContextKey(batch, spec.conditions),
       spec,
       discovery,
-      names:
-        discoveryNames ??
-        (session.reportDraft?.key ===
-        `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(spec.conditions)}`
-          ? session.reportDraft.names
-          : []),
       showSaved,
     });
     router.push('/reports');
   };
-  const [save, setSave] = useState(false);
-  const [history, setHistory] = useState<{ resultId: string | null } | null>(() =>
-    reportPage &&
-    session.activeReport?.batchId === batch.batch_id &&
-    session.activeReport.snapshotId === batch.snapshot_id
-      ? { resultId: session.activeReport.resultId }
-      : reportPage && session.reportDraft?.showSaved
-        ? { resultId: null }
-        : null,
+  const permissions = useReportPermissions(batch);
+  return (
+    <section className="panel analysis-actions">
+      <h2>分析报告</h2>
+      <div className="batch-actions">
+        <Button
+          type="primary"
+          disabled={Boolean(blocked) || !allowed(permissions.data, 'save_analysis')}
+          onClick={() => prepare()}
+        >
+          准备分析报告
+        </Button>
+        <Button onClick={() => prepare(true)}>已保存分析</Button>
+      </div>
+      {blocked && <p className="muted small">{blocked}</p>}
+      {permissions.error && <RequestError error={permissions.error} retry={permissions.retry} />}
+      {permissions.data && !allowed(permissions.data, 'save_analysis') && (
+        <p className="muted small">当前权限可查看已保存分析；保存和核验需批次所有者权限。</p>
+      )}
+    </section>
   );
+}
+
+export function reportContextKey(batch: ApiBatch, conditions: InsightSpec['conditions']) {
+  return `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
+}
+
+function useReportPermissions(batch: ApiBatch) {
+  const { client } = useDataMode();
   const load = useCallback(
     (signal: AbortSignal) => client.capabilities(batch, signal),
     [client, batch],
   );
-  const permissions = useRemote(
-    `analysis-capabilities:${batch.batch_id}:${batch.snapshot_id}`,
-    load,
-  );
-  return (
-    <>
-      {(!reportPage || !history) && (
-        <div className={reportPage ? 'report-draft-workspace' : undefined}>
-          {!history && draftContent}
-          <section className="panel analysis-actions">
-            {!reportPage && <h2>分析报告</h2>}
-            {reportPage && !blocked && (
-              <p className="teacher-reading">保存后可核查发现，再导出报告。</p>
-            )}
-            <div className="batch-actions">
-              <Button
-                type="primary"
-                disabled={Boolean(blocked) || !allowed(permissions.data, 'save_analysis')}
-                onClick={() => (reportPage ? setSave(true) : prepare())}
-              >
-                {reportPage ? '保存本次分析' : '准备分析报告'}
-              </Button>
-              <Button onClick={() => (reportPage ? setHistory({ resultId: null }) : prepare(true))}>
-                已保存分析
-              </Button>
-            </div>
-            {blocked && <p className="muted small">{blocked}</p>}
-            {permissions.error && (
-              <RequestError error={permissions.error} retry={permissions.retry} />
-            )}
-            {permissions.data && !allowed(permissions.data, 'save_analysis') && (
-              <p className="muted small">当前权限可查看已保存分析；保存和核验需批次所有者权限。</p>
-            )}
-          </section>
-        </div>
-      )}
-      {save && (
-        <SaveAnalysis
-          batch={batch}
-          spec={spec}
-          discovery={discovery}
-          scopeOnly={reportPage && !discovery}
-          onClose={() => setSave(false)}
-          onSaved={(result) => {
-            setSave(false);
-            session.setReportDraft(null);
-            session.setActiveReport({
-              batchId: batch.batch_id,
-              snapshotId: batch.snapshot_id,
-              resultId: result.result_id,
-            });
-            setHistory({ resultId: result.result_id });
-          }}
-        />
-      )}
-      {history && (
-        <SavedAnalyses
-          batch={batch}
-          initialResultId={history.resultId}
-          inline={reportPage}
-          onClose={() => {
-            session.setActiveReport(null);
-            setHistory(null);
-          }}
-        />
-      )}
-    </>
-  );
+  return useRemote(`analysis-capabilities:${batch.batch_id}:${batch.snapshot_id}`, load);
 }
 
-function SaveAnalysis({
-  batch,
-  spec,
-  discovery,
-  scopeOnly = false,
-  onClose,
-  onSaved,
-}: {
-  batch: ApiBatch;
-  spec: InsightSpec;
-  discovery?: DiscoverySelection;
-  scopeOnly?: boolean;
-  onClose: () => void;
-  onSaved: (result: AnalysisResult) => void;
-}) {
-  const { client } = useDataMode();
-  const [title, setTitle] = useState(() => `${batch.title} · 学情分析`.slice(0, 100));
-  const [note, setNote] = useState('');
-  const operation = useOperation();
-  return (
-    <Modal
-      title="保存本次分析"
-      open
-      onCancel={onClose}
-      closable={!operation.busy}
-      maskClosable={false}
-      cancelButtonProps={{ disabled: operation.busy }}
-      confirmLoading={operation.busy}
-      okText="保存分析"
-      okButtonProps={{ disabled: !title.trim() }}
-      onOk={() =>
-        operation.run(async (signal) => {
-          const result = await client.createAnalysis(
-            batch,
-            {
-              ...spec,
-              ...(scopeOnly ? { candidate_ids: [] } : {}),
-              ...(discovery ? { include_dimensions: false, discovery } : {}),
-              title: title.trim(),
-              note,
-            },
-            signal,
-          );
-          if (!signal.aborted) onSaved(result);
-        })
-      }
-    >
-      <p>分析范围：{conditionText(spec.conditions)}</p>
-      <p className="muted small">
-        {discovery
-          ? `本次保存 ${discovery.discovery_ids.length} 项发现，保存后可逐项核验。`
-          : '本次保存测评概况。'}
-      </p>
-      <div className="analysis-fields">
-        <label htmlFor="save-analysis-title">分析名称</label>
-        <Input
-          id="save-analysis-title"
-          value={title}
-          maxLength={100}
-          disabled={operation.busy}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <label htmlFor="save-analysis-note">分析备注（可选）</label>
-        <Input.TextArea
-          id="save-analysis-note"
-          value={note}
-          maxLength={2000}
-          disabled={operation.busy}
-          onChange={(e) => setNote(e.target.value)}
-        />
-      </div>
-      {operation.error && <RequestError error={operation.error} />}
-    </Modal>
+type ReportView = { type: 'new' } | { type: 'history' } | { type: 'saved'; resultId: string };
+
+export function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contextKey: string }) {
+  const { client, conditions, reportDraft, activeReport, setActiveReport } = useDataMode();
+  const draft = reportDraft?.key === contextKey ? reportDraft : null;
+  const [view, setView] = useState<ReportView>(() =>
+    activeReport?.batchId === batch.batch_id && activeReport.snapshotId === batch.snapshot_id
+      ? { type: 'saved', resultId: activeReport.resultId }
+      : draft?.showSaved
+        ? { type: 'history' }
+        : { type: 'new' },
+  );
+  const permissions = useReportPermissions(batch);
+  const scopeConditions = draft?.spec.conditions ?? conditions;
+  const selection = draft?.discovery;
+  const load = useCallback(
+    async (signal: AbortSignal): Promise<ReportPreview> => {
+      const spec: DiscoverySpec = {
+        snapshot_id: batch.snapshot_id,
+        scope_conditions: scopeConditions,
+        profile: 'edu.discovery.profile.v1',
+      };
+      const result = await client.discoveries(batch, spec, 0, signal, 50);
+      if (
+        result.items.length !== result.retained_count ||
+        (selection && selection.input_key !== result.scope.input_key)
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      const items = result.items.filter(
+        (item) =>
+          item.status !== 'insufficient_evidence' &&
+          (!selection || selection.discovery_ids.includes(item.discovery_id)),
+      );
+      if (selection && items.length !== selection.discovery_ids.length)
+        throw new ApiError(404, 'NOT_FOUND');
+      return {
+        spec,
+        items,
+        discovery: {
+          input_key: result.scope.input_key,
+          discovery_ids: items.map((item) => item.discovery_id),
+        },
+        matched: result.scope.scope_record_count,
+        total: result.scope.batch_record_count,
+      };
+    },
+    [client, batch, scopeConditions, selection],
+  );
+  const preview = useRemote(view.type === 'new' ? `report-preview:${contextKey}` : null, load);
+
+  const openSaved = (resultId: string) => {
+    remember(resultId);
+    setView({ type: 'saved', resultId });
+  };
+  const remember = (resultId: string) =>
+    setActiveReport({ batchId: batch.batch_id, snapshotId: batch.snapshot_id, resultId });
+  const changeView = (type: 'new' | 'history') => {
+    setActiveReport(null);
+    setView({ type });
+  };
+  const history = () => changeView('history');
+  const create = () => changeView('new');
+
+  if (view.type === 'history')
+    return <SavedAnalyses batch={batch} onOpen={openSaved} onNew={create} />;
+
+  if (view.type === 'saved')
+    return (
+      <AnalysisDetail
+        key={view.resultId}
+        batch={batch}
+        resultId={view.resultId}
+        onBack={history}
+        onNew={create}
+      />
+    );
+
+  return preview.data && permissions.data ? (
+    <AnalysisEditor
+      batch={batch}
+      preview={preview.data}
+      permissions={permissions.data}
+      onBack={history}
+      onSaved={remember}
+    />
+  ) : (
+    <Panel title="分析报告" action={<Button onClick={history}>已保存分析</Button>}>
+      {(preview.loading || permissions.loading) && <LoadingPanel />}
+      {preview.error && <RequestError error={preview.error} retry={preview.retry} />}
+      {permissions.error && <RequestError error={permissions.error} retry={permissions.retry} />}
+    </Panel>
   );
 }
 
 function SavedAnalyses({
   batch,
-  inline = false,
-  initialResultId,
-  onClose,
+  onOpen,
+  onNew,
 }: {
   batch: ApiBatch;
-  inline?: boolean;
-  initialResultId: string | null;
-  onClose: () => void;
+  onOpen: (resultId: string) => void;
+  onNew: () => void;
 }) {
-  const { client, setActiveReport } = useDataMode();
-  const [resultId, setResultId] = useState(initialResultId);
+  const { client } = useDataMode();
   const [offset, setOffset] = useState(0);
   const loadList = useCallback(
     (signal: AbortSignal) => client.analyses(batch, offset, signal),
     [client, batch, offset],
   );
-  const list = useRemote(
-    resultId ? null : `saved-list:${batch.batch_id}:${batch.snapshot_id}:${offset}`,
-    loadList,
-  );
-  if (resultId)
-    return (
-      <AnalysisDetail
-        inline={inline}
-        batch={batch}
-        resultId={resultId}
-        onClose={onClose}
-        onBack={() => {
-          setActiveReport(null);
-          setResultId(null);
-          list.retry();
-        }}
-      />
-    );
+  const list = useRemote(`saved-list:${batch.batch_id}:${batch.snapshot_id}:${offset}`, loadList);
   return (
-    <AnalysisSurface
-      inline={inline}
-      title="已保存分析"
-      open
-      onClose={onClose}
-      size="min(760px, 100vw)"
-    >
-      <p className="muted">当前测评：{batch.title}</p>
-      <div className="batch-actions">
-        <Button onClick={list.retry}>刷新分析列表</Button>
-        {inline && (
-          <Button type="primary" onClick={onClose}>
+    <section className="report-surface" aria-label="已保存分析">
+      <Panel
+        title="已保存分析"
+        action={
+          <Button type="primary" onClick={onNew}>
             新建分析报告
           </Button>
+        }
+      >
+        <p className="muted">当前测评：{batch.title}</p>
+        {list.loading && <LoadingPanel />}
+        {list.error && <RequestError error={list.error} retry={list.retry} />}
+        {list.data && (
+          <>
+            {!list.data.items.length && (
+              <Empty description="本次测评还没有报告。选择「新建分析报告」开始整理。" />
+            )}
+            <div className="saved-analysis-list">
+              {list.data.items.map((item) => (
+                <Panel
+                  key={item.result_id}
+                  title={item.title}
+                  subtitle={`已保存 · ${new Date(item.updated_at).toLocaleString('zh-CN')}`}
+                  action={<Button onClick={() => onOpen(item.result_id)}>查看与核验</Button>}
+                >
+                  {null}
+                </Panel>
+              ))}
+            </div>
+            <Pagination
+              current={Math.floor(offset / 10) + 1}
+              total={list.data.total_count}
+              pageSize={10}
+              showSizeChanger={false}
+              hideOnSinglePage
+              onChange={(page) => setOffset((page - 1) * 10)}
+              showTotal={(total) => `共 ${total} 次分析`}
+            />
+          </>
         )}
-      </div>
-      {list.loading && <LoadingPanel />}
-      {list.error && <RequestError error={list.error} retry={list.retry} />}
-      {list.data && (
-        <>
-          {!list.data.items.length && (
-            <Empty description="本次测评还没有报告。选择「新建分析报告」开始整理。" />
-          )}
-          <div className="saved-analysis-list">
-            {list.data.items.map((item) => (
-              <Panel
-                key={item.result_id}
-                title={item.title}
-                subtitle={`已保存 · ${new Date(item.updated_at).toLocaleString('zh-CN')}`}
-                action={
-                  <Button
-                    onClick={() => {
-                      setActiveReport({
-                        batchId: batch.batch_id,
-                        snapshotId: batch.snapshot_id,
-                        resultId: item.result_id,
-                      });
-                      setResultId(item.result_id);
-                    }}
-                  >
-                    查看与核验
-                  </Button>
-                }
-              >
-                {null}
-              </Panel>
-            ))}
-          </div>
-          <Pagination
-            current={Math.floor(offset / 10) + 1}
-            total={list.data.total_count}
-            pageSize={10}
-            showSizeChanger={false}
-            hideOnSinglePage
-            onChange={(page) => setOffset((page - 1) * 10)}
-            showTotal={(total) => `共 ${total} 次分析`}
-          />
-        </>
-      )}
-    </AnalysisSurface>
+      </Panel>
+    </section>
   );
 }
 
 function AnalysisDetail({
   batch,
-  inline = false,
   resultId,
-  onClose,
   onBack,
+  onNew,
 }: {
   batch: ApiBatch;
-  inline?: boolean;
   resultId: string;
-  onClose: () => void;
   onBack: () => void;
+  onNew: () => void;
 }) {
   const { client } = useDataMode();
   const load = useCallback(
@@ -439,107 +320,119 @@ function AnalysisDetail({
     `saved-detail:${batch.batch_id}:${batch.snapshot_id}:${resultId}`,
     load,
   );
-  if (resource.data)
-    return (
-      <AnalysisEditor
-        inline={inline}
-        key={`${resultId}:${resource.data.result.version}`}
-        batch={batch}
-        initial={resource.data.result}
-        editable={allowed(resource.data.permissions, 'edit_analysis')}
-        reload={resource.retry}
-        onClose={onClose}
-        onBack={onBack}
-      />
-    );
-  return (
-    <AnalysisSurface
-      inline={inline}
-      title="已保存分析"
-      open
-      onClose={onClose}
-      size="min(900px, 100vw)"
-    >
-      <Button onClick={onBack}>返回分析列表</Button>
+  return resource.data ? (
+    <AnalysisEditor
+      batch={batch}
+      initial={resource.data.result}
+      permissions={resource.data.permissions}
+      onBack={onBack}
+      onNew={onNew}
+    />
+  ) : (
+    <Panel title="分析报告" action={<Button onClick={onBack}>返回报告列表</Button>}>
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
-    </AnalysisSurface>
+    </Panel>
   );
 }
 
 function AnalysisEditor({
   batch,
-  inline = false,
+  preview,
   initial,
-  editable,
-  reload,
-  onClose,
+  permissions,
   onBack,
+  onNew,
+  onSaved,
 }: {
   batch: ApiBatch;
-  inline?: boolean;
-  initial: AnalysisResult;
-  editable: boolean;
-  reload: () => void;
-  onClose: () => void;
+  permissions: Capabilities;
   onBack: () => void;
-}) {
+  onNew?: () => void;
+  onSaved?: (id: string) => void;
+} & ({ preview: ReportPreview; initial?: never } | { preview?: never; initial: AnalysisResult })) {
   const { client } = useDataMode();
   const [modal, contextHolder] = Modal.useModal();
-  const [title, setTitle] = useState(initial.title);
-  const [note, setNote] = useState(initial.note);
-  const reviewItems = [
-    ...initial.findings.map(({ candidate, teacher_review }) => ({
-      id: candidate.candidate_id,
-      title: candidate.title,
-      summary: discoverySummaryText(candidate.summary),
-      denominator: candidate.denominator,
-      limitations: candidate.limitations,
-      teacher_review,
-      candidate,
-      discovery: null,
-    })),
-    ...initial.discovery_findings.map(({ discovery, teacher_review }) => ({
-      id: discovery.discovery_id,
-      title: discovery.title,
-      summary: discoverySummaryText(discovery.summary),
-      denominator: discovery.scope.scope_record_count,
-      limitations: discovery.limitations,
-      teacher_review,
-      candidate: null,
-      discovery,
-    })),
-  ];
-  const [decisions, setDecisions] = useState<FindingDecision[]>(() =>
-    reviewItems.map((finding) => ({ ...finding.teacher_review })),
-  );
-  const [formalDetail, setFormalDetail] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<string[]>(() =>
-    reviewItems[0] ? [reviewItems[0].id] : [],
-  );
-  const [exporting, setExporting] = useState(false);
-  const [selection, setSelection] = useState<MetricSelection | null>(null);
-  const operation = useOperation();
-  const changes = decisions.filter((decision) => {
-    const previous = reviewItems.find(
-      (finding) => finding.id === decision.candidate_id,
-    )?.teacher_review;
-    return previous?.status !== decision.status || previous.note !== decision.note;
+  const [result, setResult] = useState<AnalysisResult | undefined>(initial);
+  const [title, setTitle] = useState(initial?.title ?? `${batch.title} · 学情分析`.slice(0, 100));
+  const [note, setNote] = useState(initial?.note ?? '');
+  const editable = allowed(permissions, result ? 'edit_analysis' : 'save_analysis');
+  const reportItems = (saved?: AnalysisResult) =>
+    saved
+      ? [
+          ...saved.findings.map(({ candidate, teacher_review }) => ({
+            id: candidate.candidate_id,
+            title: candidate.title,
+            summary: candidate.summary,
+            denominator: candidate.denominator,
+            limitations: candidate.limitations,
+            decision: teacher_review,
+            candidate,
+            formal: false,
+          })),
+          ...saved.discovery_findings.map(({ discovery, teacher_review }) => ({
+            id: discovery.discovery_id,
+            title: discovery.title,
+            summary: discovery.summary,
+            denominator: discovery.scope.scope_record_count,
+            limitations: discovery.limitations,
+            decision: teacher_review,
+            candidate: null,
+            formal: true,
+          })),
+        ]
+      : (preview?.items ?? []).map((item) => ({
+          id: item.discovery_id,
+          title: item.title,
+          summary: item.summary,
+          denominator: preview?.matched ?? 0,
+          limitations: [],
+          decision: { candidate_id: item.discovery_id, status: 'confirmed' as const, note: '' },
+          candidate: null,
+          formal: true,
+        }));
+  const defaultDecisions = (saved?: AnalysisResult) =>
+    reportItems(saved).map(({ decision }) => ({
+      ...decision,
+      status: editable && decision.status === 'pending' ? ('confirmed' as const) : decision.status,
+    }));
+  const items = reportItems(result);
+  const [decisions, setDecisions] = useState(() => defaultDecisions(initial));
+  const byId = new Map(decisions.map((decision) => [decision.candidate_id, decision]));
+  const changes = items.flatMap(({ id, decision }) => {
+    const next = byId.get(id);
+    return next && (decision.status !== next.status || decision.note !== next.note) ? [next] : [];
   });
-  const dirty = title !== initial.title || note !== initial.note || changes.length > 0;
-  const leave = (next: () => void) => {
-    if (!dirty) {
+  const dirty = !!result && (title !== result.title || note !== result.note || changes.length > 0);
+  const unsaved = result
+    ? dirty
+    : title !== `${batch.title} · 学情分析`.slice(0, 100) || !!note || changes.length > 0;
+  const [expanded, setExpanded] = useState(items[0]?.id);
+  const [formalDetail, setFormalDetail] = useState<string | null>(null);
+  const [selection, setSelection] = useState<MetricSelection | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const operation = useOperation();
+  const conditions = result?.analysis.query.conditions ?? preview?.spec.scope_conditions ?? [];
+  const matched = result?.analysis.matched_count ?? preview?.matched ?? 0;
+  const total = result?.analysis.total_count ?? preview?.total ?? 0;
+  const limitations = [...new Set(items.flatMap((item) => item.limitations))];
+  const detailSpec = result?.analysis.discovery?.spec ?? preview?.spec;
+  const openNotes = () => document.getElementById('review-analysis-title')?.focus();
+
+  function leave(next: () => void) {
+    if (!unsaved) {
       next();
       return;
     }
     modal.confirm({
-      title: '存在未保存的核验修改',
+      title: '存在未保存的修改',
       content: '离开将放弃当前修改。',
       okText: '放弃修改',
-      cancelText: '继续核验',
+      cancelText: '继续编辑',
       onOk: next,
     });
-  };
+  }
+
   function update(candidateId: string, patch: Partial<Pick<FindingDecision, 'status' | 'note'>>) {
     setDecisions((previous) =>
       previous.map((decision) =>
@@ -547,56 +440,91 @@ function AnalysisEditor({
       ),
     );
   }
-  return (
-    <AnalysisSurface
-      inline={inline}
-      title="分析核验"
-      heading={initial.title}
-      workspace
-      actions={
-        inline ? (
-          <>
-            <Button
-              type="link"
-              icon={<ArrowLeftOutlined aria-hidden="true" />}
-              disabled={operation.busy}
-              onClick={() => leave(onBack)}
-            >
-              返回报告列表
-            </Button>
-            <button
-              className="report-title-edit"
-              disabled={!editable || operation.busy}
-              onClick={() => document.getElementById('review-analysis-title')?.focus()}
-            >
-              {title}
-              <EditOutlined aria-hidden="true" />
-            </button>
-            <span className={`report-save-state${dirty ? ' is-dirty' : ''}`}>
-              <CheckCircleOutlined aria-hidden="true" />
-              {dirty ? '未保存修改' : '已保存'}
-            </span>
-          </>
-        ) : undefined
+
+  function applySaved(saved: AnalysisResult) {
+    setResult(saved);
+    setTitle(saved.title);
+    setNote(saved.note);
+    setDecisions(defaultDecisions(saved));
+  }
+
+  function reload() {
+    if (!result) return;
+    void operation.run(async (signal) => {
+      const latest = await client.analysis(batch, result.result_id, signal);
+      if (!signal.aborted) applySaved(latest);
+    });
+  }
+
+  function save() {
+    void operation.run(async (signal) => {
+      let saved = result;
+      if (!saved && preview) {
+        saved = await client.createAnalysis(
+          batch,
+          {
+            snapshot_id: batch.snapshot_id,
+            conditions: preview.spec.scope_conditions,
+            include_dimensions: false,
+            discovery: preview.discovery,
+            title: title.trim(),
+            note,
+          },
+          signal,
+        );
+        // Keep the created ID even if the decision write fails. A retry then uses PATCH.
+        if (signal.aborted) return;
+        setResult(saved);
+        onSaved?.(saved.result_id);
       }
-      open
-      onClose={() => leave(onClose)}
-      maskClosable={!operation.busy}
-      closable={!operation.busy}
-      keyboard={!operation.busy}
-      size="min(900px, 100vw)"
-    >
+      if (!saved) return;
+      const writeDecisions = result ? changes : decisions;
+      if (result || writeDecisions.length) {
+        saved = await client.patchAnalysis(
+          batch,
+          saved.result_id,
+          {
+            snapshot_id: saved.snapshot_id,
+            expected_version: saved.version,
+            title: title.trim(),
+            note,
+            decisions: writeDecisions,
+          },
+          signal,
+        );
+      }
+      if (!signal.aborted) applySaved(saved);
+    });
+  }
+
+  return (
+    <section role="region" aria-label="分析核验" className="report-surface report-editor-surface">
+      <header className="report-top-toolbar">
+        <button
+          className="report-title-edit"
+          disabled={!editable || operation.busy}
+          onClick={openNotes}
+        >
+          {title}
+          <EditOutlined aria-hidden="true" />
+        </button>
+        <span
+          className={`report-save-state${!result || dirty ? ' is-dirty' : ''}`}
+          aria-live="polite"
+        >
+          {result && !dirty && <CheckCircleOutlined aria-hidden="true" />}
+          {!result ? '未保存' : dirty ? '未保存修改' : '已保存'}
+        </span>
+        <Button
+          type="link"
+          icon={<ArrowLeftOutlined aria-hidden="true" />}
+          disabled={operation.busy}
+          onClick={() => leave(onBack)}
+        >
+          {result ? '返回报告列表' : '已保存分析'}
+        </Button>
+      </header>
       {contextHolder}
-      {!inline && (
-        <div className="batch-actions report-editor-toolbar">
-          <Button disabled={operation.busy} onClick={() => leave(onBack)}>
-            返回分析列表
-          </Button>
-          <Button disabled={operation.busy} onClick={() => leave(reload)}>
-            加载最新版本
-          </Button>
-        </div>
-      )}
       <div className="report-editor-grid">
         <aside className="report-editor-info" aria-label="报告信息">
           <h2>报告信息</h2>
@@ -618,7 +546,6 @@ function AnalysisEditor({
               autoSize={{ minRows: 2, maxRows: 5 }}
               maxLength={2000}
               showCount
-              placeholder="添加对本报告的说明（可选）"
               disabled={!editable || operation.busy}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -630,222 +557,212 @@ function AnalysisEditor({
             </div>
             <div>
               <dt>分析范围</dt>
-              <dd>{conditionText(initial.analysis.query.conditions)}</dd>
+              <dd>{conditionText(conditions)}</dd>
             </div>
             <div>
               <dt>群体人数</dt>
               <dd>
-                {initial.analysis.matched_count} / {initial.analysis.total_count} 人
+                {matched} / {total} 人
               </dd>
             </div>
             <div>
               <dt>占比</dt>
-              <dd>{ratioDisplay(initial.analysis.ratio.value)}</dd>
+              <dd>
+                {ratioDisplay(
+                  result ? result.analysis.ratio.value : total ? matched / total : null,
+                )}
+              </dd>
             </div>
           </dl>
-          <p className="saved-version">已保存版本 {initial.version}</p>
-          <details className="technical-details">
-            <summary>保存详情</summary>
-            <p>
-              测评数据版本 <code>{initial.snapshot_id}</code>
-            </p>
-            <p className="muted small">{initial.notice}</p>
-            <div className="batch-actions">
-              <Button disabled={operation.busy} onClick={() => leave(reload)}>
-                加载最新版本
-              </Button>
-              <Button disabled={operation.busy} onClick={() => leave(onClose)}>
-                返回草稿
-              </Button>
-            </div>
-          </details>
-          {!editable && (
-            <Alert type="info" title="当前为只读权限，可查看核验结果和导出测评报告。" showIcon />
-          )}
-          <div className="review-progress" aria-label="核验进度">
-            <h3>发现核验进度</h3>
-            {Object.entries(decisionLabels).map(([status, label]) => (
-              <div key={status} className={`review-progress-count ${status}`}>
-                <span>{label}</span>
-                <strong>{decisions.filter((decision) => decision.status === status).length}</strong>
+          {result && (
+            <details className="technical-details">
+              <summary className="saved-version">已保存版本 {result.version}</summary>
+              <div className="batch-actions">
+                <Button disabled={operation.busy} onClick={() => leave(reload)}>
+                  加载最新版本
+                </Button>
+                {onNew && (
+                  <Button disabled={operation.busy} onClick={() => leave(onNew)}>
+                    新建分析报告
+                  </Button>
+                )}
               </div>
-            ))}
+            </details>
+          )}
+          {!editable && (
+            <Alert
+              type="info"
+              title={
+                result
+                  ? '当前为只读权限，可查看核验结果和导出测评报告。'
+                  : '当前权限可查看已保存分析。'
+              }
+              showIcon
+            />
+          )}
+          {items.length > 0 && (
+            <div className="review-progress" aria-label="报告发现数量">
+              {reportDecisions.map(({ value, label }) => (
+                <div key={value} className={`review-progress-count ${value}`}>
+                  <span>{label}</span>
+                  <strong>
+                    {decisions.filter((decision) => decision.status === value).length}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          )}
+          <details className="report-limitations">
+            <summary>使用限制</summary>
+            <p>{result?.notice ?? '报告仅供授权教师核查。评分关系不能单独用于判断学习成因。'}</p>
+            {limitations.length > 0 && (
+              <ul>
+                {limitations.map((text) => (
+                  <li key={text}>{text}</li>
+                ))}
+              </ul>
+            )}
+          </details>
+          {operation.error && <RequestError error={operation.error} />}
+          <div className="report-action-bar">
+            {editable && (
+              <Button
+                loading={operation.busy}
+                disabled={(!!result && !dirty) || !title.trim()}
+                onClick={save}
+              >
+                {result ? '保存核验结果' : '保存报告'}
+              </Button>
+            )}
+            <Button
+              type="primary"
+              disabled={
+                !result || dirty || operation.busy || !allowed(permissions, 'export_analysis')
+              }
+              onClick={() => setExporting(true)}
+            >
+              导出测评报告
+            </Button>
           </div>
         </aside>
         <div className="report-editor-findings">
           <div className="review-section-heading">
-            <h2>发现核验</h2>
+            <h2 id="report-findings-heading">发现核验</h2>
           </div>
-          {!reviewItems.length && (
-            <Empty description="本次分析没有保存候选发现，仍可导出测评报告。" />
-          )}
-          {reviewItems.map((item, index) => {
-            const candidate = item.candidate;
-            const decision = decisions[index]!;
-            return (
-              <details
-                className="review-finding"
-                key={item.id}
-                open={expanded.includes(item.id)}
-                onToggle={(event) => {
-                  const open = event.currentTarget.open;
-                  setExpanded((previous) =>
-                    open
-                      ? previous.includes(item.id)
-                        ? previous
-                        : [...previous, item.id]
-                      : previous.includes(item.id)
-                        ? previous.filter((id) => id !== item.id)
-                        : previous,
-                  );
-                }}
-              >
-                <summary className="review-finding-heading">
-                  <span className="review-finding-index">{String(index + 1).padStart(2, '0')}</span>
-                  <h3>{item.title}</h3>
-                  <Tag
-                    color={
-                      decision.status === 'confirmed'
-                        ? 'green'
-                        : decision.status === 'dismissed'
-                          ? 'default'
-                          : 'gold'
-                    }
+          <div
+            className="report-finding-list"
+            role="region"
+            aria-labelledby="report-findings-heading"
+            tabIndex={0}
+          >
+            {!items.length && (
+              <Empty
+                description={
+                  result
+                    ? '本次分析没有保存候选发现，仍可导出测评报告。'
+                    : '当前范围没有符合条件的发现，可导出测评概况。'
+                }
+              />
+            )}
+            {items.map((item, index) => {
+              const decision = byId.get(item.id) ?? item.decision;
+              return (
+                <details
+                  className="review-finding"
+                  key={item.id}
+                  data-finding-id={item.id}
+                  open={expanded === item.id}
+                >
+                  <summary
+                    className="review-finding-heading"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setExpanded(expanded === item.id ? undefined : item.id);
+                    }}
                   >
-                    {decisionLabels[decision.status]}
-                  </Tag>
-                  <DownOutlined className="review-chevron" aria-hidden="true" />
-                </summary>
-                <div className="review-finding-content">
-                  <p className="muted small">统计范围 {item.denominator} 人</p>
-                  <p>{item.summary}</p>
-                  <div className="batch-actions">
-                    {candidate?.metrics
-                      .filter((metric) => metric.key === 'mean' || metric.key === 'matched_count')
-                      .map((metric) => (
-                        <Button
-                          key={metric.key}
-                          onClick={() =>
-                            setSelection({
-                              candidateId: item.id,
-                              metricKey: metric.key,
-                              title: item.title,
-                              spec: initial.analysis.query,
-                            })
-                          }
-                        >
-                          查看评分依据 · {metricDisplay(metric)}
+                    <span className="review-finding-index">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <h3>{item.title}</h3>
+                    <Tag color={decision.status === 'confirmed' ? 'green' : 'default'}>
+                      {reportDecisions.find(({ value }) => value === decision.status)?.label ??
+                        '未纳入导出'}
+                    </Tag>
+                    <DownOutlined className="review-chevron" aria-hidden="true" />
+                  </summary>
+                  <div className="review-finding-content">
+                    <p className="muted small">统计范围 {item.denominator} 人</p>
+                    <p>{discoverySummaryText(item.summary)}</p>
+                    <div className="batch-actions">
+                      {item.candidate?.metrics
+                        .filter((metric) => metric.key === 'mean' || metric.key === 'matched_count')
+                        .map((metric) => (
+                          <Button
+                            key={metric.key}
+                            onClick={() =>
+                              result &&
+                              setSelection({
+                                candidateId: item.id,
+                                metricKey: metric.key,
+                                title: item.title,
+                                spec: result.analysis.query,
+                              })
+                            }
+                          >
+                            查看评分依据 · {metricDisplay(metric)}
+                          </Button>
+                        ))}
+                      {item.formal && detailSpec && (
+                        <Button onClick={() => setFormalDetail(item.id)}>
+                          查看完整发现与评分依据
                         </Button>
-                      ))}
-                    {item.discovery && (
-                      <Button onClick={() => setFormalDetail(item.id)}>
-                        查看完整发现与评分依据
-                      </Button>
-                    )}
+                      )}
+                    </div>
+                    <label className="review-decision-label" id={`decision-${index}`}>
+                      报告内容<span className="visually-hidden"> · {item.title}</span>
+                    </label>
+                    <Radio.Group
+                      className="report-decision-options"
+                      aria-labelledby={`decision-${index}`}
+                      options={reportDecisions.map(({ value, label }) => ({ value, label }))}
+                      optionType="button"
+                      value={decision.status}
+                      disabled={!editable || operation.busy}
+                      onChange={(event) => update(item.id, { status: event.target.value })}
+                    />
+                    <label htmlFor={`finding-note-${index}`}>
+                      核验备注<span className="visually-hidden"> · {item.title}</span>
+                    </label>
+                    <Input.TextArea
+                      id={`finding-note-${index}`}
+                      classNames={{ root: 'report-note-input', count: 'report-note-count' }}
+                      value={decision.note}
+                      maxLength={2000}
+                      showCount
+                      autoSize={{ minRows: 2, maxRows: 5 }}
+                      disabled={!editable || operation.busy}
+                      onChange={(e) => update(item.id, { note: e.target.value })}
+                    />
                   </div>
-                  <label className="review-decision-label" id={`decision-${index}`}>
-                    教师判断<span className="visually-hidden"> · {item.title}</span>
-                  </label>
-                  <Radio.Group
-                    className="report-decision-options"
-                    aria-labelledby={`decision-${index}`}
-                    options={Object.entries(decisionLabels).map(([value, label]) => ({
-                      value,
-                      label: (
-                        <span>
-                          <i className={`decision-dot ${value}`} aria-hidden="true" />
-                          {value === 'dismissed' ? '不纳入报告' : label}
-                        </span>
-                      ),
-                    }))}
-                    optionType="button"
-                    value={decision.status}
-                    disabled={!editable || operation.busy}
-                    onChange={(event) =>
-                      update(item.id, { status: event.target.value as DecisionStatus })
-                    }
-                  />
-                  <label htmlFor={`finding-note-${index}`}>
-                    核验备注<span className="visually-hidden"> · {item.title}</span>
-                  </label>
-                  <Input.TextArea
-                    id={`finding-note-${index}`}
-                    classNames={{ root: 'report-note-input', count: 'report-note-count' }}
-                    value={decision.note}
-                    maxLength={2000}
-                    showCount
-                    placeholder="添加核验备注（可选）"
-                    autoSize={{ minRows: 2, maxRows: 5 }}
-                    disabled={!editable || operation.busy}
-                    onChange={(e) => update(item.id, { note: e.target.value })}
-                  />
-                  <details>
-                    <summary>使用限制</summary>
-                    {item.limitations.map((text) => (
-                      <p className="muted small" key={text}>
-                        {text}
-                      </p>
-                    ))}
-                  </details>
-                </div>
-              </details>
-            );
-          })}
+                </details>
+              );
+            })}
+          </div>
         </div>
       </div>
-      {operation.error && <RequestError error={operation.error} />}
-      <div className="report-action-bar">
-        <span className="muted small">
-          {dirty ? '先保存核验结果，再导出报告' : '已保存，可导出当前版本'}
-        </span>
-        {editable && (
-          <Button
-            type="primary"
-            className="save-review-button"
-            loading={operation.busy}
-            disabled={!dirty || !title.trim()}
-            onClick={() =>
-              operation.run(async (signal) => {
-                await client.patchAnalysis(
-                  batch,
-                  initial.result_id,
-                  {
-                    snapshot_id: initial.snapshot_id,
-                    expected_version: initial.version,
-                    title: title.trim(),
-                    note,
-                    decisions: changes,
-                  },
-                  signal,
-                );
-                if (!signal.aborted) reload();
-              })
-            }
-          >
-            保存核验结果
-          </Button>
-        )}
-        <Button
-          type="primary"
-          disabled={dirty || operation.busy}
-          onClick={() => setExporting(true)}
-        >
-          导出测评报告
-        </Button>
-      </div>
-      {formalDetail && initial.analysis.discovery && (
+      {formalDetail && detailSpec && (
         <DiscoveryDetailDrawer
           batch={batch}
-          spec={initial.analysis.discovery.spec}
+          spec={detailSpec}
           discoveryId={formalDetail}
           allowExplore={false}
           onClose={() => setFormalDetail(null)}
         />
       )}
-      {exporting && (
+      {exporting && result && (
         <ReportExport
           batch={batch}
-          result={initial}
+          result={result}
           onClose={() => setExporting(false)}
           onReload={() => {
             setExporting(false);
@@ -859,7 +776,7 @@ function AnalysisEditor({
         selection={selection}
         onClose={() => setSelection(null)}
       />
-    </AnalysisSurface>
+    </section>
   );
 }
 

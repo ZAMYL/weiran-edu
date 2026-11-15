@@ -607,11 +607,6 @@ function Explorer({ batch }: { batch: ApiBatch }) {
           </section>
           <AnalysisActions
             batch={batch}
-            discoveryNames={
-              origin && group.data?.detail
-                ? [{ id: origin.discovery_id, title: group.data.detail.title }]
-                : undefined
-            }
             spec={{ snapshot_id: batch.snapshot_id, conditions, include_dimensions: true }}
             discovery={
               origin && group.data?.detail

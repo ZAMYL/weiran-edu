@@ -121,12 +121,14 @@ export async function teacherIntegerFlow(h) {
   await page.screenshot({ path: path.join(artifacts, '105-score-evidence.png'), fullPage: true });
   await closeTop();
   await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-  await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
-  await page.getByLabel('分析名称', { exact: true }).fill('合成105人精确整数回归报告');
+  await page.getByLabel('报告名称', { exact: true }).fill('合成105人精确整数回归报告');
+  const reviewedResponse = wait(
+    (r) => r.request().method() === 'PATCH' && /\/analysis-results\//.test(r.url()),
+  );
   const savedResponse = wait(
     (r) => r.url().endsWith('/analysis-results') && r.request().method() === 'POST',
   );
-  await page.getByRole('button', { name: '保存分析', exact: true }).click();
+  await page.getByRole('button', { name: '保存报告', exact: true }).click();
   const saved = await (await savedResponse).json();
   assert.equal(saved.analysis.members.length, 105);
   assert.equal(saved.discovery_findings.length, 1);
@@ -135,15 +137,6 @@ export async function teacherIntegerFlow(h) {
   assert.deepEqual(saved.analysis.discovery.findings[0].ranking, detailResult.body.ranking);
   assert.deepEqual(saved.discovery_findings[0].discovery.ranking, detailResult.body.ranking);
   const review = page.getByRole('region', { name: '分析核验', exact: true });
-  await review.locator('.saved-version').waitFor();
-  await review
-    .getByRole('radio', { name: '已确认', exact: true })
-    .locator('xpath=ancestor::label[1]')
-    .click();
-  const reviewedResponse = wait(
-    (r) => r.url().endsWith('/' + saved.result_id) && r.request().method() === 'PATCH',
-  );
-  await review.getByRole('button', { name: '保存核验结果', exact: true }).click();
   const reviewed = await (await reviewedResponse).json();
   assert.equal(reviewed.version, 2);
   assert.equal(reviewed.discovery_findings[0].teacher_review.status, 'confirmed');
@@ -151,6 +144,7 @@ export async function teacherIntegerFlow(h) {
   // Refresh and reopen via the saved list, exercising a fresh GET and the nested DTO.
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.live-workspace').waitFor();
+  await page.getByRole('button', { name: '已保存分析', exact: true }).click();
   const reopenedResponse = wait(
     (r) =>
       r.request().method() === 'GET' && new URL(r.url()).pathname.endsWith('/' + saved.result_id),

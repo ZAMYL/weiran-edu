@@ -7,8 +7,7 @@ import { verifyReportArtifact } from './report-artifact-utils.mjs';
 
 async function reportAction(region, name) {
   const button = region.getByRole('button', { name, exact: true });
-  if (!(await button.isVisible()))
-    await region.locator('.report-editor-info > details > summary').click();
+  if (!(await button.isVisible())) await region.locator('.technical-details > summary').click();
   await button.click();
 }
 
@@ -67,13 +66,14 @@ export async function teacherProductFlow(h) {
     );
     if (!new URL(page.url()).pathname.startsWith('/reports'))
       await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-    await page.getByRole('button', { name: '保存本次分析', exact: true }).click();
-    await page.getByLabel('分析名称', { exact: true }).fill(title);
-    await page.getByRole('button', { name: '保存分析', exact: true }).click();
+    await review().getByLabel('报告名称', { exact: true }).fill(title);
+    await review().getByRole('button', { name: '保存报告', exact: true }).click();
     const response = await pending;
     assert.equal(response.status(), 201, JSON.stringify(await response.json()));
     const data = await response.json();
-    await review().locator('.saved-version').waitFor();
+    await review()
+      .getByText(data.discovery_findings?.length ? '已保存版本 2' : '已保存版本 1', { exact: true })
+      .waitFor();
     return data;
   }
   async function download(format) {
@@ -181,65 +181,56 @@ export async function teacherProductFlow(h) {
     '53: import/preview/commit → real discovery/chart → exact original 26/27 group → reload → owned evidence',
   );
   console.log('Joint E2E: save original discovery and review');
+  await navigation('学情诊断');
   await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-  const initialDraft = page.locator('.report-draft-workspace');
-  await initialDraft.locator('.report-draft-list, .live-error').first().waitFor();
-  assert.equal(
-    await initialDraft.locator('.live-error').count(),
-    0,
-    await initialDraft.innerText(),
-  );
-  const draftItems = page.locator('.report-draft-list input[type=checkbox]');
-  await draftItems.first().waitFor();
-  assert.ok((await draftItems.count()) >= 1);
-  for (const checkbox of await draftItems.all()) {
-    assert.equal(await checkbox.isChecked(), true);
-    if ((await checkbox.getAttribute('value')) !== chosen.discovery_id) await checkbox.uncheck();
+  const findings = review().locator('.review-finding');
+  await findings.first().waitFor();
+  assert.equal(await page.getByRole('heading', { name: '本次报告内容', exact: true }).count(), 0);
+  assert.equal(await review().getByRole('radio', { name: '待教师确认', exact: true }).count(), 0);
+  assert.equal(await review().getByText('使用限制', { exact: true }).count(), 1);
+  const exportButton = review()
+    .getByRole('complementary', { name: '报告信息' })
+    .getByRole('button', { name: '导出测评报告' });
+  assert.equal(await exportButton.isDisabled(), true);
+  const entries = all.body.items.filter((item) => item.status !== 'insufficient_evidence');
+  assert.equal(await findings.count(), entries.length);
+  for (const [index, entry] of entries.entries()) {
+    const item = findings.nth(index);
+    assert.equal(await item.getAttribute('data-finding-id'), entry.discovery_id);
+    assert.equal(await item.locator('input[value=confirmed]').isChecked(), true);
+    if (entry.discovery_id !== chosen.discovery_id) {
+      if ((await item.getAttribute('open')) === null) await item.locator('summary').click();
+      await item
+        .getByRole('radio', { name: '不加入报告', exact: true })
+        .locator('xpath=ancestor::label[1]')
+        .click();
+    }
   }
+  const expectedVersion = wait(
+    (r) => r.request().method() === 'PATCH' && /\/analysis-results\//.test(r.url()),
+  );
   const created = await save('合成正式发现闭环');
+  const updated = await expectedVersion;
+  assert.equal(updated.status(), 200);
+  const reviewed = await updated.json();
   assert.deepEqual(created.analysis.query.conditions, []);
   assert.equal(created.analysis.matched_count, 53);
   assert.equal(created.analysis.members.length, 53);
-  assert.equal(created.discovery_findings.length, 1);
-  assert.equal(created.discovery_findings[0].discovery.discovery_id, chosen.discovery_id);
-  assert.equal(created.discovery_findings[0].teacher_review.status, 'pending');
+  assert.equal(created.discovery_findings.length, entries.length);
   assert.deepEqual(created.analysis.discovery.spec, spec);
-  assert.equal(await page.getByRole('heading', { name: '本次报告内容', exact: true }).count(), 0);
-  await review()
-    .locator('.review-finding')
-    .getByRole('radio', { name: '已确认', exact: true })
-    .locator('xpath=ancestor::label[1]')
-    .click();
-  const updated = wait(
-    (r) => r.url().endsWith('/' + created.result_id) && r.request().method() === 'PATCH',
-  );
-  await review().getByRole('button', { name: '保存核验结果', exact: true }).click();
-  const reviewed = await (await updated).json();
   assert.equal(reviewed.version, 2);
-  assert.equal(reviewed.discovery_findings[0].teacher_review.status, 'confirmed');
-  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  assert.deepEqual(
+    reviewed.discovery_findings
+      .filter((finding) => finding.teacher_review.status === 'confirmed')
+      .map((finding) => finding.discovery.discovery_id),
+    [chosen.discovery_id],
+  );
+  assert.equal(await exportButton.isEnabled(), true);
   await navigation('学情诊断');
   await navigation('分析报告');
-  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
-  assert.equal(
-    await review().getByRole('radio', { name: '已确认', exact: true }).isChecked(),
-    true,
-  );
-  await navigation('学情诊断');
-  await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-  await page.getByRole('heading', { name: '本次报告内容', exact: true }).waitFor();
-  await initialDraft.locator('.report-draft-list, .live-error').first().waitFor();
-  assert.equal(
-    await initialDraft.locator('.live-error').count(),
-    0,
-    await initialDraft.textContent(),
-  );
-  await draftItems.first().uncheck();
-  assert.equal(await draftItems.first().isChecked(), false);
-  await draftItems.first().check();
-  await page.getByRole('button', { name: '已保存分析', exact: true }).click();
-  await page.getByRole('button', { name: '查看与核验', exact: true }).first().click();
-  await review().locator('.saved-version').filter({ hasText: '已保存版本 2' }).waitFor();
+  await review().getByText('已保存版本 2', { exact: true }).waitFor();
+  const selectedFinding = review().locator(`[data-finding-id="${chosen.discovery_id}"]`);
+  assert.equal(await selectedFinding.locator('input[value=confirmed]').isChecked(), true);
   await shot('03-reviewed-discovery');
   const md = await download('md');
   assert.equal(md.preflight.confirmed_finding_count, 1);
@@ -315,7 +306,7 @@ export async function teacherProductFlow(h) {
   await reportAction(review(), '加载最新版本');
   await page.getByRole('button', { name: '放弃修改', exact: true }).click();
   await review().locator('.saved-version').filter({ hasText: '已保存版本 3' }).waitFor();
-  await reportAction(review(), '返回草稿');
+  await reportAction(review(), '返回报告列表');
   checks.push(
     'save stores full outer scope and selected formal discovery; confirmed persists; MD/XLSX reopened; actual 409 preserves edits',
   );
@@ -351,7 +342,7 @@ export async function teacherProductFlow(h) {
   assert.equal(empty.discovery_findings?.length ?? 0, 0);
   const emptyMd = await download('md');
   assert.equal(emptyMd.preflight.confirmed_finding_count, 0);
-  await reportAction(review(), '返回草稿');
+  await reportAction(review(), '返回报告列表');
   await navigation('画像探索');
   await page.getByRole('button', { name: '添加条件', exact: true }).click();
   await page.getByRole('button', { name: '应用筛选', exact: true }).click();
@@ -390,7 +381,7 @@ export async function teacherProductFlow(h) {
   });
   assert.equal(forbiddenSave.status, 403);
   assert.equal(forbiddenSave.body.error.code, 'FORBIDDEN');
-  await reportAction(review(), '返回草稿');
+  await reportAction(review(), '返回报告列表');
   await navigation('学情诊断');
   admin('batch-revoke-read', '--teacher-id', reader, '--batch-id', batch.batch_id);
   const denied = wait((r) => r.url().endsWith('/discoveries/query') && r.status() === 404);

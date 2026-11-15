@@ -479,8 +479,7 @@
 
 .discovery-focus-toolbar,
 .review-progress,
-.report-action-bar,
-.report-draft-list li {
+.report-action-bar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -836,32 +835,6 @@
   display: flex;
   flex-direction: column;
 }
-.report-draft-list {
-  list-style: none;
-  padding: 0;
-  margin: 16px 0;
-}
-.report-draft-list li {
-  padding: 12px 0;
-  border-bottom: 1px solid #e5edfb;
-}
-.report-action-bar {
-  position: sticky;
-  bottom: 12px;
-  z-index: 5;
-  margin-top: 20px;
-  padding: 14px 16px;
-  background: #fff;
-  border: 1px solid #e5edfb;
-  border-radius: var(--radius);
-  box-shadow: 0 4px 20px #14244812;
-}
-.report-action-bar > span {
-  flex: 1;
-}
-.report-action-bar .save-review-button {
-  margin: 0;
-}
 .review-progress {
   margin: 12px 0 20px;
 }
@@ -874,12 +847,6 @@
 .import-recognition h3 {
   margin-bottom: 8px;
 }
-@media (max-width: 640px) {
-  .report-action-bar > span {
-    flex-basis: 100%;
-  }
-}
-
 .mode-controls {
   display: flex;
   align-items: center;
@@ -3781,37 +3748,10 @@ h1 {
 .saved-version {
   overflow-wrap: anywhere;
 }
-.review-heading {
-  font-size: 20px;
-  margin: 24px 0 16px;
-}
 .review-finding {
   margin: 12px 0;
   border: 1px solid #e5edfb;
   border-radius: var(--radius);
-}
-.report-editor-toolbar {
-  justify-content: space-between;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e5edfb;
-}
-.report-draft-workspace {
-  border: 1px solid #e5edfb;
-  border-radius: var(--radius);
-  background: #fff;
-  padding: 24px;
-}
-.report-draft-workspace > .panel {
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0;
-}
-.report-draft-workspace > .analysis-actions {
-  justify-content: flex-end;
-  border-top: 1px solid #e5edfb;
-  padding-top: 20px;
-  margin-top: 24px;
 }
 .report-editor-grid {
   display: grid;
@@ -3846,9 +3786,6 @@ h1 {
 }
 .review-progress-count strong {
   font-size: 18px;
-}
-.review-progress-count.pending strong {
-  color: #b36b00;
 }
 .review-progress-count.confirmed strong {
   color: #12835a;
@@ -3895,15 +3832,6 @@ h1 {
 .review-finding-content {
   padding: 0 16px 18px;
 }
-.reports-page .report-action-bar {
-  position: static;
-  margin-top: 24px;
-  padding: 20px 0 0;
-  border: 0;
-  border-top: 1px solid #e5edfb;
-  border-radius: 0;
-  box-shadow: none;
-}
 .reports-page .saved-analysis-list .panel {
   padding: 18px 0;
   border: 0;
@@ -3946,12 +3874,6 @@ h1 {
 .review-finding-content > label {
   display: block;
   margin: 16px 0 8px;
-}
-.review-finding details {
-  margin-top: 14px;
-}
-.save-review-button {
-  margin-top: 20px;
 }
 .report-check {
   display: grid;
@@ -4070,27 +3992,54 @@ h1 {
 .report-save-state.is-dirty {
   color: #b36b00;
 }
-.report-toolbar-export {
+.report-top-toolbar > .ant-btn:last-child {
   margin-left: auto;
-  min-width: 150px;
-  height: 44px;
 }
 .report-editor-surface .report-editor-grid {
   padding-top: 0;
   grid-template-columns: minmax(270px, 25%) minmax(0, 1fr);
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 .report-editor-surface .report-editor-info {
+  display: flex;
+  flex-direction: column;
   background: #fff;
   border: 0;
   border-radius: var(--radius);
   padding: 24px;
 }
 .report-editor-surface .report-editor-findings {
+  display: flex;
+  flex-direction: column;
   background: #fff;
   border-radius: var(--radius);
   padding: 24px 16px;
+}
+.report-finding-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  padding: 0 8px 3px 2px;
+}
+@media (min-width: 761px) {
+  .report-editor-surface .report-editor-findings {
+    contain: size;
+  }
+}
+.report-limitations {
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+.report-limitations summary {
+  cursor: pointer;
+}
+.report-limitations p {
+  margin: 8px 0;
+}
+.report-limitations ul {
+  padding-inline-start: 18px;
 }
 .report-metadata {
   display: grid;
@@ -4129,8 +4078,7 @@ h1 {
   margin: 0 0 6px;
   font-size: 15px;
 }
-.review-progress-count > span::before,
-.decision-dot {
+.review-progress-count > span::before {
   content: '';
   display: inline-block;
   width: 8px;
@@ -4140,12 +4088,7 @@ h1 {
   margin-right: 8px;
   flex: none;
 }
-.review-progress-count.pending > span::before,
-.decision-dot.pending {
-  background: #ed8a1d;
-}
-.review-progress-count.confirmed > span::before,
-.decision-dot.confirmed {
+.review-progress-count.confirmed > span::before {
   background: #2463f5;
 }
 .report-editor-surface .review-finding {
@@ -4178,7 +4121,7 @@ h1 {
 }
 .report-decision-options.ant-radio-group {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   width: 100%;
   gap: 10px;
 }
@@ -4209,15 +4152,13 @@ h1 {
   font-weight: 600;
 }
 .report-editor-surface .report-action-bar {
-  margin-top: 0;
-  padding: 16px 24px;
-  border: 0;
-  background: #fff;
-  border-radius: var(--radius);
+  margin-top: auto;
+  padding-top: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 .report-editor-surface .report-action-bar .ant-btn {
-  min-width: 150px;
-  height: 44px;
+  min-height: 44px;
 }
 @media (max-width: 1100px) {
   .is-report-page .workspace-intro {
@@ -4261,9 +4202,6 @@ h1 {
     width: 100%;
     font-size: 18px;
   }
-  .report-toolbar-export {
-    min-width: 110px;
-  }
   .report-editor-surface .report-editor-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4272,6 +4210,9 @@ h1 {
   }
   .report-editor-surface .report-editor-findings {
     padding: 18px 12px;
+  }
+  .report-finding-list {
+    max-height: min(68dvh, 600px);
   }
   .report-editor-surface .review-finding-heading {
     padding: 12px;
@@ -4285,11 +4226,6 @@ h1 {
   .report-decision-options .ant-radio-button-wrapper {
     font-size: 12px;
     padding-inline: 4px;
-  }
-  .decision-dot {
-    width: 6px;
-    height: 6px;
-    margin-right: 4px;
   }
 }
 

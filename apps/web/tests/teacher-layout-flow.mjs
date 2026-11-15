@@ -418,10 +418,21 @@ export async function teacherLayoutFlow({
   await navigation('学情诊断');
   await ready();
   await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-  const reportItems = page.locator('.report-draft-list input[type=checkbox]');
-  await reportItems.first().waitFor();
+  const reportItems = page.locator('.review-finding input[value=confirmed]');
+  await reportItems.first().waitFor({ state: 'attached' });
   for (const item of await reportItems.all()) assert.equal(await item.isChecked(), true);
-  await capture(page, artifacts, 'report-draft');
+  const geometry = await page.locator('.report-editor-grid').evaluate((grid) => {
+    const info = grid.querySelector('.report-editor-info').getBoundingClientRect();
+    const findings = grid.querySelector('.report-editor-findings').getBoundingClientRect();
+    const list = grid.querySelector('.report-finding-list');
+    list.scrollTop = list.scrollHeight;
+    return { bottomDifference: Math.abs(info.bottom - findings.bottom), scrollTop: list.scrollTop };
+  });
+  assert.ok(geometry.bottomDifference <= 1 && geometry.scrollTop > 0, JSON.stringify(geometry));
+  await page.locator('.report-finding-list').evaluate((list) => {
+    list.scrollTop = 0;
+  });
+  await capture(page, artifacts, 'report-editor');
   await navigation('学情诊断');
   await ready();
   assert.equal(await focus().getByRole('checkbox').count(), 0);

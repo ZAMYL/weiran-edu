@@ -254,7 +254,7 @@ try {
       await finding.locator(':scope > summary').click();
     await finding
       .getByRole('radio', {
-        name: index === 0 && reviewFindings.length > 1 ? '不纳入报告' : '已确认',
+        name: index === 0 && reviewFindings.length > 1 ? '不加入报告' : '已确认',
         exact: true,
       })
       .locator('xpath=ancestor::label[1]')

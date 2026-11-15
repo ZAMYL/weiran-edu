@@ -110,8 +110,10 @@ export async function teacherDiscoveryCopyFlow({
   await closeTop();
   assert.equal(await card.getByRole('checkbox').count(), 0);
   await page.getByRole('button', { name: '准备分析报告', exact: true }).click();
-  const included = page.locator(`.report-draft-list input[value="${summary.discovery_id}"]`);
-  await included.waitFor();
+  const included = page.locator(
+    `.review-finding[data-finding-id="${summary.discovery_id}"] input[value=confirmed]`,
+  );
+  await included.waitFor({ state: 'attached' });
   assert.equal(await included.isChecked(), true);
   await navigation('学情诊断');
   await waitFocus();
