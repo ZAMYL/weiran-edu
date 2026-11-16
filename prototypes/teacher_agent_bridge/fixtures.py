@@ -4,13 +4,14 @@ from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
 
+from fastapi import FastAPI
+from openpyxl import Workbook
+
 from app.core.config import Settings
 from app.edu.auth import TeacherAdmin
 from app.importing.edu.types import DIMENSIONS
 from app.main import create_app
 from app.storage.database import Database
-from fastapi import FastAPI
-from openpyxl import Workbook
 
 from .api import install
 from .provider import DatabaseProvider
