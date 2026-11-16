@@ -86,6 +86,7 @@ class BatchReader:
                             StudentScore(
                                 dimension_code=s["dimension_code"],
                                 score=s["score_units"] / 100,
+                                display=f"{s['score_units'] / 100:.2f}",
                                 evidence_id=s["evidence_id"],
                             )
                             for s in sorted(scores, key=lambda s: ORDER[s["dimension_code"]])

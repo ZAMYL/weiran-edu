@@ -66,11 +66,20 @@ class TaskStore:
             "UNIQUE(teacher_id,idempotency_key)) STRICT",
             "CREATE TABLE IF NOT EXISTS ai_synthetic_events ("
             "task_id TEXT NOT NULL REFERENCES ai_synthetic_tasks, sequence INTEGER NOT NULL, "
-            "phase TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(task_id,sequence)) STRICT",
+            "phase TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT '', "
+            "PRIMARY KEY(task_id,sequence)) STRICT",
         )
         with self.database.transaction(write=True) as c:
             for statement in statements:
                 c.execute(statement)
+            # Older demo databases predate created_at; adding the column is safe and
+            # leaves existing rows with an empty timestamp instead of rewriting them.
+            columns = {row["name"] for row in c.execute("PRAGMA table_info(ai_synthetic_events)")}
+            if "created_at" not in columns:
+                c.execute(
+                    "ALTER TABLE ai_synthetic_events "
+                    "ADD COLUMN created_at TEXT NOT NULL DEFAULT ''"
+                )
 
     def grant(
         self, actor: Principal, batch_id: str, snapshot_id: str, *, lifetime: int = 3600
@@ -295,16 +304,33 @@ class TaskStore:
             c.execute("UPDATE ai_synthetic_tasks SET state='running' WHERE task_id=?", (task_id,))
             return self._row(c, task_id)
 
-    @staticmethod
-    def event(c: sqlite3.Connection, task_id: str, phase: str, payload: dict) -> None:
+    def event(self, c: sqlite3.Connection, task_id: str, phase: str, payload: dict) -> None:
         seq = c.execute(
             "SELECT COALESCE(MAX(sequence),0)+1 FROM ai_synthetic_events WHERE task_id=?",
             (task_id,),
         ).fetchone()[0]
         c.execute(
-            "INSERT INTO ai_synthetic_events VALUES (?,?,?,?)",
-            (task_id, seq, phase, encode(payload)),
+            "INSERT INTO ai_synthetic_events VALUES (?,?,?,?,?)",
+            (task_id, seq, phase, encode(payload), self.clock()),
         )
+
+    def events(self, task_id: str, *, after: int = 0, limit: int = 200) -> list[dict]:
+        """Ordered task phases; payload projection happens in the API layer."""
+        with self.database.transaction() as c:
+            rows = c.execute(
+                "SELECT sequence, phase, payload, created_at FROM ai_synthetic_events "
+                "WHERE task_id=? AND sequence>? ORDER BY sequence LIMIT ?",
+                (task_id, after, limit),
+            ).fetchall()
+        return [
+            {
+                "sequence": row["sequence"],
+                "phase": row["phase"],
+                "at": row["created_at"],
+                "payload": json.loads(row["payload"]),
+            }
+            for row in rows
+        ]
 
     def audit(self, task_id: str, phase: str, executor, entry: dict) -> None:
         with self.database.transaction(write=True) as c:

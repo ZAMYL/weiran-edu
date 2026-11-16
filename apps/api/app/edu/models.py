@@ -161,6 +161,7 @@ class BatchList(Model):
 class StudentScore(Model):
     dimension_code: str
     score: float
+    display: str
     evidence_id: str
 
 

@@ -79,6 +79,50 @@ def _conditions(conditions: tuple[Condition, ...]) -> list[dict[str, object]]:
     ]
 
 
+def _primary_count(discovery_type: str, metrics: dict) -> int:
+    """The population a reader should associate with this finding."""
+    if discovery_type == "group_difference":
+        return metrics["target_count"]
+    if discovery_type == "dimension_relation":
+        return metrics["paired_count"]
+    if discovery_type == "rare_combination":
+        return metrics["match_count"]
+    if discovery_type == "boundary_sensitivity":
+        return metrics["strict_count"]
+    return 0
+
+
+def _why(discovery_type: str, metrics: dict) -> str:
+    """One plain sentence per finding type; numbers only, no identity or free text."""
+    if discovery_type == "group_difference":
+        return (
+            f"该群体 {metrics['target_count']} 人，其余 {metrics['remainder_count']} 人，"
+            f"共 {metrics['student_denominator']} 人参与比较。"
+        )
+    if discovery_type == "dimension_relation":
+        return (
+            f"两个维度都有有效评分的 {metrics['paired_count']} 人参与计算，"
+            f"另有 {metrics['excluded_count']} 人缺分。"
+        )
+    if discovery_type == "rare_combination":
+        return (
+            f"该组合出现 {metrics['match_count']} 次，"
+            f"占 {metrics['pair_count']} 对配对记录的 {metrics['share_pairs']['numerator']}"
+            f"/{metrics['share_pairs']['denominator']}。"
+        )
+    if discovery_type == "boundary_sensitivity":
+        return (
+            f"阈值从严格到包含，命中人数由 {metrics['strict_count']} 变为 "
+            f"{metrics['inclusive_count']}。"
+        )
+    return ""
+
+
+def _dedup_key(discovery_type: str, conditions: list) -> str:
+    parts = sorted(f"{c.get('dimension')}{c.get('operator')}{c.get('value')}" for c in conditions)
+    return discovery_type + "|" + "|".join(parts)
+
+
 def present(discovery: Discovery) -> dict[str, object]:
     """No identity, record locator, free text, or individual score rows in this view."""
     n = discovery.context.scope.student_count
@@ -242,6 +286,12 @@ def present(discovery: Discovery) -> dict[str, object]:
             },
             "is_statistical_confidence": False,
         },
+        "dedup_key": _dedup_key(discovery.type, conditions),
+        "affected": {
+            "count": _primary_count(discovery.type, metrics),
+            "total": n,
+        },
+        "why": _why(discovery.type, metrics),
         "controlled_queries": [
             {"discovery_id": discovery.discovery_id, "metric_key": s.metric_key}
             for s in discovery.sources
