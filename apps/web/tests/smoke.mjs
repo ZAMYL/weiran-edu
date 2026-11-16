@@ -51,10 +51,12 @@ try {
   assert.match(html, /lang="zh-CN"/);
   assert.match(html, /<title>未然 EDU｜AI 时代的编程能力与学习成效诊断平台<\/title>/);
   assert.doesNotMatch(html, /诊断平台。/);
-  assert.match(html, /学情诊断/);
-  assert.match(html, /连接账户，查看测评/);
+  assert.match(html, /让每一份测评数据，/);
+  assert.match(html, /都成为有依据的教学洞察/);
+  assert.match(html, /进入教师工作台/);
 
   for (const [route, title] of [
+    ['insights', '连接账户，查看测评'],
     ['explorer', '画像探索'],
     ['data', '学情诊断'],
     ['reports', '分析报告'],
@@ -77,7 +79,7 @@ try {
   assert.equal(missing.status, 404);
   assert.match(await missing.text(), /页面不存在/);
   console.log(
-    'PASS: production server starts; all workspace routes render; sample routes are absent; missing route returns 404.',
+    'PASS: homepage and workspace routes render; sample routes are absent; missing route returns 404.',
   );
 } finally {
   if (server.exitCode === null && server.signalCode === null) {

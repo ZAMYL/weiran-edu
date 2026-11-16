@@ -18,7 +18,7 @@ export async function teacherIntegerFlow(h) {
       response.json = async () => body;
       return true;
     });
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await page.locator('.live-workspace').waitFor();
   const imported = await importThroughPage(
     fixture,

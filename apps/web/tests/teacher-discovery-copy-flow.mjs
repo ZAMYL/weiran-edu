@@ -22,7 +22,7 @@ export async function teacherDiscoveryCopyFlow({
       0,
     );
   };
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await page.locator('.live-workspace').waitFor();
   const imported = await importThroughPage('teacher53', '合成教师表达验收53人');
   await waitFocus();

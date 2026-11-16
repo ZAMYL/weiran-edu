@@ -103,7 +103,7 @@ export async function teacherProductFlow(h) {
     await exportDialog().locator('.ant-modal-close').click();
     return { bytes, preflight, destination };
   }
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await page.locator('.live-workspace').waitFor();
   console.log('Joint E2E: import 53 synthetic students');
   const imported = await importThroughPage('contrast', '合成联合验收53人');
@@ -485,7 +485,7 @@ export async function credentialRelayFlow({ page, origin, api, admin, setToken, 
     profile: 'edu.discovery.profile.v1',
   };
   await setToken(credential);
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await page.locator('.live-workspace').waitFor();
   admin('token-revoke', '--teacher-id', teacher);
   console.log('Auth relay reproduction: direct POST');

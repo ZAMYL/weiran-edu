@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { Alert, Button, Input, Modal } from 'antd';
 import { ApiError, createEduClient, type EduClient } from '../services/edu-api/client';
 import type {
@@ -368,8 +376,21 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
     </Context.Provider>
   );
 }
+const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
+
+function subscribeToReducedMotion(onChange: () => void) {
+  const media = window.matchMedia(reducedMotionQuery);
+  media.addEventListener('change', onChange);
+  return () => media.removeEventListener('change', onChange);
+}
+
 function SessionDialog() {
   const session = useDataMode();
+  const reducedMotion = useSyncExternalStore(
+    subscribeToReducedMotion,
+    () => window.matchMedia(reducedMotionQuery).matches,
+    () => false,
+  );
   const [token, setToken] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -400,6 +421,8 @@ function SessionDialog() {
       open={session.loginOpen}
       onCancel={close}
       destroyOnHidden
+      transitionName={reducedMotion ? '' : undefined}
+      maskTransitionName={reducedMotion ? '' : undefined}
       footer={
         <Button type="primary" loading={busy} disabled={!token.trim() || busy} onClick={submit}>
           连接

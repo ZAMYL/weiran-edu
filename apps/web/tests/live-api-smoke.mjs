@@ -258,7 +258,7 @@ try {
     await page.locator('.ant-select-dropdown:visible').getByText(label, { exact: true }).click();
   }
   checkpoint = 'login';
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await login();
   await navigation('测评数据');
   assert.equal(await page.getByLabel('测评名称', { exact: true }).count(), 0);
