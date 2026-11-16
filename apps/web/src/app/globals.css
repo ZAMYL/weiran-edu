@@ -987,37 +987,16 @@
 }
 .live-insights .insights-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
+  align-items: start;
 }
 .live-insights .radar-panel {
-  height: 100%;
-}
-.live-insights .insights-right {
-  display: grid;
-}
-.live-insights .insights-right > div:not([hidden]),
-.live-insights .insights-right > div > .panel {
-  height: 100%;
-}
-.live-insights .discoveries-panel > .discovery-grid {
-  flex: 1;
+  height: auto;
 }
 .live-insights .discoveries-panel .discovery-card {
   display: flex;
   flex-direction: column;
 }
 .live-insights .discoveries-panel .focus-card-actions {
-  margin-top: auto;
-}
-.live-insights .insights-statistics-panel {
-  display: flex;
-  flex-direction: column;
-}
-.live-insights .insights-statistics-panel .insight-comment-note {
-  margin-top: auto;
-  padding-top: 16px;
-}
-.live-insights .radar-panel .chart-caption {
   margin-top: auto;
 }
 .workspace-summary {
@@ -1085,11 +1064,6 @@
 @media (max-width: 960px) {
   .live-insights .insights-grid {
     grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-  .live-insights .radar-panel,
-  .live-insights .insights-right > div > .panel {
-    height: auto;
   }
   .live-insights .insights-right {
     grid-row: 1;
@@ -1172,10 +1146,10 @@
 .insight-comment-note > summary {
   cursor: pointer;
 }
-.live-insights .ability-chart {
+.live-insights .radar-panel .ability-chart {
   height: 300px;
   min-height: 260px;
-  flex: 1;
+  flex: none;
 }
 .live-candidate {
   margin: 16px 0;
