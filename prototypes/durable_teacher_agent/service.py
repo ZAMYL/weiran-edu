@@ -12,6 +12,7 @@ from threading import Lock
 
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.core.errors import APIError
+from app.ai.edu.qwen_config import QwenSettings
 from app.edu.auth import Principal
 
 from prototypes.adaptive_assessment.analysis import VERSION
@@ -34,7 +35,13 @@ from .models import (
     ProfileScoreResult,
     TaskView,
 )
-from .profiles import extend_proof, investigate_profiles, parse_result, replay_profiles
+from .profiles import (
+    extend_proof,
+    investigate_profiles,
+    parse_result,
+    projection,
+    replay_profiles,
+)
 from .store import TaskStore, blocked
 
 
@@ -50,6 +57,23 @@ def proof(executor: ResearchExecutor) -> dict:
         "released": [sorted(group) for group in executor.released],
         "output_bytes": executor.output_bytes,
     }
+
+
+def provenance_from(budget, executor) -> object:
+    """Server-side accounting only: budget journal plus executor ledger, never self-report."""
+    from prototypes.qwen_execution import ExecutionProvenance
+
+    snapshot = budget.snapshot()
+    requests = min(int(snapshot["request_count"]), 6)
+    attempts = min(len(getattr(executor, "attempt_ledger", ())), 5)
+    return ExecutionProvenance(
+        origin="qwen_live",
+        state="completed",
+        request_state="responses_received" if requests else "not_run",
+        model_requests=requests,
+        tool_attempts=attempts,
+        source_replay_verified=True,
+    )
 
 
 class DurableBudget(CampaignBudget):
@@ -202,6 +226,9 @@ class TaskService:
             return
         try:
             actor = Principal(row["teacher_id"], row["credential_sha"])
+            if self.store.purpose(task_id) == "database_live":
+                self._execute_live(task_id, row, actor)
+                return
             body = json.loads(row["request_json"])
             body.pop("idempotency_key")
             body.pop("_result_contract", None)
@@ -218,6 +245,60 @@ class TaskService:
         except Exception:
             # No partial result or sensitive exception message crosses the API boundary.
             self.store.fail(task_id, "AI_TASK_FAILED")
+
+    LIVE_CODES = {
+        "live_admission_not_configured": "AI_LIVE_ADMISSION_REQUIRED",
+        "campaign_ledger_root_not_configured": "AI_LIVE_ADMISSION_REQUIRED",
+        "live_approval_unreadable": "AI_LIVE_ADMISSION_REQUIRED",
+        "live_approval_must_stay_outside_repository": "AI_LIVE_ADMISSION_REQUIRED",
+        "campaign_ledger_root_must_be_absolute": "AI_LIVE_ADMISSION_REQUIRED",
+        "campaign_ledger_root_must_stay_outside_repository": "AI_LIVE_ADMISSION_REQUIRED",
+        "database_live_budget_not_installed": "AI_LIVE_BUDGET_REQUIRED",
+        "database_task_binding_conflict": "AI_LIVE_BINDING_CONFLICT",
+        "AI_PURPOSE_REVOKED": "AI_PURPOSE_REVOKED",
+        "reviewed_code_changed": "AI_LIVE_APPROVAL_STALE",
+        "stale_authorization_or_price": "AI_LIVE_APPROVAL_STALE",
+    }
+
+    def _execute_live(self, task_id: str, row: dict, actor: Principal) -> None:
+        """One task, one reviewed admission, one server-owned budget; no fallback."""
+        from prototypes.qwen_execution import DatabaseTaskInput, run_database_profiles
+
+        from .live_admission import LiveAdmission
+
+        admission = LiveAdmission.load()
+        source = self.source(row, actor, running=True)
+        budget = admission.budget(self.store, task_id, source)
+        try:
+            budget.claim(QwenSettings.from_env(), source)
+            binding = DatabaseTaskInput(
+                task_id=task_id,
+                batch_id=row["batch_id"],
+                snapshot_id=row["snapshot_id"],
+                actor=actor,
+                store=self.store,
+                source=source,
+                budget=budget,
+                settings=QwenSettings.from_env(),
+                require_externalization=admission.require,
+            )
+            invocation = Invocation(self, row)
+            invocation.profile_active = True
+            raw, book, executor = asyncio.run(
+                run_database_profiles(binding, limits=self.profile_limits)
+            )
+            invocation.profile_projection = projection(source, raw, book, executor)
+            invocation.profile_staged = tuple(
+                tuple(sorted(group)) for group in executor.released
+            )
+            result = InvestigationResult.model_validate(raw)
+            invocation.completed(actor, source, executor, result)
+            self.store.provenance(
+                task_id,
+                provenance_from(budget, executor).model_dump(mode="json"),
+            )
+        finally:
+            budget.close()
 
     def _row(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> dict:
         row = self.store.get(actor, task_id)

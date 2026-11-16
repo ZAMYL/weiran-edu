@@ -381,6 +381,15 @@ class TaskStore:
                 (encode(disclosure), task_id),
             )
 
+    def purpose(self, task_id: str) -> str:
+        with self.database.transaction() as c:
+            row = c.execute(
+                "SELECT g.purpose FROM ai_synthetic_tasks t "
+                "JOIN ai_synthetic_grants g ON g.grant_id=t.grant_id WHERE t.task_id=?",
+                (task_id,),
+            ).fetchone()
+        return row["purpose"] if row else ""
+
     def provenance(self, task_id: str, value: dict) -> None:
         """Persisted execution provenance; only server-side accounting may fill it."""
         with self.database.transaction(write=True) as c:
