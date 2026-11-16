@@ -21,7 +21,7 @@ import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { LiveScoreDrawer } from './LiveStudents';
 import TeacherQuestionSuggestions from './TeacherQuestionSuggestions';
-import { teacherQuestions } from '../../services/edu-api/teacher-ai-guidance';
+import { teacherAiError, teacherQuestions } from '../../services/edu-api/teacher-ai-guidance';
 import { teacherNumber } from '../../services/edu-api/teacher-analysis';
 import { DIMENSIONS } from '../../services/edu-api/types';
 
@@ -268,6 +268,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const projection = task?.result?.profile_projection;
   const profiles = projection?.profiles ?? [];
   const taskLabel = task ? taskStateLabels[task.state] : undefined;
+  const taskFailure = task?.error_code ? teacherAiError(task.error_code) : null;
   const resultLabel = task?.result && stopLabels[task.result.stop_reason];
   const analyzing = !error && (running || (canStart && busy));
   const status = error
@@ -377,11 +378,12 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
         <Alert
           showIcon
           type={task.state === 'cancelled' ? 'info' : 'warning'}
-          title={taskLabel}
+          title={taskFailure?.message ?? taskLabel}
           description={
-            task.state === 'failed' || task.state === 'timed_out'
+            taskFailure?.action ??
+            (task.state === 'failed' || task.state === 'timed_out'
               ? '本轮分析未完成，可切换其他测评批次。'
-              : undefined
+              : undefined)
           }
         />
       )}

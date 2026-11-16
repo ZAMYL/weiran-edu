@@ -42,9 +42,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     !dataMode.notice &&
     dataMode.assessmentPanel === null;
   const sampleAccount =
-    dataMode.testMode &&
-    dataMode.syntheticAi &&
-    dataMode.scopes.some((scope) => scope.label === '合成AI集成验收');
+    dataMode.syntheticIdentity ??
+    (dataMode.testMode &&
+      dataMode.syntheticAi &&
+      dataMode.scopes.some((scope) => scope.label === '合成AI集成验收'));
   const pageTitle = uploadWorkspace ? '上传测评资料' : page.label;
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
@@ -234,7 +235,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
           {sampleAccount && (
             <p>
-              <b>数据来源</b> 此账户的预置测评由程序生成。
+              <b>数据来源</b> 此账户如有预置测评，预置数据由程序生成。
             </p>
           )}
         </div>

@@ -15,6 +15,8 @@ export const scoreDisplay = (value: number | null) =>
       );
 export const ratioDisplay = (value: number | null) =>
   value === null ? '—' : `${scoreDisplay(value * 100)}%`;
+export const studentScoreDisplay = ({ score, display }: { score: number; display?: string }) =>
+  display === undefined ? scoreDisplay(score) : display.replace(/\.?0+$/, '');
 export const countDisplay = (value: number | null) =>
   value === null ? '—' : Number.isSafeInteger(value) ? String(value) : scoreDisplay(value);
 export const metricDisplay = (metric: Pick<InsightMetric, 'unit' | 'value'>) =>

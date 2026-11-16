@@ -16,6 +16,7 @@ import {
   dimensionName,
   metricDisplay,
   scoreDisplay,
+  studentScoreDisplay,
 } from '../../services/edu-api/view-model';
 import { AssessmentContext, Panel } from '../../components/ui';
 import { useRemote } from './useRemote';
@@ -67,12 +68,12 @@ export function LiveStudentTable({
                   className="score-evidence-link"
                   type="link"
                   onClick={() => onEvidence(score.evidence_id)}
-                  aria-label={`${student.display_label} ${d.name} ${scoreDisplay(score.score)} 分，查看评分依据`}
+                  aria-label={`${student.display_label} ${d.name} ${studentScoreDisplay(score)} 分，查看评分依据`}
                 >
-                  {scoreDisplay(score.score)}
+                  {studentScoreDisplay(score)}
                 </Button>
               ) : (
-                scoreDisplay(score.score)
+                studentScoreDisplay(score)
               )
             ) : (
               <span className="muted">未纳入本指标核算</span>

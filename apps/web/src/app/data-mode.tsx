@@ -57,6 +57,7 @@ interface SessionState {
   liveAi: boolean;
   connected: boolean;
   teacherId: string | null;
+  syntheticIdentity: boolean | undefined;
   scopes: ApiScope[];
   batch: ApiBatch | null;
   conditions: ApiCondition[];
@@ -79,6 +80,7 @@ const initial: SessionState = {
   liveAi: false,
   connected: false,
   teacherId: null,
+  syntheticIdentity: undefined,
   scopes: [],
   batch: null,
   conditions: [],
@@ -212,6 +214,8 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           uploadDraft: null,
           assessmentPanel: null,
           teacherId: me.teacher_id,
+          syntheticIdentity:
+            me.identity_kind === undefined ? undefined : me.identity_kind !== 'teacher',
           scopes: scopes.items,
           hasArchivedBatches,
           batch: selected,

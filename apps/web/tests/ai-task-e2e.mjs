@@ -168,7 +168,7 @@ try {
   assert.doesNotMatch(await page.locator('.app-shell').innerText(), /演示工作台 · 演示数据/);
   await page.getByRole('button', { name: /帮助$/ }).click();
   const help = page.getByRole('dialog', { name: '使用未然 EDU' });
-  await help.getByText('此账户的预置测评由程序生成。', { exact: false }).waitFor();
+  await help.getByText('此账户如有预置测评，预置数据由程序生成。', { exact: false }).waitFor();
   await help.getByRole('button', { name: '知道了' }).click();
   await help.waitFor({ state: 'hidden' });
   const technicalDetails = page.locator('.ai-technical');
@@ -196,6 +196,23 @@ try {
   assert.equal(completed.result.real_qwen, 'not_run');
   assert.equal(completed.result.production_enabled, false);
   assert.equal(completed.result.budget.actual_remote_requests, 0);
+  if (process.env.EDU_AI_EXPECT_EVENTS === '1') {
+    const eventRoute =
+      `${origin}/api/edu/batches/${normal.batch_id}/ai-investigation-tasks/${start.task_id}/events` +
+      `?snapshot_id=${normal.snapshot_id}`;
+    const response = await page.request.get(eventRoute + '&after=0');
+    assert.equal(response.status(), 200);
+    const timeline = await response.json();
+    assert.equal(timeline.task_id, start.task_id);
+    assert.ok(timeline.events.some((event) => event.phase === 'result_committed'));
+    for (const [index, event] of timeline.events.entries()) {
+      assert.ok(event.sequence > (timeline.events[index - 1]?.sequence ?? 0));
+    }
+    const tail = await page.request.get(eventRoute + `&after=${timeline.events.at(-1).sequence}`);
+    assert.equal(tail.status(), 200);
+    assert.deepEqual((await tail.json()).events, []);
+    checks.push('task event HTTP routes return ordered results and respect the sequence cursor');
+  }
   if (completed.result.stop_reason === 'bounded_scope_stop') {
     const status = page.locator('.ai-task-actions').getByRole('status');
     assert.equal(await status.innerText(), '核查未覆盖所有问题');

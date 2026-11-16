@@ -50,6 +50,16 @@ function Insights({ batch }: { batch: ApiBatch }) {
   const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
+  const loadAiCapability = useCallback(
+    (signal: AbortSignal) => client.aiCapability(signal),
+    [client],
+  );
+  const aiCapability = useRemote(
+    liveAi && !syntheticAi ? 'ai-live-capability' : null,
+    loadAiCapability,
+  );
+  const canRunAi =
+    syntheticAi || (aiCapability.data?.available && aiCapability.data.mode === 'qwen_live');
   const [rightView, setRightView] = useState<'focus' | 'statistics'>('focus');
   const analysisSwitch = (
     <Segmented
@@ -163,7 +173,7 @@ function Insights({ batch }: { batch: ApiBatch }) {
       >
         {(focusPanel) => (
           <>
-            {syntheticAi || liveAi ? (
+            {canRunAi ? (
               <AiInvestigationPanel batch={batch} />
             ) : (
               <Panel title="AI 分析" className="ai-investigation-panel">

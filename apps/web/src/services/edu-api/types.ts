@@ -123,6 +123,7 @@ export const batchListDto = object({ total_count: count, items: list(batchDto), 
 export const scoreDto = object({
   dimension_code: dimensionCode,
   score: numeric,
+  display: optional(checked(text, (value) => /^\d+\.\d{2}$/.test(value))),
   evidence_id: text,
 });
 export const studentDto = object({ student_id: text, display_label: text, scores: list(scoreDto) });
@@ -413,7 +414,13 @@ export const commitDto = object({
   result: literal('created', 'duplicate', 'replayed'),
 });
 export type ApiCommit = Decoded<typeof commitDto>;
-export const meDto = object({ teacher_id: text });
+export const meDto = object({
+  teacher_id: text,
+  issuer: optional(text),
+  subject: optional(text),
+  identity_kind: optional(literal('teacher', 'demo_first_use', 'demo_sample')),
+  data_label: optional(text),
+});
 export const scopesDto = object({
   items: list(object({ data_scope_id: text, label: text, can_import: flag })),
 });

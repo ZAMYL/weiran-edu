@@ -27,6 +27,8 @@ it('accepts actual queued and stopped states without manufacturing progress', ()
   expect(
     aiRunning(aiTaskDto({ ...task, state: 'cancelled', error_code: 'AI_TASK_CANCELLED' })),
   ).toBe(false);
+  expect(aiTaskDto({ ...task, provenance: null }).provenance).toBeNull();
+  expect(aiTaskDto({ ...task, provenance: {} }).provenance).toBeNull();
 });
 it('keeps live execution distinct and refuses unexecuted or mixed-source success', () => {
   const live = {
@@ -64,13 +66,17 @@ it('keeps live execution distinct and refuses unexecuted or mixed-source success
   const completed = { ...live, state: 'completed', model_requests: 1, provenance, result };
   expect(aiTaskDto(completed)).toMatchObject({ execution_origin: 'qwen_live', provenance });
   expect(
+    aiTaskDto({ ...completed, origin: undefined, execution_origin: 'qwen_live' }).provenance,
+  ).toEqual(provenance);
+  expect(
     aiTaskDto({ ...completed, result: { ...result, execution_origin: undefined } }).result
       ?.real_qwen,
   ).toBe('completed');
   for (const invalid of [
     { ...completed, model_requests: 0 },
     { ...completed, real_qwen: 'not_run' },
-    { ...completed, origin: undefined, execution_origin: 'qwen_live' },
+    { ...completed, provenance: {} },
+    { ...completed, real_qwen: 'failed' },
     { ...completed, origin: 'not_run' },
     { ...completed, execution_origin: 'http_mock' },
     { ...completed, state: 'running' },

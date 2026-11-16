@@ -18,7 +18,9 @@ import {
 } from './analysis-types';
 import { readReportFile, ReportFileError, type ReportFile } from './report-file';
 import {
+  aiCapabilityDto,
   aiTaskDto,
+  aiTaskEventsDto,
   aiSourcesDto,
   aiProfileScoresDto,
   aiReviewDto,
@@ -321,6 +323,22 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       if (task.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
       return task;
     },
+    aiTaskEvents: async (batch: ApiBatch, taskId: string, after = 0, signal?: AbortSignal) => {
+      if (!Number.isSafeInteger(after) || after < 0) throw new ApiError(422, 'INVALID_QUERY');
+      const result = await get(
+        `${base(batch)}/ai-investigation-tasks/${id(taskId)}/events?${snapshot(batch)}&after=${after}`,
+        aiTaskEventsDto,
+        signal,
+      );
+      if (
+        result.task_id !== taskId ||
+        result.events.some(
+          (event, index) => event.sequence <= (result.events[index - 1]?.sequence ?? after),
+        )
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return result.events;
+    },
     cancelAiTask: async (batch: ApiBatch, taskId: string, signal?: AbortSignal) => {
       const task = assertSnapshot(
         await post(
@@ -512,6 +530,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       testSession = true;
     },
     me: (signal?: AbortSignal) => get('/me', meDto, signal),
+    aiCapability: (signal?: AbortSignal) => get('/ai-capability', aiCapabilityDto, signal),
     scopes: (signal?: AbortSignal) => get('/scopes', scopesDto, signal),
     batches: (offset = 0, limit = 20, signal?: AbortSignal, archived = false) =>
       get(

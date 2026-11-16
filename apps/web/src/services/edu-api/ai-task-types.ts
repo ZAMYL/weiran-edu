@@ -16,6 +16,17 @@ import { conditionDto, dimensionCode } from './types';
 import { discoveryExactDto, exactRationalDto } from './exact';
 
 const executionOriginDto = literal('http_mock', 'qwen_live', 'not_run');
+export const aiCapabilityDto = checked(
+  object({
+    available: flag,
+    mode: literal('qwen_live', 'http_mock', 'unavailable'),
+    reason: literal('available', 'AI_LIVE_NOT_ENABLED'),
+    message: text,
+  }),
+  (value) =>
+    value.available === (value.mode !== 'unavailable') &&
+    value.available === (value.reason === 'available'),
+);
 type ExecutionOrigin = Decoded<typeof executionOriginDto>;
 const origin = {
   origin: optional(executionOriginDto),
@@ -147,7 +158,13 @@ const resultDto = object({
 });
 const taskDto = object({
   ...origin,
-  provenance: optional(provenanceDto),
+  provenance: optional(
+    nullable((value) =>
+      value && typeof value === 'object' && !Array.isArray(value) && !Object.keys(value).length
+        ? null
+        : provenanceDto(value),
+    ),
+  ),
   task_id: text,
   batch_id: text,
   snapshot_id: text,
@@ -168,9 +185,9 @@ function liveResultVerified(task: Decoded<typeof taskDto>) {
   const receipt = task.provenance;
   if (task.state !== 'completed') return task.result === null;
   return (
-    task.origin === 'qwen_live' &&
     task.error_code === null &&
     task.real_qwen !== 'not_run' &&
+    task.real_qwen !== 'failed' &&
     task.result?.real_qwen === 'completed' &&
     receipt?.origin === 'qwen_live' &&
     receipt.state === 'completed' &&
@@ -192,6 +209,9 @@ export function aiTaskDto(value: unknown) {
   if (
     (executionOrigin === 'not_run' &&
       (task.state === 'completed' || result !== null || task.model_requests !== 0)) ||
+    (task.provenance &&
+      task.provenance.origin !== executionOrigin &&
+      task.provenance.origin !== 'not_run') ||
     (executionOrigin === 'qwen_live' && !liveResultVerified(task))
   )
     throw new ContractError();
@@ -227,6 +247,29 @@ export function aiTaskDto(value: unknown) {
   return { ...task, execution_origin: executionOrigin };
 }
 export type AiTask = Decoded<typeof aiTaskDto>;
+
+export const aiTaskEventsDto = object({
+  task_id: text,
+  events: list(
+    object({
+      sequence: count,
+      phase: text,
+      at: text,
+      detail: object({
+        tool: optional(text),
+        status: optional(text),
+        error: optional(nullable(text)),
+        request_count: optional(count),
+        model_requests: optional(count),
+        tool_attempts: optional(count),
+        charged_tokens: optional(count),
+        charged_cny_upper_bound: optional(numeric),
+        code: optional(text),
+        fact_count: optional(count),
+      }),
+    }),
+  ),
+});
 export const aiSourcesDto = object({
   batch_id: text,
   snapshot_id: text,

@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const routes: Record<string, RegExp[]> = {
   GET: [
-    /^(me|scopes|batches|test-session)$/,
+    /^(me|scopes|batches|test-session|ai-capability)$/,
     /^batches\/[^/]+$/,
     /^batches\/[^/]+\/(statistics|students|rubric)$/,
     /^batches\/[^/]+\/(capabilities|analysis-results)$/,
@@ -19,6 +19,7 @@ const routes: Record<string, RegExp[]> = {
     /^imports\/[^/]+$/,
     /^imports\/[^/]+\/quality-report$/,
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+$/,
+    /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/events$/,
   ],
   POST: [
     /^batches\/[^/]+\/discoveries\/query$/,
@@ -78,6 +79,7 @@ async function relay(
   if (!routes[request.method]?.some((pattern) => pattern.test(route)))
     return fail(404, 'NOT_FOUND');
   const source = new URL(request.url);
+  const taskEvents = path[2] === 'ai-investigation-tasks' && path[4] === 'events';
   const report = request.method === 'GET' && path[2] === 'analysis-results' && path[4] === 'export';
   const format = source.searchParams.get('format');
   const version = Number(source.searchParams.get('expected_version'));
@@ -97,7 +99,9 @@ async function relay(
       ? `${source.protocol}//${receivedHost}`
       : source.origin;
   if (
-    Array.from(source.searchParams.keys()).some((key) => !queryNames.has(key)) ||
+    Array.from(source.searchParams.keys()).some(
+      (key) => !queryNames.has(key) && !(taskEvents && key === 'after'),
+    ) ||
     request.headers.get('sec-fetch-site') === 'cross-site' ||
     (request.headers.has('origin') && request.headers.get('origin') !== expectedOrigin)
   )

@@ -19,6 +19,23 @@ it('relays live AI only with an explicit server switch and a teacher credential'
   expect((await run({ authorization: bearer })).status).toBe(403);
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
+it('relays the event cursor only on the exact AI events GET route', async () => {
+  vi.stubEnv('EDU_AI_LIVE_MODE', '1');
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ events: [] }));
+  vi.stubGlobal('fetch', fetcher);
+  const path = 'batches/b/ai-investigation-tasks/t/events';
+  const request = (route: string, method = 'GET') =>
+    new Request(`http://127.0.0.1:3000/api/edu/${route}?snapshot_id=s&after=2`, {
+      method,
+      headers: { authorization: bearer },
+    });
+  expect((await GET(request(path), context(path))).status).toBe(200);
+  expect(String(fetcher.mock.calls[0]?.[0])).toContain('snapshot_id=s&after=2');
+  const status = path.replace('/events', '');
+  expect((await GET(request(status), context(status))).status).toBe(403);
+  expect((await POST(request(path, 'POST'), context(path))).status).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
 it.each([
   ['batches/b/discoveries/query', true],
   [`batches/b/discoveries/${'a'.repeat(24)}/query`, true],

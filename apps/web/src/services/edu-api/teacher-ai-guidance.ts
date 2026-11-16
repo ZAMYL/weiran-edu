@@ -65,6 +65,15 @@ export function teacherAiError(
         action: '查看已有结果；本轮不能重新开始。',
         retry: false,
       };
+    case 'AI_LIVE_NOT_ENABLED':
+    case 'AI_LIVE_ADMISSION_REQUIRED':
+    case 'AI_LIVE_BUDGET_REQUIRED':
+    case 'AI_LIVE_APPROVAL_STALE':
+      return {
+        message: 'AI 分析暂不可用。',
+        action: '可继续查看评分统计和评分依据。',
+        retry: false,
+      };
     case 'AI_PURPOSE_REQUIRED':
     case 'AI_PURPOSE_REVOKED':
     case 'AI_SYNTHETIC_SOURCE_REQUIRED':

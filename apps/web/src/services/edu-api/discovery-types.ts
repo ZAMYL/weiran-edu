@@ -9,6 +9,7 @@ import {
   nullable,
   numeric,
   object,
+  optional,
   text,
 } from './schema';
 import {
@@ -66,6 +67,9 @@ const summaryShape = {
   ),
   title: text,
   summary: text,
+  dedup_key: optional(text),
+  affected: optional(object({ count, total: count })),
+  why: optional(text),
   status: literal('displayable', 'interpret_cautiously', 'insufficient_evidence'),
   public_display_allowed: literal(false),
 };
