@@ -273,6 +273,7 @@ class TaskService:
             tool_attempts=row["tool_attempts"],
             model_requests=json.loads(row["budget_json"]).get("request_count", 0),
             result=result,
+            provenance=json.loads(row["provenance_json"]) if row["provenance_json"] else None,
             review_result_path=receipt.get("result_path") if receipt else None,
             expires_at=row["expires"],
         )

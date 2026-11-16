@@ -63,7 +63,7 @@ class TaskStore:
             "created REAL NOT NULL, deadline REAL NOT NULL, expires REAL NOT NULL, "
             "cancelled INTEGER NOT NULL DEFAULT 0, tool_attempts INTEGER NOT NULL DEFAULT 0, "
             "budget_json TEXT NOT NULL DEFAULT '{}', disclosure_json TEXT NOT NULL DEFAULT '[]', "
-            "proof_json TEXT, result_json TEXT, result_sha TEXT, review_json TEXT, "
+            "proof_json TEXT, result_json TEXT, result_sha TEXT, review_json TEXT, provenance_json TEXT NOT NULL DEFAULT '{}', "
             "UNIQUE(teacher_id,idempotency_key)) STRICT",
             "CREATE TABLE IF NOT EXISTS ai_synthetic_events ("
             "task_id TEXT NOT NULL REFERENCES ai_synthetic_tasks, sequence INTEGER NOT NULL, "
@@ -379,6 +379,14 @@ class TaskStore:
             c.execute(
                 "UPDATE ai_synthetic_tasks SET disclosure_json=? WHERE task_id=?",
                 (encode(disclosure), task_id),
+            )
+
+    def provenance(self, task_id: str, value: dict) -> None:
+        """Persisted execution provenance; only server-side accounting may fill it."""
+        with self.database.transaction(write=True) as c:
+            c.execute(
+                "UPDATE ai_synthetic_tasks SET provenance_json=? WHERE task_id=?",
+                (encode(value), task_id),
             )
 
     def budget(self, task_id: str, snapshot: dict) -> None:

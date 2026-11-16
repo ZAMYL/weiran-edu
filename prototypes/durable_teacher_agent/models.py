@@ -87,9 +87,10 @@ class TaskView(Model):
     state: str
     error_code: str | None
     stop_reason: str | None
-    execution_origin: Literal["http_mock"] = "http_mock"
-    real_qwen: Literal["not_run"] = "not_run"
-    production_enabled: Literal[False] = False
+    execution_origin: Literal["qwen_live", "http_mock"] = "http_mock"
+    real_qwen: Literal["not_run", "completed", "failed"] = "not_run"
+    production_enabled: bool = False
+    provenance: dict[str, object] | None = None
     tool_attempts: int
     model_requests: int
     max_tool_attempts: Literal[5] = 5
