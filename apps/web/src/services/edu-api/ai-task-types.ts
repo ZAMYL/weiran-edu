@@ -104,7 +104,10 @@ const profileDto = object({
   five_dimension_summary_origin: literal('deterministic_discovery_replay'),
   agent_fact_scope: literal('primary_non_condition_outcome_only'),
   verified_fact_ids: list(text),
-  dimension_evidence_http: literal('synthetic_task_profile_scores_v1'),
+  dimension_evidence_http: literal(
+    'synthetic_task_profile_scores_v1',
+    'live_task_profile_scores_v1',
+  ),
   minimum_cell: count,
   public_display_allowed: literal(false),
   production_enabled: literal(false),
@@ -121,7 +124,10 @@ const profileProjectionDto = object({
   stop_reason: text,
   investigation_status: text,
   uninvestigated_candidates: count,
-  dimension_evidence_http: literal('synthetic_task_profile_scores_v1'),
+  dimension_evidence_http: literal(
+    'synthetic_task_profile_scores_v1',
+    'live_task_profile_scores_v1',
+  ),
 });
 const resultDto = object({
   ...origin,
