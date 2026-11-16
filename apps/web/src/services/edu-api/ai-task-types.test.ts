@@ -29,10 +29,17 @@ it('accepts actual queued and stopped states without manufacturing progress', ()
   ).toBe(false);
 });
 it('keeps live execution distinct and refuses unexecuted or mixed-source success', () => {
-  const live = { ...task, execution_origin: 'qwen_live', real_qwen: undefined };
+  const live = {
+    ...task,
+    origin: 'qwen_live',
+    execution_origin: undefined,
+    real_qwen: undefined,
+    production_enabled: undefined,
+  };
   expect(aiTaskDto(live).execution_origin).toBe('qwen_live');
   const result = {
     execution_origin: 'qwen_live',
+    real_qwen: 'completed',
     run_id: 'r',
     batch_id: 'b',
     snapshot_id: 's',
@@ -45,11 +52,34 @@ it('keeps live execution distinct and refuses unexecuted or mixed-source success
     retained_fact_ids: [],
     uncovered_direction_count: 0,
   };
-  const completed = { ...live, state: 'completed', model_requests: 1, result };
-  expect(aiTaskDto(completed).result?.execution_origin).toBe('qwen_live');
+  const provenance = {
+    origin: 'qwen_live',
+    state: 'completed',
+    request_state: 'responses_received',
+    model_requests: 1,
+    tool_attempts: 0,
+    source_replay_verified: true,
+    error_code: null,
+  };
+  const completed = { ...live, state: 'completed', model_requests: 1, provenance, result };
+  expect(aiTaskDto(completed)).toMatchObject({ execution_origin: 'qwen_live', provenance });
+  expect(
+    aiTaskDto({ ...completed, result: { ...result, execution_origin: undefined } }).result
+      ?.real_qwen,
+  ).toBe('completed');
   for (const invalid of [
     { ...completed, model_requests: 0 },
     { ...completed, real_qwen: 'not_run' },
+    { ...completed, origin: undefined, execution_origin: 'qwen_live' },
+    { ...completed, origin: 'not_run' },
+    { ...completed, execution_origin: 'http_mock' },
+    { ...completed, state: 'running' },
+    { ...completed, provenance: undefined },
+    { ...completed, provenance: { ...provenance, source_replay_verified: false } },
+    { ...completed, provenance: { ...provenance, request_state: 'attempted' } },
+    { ...completed, provenance: { ...provenance, origin: 'http_mock' } },
+    { ...completed, provenance: { ...provenance, model_requests: 2 } },
+    { ...completed, result: { ...result, real_qwen: 'not_run' } },
     { ...completed, execution_origin: 'not_run', result: null, model_requests: 0 },
     {
       ...completed,

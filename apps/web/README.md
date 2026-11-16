@@ -32,7 +32,7 @@ pnpm start
 
 诊断、画像和报告使用后端统计与获授权的学生标识。默认评分显示最多两位小数。报告优先打开该测评的已有版本，教师核验后导出 Excel 或 Markdown。导出需实时检查权限、报告版本与服务器预检。
 
-真实 AI 任务接线由服务端的 `EDU_AI_LIVE_MODE=1` 开启，必须有支持并授权真实任务的后端。当前产品基线仅有隔离的合成任务宿主。运行中的界面使用真实任务状态，网页调试及演示需用[独立开发宿主](../../scripts/local/README.md)，其环回上下文与教师访问分开。
+真实 AI 任务接线由服务端的 `EDU_AI_LIVE_MODE=1` 开启，必须有支持并授权真实任务的后端。根据 [V1.3.1 后端接线草案](https://github.com/ZAMYL/weiran-edu/blob/7e9dd3af421927881438a5ea748f7798363c2b2b/docs/QWEN_V131_BACKEND_WIRING.md)，真实结果须由服务器返回 `origin=qwen_live` 及已收取模型响应、已重放核验来源的 `provenance`。当前后端增量已实现准入，执行和结果回读仍待接线。运行中的界面使用真实任务状态，隔离演示使用[独立开发宿主](../../scripts/local/README.md)。
 
 ## 浏览器验证
 
