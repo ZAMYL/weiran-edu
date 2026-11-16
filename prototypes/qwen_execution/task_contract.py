@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import Literal
 
+import httpx
 from app.ai.edu.discovery.models import AgentError, Limits, Strict
 from app.ai.edu.qwen_config import QwenSettings
 from app.edu.auth import Principal
@@ -16,6 +17,19 @@ from prototypes.capability_profiles.database import DatabaseProfileSource
 from prototypes.capability_profiles.engine import build_profiles
 from prototypes.durable_teacher_agent.store import TaskStore
 from prototypes.teacher_agent_bridge.provider import DatabaseSource
+
+
+@dataclass(frozen=True, repr=False)
+class _DatabaseTestTransport:
+    """Python-only capability; never parsed from a request or environment flag."""
+
+    transport: httpx.MockTransport
+
+    def check(self, budget: CampaignBudget) -> None:
+        if type(self.transport) is not httpx.MockTransport:
+            raise AgentError("database_test_mock_transport_required")
+        if budget.origin != "http_mock":
+            raise AgentError("database_test_mock_budget_required")
 
 
 @dataclass(frozen=True, repr=False)
@@ -85,12 +99,16 @@ class DatabaseTaskInput:
             self.settings.base_url,
         )
 
-    def preflight(self) -> DatabaseProfileSource:
+    def preflight(self, *, _testing: _DatabaseTestTransport | None = None) -> DatabaseProfileSource:
         """Run before aggregate construction AND again at every request/publication.
 
         Existing synthetic_mock TaskStore/DurableBudget are intentionally not upgraded
         by this function. Backend must install reviewed live persistence/admission first.
         """
+        if _testing is not None:
+            if type(_testing) is not _DatabaseTestTransport:
+                raise AgentError("database_test_capability_required")
+            _testing.check(self.budget)
         scope = self.check_binding()
         if not callable(self.require_externalization):
             raise AgentError("remote_processing_admission_required")
@@ -100,7 +118,7 @@ class DatabaseTaskInput:
         self.budget.check(self.settings, self.source)
         self.store.authorize(self.task_id, self.actor, running=True)
         self.require_externalization(scope)  # Revocation during the read fails closed.
-        if self.budget.origin != "qwen_live":
+        if _testing is None and self.budget.origin != "qwen_live":
             raise AgentError("database_live_budget_not_installed")
         return contract
 
@@ -108,38 +126,45 @@ class DatabaseTaskInput:
 class DatabasePlanner(ProfilePlanner):
     """Same planning/execution kernel; database permission is checked at each send."""
 
-    def __init__(self, *args, binding: DatabaseTaskInput, **kwargs):
+    def __init__(self, *args, binding: DatabaseTaskInput, _testing=None, **kwargs):
         self.binding = binding
+        self._testing = _testing
         super().__init__(*args, **kwargs)
 
     def _admit_execution(self, budget, transport, allow_network):
-        if budget is not self.binding.budget or transport is not None or not allow_network:
+        expected = None if self._testing is None else self._testing.transport
+        if (
+            budget is not self.binding.budget
+            or transport is not expected
+            or allow_network != (self._testing is None)
+        ):
             raise AgentError("database_execution_binding_conflict")
-        self.binding.preflight()
+        self.binding.preflight(_testing=self._testing)
 
     async def _post(self, payload: dict) -> dict:
-        self.binding.preflight()
+        self.binding.preflight(_testing=self._testing)
         response = await super()._post(payload)
-        self.binding.preflight()
+        self.binding.preflight(_testing=self._testing)
         return response
 
 
 class DatabaseExecution:
     """Controlled adapter accepted by the existing single profile session."""
 
-    def __init__(self, binding: DatabaseTaskInput):
+    def __init__(self, binding: DatabaseTaskInput, *, _testing=None):
         self.binding = binding
+        self._testing = _testing
         self.settings = binding.settings
-        self.planner = partial(DatabasePlanner, binding=binding)
+        self.planner = partial(DatabasePlanner, binding=binding, _testing=_testing)
 
     def check(self, source, budget, transport):
         if (
             source is not self.binding.source
             or budget is not self.binding.budget
-            or transport is not None
+            or transport is not (None if self._testing is None else self._testing.transport)
         ):
             raise AgentError("database_execution_binding_conflict")
-        self.binding.preflight()
+        self.binding.preflight(_testing=self._testing)
 
 
 async def run_database_profiles(binding: DatabaseTaskInput, *, limits: Limits) -> tuple:
@@ -148,7 +173,16 @@ async def run_database_profiles(binding: DatabaseTaskInput, *, limits: Limits) -
     Current Mock-only backend fails preflight. This function grants no remote consent.
     Backend owns persistence, cancellation and failure receipts, using the same TaskStore.
     """
-    contract = binding.preflight()
+    return await _run_database_profiles(binding, limits=limits)
+
+
+async def _run_database_profiles(
+    binding: DatabaseTaskInput, *, limits: Limits, _testing: _DatabaseTestTransport | None = None
+) -> tuple:
+    """One implementation for the unchanged Live entry and the explicit test seam."""
+    if type(binding) is not DatabaseTaskInput:
+        raise AgentError("trusted_database_task_required")
+    contract = binding.preflight(_testing=_testing)
     with binding.source.validation_scope():
         book = build_profiles(contract, minimum_cell=limits.minimum_cell)
         result, book, executor = await run_profile_session(
@@ -156,10 +190,11 @@ async def run_database_profiles(binding: DatabaseTaskInput, *, limits: Limits) -
             book,
             binding.budget,
             limits=limits,
-            reviewed_execution=DatabaseExecution(binding),
+            transport=None if _testing is None else _testing.transport,
+            reviewed_execution=DatabaseExecution(binding, _testing=_testing),
             retain_partial=False,
         )
-        binding.preflight()
+        binding.preflight(_testing=_testing)
         executor.verify_all()
         binding.store.provider.replay_witnesses(
             binding.source,
@@ -170,7 +205,8 @@ async def run_database_profiles(binding: DatabaseTaskInput, *, limits: Limits) -
                 for ref in source.references
             ],
         )
-    binding.preflight()  # Fresh capture on scope exit and current authorization before release.
+    # Fresh capture on scope exit and current authorization before release.
+    binding.preflight(_testing=_testing)
     result["source_replay_verified"] = True
     return result, book, executor
 
