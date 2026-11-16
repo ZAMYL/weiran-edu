@@ -4150,7 +4150,6 @@ h1 {
 .report-finding-list {
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
   scrollbar-gutter: stable;
   padding: 0 8px 3px 2px;
 }
