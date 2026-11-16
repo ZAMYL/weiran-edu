@@ -10,11 +10,6 @@ from hashlib import sha256
 from pathlib import Path
 from threading import Lock
 
-from app.ai.edu.discovery.models import AgentError, Limits
-from app.core.errors import APIError
-from app.ai.edu.qwen_config import QwenSettings
-from app.edu.auth import Principal
-
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.capability_profiles.engine import CODES, DIMS, ITEMS
@@ -22,10 +17,16 @@ from prototypes.research_agent_v2.runtime import ResearchExecutor
 from prototypes.teacher_agent_bridge.api import InvestigationHost
 from prototypes.teacher_agent_bridge.models import (
     InvestigationRequest,
+    InvestigationResult,
     SourceRequest,
     SourceResult,
 )
 from prototypes.teacher_agent_bridge.provider import DatabaseEnvelope, DatabaseSource, digest
+
+from app.ai.edu.discovery.models import AgentError, Limits
+from app.ai.edu.qwen_config import QwenSettings
+from app.core.errors import APIError
+from app.edu.auth import Principal
 
 from .models import (
     PROFILE_SCORE_EVIDENCE_MODE,
@@ -312,9 +313,7 @@ class TaskService:
                 run_database_profiles(binding, limits=self.profile_limits)
             )
             invocation.profile_projection = projection(source, raw, book, executor)
-            invocation.profile_staged = tuple(
-                tuple(sorted(group)) for group in executor.released
-            )
+            invocation.profile_staged = tuple(tuple(sorted(group)) for group in executor.released)
             result = InvestigationResult.model_validate(raw)
             invocation.completed(actor, source, executor, result)
             self.store.provenance(

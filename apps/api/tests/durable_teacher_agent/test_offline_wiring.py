@@ -22,7 +22,7 @@ from prototypes.durable_teacher_agent.service import DurableBudget, Invocation, 
 from prototypes.qwen_execution import DatabaseTaskInput, ExecutionProvenance
 from prototypes.qwen_execution.testing import run_database_profiles_offline
 from prototypes.research_agent_v2.goals import Goal
-from prototypes.teacher_agent_bridge.models import InvestigationResult, InvocationBudget, ToolStep
+from prototypes.teacher_agent_bridge.models import InvocationBudget, ToolStep
 from prototypes.teacher_agent_bridge.provider import ALIASES
 from pydantic import SecretStr
 
@@ -65,9 +65,7 @@ def _persist_offline_result(service, task_id, row, actor, source, raw, book, exe
     # Re-run the projection with a fresh staged list. The original session keeps
     # its staged partitions private; replay needs the same cumulative disclosure.
     selection_origin = (
-        raw["profiles"][0].get("selection_origin", "http_mock")
-        if raw["profiles"]
-        else "http_mock"
+        raw["profiles"][0].get("selection_origin", "http_mock") if raw["profiles"] else "http_mock"
     )
     staged = []
     raw["profiles"] = project_selected(
@@ -78,8 +76,7 @@ def _persist_offline_result(service, task_id, row, actor, source, raw, book, exe
         source, executor, row["batch_id"], row["snapshot_id"], task_id
     )
     records_path = (
-        f"/api/v1/edu/batches/{row['batch_id']}/ai-investigation-tasks/"
-        f"{task_id}/records/query"
+        f"/api/v1/edu/batches/{row['batch_id']}/ai-investigation-tasks/{task_id}/records/query"
     )
     facts = tuple(
         fact.model_copy(
@@ -133,9 +130,7 @@ def _persist_offline_result(service, task_id, row, actor, source, raw, book, exe
         ExecutionProvenance(
             origin="http_mock",
             state="completed",
-            request_state="responses_received"
-            if raw["model_requests"]
-            else "not_run",
+            request_state="responses_received" if raw["model_requests"] else "not_run",
             model_requests=min(raw["model_requests"], 6),
             tool_attempts=min(raw["tool_attempts"], 5),
             source_replay_verified=True,
@@ -145,9 +140,7 @@ def _persist_offline_result(service, task_id, row, actor, source, raw, book, exe
 
 def offline_runner(service, task_id, row, actor, transport, scopes):
     source = service.source(row, actor, running=True)
-    permit = OfflineSnapshotPermit(
-        source, row["campaign_id"], RESEARCH_PRICE_20261104.fingerprint
-    )
+    permit = OfflineSnapshotPermit(source, row["campaign_id"], RESEARCH_PRICE_20261104.fingerprint)
     budget = DurableBudget(permit, service.directory / "offline-ledger", service.store, task_id)
     try:
         binding = DatabaseTaskInput(
@@ -197,9 +190,7 @@ def test_live_task_without_approval_fails_closed_with_a_live_code(tmp_path, monk
         )
         assert response.status_code == 202, response.text
         task_id = response.json()["task_id"]
-        response = client.get(
-            f"{base}/{task_id}", params={"snapshot_id": batch["snapshot_id"]}
-        )
+        response = client.get(f"{base}/{task_id}", params={"snapshot_id": batch["snapshot_id"]})
         assert response.status_code == 200, response.text
         view = response.json()
         assert view["state"] == "failed"
@@ -216,9 +207,7 @@ def test_offline_live_wiring_submit_facts_scores_review_export(tmp_path):
     with TestClient(fixture.app, headers={"Authorization": "Bearer " + fixture.token}) as client:
         batch = upload(client, fixture, "balanced72")
         principal = actor(fixture, service)
-        grant_id = service.store.grant(
-            principal, batch["batch_id"], batch["snapshot_id"]
-        )
+        grant_id = service.store.grant(principal, batch["batch_id"], batch["snapshot_id"])
         with service.store.database.transaction(write=True) as connection:
             connection.execute(
                 "UPDATE ai_synthetic_grants SET purpose='database_live' WHERE grant_id=?",
@@ -233,9 +222,7 @@ def test_offline_live_wiring_submit_facts_scores_review_export(tmp_path):
         response = client.post(base, json=body)
         assert response.status_code == 202, response.text
         task_id = response.json()["task_id"]
-        response = client.get(
-            f"{base}/{task_id}", params={"snapshot_id": batch["snapshot_id"]}
-        )
+        response = client.get(f"{base}/{task_id}", params={"snapshot_id": batch["snapshot_id"]})
         assert response.status_code == 200, response.text
         view = response.json()
         assert view["state"] == "completed", view
@@ -251,9 +238,7 @@ def test_offline_live_wiring_submit_facts_scores_review_export(tmp_path):
 
         group = next(fact for fact in facts if fact["method"] == "compare_student_groups")
         source = next(ref for ref in group["source_refs"] if ref["metric_key"] == "target.valid")
-        response = client.post(
-            source["records_path"], json=source["records_query"] | {"limit": 2}
-        )
+        response = client.post(source["records_path"], json=source["records_query"] | {"limit": 2})
         assert response.status_code == 200, response.text
         records = response.json()
         assert records["total_count"] > 0 and len(records["items"]) <= 2

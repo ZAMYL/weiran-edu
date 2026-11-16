@@ -5,8 +5,6 @@ from dataclasses import asdict, dataclass
 from time import perf_counter
 
 import httpx
-from app.ai.edu.discovery.models import AgentError
-
 from prototypes.adaptive_assessment.live.budget import OfflineSnapshotPermit
 from prototypes.capability_profiles.agent import (
     ProfileExecutor,
@@ -23,6 +21,8 @@ from prototypes.research_agent_v2.goals import Goal
 from prototypes.teacher_agent_bridge.api import filter_conditions, metrics
 from prototypes.teacher_agent_bridge.models import InvestigationResult, SourceRequest
 from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseSource, digest
+
+from app.ai.edu.discovery.models import AgentError
 
 from .models import (
     PROFILE_SCORE_EVIDENCE_MODE,

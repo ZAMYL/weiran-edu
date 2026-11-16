@@ -2,15 +2,15 @@
 
 from pathlib import Path
 
+from fastapi import APIRouter, BackgroundTasks, FastAPI, Request
+from prototypes.teacher_agent_bridge.models import SourceRequest, SourceResult
+from prototypes.teacher_agent_bridge.provider import DatabaseProvider
+from starlette.concurrency import run_in_threadpool
+
 from app.core.exact_json import ExactJSONResponse
 from app.edu.query import read_query, request_schema
 from app.routers.edu import Actor
 from app.schemas.common import ErrorResponse
-from fastapi import APIRouter, BackgroundTasks, FastAPI, Request
-from starlette.concurrency import run_in_threadpool
-
-from prototypes.teacher_agent_bridge.models import SourceRequest, SourceResult
-from prototypes.teacher_agent_bridge.provider import DatabaseProvider
 
 from .models import (
     ProfileScoreRequest,
@@ -25,7 +25,6 @@ from .models import (
 from .review import submit
 from .service import TaskService
 from .store import TaskStore
-
 
 SAFE_TOOL_FIELDS = ("tool", "status", "error")
 SAFE_BUDGET_FIELDS = (
@@ -50,9 +49,7 @@ def project_event(event: dict) -> TaskEvent:
         detail = {"code": payload.get("code")} if payload.get("code") else {}
     elif phase == "review_requested":
         detail = {"fact_count": len(payload.get("fact_ids") or ())}
-    return TaskEvent(
-        sequence=event["sequence"], phase=phase, at=event["at"], detail=detail
-    )
+    return TaskEvent(sequence=event["sequence"], phase=phase, at=event["at"], detail=detail)
 
 
 def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -> TaskService:
@@ -125,9 +122,7 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
         return await submit(service, actor, batch_id, task_id, body, request=request)
 
     @router.get("/{task_id}/events", response_model=TaskEvents)
-    def task_events(
-        batch_id: str, task_id: str, snapshot_id: str, actor: Actor, after: int = 0
-    ):
+    def task_events(batch_id: str, task_id: str, snapshot_id: str, actor: Actor, after: int = 0):
         service.task_row(actor, batch_id, task_id, snapshot_id)
         return TaskEvents(
             task_id=task_id,

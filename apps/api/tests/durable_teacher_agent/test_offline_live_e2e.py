@@ -5,9 +5,6 @@ import json
 
 import httpx
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
-
-from app.ai.edu.qwen_config import QwenSettings
 from prototypes.adaptive_assessment.live.budget import OfflineSnapshotPermit
 from prototypes.adaptive_assessment.live.demo import MOCK_BASE, native_response
 from prototypes.adaptive_assessment.live.pricing import RESEARCH_PRICE_20261104 as PRICE
@@ -16,6 +13,9 @@ from prototypes.durable_teacher_agent.models import TaskCreate
 from prototypes.durable_teacher_agent.service import DurableBudget
 from prototypes.qwen_execution import DatabaseTaskInput
 from prototypes.qwen_execution.testing import run_database_profiles_offline
+from pydantic import SecretStr
+
+from app.ai.edu.qwen_config import QwenSettings
 
 from .test_tasks import QUESTION, actor, setup, upload
 

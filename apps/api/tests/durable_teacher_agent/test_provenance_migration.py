@@ -14,10 +14,7 @@ def _store(database):
 
 def _columns(database):
     with database.transaction() as connection:
-        return {
-            row["name"]
-            for row in connection.execute("PRAGMA table_info(ai_synthetic_tasks)")
-        }
+        return {row["name"] for row in connection.execute("PRAGMA table_info(ai_synthetic_tasks)")}
 
 
 def test_initialize_adds_provenance_json_to_an_existing_task_table(tmp_path):
@@ -25,9 +22,7 @@ def test_initialize_adds_provenance_json_to_an_existing_task_table(tmp_path):
     database.migrate()
     with database.transaction(write=True) as connection:
         connection.execute("CREATE TABLE ai_synthetic_tasks (task_id TEXT PRIMARY KEY) STRICT")
-        connection.execute(
-            "INSERT INTO ai_synthetic_tasks (task_id) VALUES ('old-task')"
-        )
+        connection.execute("INSERT INTO ai_synthetic_tasks (task_id) VALUES ('old-task')")
     assert "provenance_json" not in _columns(database)
     _store(database).initialize()
     assert "provenance_json" in _columns(database)

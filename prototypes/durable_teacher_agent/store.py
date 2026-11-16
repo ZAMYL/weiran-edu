@@ -10,15 +10,15 @@ import time
 from collections.abc import Callable
 from uuid import uuid4
 
+from prototypes.research_agent_v2.goals import understand
+from prototypes.teacher_agent_bridge.models import InvestigationResult
+from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseProvider, digest
+
 from app.ai.edu.discovery.models import AgentError
 from app.core.errors import APIError
 from app.edu.auth import Principal
 from app.edu.reads import BatchReader
 from app.edu.reviews import require_owner
-
-from prototypes.research_agent_v2.goals import understand
-from prototypes.teacher_agent_bridge.models import InvestigationResult
-from prototypes.teacher_agent_bridge.provider import ALIASES, DatabaseProvider, digest
 
 from .models import (
     PROFILE_RESULT_CONTRACT,
@@ -50,8 +50,8 @@ class TaskStore:
             "CREATE TABLE IF NOT EXISTS ai_synthetic_grants ("
             "grant_id TEXT PRIMARY KEY, teacher_id TEXT NOT NULL REFERENCES teachers, "
             "batch_id TEXT NOT NULL REFERENCES batches, snapshot_id TEXT NOT NULL, "
-            "source_sha TEXT NOT NULL, " 
-                "purpose TEXT NOT NULL CHECK(purpose IN ('synthetic_mock','database_live')), "
+            "source_sha TEXT NOT NULL, "
+            "purpose TEXT NOT NULL CHECK(purpose IN ('synthetic_mock','database_live')), "
             "expires REAL NOT NULL, revoked INTEGER NOT NULL DEFAULT 0, "
             "UNIQUE(teacher_id,batch_id,snapshot_id)) STRICT",
             "CREATE TABLE IF NOT EXISTS ai_synthetic_tasks ("
@@ -63,7 +63,8 @@ class TaskStore:
             "created REAL NOT NULL, deadline REAL NOT NULL, expires REAL NOT NULL, "
             "cancelled INTEGER NOT NULL DEFAULT 0, tool_attempts INTEGER NOT NULL DEFAULT 0, "
             "budget_json TEXT NOT NULL DEFAULT '{}', disclosure_json TEXT NOT NULL DEFAULT '[]', "
-            "proof_json TEXT, result_json TEXT, result_sha TEXT, review_json TEXT, provenance_json TEXT NOT NULL DEFAULT '{}', "
+            "proof_json TEXT, result_json TEXT, result_sha TEXT, review_json TEXT, "
+            "provenance_json TEXT NOT NULL DEFAULT '{}', "
             "UNIQUE(teacher_id,idempotency_key)) STRICT",
             "CREATE TABLE IF NOT EXISTS ai_synthetic_events ("
             "task_id TEXT NOT NULL REFERENCES ai_synthetic_tasks, sequence INTEGER NOT NULL, "
@@ -78,8 +79,7 @@ class TaskStore:
             columns = {row["name"] for row in c.execute("PRAGMA table_info(ai_synthetic_events)")}
             if "created_at" not in columns:
                 c.execute(
-                    "ALTER TABLE ai_synthetic_events "
-                    "ADD COLUMN created_at TEXT NOT NULL DEFAULT ''"
+                    "ALTER TABLE ai_synthetic_events ADD COLUMN created_at TEXT NOT NULL DEFAULT ''"
                 )
             # Older demo databases also predate provenance_json. The new column is
             # additive and defaults to an empty object; existing Mock rows stay Mock.

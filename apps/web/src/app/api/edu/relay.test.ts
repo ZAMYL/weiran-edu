@@ -116,9 +116,9 @@ it('relays AI capability without opening task routes', async () => {
 it('opens the AI task relay only with the explicit Live switch', async () => {
   vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
   vi.stubEnv('EDU_AI_LIVE_MODE', '1');
-  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-    Response.json({ error: { code: 'AI_LIVE_NOT_ENABLED' } }, { status: 503 }),
-  );
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json({ error: { code: 'AI_LIVE_NOT_ENABLED' } }, { status: 503 }));
   vi.stubGlobal('fetch', fetcher);
   const response = await POST(
     new Request('http://localhost/api/edu/batches/b/ai-investigation-tasks', {

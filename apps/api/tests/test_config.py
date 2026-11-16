@@ -46,3 +46,21 @@ def test_settings_can_be_injected_without_reading_environment(
     monkeypatch.setenv("WEIRAN_EDU_ENV", "invalid-value")
     application = create_app(Settings(environment="test"))
     assert application.state.settings.environment == "test"
+
+
+def test_ai_task_routes_default_to_production_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("WEIRAN_EDU_AI_TASK_ROUTES", raising=False)
+    monkeypatch.setenv("WEIRAN_EDU_ENV", "production")
+    assert Settings.from_env().ai_task_routes is True
+    monkeypatch.setenv("WEIRAN_EDU_ENV", "development")
+    assert Settings.from_env().ai_task_routes is False
+    monkeypatch.setenv("WEIRAN_EDU_AI_TASK_ROUTES", "1")
+    assert Settings.from_env().ai_task_routes is True
+    monkeypatch.setenv("WEIRAN_EDU_AI_TASK_ROUTES", "0")
+    assert Settings.from_env().ai_task_routes is False
+
+
+def test_invalid_ai_task_routes_setting_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("WEIRAN_EDU_AI_TASK_ROUTES", "synthetic-value")
+    with pytest.raises(RuntimeError, match="WEIRAN_EDU_AI_TASK_ROUTES"):
+        Settings.from_env()

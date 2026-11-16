@@ -121,8 +121,7 @@ async function relay(
   // Synthetic and Live are separate opt-ins. The Live switch only opens the relay;
   // FastAPI still fails closed with 503 until a server-owned service is installed.
   const aiEnabled =
-    (testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1') ||
-    process.env.EDU_AI_LIVE_MODE === '1';
+    (testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1') || process.env.EDU_AI_LIVE_MODE === '1';
   if (path[2] === 'ai-investigation-tasks' && !aiEnabled) return fail(404, 'NOT_FOUND');
   if (route === 'test-session')
     return Response.json(

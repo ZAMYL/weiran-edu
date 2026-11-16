@@ -167,9 +167,7 @@ export const aiTaskDto = checked(
       if (provenance && provenance.origin !== 'qwen_live') return false;
       if (
         task.real_qwen === 'completed' &&
-        (!provenance ||
-          provenance.state !== 'completed' ||
-          !provenance.source_replay_verified)
+        (!provenance || provenance.state !== 'completed' || !provenance.source_replay_verified)
       )
         return false;
     }
