@@ -526,7 +526,13 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             <summary>技术详情</summary>
             <dl>
               <dt>执行来源</dt>
-              <dd>{task.execution_origin === 'qwen_live' ? 'Qwen' : '隔离演示'}</dd>
+              <dd>
+                {task.execution_origin === 'qwen_live'
+                  ? 'Qwen'
+                  : task.execution_origin === 'http_mock'
+                    ? '模拟分析（未调用真实模型）'
+                    : '未执行'}
+              </dd>
               <dt>模型请求</dt>
               <dd>{task.model_requests} 次</dd>
               <dt>核查工具</dt>

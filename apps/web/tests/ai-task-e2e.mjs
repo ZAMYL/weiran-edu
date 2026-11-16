@@ -165,7 +165,17 @@ try {
     await page.locator('main').innerText(),
     /Demo|联调测试|正式版|HTTP Mock|AI 分析演示|Agent Fact|确定性重放|主 Fact|真实评分重放/,
   );
-  await page.getByText('演示工作台 · 演示数据', { exact: true }).waitFor();
+  assert.doesNotMatch(await page.locator('.app-shell').innerText(), /演示工作台 · 演示数据/);
+  await page.getByRole('button', { name: /帮助$/ }).click();
+  const help = page.getByRole('dialog', { name: '使用未然 EDU' });
+  await help.getByText('此账户的预置测评由程序生成。', { exact: false }).waitFor();
+  await help.getByRole('button', { name: '知道了' }).click();
+  await help.waitFor({ state: 'hidden' });
+  const technicalDetails = page.locator('.ai-technical');
+  assert.equal(await technicalDetails.getAttribute('open'), null);
+  await technicalDetails.getByText('技术详情', { exact: true }).click();
+  await technicalDetails.getByText('模拟分析（未调用真实模型）', { exact: true }).waitFor();
+  await technicalDetails.getByText('技术详情', { exact: true }).click();
   const completed = await page.evaluate(
     async ({ batch, task }) =>
       (
@@ -208,11 +218,12 @@ try {
   await page.screenshot({ path: path.join(artifacts, 'normal-facts.png'), fullPage: true });
   await page.getByRole('button', { name: '全屏', exact: true }).click();
   const fullscreenTitle = page.locator('.fullscreen-title');
-  await fullscreenTitle.getByText(/演示工作台 · 演示数据/).waitFor();
+  await fullscreenTitle.waitFor();
+  assert.equal((await fullscreenTitle.innerText()).trim(), '学情诊断');
   await page.screenshot({ path: path.join(artifacts, 'normal-fullscreen.png'), fullPage: true });
   await page.getByRole('button', { name: /^退出全屏/ }).click();
   await fullscreenTitle.waitFor({ state: 'hidden' });
-  checks.push('synthetic sample identity remains visible in fullscreen');
+  checks.push('workspace and fullscreen titles are clean; help and AI details disclose sources');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
   await page.screenshot({ path: path.join(artifacts, 'normal-mobile.png'), fullPage: true });

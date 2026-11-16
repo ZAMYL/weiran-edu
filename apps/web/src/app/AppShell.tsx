@@ -45,7 +45,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     dataMode.testMode &&
     dataMode.syntheticAi &&
     dataMode.scopes.some((scope) => scope.label === '合成AI集成验收');
-  const sourceLabel = sampleAccount ? '演示工作台 · 演示数据' : null;
   const pageTitle = uploadWorkspace ? '上传测评资料' : page.label;
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
@@ -97,10 +96,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
         {fullscreen ? (
           <>
-            <div className="fullscreen-title">
-              {pageTitle}
-              {sourceLabel && <span className="muted"> · {sourceLabel}</span>}
-            </div>
+            <div className="fullscreen-title">{pageTitle}</div>
             <div className="topbar-actions">
               {!uploadWorkspace && !emptyWorkspace && batchSelect}
               {fullButton}
@@ -153,7 +149,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             {!fullscreen && (
               <div className="page-title-group">
                 <h1>{pageTitle}</h1>
-                {sourceLabel && <span className="muted">{sourceLabel}</span>}
               </div>
             )}
             {!fullscreen && !emptyWorkspace && (
@@ -237,6 +232,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <p>
             <b>分析报告</b> 保存本次范围及选定发现，核验后导出报告。教师确认不等于因果证明。
           </p>
+          {sampleAccount && (
+            <p>
+              <b>数据来源</b> 此账户的预置测评由程序生成。
+            </p>
+          )}
         </div>
       </Modal>
     </div>
