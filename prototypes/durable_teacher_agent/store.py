@@ -50,7 +50,8 @@ class TaskStore:
             "CREATE TABLE IF NOT EXISTS ai_synthetic_grants ("
             "grant_id TEXT PRIMARY KEY, teacher_id TEXT NOT NULL REFERENCES teachers, "
             "batch_id TEXT NOT NULL REFERENCES batches, snapshot_id TEXT NOT NULL, "
-            "source_sha TEXT NOT NULL, purpose TEXT NOT NULL CHECK(purpose='synthetic_mock'), "
+            "source_sha TEXT NOT NULL, " 
+                "purpose TEXT NOT NULL CHECK(purpose IN ('synthetic_mock','database_live')), "
             "expires REAL NOT NULL, revoked INTEGER NOT NULL DEFAULT 0, "
             "UNIQUE(teacher_id,batch_id,snapshot_id)) STRICT",
             "CREATE TABLE IF NOT EXISTS ai_synthetic_tasks ("
@@ -80,6 +81,35 @@ class TaskStore:
                     "ALTER TABLE ai_synthetic_events "
                     "ADD COLUMN created_at TEXT NOT NULL DEFAULT ''"
                 )
+        self._allow_database_live_grants()
+
+    def _allow_database_live_grants(self) -> None:
+        """Rebuild the grants table once so ``database_live`` can be recorded.
+
+        Older demo databases carry CHECK(purpose='synthetic_mock'); SQLite cannot
+        widen it in place. Rows are copied unchanged and the old table is replaced,
+        so every existing Mock grant keeps exactly its previous meaning.
+        """
+        with self.database.transaction() as c:
+            row = c.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='ai_synthetic_grants'"
+            ).fetchone()
+        if row is None or "database_live" in (row["sql"] or ""):
+            return
+        self.database.rebuild(
+            (
+                "CREATE TABLE ai_synthetic_grants_next ("
+                "grant_id TEXT PRIMARY KEY, teacher_id TEXT NOT NULL REFERENCES teachers, "
+                "batch_id TEXT NOT NULL REFERENCES batches, snapshot_id TEXT NOT NULL, "
+                "source_sha TEXT NOT NULL, "
+                "purpose TEXT NOT NULL CHECK(purpose IN ('synthetic_mock','database_live')), "
+                "expires REAL NOT NULL, revoked INTEGER NOT NULL DEFAULT 0, "
+                "UNIQUE(teacher_id,batch_id,snapshot_id)) STRICT",
+                "INSERT INTO ai_synthetic_grants_next SELECT * FROM ai_synthetic_grants",
+                "DROP TABLE ai_synthetic_grants",
+                "ALTER TABLE ai_synthetic_grants_next RENAME TO ai_synthetic_grants",
+            )
+        )
 
     def grant(
         self, actor: Principal, batch_id: str, snapshot_id: str, *, lifetime: int = 3600
@@ -151,7 +181,7 @@ class TaskStore:
             row["batch_id"],
             row["snapshot_id"],
         )
-        if row["revoked"] or row["purpose"] != "synthetic_mock":
+        if row["revoked"] or row["purpose"] not in {"synthetic_mock", "database_live"}:
             blocked("AI_PURPOSE_REVOKED", 403)
         if min(row["expires"], row["grant_expires"]) <= self.clock():
             blocked("AI_TASK_EXPIRED", 410)
@@ -267,7 +297,7 @@ class TaskStore:
         ).fetchone()
         if grant is None:
             raise APIError(403, "AI_PURPOSE_REQUIRED", "这份测评尚未获得 AI 分析授权")
-        if grant["revoked"] or grant["purpose"] != "synthetic_mock":
+        if grant["revoked"] or grant["purpose"] not in {"synthetic_mock", "database_live"}:
             raise APIError(403, "AI_PURPOSE_REVOKED", "本测评的 AI 分析授权已撤销")
         if grant["expires"] <= self.clock():
             raise APIError(403, "AI_PURPOSE_REQUIRED", "AI 分析授权已过期，请联系演示负责人")

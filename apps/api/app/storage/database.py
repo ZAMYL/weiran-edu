@@ -56,6 +56,30 @@ class Database:
             if connection is not None:
                 connection.close()
 
+    def rebuild(self, statements: tuple[str, ...]) -> None:
+        """Operator-only table rebuild so a CHECK constraint can change in place.
+
+        Every other path keeps foreign keys on; this one disables them only for the
+        rebuild and re-verifies the whole database before committing.
+        """
+        connection = self._connect()
+        try:
+            connection.execute("PRAGMA foreign_keys=OFF")
+            connection.execute("BEGIN IMMEDIATE")
+            for statement in statements:
+                connection.execute(statement)
+            if connection.execute("PRAGMA foreign_key_check").fetchone():
+                raise ValueError("DATABASE_INTEGRITY_FAILED")
+            connection.commit()
+        except sqlite3.Error:
+            connection.rollback()
+            raise APIError(503, "DATABASE_UNAVAILABLE", "数据服务暂不可用") from None
+        except BaseException:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
     def migrate(self) -> None:
         """CLI-only initialization; never implicitly migrate on an HTTP request."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
