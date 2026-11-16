@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
 import { useRouter } from 'next/navigation';
-import { Button, Checkbox, Empty, Pagination, Segmented, Select, Tag } from 'antd';
+import { Alert, Button, Checkbox, Empty, Pagination, Segmented, Select, Tag } from 'antd';
 import { TeamOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
@@ -46,7 +46,7 @@ export default function LiveInsightsPage() {
   );
 }
 function Insights({ batch }: { batch: ApiBatch }) {
-  const { client, conditions, syntheticAi } = useDataMode();
+  const { client, conditions, syntheticAi, aiAvailable, aiCapabilityLoaded } = useDataMode();
   const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
@@ -163,7 +163,17 @@ function Insights({ batch }: { batch: ApiBatch }) {
       >
         {(focusPanel) => (
           <>
-            {syntheticAi && <AiInvestigationPanel batch={batch} />}
+            {syntheticAi || aiAvailable ? (
+              <AiInvestigationPanel batch={batch} />
+            ) : aiCapabilityLoaded ? (
+              <Alert
+                className="ai-unavailable"
+                type="info"
+                showIcon
+                title="AI 分析暂不可用"
+                description="当前环境未接入模型服务；评分统计与其他分析不受影响。"
+              />
+            ) : null}
             <div className="insights-grid">
               <Panel
                 title="评分画像"

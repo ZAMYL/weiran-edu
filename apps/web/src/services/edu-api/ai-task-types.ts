@@ -15,10 +15,27 @@ import { conditionDto, dimensionCode } from './types';
 import { discoveryExactDto, exactRationalDto } from './exact';
 
 const origin = {
-  execution_origin: literal('http_mock'),
-  real_qwen: literal('not_run'),
-  production_enabled: literal(false),
+  execution_origin: literal('http_mock', 'qwen_live'),
+  real_qwen: literal('not_run', 'completed', 'failed'),
+  production_enabled: flag,
 };
+const provenanceDto = object({
+  origin: literal('qwen_live', 'http_mock', 'not_run'),
+  state: literal('not_run', 'completed', 'failed'),
+  request_state: literal('not_run', 'attempted', 'responses_received', 'failed'),
+  model_requests: checked(count, (value) => value <= 6),
+  tool_attempts: checked(count, (value) => value <= 5),
+  source_replay_verified: flag,
+  error_code: nullable(text),
+});
+export type AiTaskProvenance = Decoded<typeof provenanceDto>;
+export const aiCapabilityDto = object({
+  available: flag,
+  mode: literal('qwen_live', 'http_mock', 'unavailable'),
+  reason: literal('available', 'AI_LIVE_NOT_ENABLED'),
+  message: text,
+});
+export type AiCapability = Decoded<typeof aiCapabilityDto>;
 const sourceManifestDto = checked(text, (value) => /^[a-f0-9]{64}$/.test(value));
 const explorationDto = object({ snapshot_id: text, conditions: list(conditionDto) });
 const sourceReferenceDto = object({
@@ -136,12 +153,43 @@ export const aiTaskDto = checked(
     max_tool_attempts: count,
     max_model_requests: count,
     result: nullable(resultDto),
+    provenance: optional(nullable(provenanceDto)),
     review_result_path: nullable(text),
     expires_at: numeric,
   }),
   (task) => {
+    const provenance = task.provenance;
+    if (task.execution_origin === 'http_mock') {
+      if (task.real_qwen !== 'not_run' || task.production_enabled) return false;
+      if (provenance && provenance.origin !== 'http_mock') return false;
+    }
+    if (task.execution_origin === 'qwen_live') {
+      if (provenance && provenance.origin !== 'qwen_live') return false;
+      if (
+        task.real_qwen === 'completed' &&
+        (!provenance ||
+          provenance.state !== 'completed' ||
+          !provenance.source_replay_verified)
+      )
+        return false;
+    }
+    if (task.real_qwen === 'completed' && !task.result) return false;
+    if (provenance) {
+      if (
+        provenance.model_requests > task.max_model_requests ||
+        provenance.tool_attempts > task.max_tool_attempts ||
+        (provenance.origin !== task.execution_origin && provenance.origin !== 'not_run')
+      )
+        return false;
+    }
     const result = task.result;
     if (!result) return true;
+    if (
+      result.execution_origin !== task.execution_origin ||
+      result.real_qwen !== task.real_qwen ||
+      result.production_enabled !== task.production_enabled
+    )
+      return false;
     const ids = new Set(result.facts.map((fact) => fact.fact_id));
     const projection = result.profile_projection;
     return (

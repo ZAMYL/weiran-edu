@@ -136,4 +136,7 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
 
     application.include_router(router)
     application.state.durable_investigations = service
+    # Read by the production capability endpoint; this test host is explicit Mock.
+    application.state.ai_task_service = service
+    application.state.ai_task_mode = "http_mock"
     return service

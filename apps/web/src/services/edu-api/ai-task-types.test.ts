@@ -28,6 +28,41 @@ it('accepts actual queued and stopped states without manufacturing progress', ()
     aiRunning(aiTaskDto({ ...task, state: 'cancelled', error_code: 'AI_TASK_CANCELLED' })),
   ).toBe(false);
 });
+it('decodes a Live task only with server-owned provenance', () => {
+  const live = aiTaskDto({
+    ...task,
+    execution_origin: 'qwen_live',
+    real_qwen: 'not_run',
+    provenance: {
+      origin: 'qwen_live',
+      state: 'not_run',
+      request_state: 'not_run',
+      model_requests: 0,
+      tool_attempts: 0,
+      source_replay_verified: false,
+      error_code: null,
+    },
+  });
+  expect(live.execution_origin).toBe('qwen_live');
+  expect(live.provenance?.origin).toBe('qwen_live');
+  expect(() =>
+    aiTaskDto({
+      ...task,
+      execution_origin: 'qwen_live',
+      real_qwen: 'not_run',
+      provenance: {
+        origin: 'http_mock',
+        state: 'not_run',
+        request_state: 'not_run',
+        model_requests: 0,
+        tool_attempts: 0,
+        source_replay_verified: false,
+        error_code: null,
+      },
+    }),
+  ).toThrow('INVALID_API_RESPONSE');
+});
+
 it('rejects live-provider claims and results bound to another snapshot', () => {
   expect(() => aiTaskDto({ ...task, real_qwen: 'completed' })).toThrow('INVALID_API_RESPONSE');
   expect(() => aiTaskDto({ ...task, production_enabled: true })).toThrow('INVALID_API_RESPONSE');

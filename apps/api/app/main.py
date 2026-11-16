@@ -13,6 +13,8 @@ from app.core.errors import (
     handle_validation_error,
 )
 from app.core.middleware import attach_request_id
+from app.routers.ai import capability_router as ai_capability_router
+from app.routers.ai import task_router as ai_task_router
 from app.routers.health import router as health_router
 
 
@@ -43,6 +45,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         application.include_router(edu_discoveries_router)
         application.include_router(edu_reviews_router)
         application.include_router(edu_support_router)
+        application.include_router(ai_capability_router)
+        if application.state.settings.ai_task_routes:
+            application.include_router(ai_task_router)
         application.middleware("http")(protect_edu_responses)
         application.add_middleware(DiscoveryDisconnectMiddleware)
     return application

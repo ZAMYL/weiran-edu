@@ -18,6 +18,7 @@ import {
 } from './analysis-types';
 import { readReportFile, ReportFileError, type ReportFile } from './report-file';
 import {
+  aiCapabilityDto,
   aiTaskDto,
   aiSourcesDto,
   aiProfileScoresDto,
@@ -511,6 +512,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       testSession = true;
     },
     me: (signal?: AbortSignal) => get('/me', meDto, signal),
+    aiCapability: (signal?: AbortSignal) => get('/ai-capability', aiCapabilityDto, signal),
     scopes: (signal?: AbortSignal) => get('/scopes', scopesDto, signal),
     batches: (offset = 0, limit = 20, signal?: AbortSignal, archived = false) =>
       get(

@@ -49,6 +49,9 @@ interface SessionState {
   reportDraft: ReportDraft | null;
   testMode: boolean;
   syntheticAi: boolean;
+  aiAvailable: boolean;
+  aiMode: 'qwen_live' | 'http_mock' | 'unavailable';
+  aiCapabilityLoaded: boolean;
   connected: boolean;
   teacherId: string | null;
   scopes: ApiScope[];
@@ -71,6 +74,9 @@ const initial: SessionState = {
   reportDraft: null,
   testMode: false,
   syntheticAi: false,
+  aiAvailable: false,
+  aiMode: 'unavailable',
+  aiCapabilityLoaded: false,
   connected: false,
   teacherId: null,
   scopes: [],
@@ -159,10 +165,11 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
       if (token === null) client.useTestSession();
       else client.authenticate(token);
       try {
-        const [me, scopes, batches] = await Promise.all([
+        const [me, scopes, batches, ai] = await Promise.all([
           client.me(),
           client.scopes(),
           client.batches(),
+          client.aiCapability().catch(() => null),
         ]);
         if (!connecting.isCurrent(sequence)) return;
         const hasArchivedBatches =
@@ -203,6 +210,9 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           ...s,
           ready: true,
           connected: true,
+          aiAvailable: ai?.available === true,
+          aiMode: ai?.mode ?? 'unavailable',
+          aiCapabilityLoaded: true,
           reportDraft: null,
           activeReport: null,
           uploadDraft: null,

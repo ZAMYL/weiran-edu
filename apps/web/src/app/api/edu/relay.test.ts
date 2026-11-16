@@ -79,6 +79,59 @@ it.each([
   vi.stubEnv('EDU_API_ORIGIN', 'https://example.invalid');
   expect((await run()).status).toBe(404);
 });
+it('relays AI capability without opening task routes', async () => {
+  vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    Response.json(
+      {
+        available: false,
+        mode: 'unavailable',
+        reason: 'AI_LIVE_NOT_ENABLED',
+        message: 'AI 分析暂不可用',
+      },
+      { status: 200 },
+    ),
+  );
+  vi.stubGlobal('fetch', fetcher);
+  const capability = await GET(
+    new Request('http://localhost/api/edu/ai-capability', {
+      headers: { authorization: bearer },
+    }),
+    context('ai-capability'),
+  );
+  expect(capability.status).toBe(200);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  const task = await POST(
+    new Request('http://localhost/api/edu/batches/b/ai-investigation-tasks', {
+      method: 'POST',
+      headers: { authorization: bearer },
+      body: '{}',
+    }),
+    context('batches/b/ai-investigation-tasks'),
+  );
+  expect(task.status).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
+it('opens the AI task relay only with the explicit Live switch', async () => {
+  vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
+  vi.stubEnv('EDU_AI_LIVE_MODE', '1');
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    Response.json({ error: { code: 'AI_LIVE_NOT_ENABLED' } }, { status: 503 }),
+  );
+  vi.stubGlobal('fetch', fetcher);
+  const response = await POST(
+    new Request('http://localhost/api/edu/batches/b/ai-investigation-tasks', {
+      method: 'POST',
+      headers: { authorization: bearer },
+      body: '{}',
+    }),
+    context('batches/b/ai-investigation-tasks'),
+  );
+  expect(response.status).toBe(503);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
 it.each([
   'batches/b/discoveries/query',
   'batches/b/discoveries/012345678901234567890123/query',

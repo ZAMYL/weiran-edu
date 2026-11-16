@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const routes: Record<string, RegExp[]> = {
   GET: [
-    /^(me|scopes|batches|test-session)$/,
+    /^(me|scopes|batches|test-session|ai-capability)$/,
     /^batches\/[^/]+$/,
     /^batches\/[^/]+\/(statistics|students|rubric)$/,
     /^batches\/[^/]+\/(capabilities|analysis-results)$/,
@@ -118,7 +118,11 @@ async function relay(
     return fail(503, 'BACKEND_NOT_CONFIGURED');
   }
   const testMode = testSessionEnabled(request, origin);
-  const aiEnabled = testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1';
+  // Synthetic and Live are separate opt-ins. The Live switch only opens the relay;
+  // FastAPI still fails closed with 503 until a server-owned service is installed.
+  const aiEnabled =
+    (testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1') ||
+    process.env.EDU_AI_LIVE_MODE === '1';
   if (path[2] === 'ai-investigation-tasks' && !aiEnabled) return fail(404, 'NOT_FOUND');
   if (route === 'test-session')
     return Response.json(

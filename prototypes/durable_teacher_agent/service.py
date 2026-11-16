@@ -188,6 +188,9 @@ class TaskService:
         self.provider, self.store, self.directory = provider, store, directory
         self._review_lock = Lock()
         self._active_reviews: set[str] = set()
+        # Python-only test seam for the #98 offline transport. Never read from the
+        # request, environment or database; production Live leaves it None.
+        self.live_runner = None
         self.profile_limits = profile_limits or Limits(
             model_requests=6, tool_attempts=5, timeout_seconds=30
         )
@@ -224,9 +227,10 @@ class TaskService:
             # Another worker/cancellation may already own this task. A failed claim
             # must never mutate the live owner's state or its consumed budget.
             return
+        live = self.store.purpose(task_id) == "database_live"
         try:
             actor = Principal(row["teacher_id"], row["credential_sha"])
-            if self.store.purpose(task_id) == "database_live":
+            if live:
                 self._execute_live(task_id, row, actor)
                 return
             body = json.loads(row["request_json"])
@@ -240,11 +244,21 @@ class TaskService:
             )
         except APIError as error:
             self.store.fail(task_id, error.code)
-        except (AgentError, ValueError):
-            self.store.fail(task_id, "AI_INVESTIGATION_BLOCKED")
+        except AgentError as error:
+            self.store.fail(
+                task_id,
+                self.LIVE_CODES.get(str(error), "AI_LIVE_EXECUTION_BLOCKED")
+                if live
+                else "AI_INVESTIGATION_BLOCKED",
+            )
+        except ValueError:
+            self.store.fail(
+                task_id,
+                "AI_LIVE_CONFIGURATION_INVALID" if live else "AI_INVESTIGATION_BLOCKED",
+            )
         except Exception:
             # No partial result or sensitive exception message crosses the API boundary.
-            self.store.fail(task_id, "AI_TASK_FAILED")
+            self.store.fail(task_id, "AI_LIVE_TASK_FAILED" if live else "AI_TASK_FAILED")
 
     LIVE_CODES = {
         "live_admission_not_configured": "AI_LIVE_ADMISSION_REQUIRED",
@@ -266,7 +280,17 @@ class TaskService:
 
         from .live_admission import LiveAdmission
 
-        admission = LiveAdmission.load()
+        if self.live_runner is not None:
+            self.live_runner(self, task_id, row, actor)
+            return
+        try:
+            admission = LiveAdmission.load()
+        except AgentError as error:
+            raise APIError(
+                409,
+                self.LIVE_CODES.get(str(error), "AI_LIVE_BLOCKED"),
+                "真实模型执行未获批准或已失效，未发起任何请求",
+            ) from None
         source = self.source(row, actor, running=True)
         budget = admission.budget(self.store, task_id, source)
         try:
@@ -343,6 +367,36 @@ class TaskService:
             # Status-only replies have no Fact or Witness replay to enclose.
             self.store.authorize(task_id, actor)
         receipt = json.loads(row["review_json"]) if row["review_json"] else None
+        raw_provenance = json.loads(row["provenance_json"]) if row["provenance_json"] else None
+        provenance = None
+        if raw_provenance:
+            # Provenance is server accounting, but persisted JSON can still be
+            # corrupted. Validate it before exposing origin/real_qwen claims.
+            from prototypes.qwen_execution.task_contract import ExecutionProvenance
+
+            try:
+                provenance = ExecutionProvenance.model_validate(raw_provenance).model_dump(
+                    mode="json"
+                )
+            except ValueError:
+                blocked("AI_PROVENANCE_INVALID", 503)
+        origin = (
+            provenance["origin"]
+            if provenance and provenance["origin"] in {"qwen_live", "http_mock"}
+            else "http_mock"
+        )
+        real_qwen = "not_run"
+        if origin == "qwen_live" and provenance:
+            real_qwen = (
+                "completed"
+                if provenance["state"] == "completed"
+                else "failed"
+                if provenance["state"] == "failed"
+                else "not_run"
+            )
+        requests = json.loads(row["budget_json"]).get("request_count", 0)
+        if not requests and provenance:
+            requests = provenance["model_requests"]
         return TaskView(
             task_id=task_id,
             batch_id=batch_id,
@@ -351,10 +405,13 @@ class TaskService:
             state=row["state"],
             error_code=row["error_code"],
             stop_reason=result.stop_reason if result else row["error_code"],
+            execution_origin=origin,
+            real_qwen=real_qwen,
+            production_enabled=False,
             tool_attempts=row["tool_attempts"],
-            model_requests=json.loads(row["budget_json"]).get("request_count", 0),
+            model_requests=requests,
             result=result,
-            provenance=json.loads(row["provenance_json"]) if row["provenance_json"] else None,
+            provenance=provenance,
             review_result_path=receipt.get("result_path") if receipt else None,
             expires_at=row["expires"],
         )

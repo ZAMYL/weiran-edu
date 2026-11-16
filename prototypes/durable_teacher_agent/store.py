@@ -81,6 +81,16 @@ class TaskStore:
                     "ALTER TABLE ai_synthetic_events "
                     "ADD COLUMN created_at TEXT NOT NULL DEFAULT ''"
                 )
+            # Older demo databases also predate provenance_json. The new column is
+            # additive and defaults to an empty object; existing Mock rows stay Mock.
+            task_columns = {
+                row["name"] for row in c.execute("PRAGMA table_info(ai_synthetic_tasks)")
+            }
+            if "provenance_json" not in task_columns:
+                c.execute(
+                    "ALTER TABLE ai_synthetic_tasks "
+                    "ADD COLUMN provenance_json TEXT NOT NULL DEFAULT '{}'"
+                )
         self._allow_database_live_grants()
 
     def _allow_database_live_grants(self) -> None:
