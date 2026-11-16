@@ -1,5 +1,6 @@
-"""Opt-in synthetic test-host API. Never imported/mounted by app.main."""
+"""Durable AI task routes. The synthetic test host and production share them."""
 
+from collections.abc import Callable
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, FastAPI, Request
@@ -24,7 +25,7 @@ from .models import (
 )
 from .review import submit
 from .service import TaskService
-from .store import TaskStore
+from .store import TaskStore, blocked
 
 SAFE_TOOL_FIELDS = ("tool", "status", "error")
 SAFE_BUDGET_FIELDS = (
@@ -52,15 +53,14 @@ def project_event(event: dict) -> TaskEvent:
     return TaskEvent(sequence=event["sequence"], phase=phase, at=event["at"], detail=detail)
 
 
-def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -> TaskService:
-    if application.state.settings.environment != "test" or type(provider) is not DatabaseProvider:
-        raise ValueError("synthetic_integration_only")
-    store = TaskStore(provider)
-    store.initialize()
-    service = TaskService(provider, store, directory)
+def build_router(
+    service: TaskService, *, enqueue: Callable[[str], None] | None = None
+) -> APIRouter:
+    """One route set; production leaves the task queued for the worker."""
+    store = service.store
     router = APIRouter(
         prefix="/api/v1/edu/batches/{batch_id}/ai-investigation-tasks",
-        tags=["Durable AI synthetic integration"],
+        tags=["Durable AI"],
         default_response_class=ExactJSONResponse,
         responses={
             code: {"model": ErrorResponse}
@@ -81,7 +81,10 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
         body = await read_query(request, TaskCreate)
         row, fresh = await run_in_threadpool(store.create, actor, batch_id, body)
         if fresh:
-            background.add_task(service.execute, row["task_id"])
+            if enqueue is None:
+                background.add_task(service.execute, row["task_id"])
+            else:
+                enqueue(row["task_id"])
         return await run_in_threadpool(
             service.view, actor, batch_id, row["task_id"], body.snapshot_id
         )
@@ -129,9 +132,36 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
             events=tuple(project_event(event) for event in store.events(task_id, after=after)),
         )
 
-    application.include_router(router)
+    return router
+
+
+def _attach(application: FastAPI, service: TaskService, mode: str) -> None:
     application.state.durable_investigations = service
-    # Read by the production capability endpoint; this test host is explicit Mock.
     application.state.ai_task_service = service
-    application.state.ai_task_mode = "http_mock"
+    application.state.ai_task_mode = mode
+
+
+def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -> TaskService:
+    """Explicit synthetic test host; executes in-process after the 202 response."""
+    if application.state.settings.environment != "test" or type(provider) is not DatabaseProvider:
+        raise ValueError("synthetic_integration_only")
+    store = TaskStore(provider)
+    store.initialize()
+    service = TaskService(provider, store, directory)
+    application.include_router(build_router(service))
+    _attach(application, service, "http_mock")
+    return service
+
+
+def install_production(application: FastAPI, service: TaskService) -> TaskService:
+    """Mount the real task surface; the worker owns execution, not this process."""
+    if application.state.settings.environment != "production":
+        raise ValueError("production_host_required")
+    for route in application.router.routes:
+        if getattr(route, "path", "").startswith(
+            "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks"
+        ):
+            blocked("AI_TASK_ROUTES_ALREADY_MOUNTED", 409)
+    application.include_router(build_router(service, enqueue=lambda _task_id: None))
+    _attach(application, service, "qwen_live")
     return service
