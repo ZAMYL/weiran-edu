@@ -174,7 +174,7 @@ export async function teacherAnalysisFlow({
     const xlsxDownload = page.waitForEvent('download');
     await exportDialog().getByRole('button', { name: '下载 Excel', exact: true }).click();
     const xlsx = await xlsxDownload;
-    assert.equal(xlsx.suggestedFilename(), `weiran-analysis-${created.result_id}-v2.xlsx`);
+    assert.equal(xlsx.suggestedFilename(), '合成教师闭环分析-v2.xlsx');
     const xlsxBytes = await readFile(await xlsx.path());
     assert.deepEqual([...xlsxBytes.subarray(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
     const mdCheck = page.waitForResponse(
@@ -377,10 +377,7 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
     if (await dialog.getByRole('checkbox').count()) await dialog.getByRole('checkbox').check();
     const pendingDownload = page.waitForEvent('download');
     await dialog.getByRole('button', { name: '下载 Excel', exact: true }).click();
-    assert.equal(
-      (await pendingDownload).suggestedFilename(),
-      `weiran-analysis-${result.result_id}-v1.xlsx`,
-    );
+    assert.equal((await pendingDownload).suggestedFilename(), `${title}-v1.xlsx`);
     await dialog.locator('.ant-modal-close').click();
   }
   await reportAction(drawer, '返回报告列表');

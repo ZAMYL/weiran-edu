@@ -31,7 +31,7 @@ import {
   type ReportFormat,
   type DiscoverySelection,
 } from '../../services/edu-api/analysis-types';
-import { saveReportFile } from '../../services/edu-api/report-file';
+import { saveReportFile, xlsxDownloadName } from '../../services/edu-api/report-file';
 import type { ApiBatch, InsightSpec } from '../../services/edu-api/types';
 import { conditionText, metricDisplay, ratioDisplay } from '../../services/edu-api/view-model';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
@@ -924,7 +924,11 @@ function ReportDownload({
               format,
               signal,
             );
-            if (!signal.aborted) saveReportFile(file);
+            if (!signal.aborted) {
+              const downloadName =
+                format === 'xlsx' ? xlsxDownloadName(result.title, result.version) : file.filename;
+              saveReportFile(file, downloadName);
+            }
           })
         }
       >
