@@ -15,7 +15,8 @@ from prototypes.capability_profiles.agent import ProfileMockPolicy
 from prototypes.durable_teacher_agent import live_admission
 from prototypes.durable_teacher_agent.models import TaskCreate
 
-from .test_tasks import QUESTION, actor, setup, upload
+from .test_database_profiles import profile_host
+from .test_tasks import actor, upload
 
 FINGERPRINT = "f" * 64
 
@@ -40,10 +41,10 @@ def approval_for(campaign_id, source_sha):
 
 
 def test_live_branch_reaches_the_agent_and_persists_provenance(tmp_path, monkeypatch):
-    fixture, service = setup(tmp_path)
+    fixture, service = profile_host(tmp_path)
     client = TestClient(fixture.app)
     client.headers["Authorization"] = "Bearer " + fixture.token
-    batch = upload(client, fixture)
+    batch = upload(client, fixture, "balanced72")
     teacher = actor(fixture, service)
     service.store.grant(teacher, batch["batch_id"], batch["snapshot_id"])
     with service.store.database.transaction(write=True) as connection:
@@ -56,15 +57,15 @@ def test_live_branch_reaches_the_agent_and_persists_provenance(tmp_path, monkeyp
         teacher,
         batch["batch_id"],
         TaskCreate(
-            snapshot_id=batch["snapshot_id"], question=QUESTION, idempotency_key="live-e2e-01"
+            snapshot_id=batch["snapshot_id"],
+            question="有哪些值得关注的问题？",
+            idempotency_key="live-e2e-01",
         ),
     )
 
     ledger = tmp_path / "ledger"
     approval = tmp_path / "approval.json"
-    approval.write_text(
-        json.dumps(approval_for(row["campaign_id"], source_sha)), encoding="utf-8"
-    )
+    approval.write_text(json.dumps(approval_for(row["campaign_id"], source_sha)), encoding="utf-8")
     monkeypatch.setattr(live_admission, "code_fingerprint", lambda: FINGERPRINT)
     monkeypatch.setenv("WEIRAN_EDU_QWEN_LIVE_APPROVAL", str(approval))
     monkeypatch.setenv("WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT", str(ledger))
@@ -77,7 +78,9 @@ def test_live_branch_reaches_the_agent_and_persists_provenance(tmp_path, monkeyp
         payload = json.loads(request.content)
         calls.append(payload)
         view = json.loads(payload["messages"][-1]["content"])
-        return httpx.Response(200, json=native_response(ProfileMockPolicy().choose(view)))
+        return httpx.Response(
+            200, json=native_response(ProfileMockPolicy().choose(view), len(calls))
+        )
 
     real_client = httpx.AsyncClient
 
@@ -98,3 +101,32 @@ def test_live_branch_reaches_the_agent_and_persists_provenance(tmp_path, monkeyp
     assert provenance["request_state"] == "responses_received"
     assert provenance["model_requests"] == len(calls)
     assert (ledger / (row["campaign_id"] + ".jsonl")).is_file()
+
+    result = json.loads(stored["result_json"])
+    assert result["execution_origin"] == "qwen_live"
+    assert result["real_qwen"] == "completed"
+    assert result["profile_projection"]["dimension_evidence_http"] == "live_task_profile_scores_v1"
+    assert all(
+        profile["selection_origin"] == "qwen_live"
+        for profile in result["profile_projection"]["profiles"]
+    )
+    view = service.view(teacher, batch["batch_id"], row["task_id"], batch["snapshot_id"])
+    assert view.execution_origin == "qwen_live"
+    assert view.real_qwen == "completed"
+    assert view.provenance["origin"] == "qwen_live"
+
+    profile = result["profile_projection"]["profiles"][0]
+    scores = client.post(
+        f"/api/v1/edu/batches/{batch['batch_id']}/ai-investigation-tasks/"
+        f"{row['task_id']}/profiles/scores/query",
+        json={
+            "snapshot_id": batch["snapshot_id"],
+            "profile_id": profile["profile_id"],
+            "dimension_code": profile["dimensions"][0]["dimension_code"],
+            "side": "target",
+            "offset": 0,
+            "limit": 10,
+        },
+    )
+    assert scores.status_code == 200, scores.text
+    assert scores.json()["detail_status"] in {"available", "privacy_limited"}

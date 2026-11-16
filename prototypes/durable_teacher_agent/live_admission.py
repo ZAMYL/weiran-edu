@@ -16,12 +16,12 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Literal
 
-from app.ai.edu.discovery.models import AgentError, Strict
-from pydantic import Field
-
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.pricing import reviewed_price
 from prototypes.qwen_execution.runtime import code_fingerprint
+from pydantic import Field
+
+from app.ai.edu.discovery.models import AgentError, Strict
 
 APPROVAL_ENV = "WEIRAN_EDU_QWEN_LIVE_APPROVAL"
 LEDGER_ROOT_ENV = "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT"
@@ -131,7 +131,7 @@ class LiveAdmission:
             raise AgentError("source_not_registered_for_remote")
         approval.check(date.today())
 
-    def budget(self, store, task_id: str, source) -> "DatabaseLiveBudget":
+    def budget(self, store, task_id: str, source) -> DatabaseLiveBudget:
         """One task, one budget, one ledger entry; never a mock budget升级."""
         return DatabaseLiveBudget(self.approval, self.ledger_root, store, task_id, source)
 
@@ -158,6 +158,12 @@ class DatabaseLiveBudget(CampaignBudget):
         if state_dir is not None:
             raise AgentError("live_ledger_root_is_server_owned")
         return self._root
+
+    def _persist(self):
+        # Keep the task's own budget mirror in sync with the server-owned journal;
+        # status/readback must not need the CLI ledger to report request counts.
+        super()._persist()
+        self.store.budget(self.task_id, self.snapshot())
 
     def audit_tool(self, phase, executor, entry):
         self.store.audit(self.task_id, phase, executor, entry)

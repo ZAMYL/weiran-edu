@@ -2,10 +2,11 @@
 
 from typing import Literal
 
+from pydantic import Field
+
 from app.edu.analysis_models import ExactRational, FilterCondition, GroupQuery
 from app.edu.models import Identifier, Model
 from app.edu.review_models import AnalysisCreate
-from pydantic import Field
 
 
 class InvestigationRequest(Model):
@@ -81,10 +82,10 @@ class InvestigationResult(Model):
     source_manifest_sha256: str
     scope_kind: Literal["whole_authorized_batch"] = "whole_authorized_batch"
     batch_record_count: int
-    execution_origin: Literal["http_mock"] = "http_mock"
+    execution_origin: Literal["http_mock", "qwen_live"] = "http_mock"
     strategy: Literal["adaptive", "fixed"]
-    real_qwen: Literal["not_run"] = "not_run"
-    production_enabled: Literal[False] = False
+    real_qwen: Literal["not_run", "completed", "failed"] = "not_run"
+    production_enabled: bool = False
     status: str
     stop_reason: str
     controlled_goal: str

@@ -14,13 +14,13 @@ from tempfile import TemporaryDirectory
 
 import httpx
 import uvicorn
+from openpyxl import load_workbook
+from prototypes.teacher_agent_bridge.fixtures import build_host
+from prototypes.teacher_agent_bridge.provider import DatabaseProvider
+
 from app.core.config import Settings
 from app.edu.auth import authenticate
 from app.main import create_app
-from openpyxl import load_workbook
-
-from prototypes.teacher_agent_bridge.fixtures import build_host
-from prototypes.teacher_agent_bridge.provider import DatabaseProvider
 
 from .api import install
 from .first_use import FirstUseImportService

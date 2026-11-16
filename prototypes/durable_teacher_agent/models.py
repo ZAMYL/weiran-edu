@@ -2,16 +2,17 @@
 
 from typing import Literal
 
-from app.edu.analysis_models import DimensionCode, ExactRational
-from app.edu.models import Identifier, Model
+from prototypes.teacher_agent_bridge.models import InvestigationRequest, InvestigationResult
 from pydantic import Field, JsonValue, field_validator
 
-from prototypes.teacher_agent_bridge.models import InvestigationRequest, InvestigationResult
+from app.edu.analysis_models import DimensionCode, ExactRational
+from app.edu.models import Identifier, Model
 
 PROFILE_RESULT_CONTRACT = "profile-investigation-v1"
 STANDARD_RESULT_CONTRACT = "investigation-v1"
 RESULT_CONTRACT_KEY = "_result_contract"
 PROFILE_SCORE_EVIDENCE_MODE = "synthetic_task_profile_scores_v1"
+LIVE_PROFILE_SCORE_EVIDENCE_MODE = "live_task_profile_scores_v1"
 
 
 class TaskCreate(InvestigationRequest):
@@ -32,7 +33,9 @@ class ProfileProjection(Model):
     timings_seconds: dict[str, float]
     verification_replays: int = Field(ge=0)
     dimension_evidence_http: Literal[
-        "not_implemented", "synthetic_task_profile_scores_v1"
+        "not_implemented",
+        "synthetic_task_profile_scores_v1",
+        "live_task_profile_scores_v1",
     ] = "not_implemented"
 
 
