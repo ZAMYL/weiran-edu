@@ -16,6 +16,13 @@
       "skipped": "0",
       "time": "340.470"
     },
+    "latest_database_chain": {
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "125.545"
+    },
     "pr98_compatibility": {
       "tests": "11",
       "failures": "0",

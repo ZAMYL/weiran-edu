@@ -65,6 +65,8 @@ uv run --project apps/api --locked python -m pytest -q -ra evals/qwen_database_o
 
 最终专项 **107 passed，340.69 秒**；#98 组合检查 **11 passed，46.77 秒**。两组均 0 failed、0 skipped，仅既有 Starlette/httpx 弃用警告。apps/api Ruff 和 format 检查通过（242 文件），受影响的两个 prototype 与显式兼容检查也通过。
 
+负责人补充 P0 要求后，又在数据库链路直接增加模型额度耗尽、seed 工具额度耗尽的拒绝发布反例；最新数据库整轮 **12 passed，125.95 秒**（与 107 项有 10 项重叠，非额外 12 个不同用例）。模型额度耗尽仅执行一次模拟请求、无画像、不能重新 claim；seed 额度不足时模拟请求为零。生产源码和上述两个代码指纹保持不变。
+
 最小文件清单：`prototypes/qwen_execution/task_contract.py`、`prototypes/qwen_execution/testing.py`、`apps/api/tests/durable_teacher_agent/test_qwen_database_offline.py`、`evals/qwen_database_offline_pr98_check.py`、本文档及上述 acceptance JSON。生产修改仅前两项。
 
 首轮 9 passed/1 failed 的失败是篡改夹具被原不可变触发器阻止；已改成临时事务中移除并恢复触发器、最终恢复评分，并断言实际 `DATA_INTEGRITY_ERROR`。生产 schema 和安全断言未放宽。该反例隔离重跑通过；最终整轮结果另行记录，不用隔离结果冒充整轮。

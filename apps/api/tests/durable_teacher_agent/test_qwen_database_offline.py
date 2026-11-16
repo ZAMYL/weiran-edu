@@ -255,6 +255,42 @@ def test_revocation_during_response_fails_closed(bound):
     assert binding.budget.snapshot()["entries"][0]["state"] == "reserved"
 
 
+def test_database_model_budget_exhaustion_cannot_publish_or_restart(bound):
+    binding, _, _ = bound
+    binding = replace(binding, require_externalization=lambda _: None)
+    captured = []
+    result, _, _ = asyncio.run(
+        run_database_profiles_offline(
+            binding,
+            limits=Limits(model_requests=1, timeout_seconds=30),
+            transport=transport_for(captured),
+        )
+    )
+    assert result["stop_reason"] == "model_budget_exhausted"
+    assert result["status"] != "completed" and result["profiles"] == []
+    assert result["simulation"] and result["real_qwen"] == "not_run"
+    assert len(captured) == binding.budget.snapshot()["request_count"] == 1
+    with pytest.raises(AgentError, match="campaign_run_already_claimed"):
+        asyncio.run(
+            run_database_profiles_offline(binding, limits=Limits(), transport=transport_for([]))
+        )
+    assert binding.budget.snapshot()["request_count"] == 1
+
+
+def test_database_seed_tool_budget_exhaustion_never_requests_model(bound):
+    binding, _, _ = bound
+    binding = replace(binding, require_externalization=lambda _: None)
+    with pytest.raises(AgentError, match="seed_budget_exhausted"):
+        asyncio.run(
+            run_database_profiles_offline(
+                binding,
+                limits=Limits(tool_attempts=1, timeout_seconds=30),
+                transport=transport_for([]),
+            )
+        )
+    assert binding.budget.snapshot()["request_count"] == 0
+
+
 def test_database_change_during_simulation_is_rejected(bound):
     binding, service, _ = bound
     admitted = replace(binding, require_externalization=lambda _: None)
