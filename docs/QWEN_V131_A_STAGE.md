@@ -1,6 +1,6 @@
 # V1.3.1 A 段：离线接线与「不可用」状态
 
-日期：2026-11-16。范围：不发起真实模型请求，不读取 API Key，不启用付费运行。
+日期：2026-11-16。A 段代码本身不发起真实模型请求，不读取 API Key，不启用付费运行；后续 B 段见 [QWEN_V131_B_STAGE.md](QWEN_V131_B_STAGE.md)。
 
 ## 已落地
 
@@ -34,8 +34,10 @@ corepack pnpm build
 
 实际结果：后端新增/定向测试 18 passed；`tests/durable_teacher_agent` 108 passed（含原有用例）；前端 258 passed，lint、format、typecheck、build 通过。
 
+后续 2026-11-16 在 `_qwen-approved` 干净副本通过 reviewed CLI 完成一次真实合成数据运行：4 次 HTTP 200、29,459 Token、目录价估算 0.0135214 元、`origin=qwen_live`、`source_replay_verified=true`。这是合成数据证据，不是真实学生数据或产品 FastAPI 任务链路。
+
 ## 未做
 
-- 未发起真实 `qwen_live` 请求；没有真实延迟、Token、费用或模型质量结论。
+- A 段本身未发起真实 `qwen_live` 请求；后续 CLI 合成运行见 B 段文档，仍没有真实学生数据或产品任务链路的结论。
 - 生产 Live 的批准、费用上限和账本根仍需独立审核；A 段的 `http_mock` E2E 不能替代真实网络验收。
 - 生产 `_execute_live` 的付费成功路径尚未经过真实网络验证；在批准前保持 fail-closed。

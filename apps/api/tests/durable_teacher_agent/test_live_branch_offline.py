@@ -130,3 +130,34 @@ def test_live_branch_reaches_the_agent_and_persists_provenance(tmp_path, monkeyp
     )
     assert scores.status_code == 200, scores.text
     assert scores.json()["detail_status"] in {"available", "privacy_limited"}
+
+    fact = next(fact for fact in result["facts"] if fact["method"] == "compare_student_groups")
+    review = client.post(
+        f"/api/v1/edu/batches/{batch['batch_id']}/ai-investigation-tasks/"
+        f"{row['task_id']}/review-submissions",
+        json={"snapshot_id": batch["snapshot_id"], "fact_ids": [fact["fact_id"]]},
+    )
+    assert review.status_code == 200, review.text
+    receipt = review.json()
+    confirmed = client.patch(
+        receipt["review_path"],
+        json={
+            "snapshot_id": batch["snapshot_id"],
+            "expected_version": 1,
+            "decisions": [
+                {"candidate_id": candidate, "status": "confirmed"}
+                for candidate in receipt["candidate_ids"]
+            ],
+        },
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    export = client.get(
+        receipt["export_path"],
+        params={
+            "snapshot_id": batch["snapshot_id"],
+            "expected_version": 2,
+            "format": "md",
+        },
+    )
+    assert export.status_code == 200, export.text[:200]
+    assert export.text

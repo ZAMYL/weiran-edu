@@ -163,7 +163,9 @@ class DatabaseLiveBudget(CampaignBudget):
         # Keep the task's own budget mirror in sync with the server-owned journal;
         # status/readback must not need the CLI ledger to report request counts.
         super()._persist()
-        self.store.budget(self.task_id, self.snapshot())
+        mirror = getattr(self.store, "budget", None)
+        if mirror is not None:
+            mirror(self.task_id, self.snapshot())
 
     def audit_tool(self, phase, executor, entry):
         self.store.audit(self.task_id, phase, executor, entry)
