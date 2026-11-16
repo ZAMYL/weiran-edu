@@ -1,5 +1,6 @@
 import {
   checked,
+  ContractError,
   count,
   flag,
   list,
@@ -14,13 +15,38 @@ import {
 import { conditionDto, dimensionCode } from './types';
 import { discoveryExactDto, exactRationalDto } from './exact';
 
+const executionOriginDto = literal('http_mock', 'qwen_live', 'not_run');
+export const aiCapabilityDto = checked(
+  object({
+    available: flag,
+    mode: literal('qwen_live', 'http_mock', 'unavailable'),
+    reason: literal('available', 'AI_LIVE_NOT_ENABLED'),
+    message: text,
+  }),
+  (value) =>
+    value.available === (value.mode !== 'unavailable') &&
+    value.available === (value.reason === 'available'),
+);
+type ExecutionOrigin = Decoded<typeof executionOriginDto>;
 const origin = {
-  execution_origin: literal('http_mock', 'qwen_live'),
-  real_qwen: literal('not_run', 'completed', 'failed'),
-  production_enabled: flag,
+  origin: optional(executionOriginDto),
+  execution_origin: optional(executionOriginDto),
+  real_qwen: optional(text),
+  production_enabled: optional(flag),
 };
+type ExecutionSource = { [Field in keyof typeof origin]: Decoded<(typeof origin)[Field]> };
+function sourceMatches(source: ExecutionSource, expected: ExecutionOrigin) {
+  return (
+    (source.origin === undefined || source.origin === expected) &&
+    (source.execution_origin === undefined || source.execution_origin === expected) &&
+    (expected !== 'http_mock' ||
+      ((source.origin === 'http_mock' || source.execution_origin === 'http_mock') &&
+        source.real_qwen === 'not_run' &&
+        source.production_enabled === false))
+  );
+}
 const provenanceDto = object({
-  origin: literal('qwen_live', 'http_mock', 'not_run'),
+  origin: executionOriginDto,
   state: literal('not_run', 'completed', 'failed'),
   request_state: literal('not_run', 'attempted', 'responses_received', 'failed'),
   model_requests: checked(count, (value) => value <= 6),
@@ -28,14 +54,6 @@ const provenanceDto = object({
   source_replay_verified: flag,
   error_code: nullable(text),
 });
-export type AiTaskProvenance = Decoded<typeof provenanceDto>;
-export const aiCapabilityDto = object({
-  available: flag,
-  mode: literal('qwen_live', 'http_mock', 'unavailable'),
-  reason: literal('available', 'AI_LIVE_NOT_ENABLED'),
-  message: text,
-});
-export type AiCapability = Decoded<typeof aiCapabilityDto>;
 const sourceManifestDto = checked(text, (value) => /^[a-f0-9]{64}$/.test(value));
 const explorationDto = object({ snapshot_id: text, conditions: list(conditionDto) });
 const sourceReferenceDto = object({
@@ -138,86 +156,120 @@ const resultDto = object({
   uncovered_direction_count: count,
   profile_projection: optional(profileProjectionDto),
 });
-export const aiTaskDto = checked(
-  object({
-    ...origin,
-    task_id: text,
-    batch_id: text,
-    snapshot_id: text,
-    campaign_id: text,
-    state: literal('queued', 'running', 'completed', 'failed', 'cancelled', 'revoked', 'timed_out'),
-    error_code: nullable(text),
-    stop_reason: nullable(text),
-    tool_attempts: count,
-    model_requests: count,
-    max_tool_attempts: count,
-    max_model_requests: count,
-    result: nullable(resultDto),
-    provenance: optional(nullable(provenanceDto)),
-    review_result_path: nullable(text),
-    expires_at: numeric,
-  }),
-  (task) => {
-    const provenance = task.provenance;
-    if (task.execution_origin === 'http_mock') {
-      if (task.real_qwen !== 'not_run' || task.production_enabled) return false;
-      if (provenance && provenance.origin !== 'http_mock') return false;
-    }
-    if (task.execution_origin === 'qwen_live') {
-      if (provenance && provenance.origin !== 'qwen_live') return false;
-      if (
-        task.real_qwen === 'completed' &&
-        (!provenance || provenance.state !== 'completed' || !provenance.source_replay_verified)
-      )
-        return false;
-    }
-    if (task.real_qwen === 'completed' && !task.result) return false;
-    if (provenance) {
-      if (
-        provenance.model_requests > task.max_model_requests ||
-        provenance.tool_attempts > task.max_tool_attempts ||
-        (provenance.origin !== task.execution_origin && provenance.origin !== 'not_run')
-      )
-        return false;
-    }
-    const result = task.result;
-    if (!result) return true;
-    if (
-      result.execution_origin !== task.execution_origin ||
-      result.real_qwen !== task.real_qwen ||
-      result.production_enabled !== task.production_enabled
-    )
-      return false;
-    const ids = new Set(result.facts.map((fact) => fact.fact_id));
-    const projection = result.profile_projection;
-    return (
-      result.batch_id === task.batch_id &&
-      result.snapshot_id === task.snapshot_id &&
-      ids.size === result.facts.length &&
-      result.selected_fact_ids.every((id) =>
-        result.facts.some((fact) => fact.fact_id === id && fact.source_verified && fact.qualified),
-      ) &&
-      result.facts.every(
-        (fact) =>
-          fact.batch_id === task.batch_id &&
-          fact.snapshot_id === task.snapshot_id &&
-          (!fact.exploration_query || fact.exploration_query.snapshot_id === task.snapshot_id),
-      ) &&
-      (!projection ||
-        (projection.assessment_snapshot_id === task.snapshot_id &&
-          projection.profiles.every(
-            (profile) =>
-              profile.batch_id === task.batch_id &&
-              profile.snapshot_id === task.snapshot_id &&
-              profile.exploration_query.snapshot_id === task.snapshot_id &&
-              profile.dimensions.length === 5 &&
-              new Set(profile.dimensions.map((dimension) => dimension.dimension_code)).size === 5 &&
-              profile.verified_fact_ids.every((id) => ids.has(id)),
-          )))
-    );
-  },
-);
+const taskDto = object({
+  ...origin,
+  provenance: optional(
+    nullable((value) =>
+      value && typeof value === 'object' && !Array.isArray(value) && !Object.keys(value).length
+        ? null
+        : provenanceDto(value),
+    ),
+  ),
+  task_id: text,
+  batch_id: text,
+  snapshot_id: text,
+  campaign_id: text,
+  state: literal('queued', 'running', 'completed', 'failed', 'cancelled', 'revoked', 'timed_out'),
+  error_code: nullable(text),
+  stop_reason: nullable(text),
+  tool_attempts: count,
+  model_requests: count,
+  max_tool_attempts: count,
+  max_model_requests: count,
+  result: nullable(resultDto),
+  review_result_path: nullable(text),
+  expires_at: numeric,
+});
+
+function liveResultVerified(task: Decoded<typeof taskDto>) {
+  const receipt = task.provenance;
+  if (task.state !== 'completed') return task.result === null;
+  return (
+    task.error_code === null &&
+    task.real_qwen !== 'not_run' &&
+    task.real_qwen !== 'failed' &&
+    task.result?.real_qwen === 'completed' &&
+    receipt?.origin === 'qwen_live' &&
+    receipt.state === 'completed' &&
+    receipt.request_state === 'responses_received' &&
+    receipt.source_replay_verified &&
+    receipt.error_code === null &&
+    receipt.model_requests > 0 &&
+    receipt.model_requests === task.model_requests &&
+    receipt.tool_attempts === task.tool_attempts
+  );
+}
+
+export function aiTaskDto(value: unknown) {
+  const task = taskDto(value);
+  const executionOrigin = task.origin ?? task.execution_origin;
+  if (!executionOrigin || !sourceMatches(task, executionOrigin)) throw new ContractError();
+
+  const { result } = task;
+  if (
+    (executionOrigin === 'not_run' &&
+      (task.state === 'completed' || result !== null || task.model_requests !== 0)) ||
+    (task.provenance &&
+      task.provenance.origin !== executionOrigin &&
+      task.provenance.origin !== 'not_run') ||
+    (executionOrigin === 'qwen_live' && !liveResultVerified(task))
+  )
+    throw new ContractError();
+  if (!result) return { ...task, execution_origin: executionOrigin };
+  const ids = new Set(result.facts.map((fact) => fact.fact_id));
+  const projection = result.profile_projection;
+  const verified =
+    sourceMatches(result, executionOrigin) &&
+    result.batch_id === task.batch_id &&
+    result.snapshot_id === task.snapshot_id &&
+    ids.size === result.facts.length &&
+    result.selected_fact_ids.every((id) =>
+      result.facts.some((fact) => fact.fact_id === id && fact.source_verified && fact.qualified),
+    ) &&
+    result.facts.every(
+      (fact) =>
+        fact.batch_id === task.batch_id &&
+        fact.snapshot_id === task.snapshot_id &&
+        (!fact.exploration_query || fact.exploration_query.snapshot_id === task.snapshot_id),
+    ) &&
+    (!projection ||
+      (projection.assessment_snapshot_id === task.snapshot_id &&
+        projection.profiles.every(
+          (profile) =>
+            profile.batch_id === task.batch_id &&
+            profile.snapshot_id === task.snapshot_id &&
+            profile.exploration_query.snapshot_id === task.snapshot_id &&
+            profile.dimensions.length === 5 &&
+            new Set(profile.dimensions.map((dimension) => dimension.dimension_code)).size === 5 &&
+            profile.verified_fact_ids.every((id) => ids.has(id)),
+        )));
+  if (!verified) throw new ContractError();
+  return { ...task, execution_origin: executionOrigin };
+}
 export type AiTask = Decoded<typeof aiTaskDto>;
+
+export const aiTaskEventsDto = object({
+  task_id: text,
+  events: list(
+    object({
+      sequence: count,
+      phase: text,
+      at: text,
+      detail: object({
+        tool: optional(text),
+        status: optional(text),
+        error: optional(nullable(text)),
+        request_count: optional(count),
+        model_requests: optional(count),
+        tool_attempts: optional(count),
+        charged_tokens: optional(count),
+        charged_cny_upper_bound: optional(numeric),
+        code: optional(text),
+        fact_count: optional(count),
+      }),
+    }),
+  ),
+});
 export const aiSourcesDto = object({
   batch_id: text,
   snapshot_id: text,

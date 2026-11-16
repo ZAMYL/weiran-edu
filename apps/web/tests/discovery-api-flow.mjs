@@ -487,7 +487,7 @@ try {
     );
   } else {
     checkpoint = 'teacher session';
-    await page.goto(origin);
+    await page.goto(`${origin}/insights`);
     await page.locator('.live-workspace').waitFor();
     assert.equal(await page.locator('#teacher-access-token').count(), 0);
     checkpoint = 'Excel upload, preview, commit and discovery list';

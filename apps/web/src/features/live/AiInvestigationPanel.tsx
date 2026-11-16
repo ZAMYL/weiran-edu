@@ -15,14 +15,14 @@ import {
   type AiTask,
 } from '../../services/edu-api/ai-task-types';
 import { exactToNumber } from '../../services/edu-api/exact';
-import { conditionText, dimensionName } from '../../services/edu-api/view-model';
+import { conditionText, dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
 import { Panel } from '../../components/ui';
 import { useRemote } from './useRemote';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { LiveScoreDrawer } from './LiveStudents';
 import TeacherQuestionSuggestions from './TeacherQuestionSuggestions';
-import { teacherQuestions } from '../../services/edu-api/teacher-ai-guidance';
-import { describeProfile } from '../../services/edu-api/teacher-analysis';
+import { teacherAiError, teacherQuestions } from '../../services/edu-api/teacher-ai-guidance';
+import { teacherNumber } from '../../services/edu-api/teacher-analysis';
 import { DIMENSIONS } from '../../services/edu-api/types';
 
 const legacyItems = DIMENSIONS.map((d) => ({
@@ -61,12 +61,50 @@ const profileConditions = (profile: AiProfile): ApiCondition[] =>
     operator: profileOperators[condition.operator]!,
     value: Number(condition.value),
   }));
-const exactScore = (value: { numerator: number | string; denominator: number | string }) =>
-  exactToNumber(value).toFixed(2);
+const exactScore = teacherNumber;
+
+const factMetricValue = (metric: AiFact['metrics'][number]) =>
+  metric.exact
+    ? exactScore(metric.exact)
+    : metric.number != null
+      ? scoreDisplay(metric.number)
+      : metric.display;
+
+function factTitle(fact: AiFact) {
+  const names = [...new Set(fact.source_refs.map((ref) => dimensionName(ref.dimension_code)))];
+  return [names.join('、'), methodLabels[fact.method] ?? '评分发现'].filter(Boolean).join(' · ');
+}
+
+function factConclusion(fact: AiFact) {
+  const difference = fact.metrics.find((metric) => metric.key === 'metrics.difference');
+  const relation = fact.metrics.find((metric) => metric.key === 'metrics.rho');
+  const metric = difference ?? relation;
+  const value = metric?.exact ? exactToNumber(metric.exact) : metric?.number;
+  if (value == null) return null;
+  if (difference)
+    return value === 0 ? '两组评分均分相同' : value > 0 ? '本组均分更高' : '对照组均分更高';
+  return value === 0 ? null : value > 0 ? '两项评分整体同向' : '两项评分整体反向';
+}
+function primaryMetrics(fact: AiFact) {
+  const keys =
+    fact.method === 'query_dimension_relation'
+      ? ['metrics.rho', 'metrics.paired_count']
+      : fact.method === 'compare_student_groups'
+        ? ['metrics.difference', 'metrics.target_mean', 'metrics.remainder_mean']
+        : ['metrics.denominator'];
+  return keys.flatMap((key) => fact.metrics.filter((metric) => metric.key === key));
+}
 
 export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
-  const { client, teacherId, conditions, setConditions, setActiveReport, setReportDraft } =
-    useDataMode();
+  const {
+    client,
+    teacherId,
+    conditions,
+    syntheticAi,
+    setConditions,
+    setActiveReport,
+    setReportDraft,
+  } = useDataMode();
   const router = useRouter();
   const questions = teacherQuestions(batch.recognized_items ?? legacyItems);
   const [question, setQuestion] = useState(() => questions[0]?.question ?? '');
@@ -84,8 +122,20 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   const submission = useRef<{ question: string; key: string } | null>(null);
   const storageKey = `weiran.edu.ai-task.${teacherId}.${batch.batch_id}.${batch.snapshot_id}`;
   const running = aiRunning(task);
+  const execution = syntheticAi ? 'http_mock' : 'qwen_live';
   const campaignUsed = error?.status === 409 && error.code === 'AI_CAMPAIGN_ALREADY_USED';
   const canStart = !task && !campaignUsed;
+  const checkExecution = useCallback(
+    (value: AiTask) => {
+      if (
+        value.execution_origin !== execution &&
+        !(execution === 'qwen_live' && value.execution_origin === 'not_run')
+      )
+        throw new ApiError(502, 'AI_EXECUTION_SOURCE_MISMATCH');
+      return value;
+    },
+    [execution],
+  );
   useEffect(() => {
     const controller = new AbortController();
     let taskId: string | null = null;
@@ -96,7 +146,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
     }
     void (async () => {
       try {
-        if (taskId) setTask(await client.aiTask(batch, taskId, controller.signal));
+        if (taskId) setTask(checkExecution(await client.aiTask(batch, taskId, controller.signal)));
       } catch (e) {
         if (!controller.signal.aborted && e instanceof ApiError) {
           // A missing or expired task pointer is not an actionable error: clear it and
@@ -121,13 +171,13 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       controller.abort();
       pending.current?.abort();
     };
-  }, [client, batch, storageKey]);
+  }, [client, batch, storageKey, checkExecution]);
   useEffect(() => {
     if (!task || !aiRunning(task)) return;
     const controller = new AbortController();
     const poll = async () => {
       try {
-        const next = await client.aiTask(batch, task.task_id, controller.signal);
+        const next = checkExecution(await client.aiTask(batch, task.task_id, controller.signal));
         if (controller.signal.aborted) return;
         setTask((current) => (current === task ? next : current));
       } catch (e) {
@@ -139,7 +189,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [client, batch, task]);
+  }, [client, batch, task, checkExecution]);
   async function operate(work: (signal: AbortSignal) => Promise<void>) {
     if (pending.current) return;
     const controller = new AbortController();
@@ -163,7 +213,19 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
     if (submission.current?.question !== text)
       submission.current = { question: text, key: crypto.randomUUID() };
     void operate(async (signal) => {
-      const value = await client.startAiTask(batch, text, submission.current!.key, signal);
+      const value = checkExecution(
+        await client
+          .startAiTask(batch, text, submission.current!.key, signal)
+          .catch((failure: unknown) => {
+            if (
+              execution === 'qwen_live' &&
+              failure instanceof ApiError &&
+              [404, 503].includes(failure.status)
+            )
+              throw new ApiError(failure.status, 'AI_NOT_AVAILABLE', failure.requestId);
+            throw failure;
+          }),
+      );
       if (signal.aborted) return;
       setTask(value);
       try {
@@ -194,17 +256,40 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       router.push('/reports');
     });
   }
-  const facts =
-    task?.result?.facts.filter((fact) => task.result!.selected_fact_ids.includes(fact.fact_id)) ??
-    [];
+  const result = task?.result;
+  const factById = new Map(result?.facts.map((fact) => [fact.fact_id, fact]));
+  const facts = (result?.selected_fact_ids ?? []).flatMap((id) => {
+    const fact = factById.get(id);
+    return fact ? [fact] : [];
+  });
   const reportFacts = facts
     .filter((fact) => fact.qualified && fact.source_verified)
     .map((fact) => fact.fact_id);
   const projection = task?.result?.profile_projection;
   const profiles = projection?.profiles ?? [];
   const taskLabel = task ? taskStateLabels[task.state] : undefined;
+  const taskFailure = task?.error_code ? teacherAiError(task.error_code) : null;
   const resultLabel = task?.result && stopLabels[task.result.stop_reason];
-  const status = restoring ? '正在读取分析任务…' : (resultLabel ?? taskLabel);
+  const analyzing = !error && (running || (canStart && busy));
+  const status = error
+    ? undefined
+    : analyzing
+      ? '正在分析'
+      : restoring
+        ? '正在读取分析任务…'
+        : (resultLabel ?? taskLabel);
+  const renderFact = (fact: AiFact) => (
+    <FactCard
+      key={fact.fact_id}
+      fact={fact}
+      onEvidence={() => setSources(fact)}
+      onExplore={() => {
+        if (!fact.exploration_query) return;
+        setConditions(fact.exploration_query.conditions);
+        router.push('/explorer');
+      }}
+    />
+  );
   return (
     <Panel
       title="AI 分析"
@@ -252,8 +337,9 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
         </form>
       )}
       {status && !task?.error_code && (
-        <div className="ai-task-actions">
+        <div className={`ai-task-actions${analyzing ? ' ai-task-running' : ''}`}>
           <span className="ai-task-status" role="status">
+            {analyzing && <span className="ai-analysis-indicator" aria-hidden="true" />}
             {status}
           </span>
           {running && task && (
@@ -261,7 +347,9 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
               disabled={busy}
               onClick={() =>
                 void operate(async (signal) => {
-                  const value = await client.cancelAiTask(batch, task.task_id, signal);
+                  const value = checkExecution(
+                    await client.cancelAiTask(batch, task.task_id, signal),
+                  );
                   if (!signal.aborted) setTask(value);
                 })
               }
@@ -278,7 +366,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             task
               ? () =>
                   void operate(async (signal) => {
-                    const value = await client.aiTask(batch, task.task_id, signal);
+                    const value = checkExecution(await client.aiTask(batch, task.task_id, signal));
                     if (!signal.aborted) setTask(value);
                   })
               : undefined
@@ -290,16 +378,29 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
         <Alert
           showIcon
           type={task.state === 'cancelled' ? 'info' : 'warning'}
-          title={taskLabel}
+          title={taskFailure?.message ?? taskLabel}
           description={
-            task.state === 'failed' || task.state === 'timed_out'
+            taskFailure?.action ??
+            (task.state === 'failed' || task.state === 'timed_out'
               ? '本轮分析未完成，可切换其他测评批次。'
-              : undefined
+              : undefined)
           }
         />
       )}
       {task?.result && (
         <>
+          {facts.length > 0 && (
+            <section className="ai-findings" aria-label="分析发现">
+              <h3>重点发现</h3>
+              <div className="ai-fact-grid">{facts.slice(0, 2).map(renderFact)}</div>
+              {facts.length > 2 && (
+                <details className="ai-foldout">
+                  <summary>其他发现（{facts.length - 2} 条）</summary>
+                  <div className="ai-fact-grid">{facts.slice(2).map(renderFact)}</div>
+                </details>
+              )}
+            </section>
+          )}
           {task.result.missing_evidence.length > 0 && (
             <Alert
               type="warning"
@@ -314,57 +415,18 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                 .join('、')}
             />
           )}
-          {facts.length > 0 && (
-            <div className="ai-fact-grid" role="region" aria-label="分析发现">
-              {facts.map((fact) => (
-                <section className="discovery-card" data-testid="ai-fact-card" key={fact.fact_id}>
-                  <h3>{methodLabels[fact.method] ?? '分析结果'}</h3>
-                  <p>
-                    {[
-                      ...new Set(fact.source_refs.map((ref) => dimensionName(ref.dimension_code))),
-                    ].join('、')}
-                  </p>
-                  {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
-                  <dl className="focus-metrics" aria-label="发现指标">
-                    {fact.metrics
-                      .filter((metric) => metricLabels[metric.key])
-                      .map((metric) => (
-                        <div key={metric.key}>
-                          <dt>{metricLabels[metric.key]}</dt>
-                          <dd>
-                            <strong>{metric.display}</strong>
-                          </dd>
-                        </div>
-                      ))}
-                  </dl>
-                  <div className="ai-fact-actions">
-                    {!!fact.source_refs.length && fact.source_verified && (
-                      <Button onClick={() => setSources(fact)}>查看评分依据</Button>
-                    )}
-                    {fact.exploration_query && fact.source_verified && (
-                      <Button
-                        onClick={() => {
-                          setConditions(fact.exploration_query!.conditions);
-                          router.push('/explorer');
-                        }}
-                      >
-                        继续探索
-                      </Button>
-                    )}
-                  </div>
-                </section>
-              ))}
-            </div>
-          )}
           {projection && profiles.length > 0 && (
             <section className="ai-profile-section" aria-labelledby="ai-profiles-heading">
               <h2 id="ai-profiles-heading">群体画像</h2>
               <div className="ai-profile-grid">
                 {profiles.map((profile) => {
-                  const primaryIndex = profile.dimensions.findIndex(
-                    (dimension) => !dimension.condition_defined,
-                  );
-                  const verifiedReading = describeProfile(profile)[primaryIndex];
+                  const focus = profile.dimensions
+                    .filter((dimension) => !dimension.condition_defined)
+                    .sort(
+                      (left, right) =>
+                        Math.abs(exactToNumber(right.difference)) -
+                        Math.abs(exactToNumber(left.difference)),
+                    )[0];
                   return (
                     <section
                       className="discovery-card ai-profile-card"
@@ -372,46 +434,59 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                       key={profile.profile_id}
                     >
                       <h3>{profile.title}</h3>
-                      <p className="ai-profile-summary">{profile.summary}</p>
-                      {verifiedReading && (
-                        <p className="teacher-reading">
-                          {profile.dimensions[primaryIndex]?.label}：{verifiedReading.numbers}
-                          点击评分项目即可查看两组的原评分。
-                        </p>
+                      {focus && (
+                        <div className="ai-profile-focus">
+                          <button
+                            type="button"
+                            className="ai-profile-dimension-action"
+                            onClick={() => setProfileEvidence({ profile, dimension: focus })}
+                          >
+                            查看{focus.label}评分依据
+                          </button>
+                          <strong>均分差 {exactScore(focus.difference)} 分</strong>
+                          <span>
+                            本组 {exactScore(focus.target.mean)} 分 · 对照组{' '}
+                            {exactScore(focus.remainder.mean)} 分
+                          </span>
+                        </div>
                       )}
-                      <table
-                        className="ai-profile-dimensions"
-                        aria-label={`${profile.title}评分对照（分）`}
-                      >
-                        <thead>
-                          <tr>
-                            <th scope="col">评分维度</th>
-                            <th scope="col">本组</th>
-                            <th scope="col">对照组</th>
-                            <th scope="col">均分差</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {profile.dimensions.map((dimension) => (
-                            <tr key={dimension.dimension_code}>
-                              <th scope="row">
-                                <button
-                                  type="button"
-                                  className="ai-profile-dimension-action"
-                                  onClick={() => setProfileEvidence({ profile, dimension })}
-                                  aria-label={`查看${dimension.label}评分依据${dimension.condition_defined ? '（分组条件）' : ''}`}
-                                >
-                                  <span>{dimension.label}</span>
-                                  <span aria-hidden="true">›</span>
-                                </button>
-                              </th>
-                              <td>{dimension.target.mean.display}</td>
-                              <td>{dimension.remainder.mean.display}</td>
-                              <td>{dimension.difference.display}</td>
+                      <p>{profile.suggested_next_action}</p>
+                      <details className="ai-foldout">
+                        <summary>查看完整五维评分</summary>
+                        <table
+                          className="ai-profile-dimensions"
+                          aria-label={`${profile.title}评分对照（分）`}
+                        >
+                          <thead>
+                            <tr>
+                              <th scope="col">评分维度</th>
+                              <th scope="col">本组</th>
+                              <th scope="col">对照组</th>
+                              <th scope="col">均分差</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {profile.dimensions.map((dimension) => (
+                              <tr key={dimension.dimension_code}>
+                                <th scope="row">
+                                  <button
+                                    type="button"
+                                    className="ai-profile-dimension-action"
+                                    onClick={() => setProfileEvidence({ profile, dimension })}
+                                    aria-label={`查看${dimension.label}评分依据${dimension.condition_defined ? '（分组条件）' : ''}`}
+                                  >
+                                    <span>{dimension.label}</span>
+                                    <span aria-hidden="true">›</span>
+                                  </button>
+                                </th>
+                                <td>{exactScore(dimension.target.mean)}</td>
+                                <td>{exactScore(dimension.remainder.mean)}</td>
+                                <td>{exactScore(dimension.difference)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </details>
                       <div className="ai-fact-actions">
                         <Button
                           onClick={() => {
@@ -449,6 +524,23 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
               前往报告核查
             </Button>
           )}
+          <details className="ai-foldout ai-technical">
+            <summary>技术详情</summary>
+            <dl>
+              <dt>执行来源</dt>
+              <dd>
+                {task.execution_origin === 'qwen_live'
+                  ? 'Qwen'
+                  : task.execution_origin === 'http_mock'
+                    ? '模拟分析（未调用真实模型）'
+                    : '未执行'}
+              </dd>
+              <dt>模型请求</dt>
+              <dd>{task.model_requests} 次</dd>
+              <dt>核查工具</dt>
+              <dd>{task.tool_attempts} 次</dd>
+            </dl>
+          </details>
         </>
       )}
       {task && sources && (
@@ -469,6 +561,60 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
         />
       )}
     </Panel>
+  );
+}
+
+function FactCard({
+  fact,
+  onEvidence,
+  onExplore,
+}: {
+  fact: AiFact;
+  onEvidence: () => void;
+  onExplore: () => void;
+}) {
+  const primary = primaryMetrics(fact);
+  const conclusion = factConclusion(fact);
+  const secondary = fact.metrics.filter(
+    (metric) => metricLabels[metric.key] && !primary.includes(metric),
+  );
+  return (
+    <section className="discovery-card ai-compact-fact" data-testid="ai-fact-card">
+      <h4>{factTitle(fact)}</h4>
+      {conclusion && <p className="ai-fact-conclusion">{conclusion}</p>}
+      {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
+      <dl className="focus-metrics" aria-label="发现指标">
+        {primary.map((metric) => (
+          <div key={metric.key}>
+            <dt>{metricLabels[metric.key]}</dt>
+            <dd>
+              <strong>{factMetricValue(metric)}</strong>
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {secondary.length > 0 && (
+        <details className="ai-foldout">
+          <summary>查看统计明细</summary>
+          <dl>
+            {secondary.map((metric) => (
+              <div key={metric.key}>
+                <dt>{metricLabels[metric.key]}</dt>
+                <dd>{factMetricValue(metric)}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      )}
+      <div className="ai-fact-actions">
+        {!!fact.source_refs.length && fact.source_verified && (
+          <Button onClick={onEvidence}>查看评分依据</Button>
+        )}
+        {fact.exploration_query && fact.source_verified && (
+          <Button onClick={onExplore}>继续探索</Button>
+        )}
+      </div>
+    </section>
   );
 }
 

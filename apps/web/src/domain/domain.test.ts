@@ -115,7 +115,9 @@ describe('导入校验边界', () => {
       ['评价长表模板.xlsx', 0],
       ['评价_待校验示例.xlsx', 2],
     ] as const) {
-      const buffer = await readFile(new URL(`../../public/templates/${filename}`, import.meta.url));
+      const buffer = await readFile(
+        new URL(`../../tests/fixtures/generated/${filename}`, import.meta.url),
+      );
       const sheets = await readXlsx(buffer);
       const parsed = validateWorkbook(
         sheets.map((s) => ({ name: s.sheet, data: s.data })),

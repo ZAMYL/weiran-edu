@@ -27,6 +27,78 @@ it('accepts actual queued and stopped states without manufacturing progress', ()
   expect(
     aiRunning(aiTaskDto({ ...task, state: 'cancelled', error_code: 'AI_TASK_CANCELLED' })),
   ).toBe(false);
+  expect(aiTaskDto({ ...task, provenance: null }).provenance).toBeNull();
+  expect(aiTaskDto({ ...task, provenance: {} }).provenance).toBeNull();
+});
+it('keeps live execution distinct and refuses unexecuted or mixed-source success', () => {
+  const live = {
+    ...task,
+    origin: 'qwen_live',
+    execution_origin: undefined,
+    real_qwen: undefined,
+    production_enabled: undefined,
+  };
+  expect(aiTaskDto(live).execution_origin).toBe('qwen_live');
+  const result = {
+    execution_origin: 'qwen_live',
+    real_qwen: 'completed',
+    run_id: 'r',
+    batch_id: 'b',
+    snapshot_id: 's',
+    status: 'completed',
+    stop_reason: 'no_supported_findings',
+    batch_record_count: 20,
+    missing_evidence: [],
+    facts: [],
+    selected_fact_ids: [],
+    retained_fact_ids: [],
+    uncovered_direction_count: 0,
+  };
+  const provenance = {
+    origin: 'qwen_live',
+    state: 'completed',
+    request_state: 'responses_received',
+    model_requests: 1,
+    tool_attempts: 0,
+    source_replay_verified: true,
+    error_code: null,
+  };
+  const completed = { ...live, state: 'completed', model_requests: 1, provenance, result };
+  expect(aiTaskDto(completed)).toMatchObject({ execution_origin: 'qwen_live', provenance });
+  expect(
+    aiTaskDto({ ...completed, origin: undefined, execution_origin: 'qwen_live' }).provenance,
+  ).toEqual(provenance);
+  expect(
+    aiTaskDto({ ...completed, result: { ...result, execution_origin: undefined } }).result
+      ?.real_qwen,
+  ).toBe('completed');
+  for (const invalid of [
+    { ...completed, model_requests: 0 },
+    { ...completed, real_qwen: 'not_run' },
+    { ...completed, provenance: {} },
+    { ...completed, real_qwen: 'failed' },
+    { ...completed, origin: 'not_run' },
+    { ...completed, execution_origin: 'http_mock' },
+    { ...completed, state: 'running' },
+    { ...completed, provenance: undefined },
+    { ...completed, provenance: { ...provenance, source_replay_verified: false } },
+    { ...completed, provenance: { ...provenance, request_state: 'attempted' } },
+    { ...completed, provenance: { ...provenance, origin: 'http_mock' } },
+    { ...completed, provenance: { ...provenance, model_requests: 2 } },
+    { ...completed, result: { ...result, real_qwen: 'not_run' } },
+    { ...completed, execution_origin: 'not_run', result: null, model_requests: 0 },
+    {
+      ...completed,
+      result: {
+        ...result,
+        execution_origin: 'http_mock',
+        real_qwen: 'not_run',
+        production_enabled: false,
+      },
+    },
+  ]) {
+    expect(() => aiTaskDto(invalid)).toThrow('INVALID_API_RESPONSE');
+  }
 });
 it('decodes a Live task only with server-owned provenance', () => {
   const live = aiTaskDto({

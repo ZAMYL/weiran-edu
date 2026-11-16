@@ -11,6 +11,7 @@ import {
   Pagination,
   Radio,
   Segmented,
+  Skeleton,
   Tag,
 } from 'antd';
 import {
@@ -30,11 +31,11 @@ import {
   type ReportFormat,
   type DiscoverySelection,
 } from '../../services/edu-api/analysis-types';
-import { saveReportFile } from '../../services/edu-api/report-file';
+import { saveReportFile, xlsxDownloadName } from '../../services/edu-api/report-file';
 import type { ApiBatch, InsightSpec } from '../../services/edu-api/types';
 import { conditionText, metricDisplay, ratioDisplay } from '../../services/edu-api/view-model';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
-import { LoadingPanel, RequestError } from './LiveStatus';
+import { RequestError } from './LiveStatus';
 import { useRemote } from './useRemote';
 import { DiscoveryDetailDrawer } from './LiveDiscoveries';
 import { discoverySummaryText } from '../../services/edu-api/discovery-view';
@@ -138,7 +139,20 @@ function useReportPermissions(batch: ApiBatch) {
   return useRemote(`analysis-capabilities:${batch.batch_id}:${batch.snapshot_id}`, load);
 }
 
-type ReportView = { type: 'new' } | { type: 'history' } | { type: 'saved'; resultId: string };
+type ReportView = { type: 'recent' | 'new' | 'history' } | { type: 'saved'; resultId: string };
+
+function ReportSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="report-loading-layout" role="status" aria-label="正在加载分析报告">
+      <Skeleton active title paragraph={{ rows: 4 }} />
+      <div>
+        {Array.from({ length: rows }, (_, index) => (
+          <Skeleton key={index} active title paragraph={{ rows: 2 }} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contextKey: string }) {
   const { client, conditions, reportDraft, activeReport, setActiveReport } = useDataMode();
@@ -148,8 +162,20 @@ export function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contex
       ? { type: 'saved', resultId: activeReport.resultId }
       : draft?.showSaved
         ? { type: 'history' }
-        : { type: 'new' },
+        : { type: draft ? 'new' : 'recent' },
   );
+  const overviewKey = `report-list-count:${batch.batch_id}:${batch.snapshot_id}`;
+  const loadRecent = useCallback(
+    async (signal: AbortSignal) => {
+      const list = await client.analyses(batch, 0, signal);
+      if (!signal.aborted) client.overviewCache.write(overviewKey, list.total_count);
+      return list.items[0]?.result_id ?? '';
+    },
+    [client, batch, overviewKey],
+  );
+  const recent = useRemote(view.type === 'recent' ? overviewKey : null, loadRecent);
+  const savedId = view.type === 'saved' ? view.resultId : recent.data;
+  const needsPreview = view.type === 'new' || (view.type === 'recent' && recent.data === '');
   const permissions = useReportPermissions(batch);
   const scopeConditions = draft?.spec.conditions ?? conditions;
   const selection = draft?.discovery;
@@ -186,7 +212,7 @@ export function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contex
     },
     [client, batch, scopeConditions, selection],
   );
-  const preview = useRemote(view.type === 'new' ? `report-preview:${contextKey}` : null, load);
+  const preview = useRemote(needsPreview ? `report-preview:${contextKey}` : null, load);
 
   const openSaved = (resultId: string) => {
     remember(resultId);
@@ -204,12 +230,12 @@ export function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contex
   if (view.type === 'history')
     return <SavedAnalyses batch={batch} onOpen={openSaved} onNew={create} />;
 
-  if (view.type === 'saved')
+  if (savedId)
     return (
       <AnalysisDetail
-        key={view.resultId}
+        key={savedId}
         batch={batch}
-        resultId={view.resultId}
+        resultId={savedId}
         onBack={history}
         onNew={create}
       />
@@ -225,7 +251,12 @@ export function ReportWorkspace({ batch, contextKey }: { batch: ApiBatch; contex
     />
   ) : (
     <Panel title="分析报告" action={<Button onClick={history}>已保存分析</Button>}>
-      {(preview.loading || permissions.loading) && <LoadingPanel />}
+      {(recent.loading || preview.loading || permissions.loading) && (
+        <ReportSkeleton
+          rows={Math.min(3, Math.max(1, client.overviewCache.read<number>(overviewKey) ?? 3))}
+        />
+      )}
+      {recent.error && <RequestError error={recent.error} retry={recent.retry} />}
       {preview.error && <RequestError error={preview.error} retry={preview.retry} />}
       {permissions.error && <RequestError error={permissions.error} retry={permissions.retry} />}
     </Panel>
@@ -259,7 +290,7 @@ function SavedAnalyses({
         }
       >
         <p className="muted">当前测评：{batch.title}</p>
-        {list.loading && <LoadingPanel />}
+        {list.loading && <ReportSkeleton />}
         {list.error && <RequestError error={list.error} retry={list.retry} />}
         {list.data && (
           <>
@@ -330,7 +361,7 @@ function AnalysisDetail({
     />
   ) : (
     <Panel title="分析报告" action={<Button onClick={onBack}>返回报告列表</Button>}>
-      {resource.loading && <LoadingPanel />}
+      {resource.loading && <ReportSkeleton />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
     </Panel>
   );
@@ -794,20 +825,12 @@ function ReportExport({
   const [format, setFormat] = useState<ReportFormat>('xlsx');
   return (
     <Modal title="导出测评报告" open onCancel={onClose} footer={null} maskClosable={false}>
-      <Segmented
-        aria-label="报告格式"
-        options={[
-          { label: 'XLSX', value: 'xlsx' },
-          { label: 'Markdown', value: 'md' },
-        ]}
-        value={format}
-        onChange={setFormat}
-      />
       <ReportDownload
         key={format}
         batch={batch}
         result={result}
         format={format}
+        onFormatChange={setFormat}
         onReload={onReload}
       />
     </Modal>
@@ -818,16 +841,17 @@ function ReportDownload({
   batch,
   result,
   format,
+  onFormatChange,
   onReload,
 }: {
   batch: ApiBatch;
   result: AnalysisResult;
   format: ReportFormat;
+  onFormatChange: (format: ReportFormat) => void;
   onReload: () => void;
 }) {
   const { client } = useDataMode();
   const [acknowledged, setAcknowledged] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
   const operation = useOperation();
   const load = useCallback(
     async (signal: AbortSignal) => {
@@ -841,52 +865,53 @@ function ReportDownload({
   const blocked = operation.error || check.error;
   return (
     <div className="report-check">
-      <p>
-        分析：{result.title} · 版本 {result.version}
-      </p>
-      <p className="muted small">
-        报告包含汇总统计与教师已确认的发现；不包含逐学生明细和自由填写的备注。仅供授权教师使用。
-      </p>
-      {check.loading && <LoadingPanel />}
+      <div className="report-download-heading">
+        <strong>{result.title}</strong>
+        {check.data && (
+          <span className="muted">已确认发现 {check.data.confirmed_finding_count} 条</span>
+        )}
+      </div>
+      <Segmented
+        block
+        aria-label="报告格式"
+        options={[
+          { label: 'Excel', value: 'xlsx' },
+          { label: 'Markdown', value: 'md' },
+        ]}
+        value={format}
+        disabled={operation.busy}
+        onChange={onFormatChange}
+      />
       {check.error && <RequestError error={check.error} retry={check.retry} />}
-      {check.data && (
+      {!!check.data?.warnings.length && (
         <>
-          <p>
-            分析群体 {check.data.member_count} 人 · 已确认发现 {check.data.confirmed_finding_count}{' '}
-            条
-          </p>
-          <p className="muted small">
-            报告预估大小 {(check.data.report_payload_bytes / 1024).toFixed(1)} KiB
-          </p>
-          {check.data.warnings.length > 0 && (
-            <>
-              <Alert
-                type="warning"
-                showIcon
-                title="导出预检提醒"
-                description={
-                  <ul>
-                    {check.data.warnings.map((warning) => (
-                      <li key={warning.code}>
-                        {warning.message}（{warning.count}）
-                      </li>
-                    ))}
-                  </ul>
-                }
-              />
-              <Checkbox checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)}>
-                我已了解以上提醒，按当前核验结果导出
-              </Checkbox>
-            </>
-          )}
+          <Alert
+            type="warning"
+            showIcon
+            title={
+              check.data.warnings
+                .map(
+                  ({ code, count }) =>
+                    ({
+                      PENDING_FINDINGS_EXCLUDED: `${count} 条待核验发现`,
+                      DISMISSED_FINDINGS_EXCLUDED: `${count} 条已排除发现`,
+                      WITHHELD_COMMENTS_EXCLUDED: `${count} 条未授权评语`,
+                      WITHHELD_RUBRIC_EXCLUDED: `${count} 项未授权评分依据`,
+                    })[code],
+                )
+                .join('、') + '不会导出'
+            }
+          />
+          <Checkbox checked={acknowledged} onChange={(e) => setAcknowledged(e.target.checked)}>
+            确认并继续导出
+          </Checkbox>
         </>
       )}
       {operation.error && <RequestError error={operation.error} />}
       {blocked && <Button onClick={onReload}>关闭并加载最新结果</Button>}
-      {downloaded && <Alert type="success" showIcon title="报告已下载" />}
       <Button
         type="primary"
-        loading={operation.busy}
+        loading={operation.busy || check.loading}
         disabled={
           !check.data || Boolean(blocked) || (check.data.warnings.length > 0 && !acknowledged)
         }
@@ -900,13 +925,14 @@ function ReportDownload({
               signal,
             );
             if (!signal.aborted) {
-              saveReportFile(file);
-              setDownloaded(true);
+              const downloadName =
+                format === 'xlsx' ? xlsxDownloadName(result.title, result.version) : file.filename;
+              saveReportFile(file, downloadName);
             }
           })
         }
       >
-        下载 {format === 'xlsx' ? 'XLSX' : 'Markdown'}
+        下载 {format === 'xlsx' ? 'Excel' : 'Markdown'}
       </Button>
     </div>
   );

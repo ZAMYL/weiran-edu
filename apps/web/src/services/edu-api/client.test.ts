@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { assertSnapshot, createEduClient } from './client';
 import { evidenceDto, studentListDto, type ApiBatch, type InsightMetric } from './types';
+import { studentScoreDisplay } from './view-model';
 import { commentStatusText, metricDisplay, parseThreshold } from './view-model';
 import { batchItemsDto } from './assessment-items';
 
@@ -72,7 +73,7 @@ describe('formal API privacy and cancellation', () => {
     await expect(client.me()).rejects.toMatchObject({
       status: 403,
       code: 'AI_SYNTHETIC_SOURCE_REQUIRED',
-      message: '当前 AI 演示仅支持本次服务登记的合成样例原件。此测评仍可查看评分统计。',
+      message: '当前测评未开通 AI 分析，可继续查看评分统计。',
       requestId: 'req_synthetic',
     });
   });
@@ -88,6 +89,43 @@ describe('formal API privacy and cancellation', () => {
     client.clear();
     await expect(client.me()).rejects.toMatchObject({ status: 401 });
     expect(transport).toHaveBeenCalledTimes(1);
+  });
+  it('reads server identity metadata alongside the teacher id', async () => {
+    const identity = {
+      teacher_id: 'teacher_test',
+      issuer: 'local-pilot',
+      subject: 'first-use-owner',
+      identity_kind: 'demo_first_use',
+      data_label: '合成演示数据（首次上传样例）',
+    };
+    const client = createEduClient(
+      vi.fn(),
+      vi.fn<typeof fetch>().mockResolvedValue(response(200, identity)),
+    );
+    client.useTestSession();
+    expect(await client.me()).toEqual(identity);
+  });
+  it('uses a snapshot-bound event cursor and discards unlisted event details', async () => {
+    const event = {
+      sequence: 2,
+      phase: 'model_budget',
+      at: '',
+      detail: { model_requests: 1, raw: 'omit' },
+    };
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(response(200, { task_id: 't', events: [event] }))
+      .mockResolvedValueOnce(response(200, { task_id: 't', events: [event] }));
+    const client = createEduClient(vi.fn(), transport);
+    client.useTestSession();
+    const batch = { batch_id: 'b', snapshot_id: 's' } as ApiBatch;
+    const events = await client.aiTaskEvents(batch, 't', 1);
+    expect(events[0]?.detail).toMatchObject({ model_requests: 1 });
+    expect(events[0]?.detail).not.toHaveProperty('raw');
+    expect(transport.mock.calls[0]?.[0]).toBe(
+      '/api/edu/batches/b/ai-investigation-tasks/t/events?snapshot_id=s&after=1',
+    );
+    await expect(client.aiTaskEvents(batch, 't', 2)).rejects.toMatchObject({ status: 502 });
   });
   it('uses only a bearer header and no cache/cookies/URL credentials', async () => {
     const transport = vi
@@ -249,14 +287,22 @@ describe('server totals and decimal presentation', () => {
         {
           student_id: 's1',
           display_label: 'S001',
-          scores: [{ dimension_code: 'algorithm_data_structure', score: 2.75, evidence_id: 'e1' }],
+          scores: [
+            {
+              dimension_code: 'algorithm_data_structure',
+              score: 2.7,
+              display: '2.70',
+              evidence_id: 'e1',
+            },
+          ],
         },
       ],
       page: { offset: 20, limit: 10, returned: 1, has_more: false },
       private_extra: 'stripped',
     });
     expect(page.total_count).toBe(23);
-    expect(page.items[0]!.scores[0]!.score).toBe(2.75);
+    expect(page.items[0]!.scores[0]!.score).toBe(2.7);
+    expect(studentScoreDisplay(page.items[0]!.scores[0]!)).toBe('2.7');
     expect(page).not.toHaveProperty('private_extra');
   });
   it.each(['2.751', '2.7500000000001', 'NaN', '6', '0', '2e0', ''])(

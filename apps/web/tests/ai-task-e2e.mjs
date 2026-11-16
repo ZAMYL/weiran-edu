@@ -152,6 +152,8 @@ try {
   const originalQuestion = '有哪些值得关注的问题？';
   await page.getByLabel('想了解什么？', { exact: true }).fill(originalQuestion);
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
+  await page.locator('.ai-analysis-indicator').waitFor();
+  await page.screenshot({ path: path.join(artifacts, 'ai-running-desktop.png') });
   const createdResponse = await created;
   assert.equal(createdResponse.request().postDataJSON().question, originalQuestion);
   const start = await createdResponse.json();
@@ -163,7 +165,17 @@ try {
     await page.locator('main').innerText(),
     /Demo|联调测试|正式版|HTTP Mock|AI 分析演示|Agent Fact|确定性重放|主 Fact|真实评分重放/,
   );
-  await page.getByText('合成样例账户', { exact: true }).waitFor();
+  assert.doesNotMatch(await page.locator('.app-shell').innerText(), /演示工作台 · 演示数据/);
+  await page.getByRole('button', { name: /帮助$/ }).click();
+  const help = page.getByRole('dialog', { name: '使用未然 EDU' });
+  await help.getByText('此账户如有预置测评，预置数据由程序生成。', { exact: false }).waitFor();
+  await help.getByRole('button', { name: '知道了' }).click();
+  await help.waitFor({ state: 'hidden' });
+  const technicalDetails = page.locator('.ai-technical');
+  assert.equal(await technicalDetails.getAttribute('open'), null);
+  await technicalDetails.getByText('技术详情', { exact: true }).click();
+  await technicalDetails.getByText('模拟分析（未调用真实模型）', { exact: true }).waitFor();
+  await technicalDetails.getByText('技术详情', { exact: true }).click();
   const completed = await page.evaluate(
     async ({ batch, task }) =>
       (
@@ -184,6 +196,23 @@ try {
   assert.equal(completed.result.real_qwen, 'not_run');
   assert.equal(completed.result.production_enabled, false);
   assert.equal(completed.result.budget.actual_remote_requests, 0);
+  if (process.env.EDU_AI_EXPECT_EVENTS === '1') {
+    const eventRoute =
+      `${origin}/api/edu/batches/${normal.batch_id}/ai-investigation-tasks/${start.task_id}/events` +
+      `?snapshot_id=${normal.snapshot_id}`;
+    const response = await page.request.get(eventRoute + '&after=0');
+    assert.equal(response.status(), 200);
+    const timeline = await response.json();
+    assert.equal(timeline.task_id, start.task_id);
+    assert.ok(timeline.events.some((event) => event.phase === 'result_committed'));
+    for (const [index, event] of timeline.events.entries()) {
+      assert.ok(event.sequence > (timeline.events[index - 1]?.sequence ?? 0));
+    }
+    const tail = await page.request.get(eventRoute + `&after=${timeline.events.at(-1).sequence}`);
+    assert.equal(tail.status(), 200);
+    assert.deepEqual((await tail.json()).events, []);
+    checks.push('task event HTTP routes return ordered results and respect the sequence cursor');
+  }
   if (completed.result.stop_reason === 'bounded_scope_stop') {
     const status = page.locator('.ai-task-actions').getByRole('status');
     assert.equal(await status.innerText(), '核查未覆盖所有问题');
@@ -206,11 +235,12 @@ try {
   await page.screenshot({ path: path.join(artifacts, 'normal-facts.png'), fullPage: true });
   await page.getByRole('button', { name: '全屏', exact: true }).click();
   const fullscreenTitle = page.locator('.fullscreen-title');
-  await fullscreenTitle.getByText(/合成样例账户/).waitFor();
+  await fullscreenTitle.waitFor();
+  assert.equal((await fullscreenTitle.innerText()).trim(), '学情诊断');
   await page.screenshot({ path: path.join(artifacts, 'normal-fullscreen.png'), fullPage: true });
   await page.getByRole('button', { name: /^退出全屏/ }).click();
   await fullscreenTitle.waitFor({ state: 'hidden' });
-  checks.push('synthetic sample identity remains visible in fullscreen');
+  checks.push('workspace and fullscreen titles are clean; help and AI details disclose sources');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
   await page.screenshot({ path: path.join(artifacts, 'normal-mobile.png'), fullPage: true });
@@ -318,7 +348,7 @@ try {
     if (await ack.count()) await ack.check();
     const download = page.waitForEvent('download');
     await dialog
-      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 XLSX', exact: true })
+      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 Excel', exact: true })
       .click();
     const file = await download;
     const bytes = await readFile(await file.path());
@@ -422,6 +452,7 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await profileCards.first().scrollIntoViewIfNeeded();
   await page.screenshot({ path: path.join(artifacts, 'profiles-mobile.png') });
+  await profileCards.first().getByText('查看完整五维评分', { exact: true }).click();
   const scoreRequestCount = requests.filter((request) =>
     request.path.endsWith('/profiles/scores/query'),
   ).length;
@@ -430,6 +461,7 @@ try {
   );
   await profileCards
     .first()
+    .locator('table')
     .getByRole('button', { name: /^查看算法与数据结构评分依据/ })
     .click();
   const scoreEvidence = await (await scoreResponse).json();

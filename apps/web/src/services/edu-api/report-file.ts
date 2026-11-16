@@ -98,11 +98,19 @@ export async function readReportFile(
   }
   return { bytes, filename, contentType };
 }
-export function saveReportFile(file: ReportFile) {
+export function xlsxDownloadName(title: string, version: number): string {
+  const safeTitle = title.replace(/[<>:"/\\|?*\p{Cc}]+/gu, '-').replace(/^[.\s-]+|[.\s-]+$/g, '');
+  // Leave room for the version and extension within a 255-byte filename.
+  const stem = Array.from(safeTitle).slice(0, 56).join('').trimEnd() || '测评报告';
+  const reserved = /^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?=\.|$)/i.test(stem);
+  return `${reserved ? '_' : ''}${stem}-v${version}.xlsx`;
+}
+
+export function saveReportFile(file: ReportFile, downloadName = file.filename) {
   const url = URL.createObjectURL(new Blob([file.bytes], { type: file.contentType }));
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = file.filename;
+  anchor.download = downloadName;
   anchor.hidden = true;
   try {
     document.body.appendChild(anchor);

@@ -2,15 +2,11 @@
 
 面向高校编程教学与算法竞赛训练的编程能力与学习成效诊断平台，独立于 [未然决策推演平台](https://github.com/ZAMYL/weiran)。
 
-## 当前阶段
+## 教师工作台
 
-已搭建独立的 Next.js + FastAPI 工程。前端增加了按设计稿实现的本地演示工作台：学情洞察、画像探索、测评数据、证据与学生详情抽屉、浏览器内 Excel 预览校验、批次切换及全屏。
+教师连接账户后上传测评表，检查并确认入库，即可查看学情诊断、评分依据和画像，保存核验结果并导出 Excel / Markdown。学生标识以获授权的后端响应为准。AI 分析需要已配置且获得教师用途授权的后端服务。
 
-前端工作台（学情诊断、画像探索、分析报告、测评数据）已接入真实 HTTP API 与 SQLite：空数据教师可完成「上传测评资料 → 预览校验 → 确认入库 → 学情诊断」的完整流程，合成样例教师可体验 AI 群体画像、评分依据与报告。AI 分析当前为受控合成模式（`http_mock`），未调用真实 Qwen；已有分析与受控合成 AI 模块不等于真实学生数据的 AI 服务已开放。
-
-前端运行、演示导入格式与验证见 [apps/web/README.md](apps/web/README.md)。当前功能和历史草案差异见 [实现状态](docs/IMPLEMENTATION_STATUS.md)。
-
-[PRD](docs/PRD.md) 仍待确认；[架构](docs/ARCHITECTURE.md)、[搭建与验证](docs/BOOTSTRAP.md)、[迁移评估](docs/MIGRATION_MAP.md) 分别记录工程边界、运行方法和参考来源。
+正式运行方法见 [前端说明](apps/web/README.md) 和 [数据库与教师权限](docs/DATABASE_BATCH_AUTH.md)。
 
 ## 技术栈
 
@@ -24,22 +20,6 @@
 ## 本地运行
 
 先安装 Node.js 24、corepack（提供 pnpm 11.25.0）、Python 3.12 和 uv。
-
-### 一键启动完整演示（推荐）
-
-```powershell
-cd apps\web
-corepack pnpm install --frozen-lockfile
-corepack pnpm build
-cd ..\..\apps\api
-uv sync --locked --group dev
-cd ..\..
-powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity first
-```
-
-启动后自动打开浏览器进入学情诊断，并校验 `test-session / me / scopes / batches` 四个接口全部返回 200。`-Identity first` 为空数据教师（验证首次上传），`-Identity sample` 为合成样例教师（体验 AI 分析）。详见 [scripts/local/README.md](scripts/local/README.md)。
-
-### 手动分别启动（开发，两个终端）
 
 前端：
 
@@ -72,7 +52,7 @@ uv run --locked uvicorn app.main:create_app --factory --host 127.0.0.1 --port 80
 | Peng-Kai789（彭仲楷） | `apps/api/` 后端、API、数据库             |
 
 ```text
-apps/web/             Next.js App Router、本地演示工作台与前端工具链
+apps/web/             Next.js App Router、教师工作台与前端工具链
 apps/api/app/core/    配置、错误处理、请求编号
 apps/api/app/routers/ 健康检查与获授权的 EDU 业务路由
 apps/api/app/importing/ 固定 Excel 解析、预览与质量报告

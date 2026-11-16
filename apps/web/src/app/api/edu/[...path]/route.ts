@@ -19,6 +19,7 @@ const routes: Record<string, RegExp[]> = {
     /^imports\/[^/]+$/,
     /^imports\/[^/]+\/quality-report$/,
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+$/,
+    /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/events$/,
   ],
   POST: [
     /^batches\/[^/]+\/discoveries\/query$/,
@@ -78,6 +79,7 @@ async function relay(
   if (!routes[request.method]?.some((pattern) => pattern.test(route)))
     return fail(404, 'NOT_FOUND');
   const source = new URL(request.url);
+  const taskEvents = path[2] === 'ai-investigation-tasks' && path[4] === 'events';
   const report = request.method === 'GET' && path[2] === 'analysis-results' && path[4] === 'export';
   const format = source.searchParams.get('format');
   const version = Number(source.searchParams.get('expected_version'));
@@ -97,7 +99,9 @@ async function relay(
       ? `${source.protocol}//${receivedHost}`
       : source.origin;
   if (
-    Array.from(source.searchParams.keys()).some((key) => !queryNames.has(key)) ||
+    Array.from(source.searchParams.keys()).some(
+      (key) => !queryNames.has(key) && !(taskEvents && key === 'after'),
+    ) ||
     request.headers.get('sec-fetch-site') === 'cross-site' ||
     (request.headers.has('origin') && request.headers.get('origin') !== expectedOrigin)
   )
@@ -118,14 +122,17 @@ async function relay(
     return fail(503, 'BACKEND_NOT_CONFIGURED');
   }
   const testMode = testSessionEnabled(request, origin);
-  // Synthetic and Live are separate opt-ins. The Live switch only opens the relay;
-  // FastAPI still fails closed with 503 until a server-owned service is installed.
-  const aiEnabled =
-    (testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1') || process.env.EDU_AI_LIVE_MODE === '1';
-  if (path[2] === 'ai-investigation-tasks' && !aiEnabled) return fail(404, 'NOT_FOUND');
+  const aiEnabled = testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1';
+  const aiLiveEnabled = !testMode && process.env.EDU_AI_LIVE_MODE === '1';
+  if (path[2] === 'ai-investigation-tasks' && !aiEnabled && !aiLiveEnabled)
+    return fail(404, 'NOT_FOUND');
   if (route === 'test-session')
     return Response.json(
-      { enabled: testMode, ...(aiEnabled ? { ai_synthetic_enabled: true } : {}) },
+      {
+        enabled: testMode,
+        ...(aiEnabled ? { ai_synthetic_enabled: true } : {}),
+        ...(aiLiveEnabled ? { ai_live_enabled: true } : {}),
+      },
       { headers: { 'Cache-Control': 'no-store' } },
     );
   let authorization = request.headers.get('authorization');

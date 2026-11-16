@@ -137,6 +137,7 @@ export async function teacherLayoutFlow({
       /Demo|联调|服务端|预览版本|算法比赛|班级|全班|105\.00|Spearman=/,
     );
   await page.goto(origin);
+  await page.getByRole('button', { name: '进入教师工作台' }).click();
   await page.locator('.live-workspace').waitFor();
   await page.waitForURL('**/insights');
   assert.deepEqual(await page.locator('.main-nav a').allTextContents(), [
@@ -459,7 +460,7 @@ export async function teacherLayoutFlow({
   await page.locator('.stat-grid strong').filter({ hasText: /^105$/ }).waitFor();
   await ready();
   assert.equal(await page.locator('input[type=file]').count(), 0);
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await page.waitForURL('**/insights');
   await page.locator('.stat-grid strong').filter({ hasText: /^105$/ }).waitFor();
   await ready();

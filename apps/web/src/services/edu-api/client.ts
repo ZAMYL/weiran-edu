@@ -20,6 +20,7 @@ import { readReportFile, ReportFileError, type ReportFile } from './report-file'
 import {
   aiCapabilityDto,
   aiTaskDto,
+  aiTaskEventsDto,
   aiSourcesDto,
   aiProfileScoresDto,
   aiReviewDto,
@@ -70,8 +71,9 @@ const STATUS_MESSAGES: Record<number, string> = {
   504: '请求超时，请检查连接后重试。',
 };
 const FILE_MESSAGES: Record<string, string> = {
-  AI_SYNTHETIC_SOURCE_REQUIRED:
-    '当前 AI 演示仅支持本次服务登记的合成样例原件。此测评仍可查看评分统计。',
+  AI_SYNTHETIC_SOURCE_REQUIRED: '当前测评未开通 AI 分析，可继续查看评分统计。',
+  AI_NOT_AVAILABLE: 'AI 分析暂不可用，可继续查看评分统计。',
+  AI_EXECUTION_SOURCE_MISMATCH: '无法核验本次 AI 分析的执行来源，结果暂不可用。',
   AI_CAMPAIGN_ALREADY_USED: '这份测评的 AI 分析机会已使用。',
   AI_GOAL_UNSUPPORTED: `暂不支持这个问题。${teacherAiError('AI_GOAL_UNSUPPORTED')!.message} ${teacherAiError('AI_GOAL_UNSUPPORTED')!.action}`,
   AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
@@ -320,6 +322,22 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       );
       if (task.task_id !== taskId) throw new ApiError(502, 'INVALID_API_RESPONSE');
       return task;
+    },
+    aiTaskEvents: async (batch: ApiBatch, taskId: string, after = 0, signal?: AbortSignal) => {
+      if (!Number.isSafeInteger(after) || after < 0) throw new ApiError(422, 'INVALID_QUERY');
+      const result = await get(
+        `${base(batch)}/ai-investigation-tasks/${id(taskId)}/events?${snapshot(batch)}&after=${after}`,
+        aiTaskEventsDto,
+        signal,
+      );
+      if (
+        result.task_id !== taskId ||
+        result.events.some(
+          (event, index) => event.sequence <= (result.events[index - 1]?.sequence ?? after),
+        )
+      )
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return result.events;
     },
     cancelAiTask: async (batch: ApiBatch, taskId: string, signal?: AbortSignal) => {
       const task = assertSnapshot(

@@ -580,6 +580,81 @@
   color: #536480;
   font-size: 16px;
 }
+.ai-task-running {
+  padding: 10px 14px;
+  background: #eff5ff;
+  border-radius: var(--radius);
+}
+.ai-task-running .ai-task-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #234c9d;
+  font-weight: 600;
+}
+.ai-analysis-indicator {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cadbff;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: ai-analysis-spin 0.9s linear infinite;
+}
+@keyframes ai-analysis-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ai-findings,
+.ai-technical {
+  margin-top: 14px;
+}
+.ai-findings > h3,
+.ai-compact-fact h4 {
+  margin: 0;
+  color: #142448;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.ai-compact-fact .ai-fact-conclusion {
+  margin: 6px 0 0;
+  color: #234c9d;
+  font-weight: 600;
+}
+.ai-foldout {
+  font-size: 14px;
+  color: #394f74;
+}
+.ai-foldout summary {
+  padding-block: 8px;
+  cursor: pointer;
+}
+.ai-foldout dl {
+  margin-block: 6px 12px;
+  font-variant-numeric: tabular-nums;
+}
+.ai-foldout dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ai-foldout dd {
+  margin: 0;
+}
+.ai-profile-focus {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0 12px;
+  padding: 4px 12px 10px;
+  border-radius: var(--radius);
+  background: #eff5ff;
+  color: #234c9d;
+}
+.ai-profile-focus > span {
+  grid-column: 1 / -1;
+  font-size: 14px;
+}
 .ai-fact-actions {
   margin-top: auto;
   padding-top: 4px;
@@ -912,37 +987,20 @@
 }
 .live-insights .insights-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
 }
 .live-insights .radar-panel {
-  height: 100%;
+  height: auto;
 }
-.live-insights .insights-right {
+.live-insights .insights-right,
+.live-insights .insights-right > div:not([hidden]) {
   display: grid;
-}
-.live-insights .insights-right > div:not([hidden]),
-.live-insights .insights-right > div > .panel {
-  height: 100%;
-}
-.live-insights .discoveries-panel > .discovery-grid {
-  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
 }
 .live-insights .discoveries-panel .discovery-card {
   display: flex;
   flex-direction: column;
 }
 .live-insights .discoveries-panel .focus-card-actions {
-  margin-top: auto;
-}
-.live-insights .insights-statistics-panel {
-  display: flex;
-  flex-direction: column;
-}
-.live-insights .insights-statistics-panel .insight-comment-note {
-  margin-top: auto;
-  padding-top: 16px;
-}
-.live-insights .radar-panel .chart-caption {
   margin-top: auto;
 }
 .workspace-summary {
@@ -1010,11 +1068,6 @@
 @media (max-width: 960px) {
   .live-insights .insights-grid {
     grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-  .live-insights .radar-panel,
-  .live-insights .insights-right > div > .panel {
-    height: auto;
   }
   .live-insights .insights-right {
     grid-row: 1;
@@ -1097,10 +1150,10 @@
 .insight-comment-note > summary {
   cursor: pointer;
 }
-.live-insights .ability-chart {
+.live-insights .radar-panel .ability-chart {
   height: 300px;
   min-height: 260px;
-  flex: 1;
+  flex: 1 0 auto;
 }
 .live-candidate {
   margin: 16px 0;
@@ -2000,9 +2053,7 @@ h1 {
   padding: 16px 32px 20px;
   max-width: 1800px;
   margin: auto;
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
+  text-align: center;
   color: #97a5be;
   font-size: 11px;
 }
@@ -3939,15 +3990,33 @@ h1 {
 }
 .report-check {
   display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+.report-download-heading {
+  display: grid;
+  gap: 2px;
+  min-height: 46px;
+  overflow-wrap: anywhere;
+}
+.report-loading-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(0, 2.5fr);
   gap: 16px;
-  margin-top: 20px;
 }
-.report-check p {
-  margin: 0;
+.report-loading-layout > .ant-skeleton,
+.report-loading-layout > div:not(.ant-skeleton) {
+  border: 1px solid #e5edfb;
+  border-radius: var(--radius);
+  padding: 16px;
 }
-.report-check ul {
-  margin: 0;
-  padding-left: 18px;
+@media (max-width: 640px) {
+  .report-loading-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .report-loading-layout > div:not(.ant-skeleton) > .ant-skeleton:nth-child(n + 3) {
+    display: none;
+  }
 }
 .report-check > .ant-checkbox-wrapper {
   align-items: flex-start;
@@ -4081,7 +4150,6 @@ h1 {
 .report-finding-list {
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
   scrollbar-gutter: stable;
   padding: 0 8px 3px 2px;
 }

@@ -110,7 +110,7 @@ try {
       page.waitForEvent('download'),
       dialog
         .getByRole('button', {
-          name: format === 'md' ? '下载 Markdown' : '下载 XLSX',
+          name: format === 'md' ? '下载 Markdown' : '下载 Excel',
           exact: true,
         })
         .click(),

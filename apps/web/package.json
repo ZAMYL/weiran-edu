@@ -9,8 +9,8 @@
     "pnpm": ">=11 <12"
   },
   "scripts": {
-    "dev": "node scripts/generate-import-samples.mjs && next dev --hostname 127.0.0.1",
-    "build": "node scripts/generate-import-samples.mjs && next build",
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -18,7 +18,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node scripts/generate-import-samples.mjs && vitest run && node tests/smoke.mjs",
     "test:unit": "node scripts/generate-import-samples.mjs && vitest run",
-    "test:browser": "node scripts/generate-import-samples.mjs && node scripts/browser-smoke.mjs",
+    "test:browser": "node tests/teacher-product-e2e.mjs",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck"
   },
   "dependencies": {

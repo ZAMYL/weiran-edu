@@ -51,10 +51,12 @@ try {
   assert.match(html, /lang="zh-CN"/);
   assert.match(html, /<title>未然 EDU｜AI 时代的编程能力与学习成效诊断平台<\/title>/);
   assert.doesNotMatch(html, /诊断平台。/);
-  assert.match(html, /学情诊断/);
-  assert.match(html, /连接账户，查看测评/);
+  assert.match(html, /让每一份测评数据，/);
+  assert.match(html, /都成为有依据的教学洞察/);
+  assert.match(html, /进入教师工作台/);
 
   for (const [route, title] of [
+    ['insights', '连接账户，查看测评'],
     ['explorer', '画像探索'],
     ['data', '学情诊断'],
     ['reports', '分析报告'],
@@ -64,12 +66,12 @@ try {
     assert.match(await response.text(), new RegExp(title));
   }
 
-  const sample = await fetch(`${url}/templates/${encodeURIComponent('评价长表模板.xlsx')}`, {
+  const legacyDemo = await fetch(`${url}/dev/demo`, { signal: AbortSignal.timeout(5000) });
+  assert.equal(legacyDemo.status, 404);
+  const sample = await fetch(`${url}/templates/${encodeURIComponent('评价_待校验示例.xlsx')}`, {
     signal: AbortSignal.timeout(5000),
   });
-  assert.equal(sample.status, 200);
-  const signature = new Uint8Array(await sample.arrayBuffer());
-  assert.deepEqual([...signature.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
+  assert.equal(sample.status, 404);
 
   const missing = await fetch(`${url}/missing-bootstrap-route`, {
     signal: AbortSignal.timeout(5000),
@@ -77,7 +79,7 @@ try {
   assert.equal(missing.status, 404);
   assert.match(await missing.text(), /页面不存在/);
   console.log(
-    'PASS: production server starts; all workspace routes render; synthetic template downloads; missing route returns 404.',
+    'PASS: homepage and workspace routes render; sample routes are absent; missing route returns 404.',
   );
 } finally {
   if (server.exitCode === null && server.signalCode === null) {

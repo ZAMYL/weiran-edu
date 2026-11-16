@@ -14,7 +14,11 @@ import {
 } from '../../services/edu-api/discovery-presentation';
 import type { DiscoveryDetail, DiscoverySpec } from '../../services/edu-api/discovery-types';
 import type { ApiBatch, ApiStudent } from '../../services/edu-api/types';
-import { conditionText, dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
+import {
+  conditionText,
+  dimensionName,
+  studentScoreDisplay,
+} from '../../services/edu-api/view-model';
 import { DiscoveryChart, scoreText } from './DiscoveryChart';
 import { LiveScoreDrawer } from './LiveStudents';
 import { LoadingPanel, RequestError } from './LiveStatus';
@@ -161,6 +165,8 @@ export default function LiveDiscoveries({
       {cards.map((card) => {
         const detail = details.data?.[card.discovery_id];
         const copy = detail ? describeDiscovery(detail) : null;
+        const why = detail?.why || card.why;
+        const affected = detail?.affected ?? card.affected;
         const origin = detail ? originForDiscovery(detail, spec) : null;
         return (
           <section
@@ -176,14 +182,18 @@ export default function LiveDiscoveries({
               <FocusMetrics detail={detail} />
             ) : (
               <p role="status" className="discovery-coverage">
-                {details.error ? '涉及人数暂不可用，请重试核查' : '正在核查涉及人数…'}
+                {affected && card.type !== 'rare_combination'
+                  ? `涉及 ${affected.count} 人 · 分析范围 ${affected.total} 人`
+                  : details.error
+                    ? '涉及人数暂不可用，请重试核查'
+                    : '正在核查涉及人数…'}
               </p>
             )}
             <details className="focus-explanation">
               <summary>如何理解这条发现</summary>
-              {copy && (
+              {(copy || why) && (
                 <p className="teacher-reading">
-                  {copy.numbers} {copy.whyItMatters} {copy.limitation}
+                  {why || copy?.numbers} {copy?.whyItMatters} {copy?.limitation}
                 </p>
               )}
             </details>
@@ -473,7 +483,7 @@ function DiscoveryRecordsDrawer({
               pagination={false}
               scroll={{ x: 500 }}
               columns={[
-                { title: '匿名学生', dataIndex: 'display_label' },
+                { title: '学生标识', dataIndex: 'display_label' },
                 ...result.source_dimensions.map((dimension) => ({
                   title: dimensionName(dimension),
                   key: dimension,
@@ -485,7 +495,7 @@ function DiscoveryRecordsDrawer({
                         onClick={() => setEvidence(score.evidence_id)}
                         aria-label={`${student.display_label} ${dimensionName(dimension)} 评分依据`}
                       >
-                        {scoreDisplay(score.score)} 分
+                        {studentScoreDisplay(score)} 分
                       </Button>
                     ) : (
                       '—'

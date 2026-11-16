@@ -91,7 +91,7 @@ export async function teacherProductFlow(h) {
     if (await ack.count()) await ack.check();
     const pendingFile = page.waitForEvent('download');
     await exportDialog()
-      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 XLSX', exact: true })
+      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 Excel', exact: true })
       .click();
     const file = await pendingFile;
     const bytes = await readFile(await file.path());
@@ -103,7 +103,7 @@ export async function teacherProductFlow(h) {
     await exportDialog().locator('.ant-modal-close').click();
     return { bytes, preflight, destination };
   }
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await page.locator('.live-workspace').waitFor();
   console.log('Joint E2E: import 53 synthetic students');
   const imported = await importThroughPage('contrast', '合成联合验收53人');
@@ -485,7 +485,7 @@ export async function credentialRelayFlow({ page, origin, api, admin, setToken, 
     profile: 'edu.discovery.profile.v1',
   };
   await setToken(credential);
-  await page.goto(origin);
+  await page.goto(`${origin}/insights`);
   await page.locator('.live-workspace').waitFor();
   admin('token-revoke', '--teacher-id', teacher);
   console.log('Auth relay reproduction: direct POST');

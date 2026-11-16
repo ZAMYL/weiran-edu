@@ -121,7 +121,7 @@ function group() {
   return d;
 }
 
-it('expresses the real 53 / 15 / 38 comparison with 3.69, 3.00 and +0.69, without technical titles', () => {
+it('expresses the real 53 / 15 / 38 comparison with 3.69, 3 and +0.69, without technical titles', () => {
   const d = group();
   const before = JSON.stringify(d);
   const p = discoveryPresentation(d);
@@ -134,7 +134,7 @@ it('expresses the real 53 / 15 / 38 comparison with 3.69, 3.00 and +0.69, withou
     '平均分相差',
   ]);
   expect(p.explanation).toContain('15 人中，15 人的有效评分平均为 3.69 分');
-  expect(p.explanation).toContain('另外 38 人中，38 人的有效评分平均为 3.00 分');
+  expect(p.explanation).toContain('另外 38 人中，38 人的有效评分平均为 3 分');
   expect(p.explanation).not.toMatch(/目标组|余组|互斥/);
   expect(eligibleForFocus(d)).toBe(true);
   expect(JSON.stringify(d)).toBe(before);

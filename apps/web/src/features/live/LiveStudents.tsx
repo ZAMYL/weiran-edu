@@ -15,6 +15,8 @@ import {
   conditionText,
   dimensionName,
   metricDisplay,
+  scoreDisplay,
+  studentScoreDisplay,
 } from '../../services/edu-api/view-model';
 import { AssessmentContext, Panel } from '../../components/ui';
 import { useRemote } from './useRemote';
@@ -53,7 +55,7 @@ export function LiveStudentTable({
         showTotal: (n) => `共 ${n} 名学生`,
       }}
       columns={[
-        { title: '匿名学生', dataIndex: 'display_label' },
+        { title: '学生标识', dataIndex: 'display_label' },
         ...DIMENSIONS.map((d) => ({
           title: d.name,
           key: d.code,
@@ -66,12 +68,12 @@ export function LiveStudentTable({
                   className="score-evidence-link"
                   type="link"
                   onClick={() => onEvidence(score.evidence_id)}
-                  aria-label={`${student.display_label} ${d.name} ${score.score} 分，查看评分依据`}
+                  aria-label={`${student.display_label} ${d.name} ${studentScoreDisplay(score)} 分，查看评分依据`}
                 >
-                  {score.score}
+                  {studentScoreDisplay(score)}
                 </Button>
               ) : (
-                score.score
+                studentScoreDisplay(score)
               )
             ) : (
               <span className="muted">未纳入本指标核算</span>
@@ -108,7 +110,7 @@ export function LiveStudentTable({
 }
 function EvidenceContent({ evidence }: { evidence: ApiEvidence }) {
   return (
-    <Panel title={`${dimensionName(evidence.dimension_code)} · ${evidence.score} 分`}>
+    <Panel title={`${dimensionName(evidence.dimension_code)} · ${scoreDisplay(evidence.score)} 分`}>
       <p>原始数值：{evidence.score_raw}</p>
       <div className="withheld-note">{commentStatusText(evidence.comment_status)}</div>
       {evidence.comment_status === 'published' && (
@@ -227,7 +229,7 @@ export function LiveStudentDrawer({
     <Drawer
       title={
         <div className="student-drawer-heading">
-          <span>匿名学生 {student?.display_label}</span>
+          <span>学生标识 {student?.display_label}</span>
           {onStudent && (
             <div>
               <Button

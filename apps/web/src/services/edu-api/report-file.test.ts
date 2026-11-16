@@ -6,6 +6,7 @@ import {
   REPORT_MIME,
   reportFilename,
   saveReportFile,
+  xlsxDownloadName,
 } from './report-file';
 import type { ApiBatch } from './types';
 
@@ -26,6 +27,15 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('validated report download', () => {
+  it.each([
+    ['期末测评 · 学情分析', '期末测评 · 学情分析-v2.xlsx'],
+    ['  阶段/期末:测评\n报告.  ', '阶段-期末-测评-报告-v2.xlsx'],
+    ['../', '测评报告-v2.xlsx'],
+    ['AUX.期末测评', '_AUX.期末测评-v2.xlsx'],
+    ['𠮷'.repeat(80), `${'𠮷'.repeat(56)}-v2.xlsx`],
+  ])('uses a portable XLSX name for the saved report title', (title, expected) => {
+    expect(xlsxDownloadName(title, 2)).toBe(expected);
+  });
   it('accepts complete Markdown and XLSX responses with a matching server filename', async () => {
     expect((await readReportFile(markdown(), reference)).filename).toBe(filename);
     const bytes = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0, 0]);
