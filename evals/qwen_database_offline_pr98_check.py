@@ -1,4 +1,4 @@
-"""Run explicitly in a disposable tree combining this patch with PR #98's fixed SHA.
+"""Explicit-only check in a disposable tree combining this patch with PR #98.
 
 No mocked admission or paid requests: use #98's actual gate with test-only permits.
 """

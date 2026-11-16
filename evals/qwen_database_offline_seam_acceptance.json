@@ -1,0 +1,56 @@
+{
+  "baseline": "36f8cc89a8cfed6839ee262e20d9f686984f386b",
+  "implementation": "e4737b9c2fe3d93690fd0632b066508ca6ae1715",
+  "date": "2026-11-16",
+  "code_fingerprint": "877b12dd70da6ec106c7a0fd93d74a48312b3508d9ca5c2a1b6e7b3c12aaddd2",
+  "testing_entry": "prototypes.qwen_execution.testing.run_database_profiles_offline",
+  "real_entry_signature_unchanged": true,
+  "simulation_requires_exact_MockTransport_and_task_owned_Mock_budget": true,
+  "actual_remote_requests": 0,
+  "actual_remote_cost_cny": "0",
+  "tests": {
+    "final_regression": {
+      "tests": "107",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "340.470"
+    },
+    "pr98_compatibility": {
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "46.575"
+    }
+  },
+  "unchanged_scopes": [
+    "apps/web",
+    "apps/api/app",
+    "prototypes/durable_teacher_agent",
+    "apps/api/pyproject.toml",
+    "apps/api/uv.lock",
+    "apps/web/pnpm-lock.yaml"
+  ],
+  "pr98": {
+    "head": "7e9dd3af421927881438a5ea748f7798363c2b2b",
+    "validation_tree": "b81bcabf2f3829ac1314c003a2e71db4c9234c33",
+    "combined_code_fingerprint": "440a3c5c60ac9915028a3f8bb67e6b7847349f08b4b9f2ef808e4cc4e6030f21",
+    "live_budget_execution_not_simulated": true
+  },
+  "initial_failure": {
+    "passed": 9,
+    "failed": 1,
+    "cause": "test corruption/restore blocked by the existing immutable trigger",
+    "fix": "test-only transactional trigger removal/restoration; scores restored; assert DATA_INTEGRITY_ERROR",
+    "isolated_rerun_passed": true
+  },
+  "not_run": [
+    "paid_Qwen",
+    "full_repository_pytest",
+    "GitHub_CI",
+    "frontend_tests",
+    "production_Live_persistence"
+  ],
+  "status": "offline_core_and_actual_pr98_gate_compatible_no_real_model_run"
+}
