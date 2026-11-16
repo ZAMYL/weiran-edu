@@ -18,11 +18,41 @@ from .models import (
     ReviewReceipt,
     ReviewSubmission,
     TaskCreate,
+    TaskEvent,
+    TaskEvents,
     TaskView,
 )
 from .review import submit
 from .service import TaskService
 from .store import TaskStore
+
+
+SAFE_TOOL_FIELDS = ("tool", "status", "error")
+SAFE_BUDGET_FIELDS = (
+    "request_count",
+    "model_requests",
+    "tool_attempts",
+    "charged_tokens",
+    "charged_cny_upper_bound",
+)
+
+
+def project_event(event: dict) -> TaskEvent:
+    """Only phase names, counters and safe tool status may leave the server."""
+    phase = event["phase"]
+    payload = event["payload"] if isinstance(event["payload"], dict) else {}
+    detail: dict[str, object] = {}
+    if phase.startswith("tool_"):
+        detail = {key: payload[key] for key in SAFE_TOOL_FIELDS if payload.get(key) is not None}
+    elif phase == "model_budget":
+        detail = {key: payload[key] for key in SAFE_BUDGET_FIELDS if payload.get(key) is not None}
+    elif phase == "stopped_without_result":
+        detail = {"code": payload.get("code")} if payload.get("code") else {}
+    elif phase == "review_requested":
+        detail = {"fact_count": len(payload.get("fact_ids") or ())}
+    return TaskEvent(
+        sequence=event["sequence"], phase=phase, at=event["at"], detail=detail
+    )
 
 
 def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -> TaskService:
@@ -93,6 +123,16 @@ def install(application: FastAPI, provider: DatabaseProvider, directory: Path) -
     async def review(batch_id: str, task_id: str, request: Request, actor: Actor):
         body = await read_query(request, ReviewSubmission)
         return await submit(service, actor, batch_id, task_id, body, request=request)
+
+    @router.get("/{task_id}/events", response_model=TaskEvents)
+    def task_events(
+        batch_id: str, task_id: str, snapshot_id: str, actor: Actor, after: int = 0
+    ):
+        service.task_row(actor, batch_id, task_id, snapshot_id)
+        return TaskEvents(
+            task_id=task_id,
+            events=tuple(project_event(event) for event in store.events(task_id, after=after)),
+        )
 
     application.include_router(router)
     application.state.durable_investigations = service

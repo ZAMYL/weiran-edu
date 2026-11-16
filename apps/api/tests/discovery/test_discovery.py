@@ -668,3 +668,13 @@ def test_outcome_metadata_cannot_promote_a_condition_dimension():
     condition = group.payload.selection.conditions[0].dimension
     with pytest.raises(AnalysisInputError, match="invalid_group_outcome_dimension"):
         present(replace(group, payload=replace(group.payload, outcome_dimension=condition)))
+
+
+def test_present_carries_dedup_affected_and_why():
+    dataset = data([(1, 5, 3, 3, 3)] * 8 + [(5, 1, 3, 3, 3)] * 9)
+    result = run(dataset, policy=Policy(minimum_samples=2))
+    card = present(result.findings[0])
+    assert card["dedup_key"].startswith(card["type"] + "|")
+    assert 0 < card["affected"]["count"] <= card["affected"]["total"]
+    assert card["why"].endswith("。")
+    assert "target_count" not in card["why"]

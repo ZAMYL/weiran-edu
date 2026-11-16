@@ -145,6 +145,7 @@ class AnalysisReader(BatchReader):
                         StudentScore(
                             dimension_code=code,
                             score=values[code]["score_units"] / 100,
+                            display=f"{values[code]['score_units'] / 100:.2f}",
                             evidence_id=values[code]["evidence_id"],
                         )
                         for code in DIMENSION_MAP

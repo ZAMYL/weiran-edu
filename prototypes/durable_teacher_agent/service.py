@@ -230,6 +230,10 @@ class TaskService:
         self.source(row, actor).validate()
         return row
 
+    def task_row(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> dict:
+        """Authorization and snapshot binding only; used by cheap status-like reads."""
+        return self._row(actor, batch_id, task_id, snapshot_id)
+
     @contextmanager
     def review_submission(self, task_id: str) -> Iterator[None]:
         """Avoid redundant in-flight work in this process. SQLite owns the save guard."""

@@ -124,3 +124,17 @@ class ReviewReceipt(Model):
     review_path: str
     export_path: str
     notice: str = "候选已按正式规则重新计算；教师确认不等于因果证明。"
+
+
+class TaskEvent(Model):
+    """One recorded task phase; detail is a server-side whitelist, not the raw payload."""
+
+    sequence: int
+    phase: str
+    at: str
+    detail: dict[str, object]
+
+
+class TaskEvents(Model):
+    task_id: str
+    events: tuple[TaskEvent, ...]

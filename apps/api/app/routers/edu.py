@@ -94,8 +94,27 @@ def _parse_failure(exc: ImportFileError) -> APIError:
 
 
 @router.get("/me")
-def me(actor: Actor) -> dict[str, str]:
-    return {"teacher_id": actor.teacher_id}
+def me(actor: Actor, backend: Backend) -> dict[str, str]:
+    with backend.database.transaction() as connection:
+        row = connection.execute(
+            "SELECT auth_issuer, auth_subject FROM teachers WHERE teacher_id=?",
+            (actor.teacher_id,),
+        ).fetchone()
+    issuer = row["auth_issuer"] if row is not None else ""
+    subject = row["auth_subject"] if row is not None else ""
+    if subject == "first-use-owner":
+        kind, label = "demo_first_use", "合成演示数据（首次上传样例）"
+    elif subject.startswith("synthetic"):
+        kind, label = "demo_sample", "合成演示数据"
+    else:
+        kind, label = "teacher", ""
+    return {
+        "teacher_id": actor.teacher_id,
+        "issuer": issuer,
+        "subject": subject,
+        "identity_kind": kind,
+        "data_label": label,
+    }
 
 
 class Scope(Model):

@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from io import BytesIO
 from types import SimpleNamespace
@@ -98,6 +99,20 @@ def commit(runtime, view, *, principal=None, acknowledge=False):
             preview_version=view.import_info.preview_version, acknowledge_warnings=acknowledge
         ),
     )
+
+
+@pytest.fixture
+def client_factory(runtime):
+    @contextmanager
+    def make(token):
+        application = create_app(Settings(environment="test", database_path=runtime.db.path))
+        application.state.edu_service = runtime.service
+        application.state.edu_service.parser = parse_excel
+        with TestClient(application) as test_client:
+            test_client.headers["Authorization"] = "Bearer " + token
+            yield test_client
+
+    return make
 
 
 @pytest.fixture
