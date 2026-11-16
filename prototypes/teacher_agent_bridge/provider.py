@@ -140,7 +140,13 @@ class RealDataAdmission(Strict):
     sources: tuple[RealDataSource, ...] = Field(min_length=1, max_length=100)
 
     @classmethod
-    def load(cls, path: Path | str, *, today: date | None = None) -> "RealDataAdmission":
+    def load(
+        cls,
+        path: Path | str,
+        *,
+        today: date | None = None,
+        code_sha256: str | None = None,
+    ) -> "RealDataAdmission":
         path = Path(path).expanduser()
         if not path.is_absolute() or path.resolve().is_relative_to(REPOSITORY):
             raise APIError(403, "AI_REAL_DATA_APPROVAL_LOCATION", "真实数据授权文件必须在仓库外")
@@ -152,6 +158,8 @@ class RealDataAdmission(Strict):
             raise APIError(413, "AI_REAL_DATA_APPROVAL_TOO_LARGE", "真实数据授权文件过大")
         admission = cls.model_validate_json(payload)
         admission.check(today=today)
+        if code_sha256 is not None and admission.reviewed_code_sha256 != code_sha256:
+            raise APIError(403, "AI_REAL_DATA_REVIEW_STALE", "真实数据审核绑定的代码已变化")
         return admission
 
     def check(self, *, today: date | None = None) -> None:

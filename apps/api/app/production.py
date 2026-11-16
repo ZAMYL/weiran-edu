@@ -13,6 +13,7 @@ from fastapi import FastAPI
 from prototypes.durable_teacher_agent.api import install_production
 from prototypes.durable_teacher_agent.service import TaskService
 from prototypes.durable_teacher_agent.store import TaskStore
+from prototypes.qwen_execution import code_fingerprint
 from prototypes.teacher_agent_bridge.provider import (
     ProductionDatabaseProvider,
     RealDataAdmission,
@@ -44,7 +45,7 @@ def build_production() -> tuple[FastAPI, TaskService]:
     approval_path = os.environ.get("WEIRAN_EDU_REAL_DATA_APPROVAL")
     if not approval_path:
         raise RuntimeError("WEIRAN_EDU_REAL_DATA_APPROVAL is required")
-    admission = RealDataAdmission.load(approval_path)
+    admission = RealDataAdmission.load(approval_path, code_sha256=code_fingerprint())
     state = _outside_repository(
         os.environ.get(
             "WEIRAN_EDU_AI_STATE_DIR", str(Path(settings.database_path).parent / "ai-state")

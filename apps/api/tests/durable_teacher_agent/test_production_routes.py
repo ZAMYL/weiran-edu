@@ -5,6 +5,7 @@ import json
 from fastapi.testclient import TestClient
 from prototypes.durable_teacher_agent.api import install_production
 from prototypes.durable_teacher_agent.worker import TaskWorker
+from prototypes.qwen_execution import code_fingerprint
 
 from app.core.config import Settings
 from app.main import create_app
@@ -60,7 +61,7 @@ def test_production_factory_installs_the_real_router(tmp_path, monkeypatch):
                 "purpose": "real_teacher_data",
                 "human_approval_reference": "OWNER-REAL-01",
                 "independent_review_reference": "REVIEW-REAL-01",
-                "reviewed_code_sha256": "a" * 64,
+                "reviewed_code_sha256": code_fingerprint(),
                 "valid_until": "2026-12-31",
                 "sources": [
                     {
