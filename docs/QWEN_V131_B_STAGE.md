@@ -29,6 +29,7 @@
 ### B4 真实数据准入
 
 - `RealDataAdmission` 是仓库外的操作员 allowlist；来源 SHA 未列出时返回 `AI_REAL_DATA_NOT_APPROVED`。
+- `app.production` 启动时把 `reviewed_code_sha256` 与当前 `code_fingerprint()` 比较；代码变化即拒绝。
 - `ProductionDatabaseProvider` 懒解析真实原文件、校验原评分坐标，并拒绝未登记来源。
 - 测试证明默认拒绝、批准后可构建聚合材料；模型视图不包含姓名或评语。
 
