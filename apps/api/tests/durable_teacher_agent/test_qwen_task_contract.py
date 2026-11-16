@@ -5,21 +5,21 @@ from dataclasses import replace
 
 import httpx
 import pytest
-from app.ai.edu.discovery.models import AgentError, Limits
-from app.ai.edu.qwen_config import QwenSettings
-from app.core.errors import APIError
 from fastapi.testclient import TestClient
-from pydantic import SecretStr, ValidationError
-
 from prototypes.adaptive_assessment.live.budget import OfflineSnapshotPermit
 from prototypes.adaptive_assessment.live.pricing import RESEARCH_PRICE_20261104
 from prototypes.durable_teacher_agent.models import TaskCreate
 from prototypes.durable_teacher_agent.service import DurableBudget
-from prototypes.qwen_execution.task_contract import (
+from prototypes.qwen_execution import (
     DatabaseTaskInput,
     ExecutionProvenance,
     run_database_profiles,
 )
+from pydantic import SecretStr, ValidationError
+
+from app.ai.edu.discovery.models import AgentError, Limits
+from app.ai.edu.qwen_config import QwenSettings
+from app.core.errors import APIError
 
 from .test_tasks import actor, setup, upload
 

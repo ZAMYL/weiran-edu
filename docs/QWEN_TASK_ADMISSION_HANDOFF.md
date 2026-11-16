@@ -1,5 +1,8 @@
 # Qwen task admission: local AI-side handoff
 
+> 保留 #83 当时的交付记录。当前产品基线、#95 账本规则及统一调用入口见
+> [QWEN_V131_AI_CORE_HANDOFF.md](QWEN_V131_AI_CORE_HANDOFF.md)。旧测试数量、指纹和授权状态不能替代新版本验收。
+
 ## Status and independent review
 
 On 2026-11-13 GitHub PR #82 was open/Draft at
