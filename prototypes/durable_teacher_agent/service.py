@@ -248,7 +248,9 @@ class TaskService:
         except AgentError as error:
             self.store.fail(
                 task_id,
-                self.LIVE_CODES.get(str(error), "AI_LIVE_EXECUTION_BLOCKED")
+                self.LIVE_CODES.get(
+                    str(error), "AI_LIVE_" + str(error).upper()[:48]
+                )
                 if live
                 else "AI_INVESTIGATION_BLOCKED",
             )
@@ -295,7 +297,6 @@ class TaskService:
         source = self.source(row, actor, running=True)
         budget = admission.budget(self.store, task_id, source)
         try:
-            budget.claim(QwenSettings.from_env(), source)
             binding = DatabaseTaskInput(
                 task_id=task_id,
                 batch_id=row["batch_id"],
