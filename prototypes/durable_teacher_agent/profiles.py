@@ -278,12 +278,21 @@ def _replay_profiles(service, row, actor, result, make_tool_proof, source):
         ],
     )
     staged = []
+    # Rebuild with the origin recorded by the trusted execution, not the Mock default.
+    # A Live readback must not silently become an offline-mechanism projection.
+    selection_origin = (
+        result.profile_projection.profiles[0].get("selection_origin")
+        if result.profile_projection.profiles
+        else "http_mock_offline_mechanism"
+    )
     raw = {
         "status": "completed",
         "stop_reason": result.stop_reason,
         "findings": [{"fact_id": f} for f in result.selected_fact_ids],
     }
-    raw["profiles"] = project_selected(book, raw, executor, staged=staged)
+    raw["profiles"] = project_selected(
+        book, raw, executor, staged=staged, selection_origin=selection_origin
+    )
     remaining = len(uncovered(book, executor))
     raw["profile_stop"] = (
         "no_eligible_profiles"
