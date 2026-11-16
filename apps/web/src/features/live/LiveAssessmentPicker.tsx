@@ -6,20 +6,21 @@ import { useDataMode } from '../../app/data-mode';
 import { useRemote } from './useRemote';
 
 export default function LiveAssessmentPicker() {
-  const { client, batch, connected, revision, selectBatch } = useDataMode();
+  const { client, batch, connected, revision, batchListRevision, assessmentTitle, selectBatch } =
+    useDataMode();
   const [offset, setOffset] = useState(0);
   const load = useCallback(
     (signal: AbortSignal) => client.batches(offset, 20, signal),
     [client, offset],
   );
   const { data, error, loading, retry } = useRemote(
-    connected ? `batch-list:${revision}:${offset}` : null,
+    connected ? `batch-list:${revision}:${batchListRevision}:${offset}` : null,
     load,
   );
   const items = data?.items ?? [];
-  const options = items.map((item) => ({ label: item.title, value: item.batch_id }));
+  const options = items.map((item) => ({ label: assessmentTitle(item), value: item.batch_id }));
   if (batch && !options.some((option) => option.value === batch.batch_id))
-    options.unshift({ label: batch.title, value: batch.batch_id });
+    options.unshift({ label: assessmentTitle(batch), value: batch.batch_id });
 
   return (
     <div className="live-batch-picker">

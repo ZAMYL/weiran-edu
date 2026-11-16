@@ -28,6 +28,42 @@ it('accepts actual queued and stopped states without manufacturing progress', ()
     aiRunning(aiTaskDto({ ...task, state: 'cancelled', error_code: 'AI_TASK_CANCELLED' })),
   ).toBe(false);
 });
+it('keeps live execution distinct and refuses unexecuted or mixed-source success', () => {
+  const live = { ...task, execution_origin: 'qwen_live', real_qwen: undefined };
+  expect(aiTaskDto(live).execution_origin).toBe('qwen_live');
+  const result = {
+    execution_origin: 'qwen_live',
+    run_id: 'r',
+    batch_id: 'b',
+    snapshot_id: 's',
+    status: 'completed',
+    stop_reason: 'no_supported_findings',
+    batch_record_count: 20,
+    missing_evidence: [],
+    facts: [],
+    selected_fact_ids: [],
+    retained_fact_ids: [],
+    uncovered_direction_count: 0,
+  };
+  const completed = { ...live, state: 'completed', model_requests: 1, result };
+  expect(aiTaskDto(completed).result?.execution_origin).toBe('qwen_live');
+  for (const invalid of [
+    { ...completed, model_requests: 0 },
+    { ...completed, real_qwen: 'not_run' },
+    { ...completed, execution_origin: 'not_run', result: null, model_requests: 0 },
+    {
+      ...completed,
+      result: {
+        ...result,
+        execution_origin: 'http_mock',
+        real_qwen: 'not_run',
+        production_enabled: false,
+      },
+    },
+  ]) {
+    expect(() => aiTaskDto(invalid)).toThrow('INVALID_API_RESPONSE');
+  }
+});
 it('rejects live-provider claims and results bound to another snapshot', () => {
   expect(() => aiTaskDto({ ...task, real_qwen: 'completed' })).toThrow('INVALID_API_RESPONSE');
   expect(() => aiTaskDto({ ...task, production_enabled: true })).toThrow('INVALID_API_RESPONSE');

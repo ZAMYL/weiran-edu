@@ -218,7 +218,7 @@ export async function teacherIntegerFlow(h) {
     if (await ack.count()) await ack.check();
     const download = page.waitForEvent('download');
     await dialog
-      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 XLSX', exact: true })
+      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 Excel', exact: true })
       .click();
     const file = await download;
     const destination = path.join(artifacts, `105-confirmed-report.${format}`);

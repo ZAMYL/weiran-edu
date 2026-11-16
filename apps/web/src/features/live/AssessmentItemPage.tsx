@@ -6,7 +6,7 @@ import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { itemScaleLabel } from '../../services/edu-api/assessment-items';
 import type { ApiBatch, ItemStatistics } from '../../services/edu-api/types';
-import { ratioDisplay } from '../../services/edu-api/view-model';
+import { ratioDisplay, scoreDisplay } from '../../services/edu-api/view-model';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { ProjectAbilityRadar } from './ServerCharts';
 import { useRemote } from './useRemote';
@@ -183,19 +183,21 @@ export default function AssessmentItemPage({
                         ? '暂无有效评分'
                         : item.stats?.mean.value == null
                           ? '—'
-                          : item.stats.mean.display,
+                          : scoreDisplay(item.stats.mean.value),
                   },
                   {
                     title: '中位数',
                     render: (_: unknown, item: (typeof rows)[number]) =>
-                      item.stats?.median.value == null ? '—' : item.stats.median.display,
+                      item.stats?.median.value == null
+                        ? '—'
+                        : scoreDisplay(item.stats.median.value),
                   },
                   {
                     title: '实得范围',
                     render: (_: unknown, item: (typeof rows)[number]) =>
                       item.stats?.minimum.value == null || item.stats.maximum.value == null
                         ? '—'
-                        : `${item.stats.minimum.display}–${item.stats.maximum.display}`,
+                        : `${scoreDisplay(item.stats.minimum.value)}–${scoreDisplay(item.stats.maximum.value)}`,
                   },
                   {
                     title: '操作',

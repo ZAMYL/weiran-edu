@@ -5,7 +5,8 @@
 # Private local test teacher configuration; never commit credentials.
 test-session*.json
 
-# Synthetic Excel files are generated from reviewed source for dev/build/tests.
+# Generated tests-only workbooks; the production app never serves these.
+/tests/fixtures/generated/
 /public/templates/
 
 # Next.js route source only; the repository-wide data/ exclusion remains intact.

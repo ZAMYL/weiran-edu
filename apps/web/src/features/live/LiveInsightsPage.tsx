@@ -46,7 +46,7 @@ export default function LiveInsightsPage() {
   );
 }
 function Insights({ batch }: { batch: ApiBatch }) {
-  const { client, conditions, syntheticAi } = useDataMode();
+  const { client, conditions, syntheticAi, liveAi } = useDataMode();
   const router = useRouter();
   const { summaryHost } = useWorkspaceLayout();
   const contextKey = `${batch.batch_id}:${batch.snapshot_id}:${JSON.stringify(conditions)}`;
@@ -163,7 +163,13 @@ function Insights({ batch }: { batch: ApiBatch }) {
       >
         {(focusPanel) => (
           <>
-            {syntheticAi && <AiInvestigationPanel batch={batch} />}
+            {syntheticAi || liveAi ? (
+              <AiInvestigationPanel batch={batch} />
+            ) : (
+              <Panel title="AI 分析" className="ai-investigation-panel">
+                <p className="muted">AI 分析暂不可用，可继续查看评分统计。</p>
+              </Panel>
+            )}
             <div className="insights-grid">
               <Panel
                 title="评分画像"

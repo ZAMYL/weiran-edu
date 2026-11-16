@@ -4,6 +4,21 @@ import { GET, POST, PATCH } from './[...path]/route';
 const bearer = 'Bearer synthetic-test-credential-not-real';
 const context = (path: string) => ({ params: Promise.resolve({ path: path.split('/') }) });
 
+it('relays live AI only with an explicit server switch and a teacher credential', async () => {
+  vi.stubEnv('EDU_AI_LIVE_MODE', '1');
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json({ error: { code: 'AI_PURPOSE_REQUIRED' } }, { status: 403 }));
+  vi.stubGlobal('fetch', fetcher);
+  const route = 'batches/b/ai-investigation-tasks';
+  const url = 'http://127.0.0.1:3000/api/edu/' + route;
+  const run = (headers = {}) =>
+    POST(new Request(url, { method: 'POST', headers, body: '{}' }), context(route));
+  expect((await run()).status).toBe(401);
+  expect(fetcher).not.toHaveBeenCalled();
+  expect((await run({ authorization: bearer })).status).toBe(403);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
 it.each([
   ['batches/b/discoveries/query', true],
   [`batches/b/discoveries/${'a'.repeat(24)}/query`, true],

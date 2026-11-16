@@ -35,7 +35,10 @@ export function teacherNumber(value: ExactRational): string {
   if (d <= BigInt(0)) throw new RangeError('Invalid denominator');
   const absolute = n < BigInt(0) ? -n : n;
   const cents = (absolute * BigInt(200) + d) / (d * BigInt(2));
-  return `${n < BigInt(0) && cents !== BigInt(0) ? '-' : ''}${cents / BigInt(100)}.${String(cents % BigInt(100)).padStart(2, '0')}`;
+  const fraction = String(cents % BigInt(100))
+    .padStart(2, '0')
+    .replace(/0+$/, '');
+  return `${n < BigInt(0) && cents !== BigInt(0) ? '-' : ''}${cents / BigInt(100)}${fraction ? '.' + fraction : ''}`;
 }
 
 const defaults: readonly AssessmentItem[] = DIMENSIONS.map(({ code, name }) => ({

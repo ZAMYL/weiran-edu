@@ -287,8 +287,8 @@ it('keeps low/high unusual score differences distinct without diagnosing errors'
   const low = describeDiscovery(make('lower')),
     high = describeDiscovery(make('upper'));
   expect(low.title).not.toBe(high.title);
-  expect(low.numbers).toContain('低于 -2.00 分');
-  expect(high.numbers).toContain('高于 3.00 分');
+  expect(low.numbers).toContain('低于 -2 分');
+  expect(high.numbers).toContain('高于 3 分');
   expect(low.limitation).toContain('不说明评分有误');
 });
 
@@ -363,7 +363,7 @@ it('supports variable item counts, names and scales for actual item statistics',
     });
     expect(copies).toHaveLength(size);
     expect(copies.at(-1)!.title).toContain(`课程项目${size}`);
-    expect(copies[0]!.finding).toContain('72.50 分');
+    expect(copies[0]!.finding).toContain('72.5 分');
     expect(copies[0]!.numbers).toContain('缺少评分 2 人，评分无效 1 人');
     expect(copies[0]!.numbers).toContain('0～100 分');
     expect(copies[0]!.source.evidenceIds).toEqual(['evidence-synthetic']);
@@ -444,7 +444,7 @@ it('uses only supplied student scores and evidence, without scoring missing item
     items,
     { batchId: 'b', snapshotId: 's' },
   );
-  expect(copy.numbers).toBe('实验记录 8.00 分');
+  expect(copy.numbers).toBe('实验记录 8 分');
   expect(copy.source.evidenceIds).toEqual(['e-1']);
   expect(
     describeStudentScores({ student_id: 's', display_label: '学生', scores: [] }, items, {
@@ -455,11 +455,13 @@ it('uses only supplied student scores and evidence, without scoring missing item
 });
 
 it('rounds supplied exact scores HALF_UP, including negative ties, huge strings and negative zero', () => {
+  expect(teacherNumber(exact(40250, 10000))).toBe('4.03');
+  expect(teacherNumber(exact(20000, 10000))).toBe('2');
   expect(teacherNumber(exact(1005, 1000))).toBe('1.01');
   expect(teacherNumber(exact(-1005, 1000))).toBe('-1.01');
-  expect(teacherNumber(exact(-1, 10000))).toBe('0.00');
+  expect(teacherNumber(exact(-1, 10000))).toBe('0');
   expect(
     teacherNumber({ numerator: '900719925474099300', denominator: '300239975158033100' }),
-  ).toBe('3.00');
+  ).toBe('3');
   expect(() => teacherNumber({ numerator: 1, denominator: 0 })).toThrow();
 });

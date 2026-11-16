@@ -332,7 +332,7 @@ export default function LiveImportPreview({
                   }
                   pagination={false}
                   columns={[
-                    { title: '匿名学生', dataIndex: 'display_label' },
+                    { title: '学生标识', dataIndex: 'display_label' },
                     {
                       title: '评分项目',
                       render: (_, row) =>

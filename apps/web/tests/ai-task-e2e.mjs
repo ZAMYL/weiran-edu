@@ -152,6 +152,8 @@ try {
   const originalQuestion = '有哪些值得关注的问题？';
   await page.getByLabel('想了解什么？', { exact: true }).fill(originalQuestion);
   await page.getByRole('button', { name: '开始分析', exact: true }).click();
+  await page.locator('.ai-analysis-indicator').waitFor();
+  await page.screenshot({ path: path.join(artifacts, 'ai-running-desktop.png') });
   const createdResponse = await created;
   assert.equal(createdResponse.request().postDataJSON().question, originalQuestion);
   const start = await createdResponse.json();
@@ -163,7 +165,7 @@ try {
     await page.locator('main').innerText(),
     /Demo|联调测试|正式版|HTTP Mock|AI 分析演示|Agent Fact|确定性重放|主 Fact|真实评分重放/,
   );
-  await page.getByText('合成样例账户', { exact: true }).waitFor();
+  await page.getByText('演示工作台 · 演示数据', { exact: true }).waitFor();
   const completed = await page.evaluate(
     async ({ batch, task }) =>
       (
@@ -206,7 +208,7 @@ try {
   await page.screenshot({ path: path.join(artifacts, 'normal-facts.png'), fullPage: true });
   await page.getByRole('button', { name: '全屏', exact: true }).click();
   const fullscreenTitle = page.locator('.fullscreen-title');
-  await fullscreenTitle.getByText(/合成样例账户/).waitFor();
+  await fullscreenTitle.getByText(/演示工作台 · 演示数据/).waitFor();
   await page.screenshot({ path: path.join(artifacts, 'normal-fullscreen.png'), fullPage: true });
   await page.getByRole('button', { name: /^退出全屏/ }).click();
   await fullscreenTitle.waitFor({ state: 'hidden' });
@@ -318,7 +320,7 @@ try {
     if (await ack.count()) await ack.check();
     const download = page.waitForEvent('download');
     await dialog
-      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 XLSX', exact: true })
+      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 Excel', exact: true })
       .click();
     const file = await download;
     const bytes = await readFile(await file.path());
@@ -422,6 +424,7 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await profileCards.first().scrollIntoViewIfNeeded();
   await page.screenshot({ path: path.join(artifacts, 'profiles-mobile.png') });
+  await profileCards.first().getByText('查看完整五维评分', { exact: true }).click();
   const scoreRequestCount = requests.filter((request) =>
     request.path.endsWith('/profiles/scores/query'),
   ).length;
@@ -430,6 +433,7 @@ try {
   );
   await profileCards
     .first()
+    .locator('table')
     .getByRole('button', { name: /^查看算法与数据结构评分依据/ })
     .click();
   const scoreEvidence = await (await scoreResponse).json();

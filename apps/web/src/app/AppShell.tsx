@@ -3,9 +3,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { App, Button, Modal, Select } from 'antd';
+import { App, Button, Modal } from 'antd';
 import {
-  BookOutlined,
   ExpandOutlined,
   CompressOutlined,
   QuestionCircleOutlined,
@@ -14,7 +13,6 @@ import {
   FileTextOutlined,
   LeftOutlined,
 } from '@ant-design/icons';
-import { useBatch, useWorkspace } from './store';
 import { useDataMode } from './data-mode';
 import LiveAssessmentPicker from '../features/live/LiveAssessmentPicker';
 import { WorkspaceLayoutContext } from './WorkspaceLayoutContext';
@@ -28,35 +26,26 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const dataMode = useDataMode();
-  const batch = useBatch();
-  const { batches, setBatch } = useWorkspace();
   const [fullscreen, setFullscreen] = useState(false);
   const [summaryHost, setSummaryHost] = useState<HTMLElement | null>(null);
   const [help, setHelp] = useState(false);
   const { message } = App.useApp();
   const page = pages.find((p) => pathname.startsWith(p.to)) ?? pages[0]!;
   const uploadWorkspace =
-    dataMode.mode === 'live' &&
     pathname === '/insights' &&
     (dataMode.assessmentPanel === 'upload' ||
       (dataMode.connected && !dataMode.batch && dataMode.assessmentPanel !== 'history'));
   const emptyWorkspace =
-    dataMode.mode === 'live' &&
     dataMode.connected &&
     !dataMode.batch &&
     !dataMode.hasArchivedBatches &&
     !dataMode.notice &&
     dataMode.assessmentPanel === null;
   const sampleAccount =
-    dataMode.mode === 'live' &&
     dataMode.testMode &&
     dataMode.syntheticAi &&
     dataMode.scopes.some((scope) => scope.label === '合成AI集成验收');
-  const sourceLabel = sampleAccount
-    ? '合成样例账户'
-    : dataMode.mode === 'demo' && batch.demo
-      ? '合成测评'
-      : null;
+  const sourceLabel = sampleAccount ? '演示工作台 · 演示数据' : null;
   const pageTitle = uploadWorkspace ? '上传测评资料' : page.label;
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
@@ -85,19 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       message.error('当前浏览器无法进入全屏，请使用浏览器全屏功能。');
     }
   }
-  const batchSelect =
-    dataMode.mode === 'live' ? (
-      <LiveAssessmentPicker />
-    ) : (
-      <Select
-        aria-label="当前测评批次"
-        className="batch-select"
-        value={batch.id}
-        onChange={setBatch}
-        prefix={<BookOutlined />}
-        options={batches.map((b) => ({ value: b.id, label: b.name }))}
-      />
-    );
+  const batchSelect = <LiveAssessmentPicker />;
   const fullButton = (
     <Button
       className="fullscreen-button"
@@ -189,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     icon={<UploadOutlined aria-hidden="true" />}
                     onClick={() => {
                       dataMode.openAssessments('upload');
-                      router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                      router.push('/insights');
                     }}
                   >
                     上传测评资料
@@ -207,7 +184,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   aria-label="查看历史测评"
                   onClick={() => {
                     dataMode.openAssessments('history');
-                    router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                    router.push('/insights');
                   }}
                 >
                   {uploadWorkspace ? '历史测评' : '查看历史测评'}
@@ -219,7 +196,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     aria-label="返回当前诊断"
                     onClick={() => {
                       dataMode.openAssessments(null);
-                      router.push(dataMode.mode === 'demo' ? '/data' : '/insights');
+                      router.push('/insights');
                     }}
                   >
                     {uploadWorkspace ? '返回诊断' : '返回当前诊断'}
@@ -236,7 +213,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
       <footer className="app-footer">
         <span>未然 EDU｜AI 时代的编程能力与学习成效诊断平台</span>
-        <span>评分与发现供授权教师核查使用</span>
       </footer>
       <Modal
         open={help}

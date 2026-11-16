@@ -119,10 +119,16 @@ async function relay(
   }
   const testMode = testSessionEnabled(request, origin);
   const aiEnabled = testMode && process.env.EDU_AI_SYNTHETIC_MODE === '1';
-  if (path[2] === 'ai-investigation-tasks' && !aiEnabled) return fail(404, 'NOT_FOUND');
+  const aiLiveEnabled = !testMode && process.env.EDU_AI_LIVE_MODE === '1';
+  if (path[2] === 'ai-investigation-tasks' && !aiEnabled && !aiLiveEnabled)
+    return fail(404, 'NOT_FOUND');
   if (route === 'test-session')
     return Response.json(
-      { enabled: testMode, ...(aiEnabled ? { ai_synthetic_enabled: true } : {}) },
+      {
+        enabled: testMode,
+        ...(aiEnabled ? { ai_synthetic_enabled: true } : {}),
+        ...(aiLiveEnabled ? { ai_live_enabled: true } : {}),
+      },
       { headers: { 'Cache-Control': 'no-store' } },
     );
   let authorization = request.headers.get('authorization');

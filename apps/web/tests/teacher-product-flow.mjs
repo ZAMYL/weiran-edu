@@ -91,7 +91,7 @@ export async function teacherProductFlow(h) {
     if (await ack.count()) await ack.check();
     const pendingFile = page.waitForEvent('download');
     await exportDialog()
-      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 XLSX', exact: true })
+      .getByRole('button', { name: format === 'md' ? '下载 Markdown' : '下载 Excel', exact: true })
       .click();
     const file = await pendingFile;
     const bytes = await readFile(await file.path());

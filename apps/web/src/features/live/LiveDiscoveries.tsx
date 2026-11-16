@@ -473,7 +473,7 @@ function DiscoveryRecordsDrawer({
               pagination={false}
               scroll={{ x: 500 }}
               columns={[
-                { title: '匿名学生', dataIndex: 'display_label' },
+                { title: '学生标识', dataIndex: 'display_label' },
                 ...result.source_dimensions.map((dimension) => ({
                   title: dimensionName(dimension),
                   key: dimension,

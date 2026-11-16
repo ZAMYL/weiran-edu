@@ -72,7 +72,7 @@ describe('formal API privacy and cancellation', () => {
     await expect(client.me()).rejects.toMatchObject({
       status: 403,
       code: 'AI_SYNTHETIC_SOURCE_REQUIRED',
-      message: '当前 AI 演示仅支持本次服务登记的合成样例原件。此测评仍可查看评分统计。',
+      message: '当前测评未开通 AI 分析，可继续查看评分统计。',
       requestId: 'req_synthetic',
     });
   });

@@ -65,7 +65,7 @@ export async function teacherAnalysisFlow({
   page.on('download', onDownload);
   const acknowledge = async () => {
     const checkbox = exportDialog().getByRole('checkbox', {
-      name: '我已了解以上提醒，按当前核验结果导出',
+      name: '确认并继续导出',
     });
     if (await checkbox.count()) await checkbox.check();
   };
@@ -75,7 +75,7 @@ export async function teacherAnalysisFlow({
     );
     await drawer().getByRole('button', { name: '导出测评报告', exact: true }).click();
     const check = await (await response).json();
-    await exportDialog().getByText('报告预估大小', { exact: false }).waitFor();
+    await exportDialog().getByText('已确认发现', { exact: false }).waitFor();
     return check;
   };
   const closeExport = () => exportDialog().locator('.ant-modal-close').click();
@@ -167,12 +167,12 @@ export async function teacherAnalysisFlow({
     assert.ok(!preflight.warnings.some((w) => w.code === 'PENDING_FINDINGS_EXCLUDED'));
     assert.ok(preflight.warnings.some((w) => w.code === 'DISMISSED_FINDINGS_EXCLUDED'));
     assert.equal(
-      await exportDialog().getByRole('button', { name: '下载 XLSX', exact: true }).isDisabled(),
+      await exportDialog().getByRole('button', { name: '下载 Excel', exact: true }).isDisabled(),
       true,
     );
     await acknowledge();
     const xlsxDownload = page.waitForEvent('download');
-    await exportDialog().getByRole('button', { name: '下载 XLSX', exact: true }).click();
+    await exportDialog().getByRole('button', { name: '下载 Excel', exact: true }).click();
     const xlsx = await xlsxDownload;
     assert.equal(xlsx.suggestedFilename(), `weiran-analysis-${created.result_id}-v2.xlsx`);
     const xlsxBytes = await readFile(await xlsx.path());
@@ -222,7 +222,7 @@ export async function teacherAnalysisFlow({
     await acknowledge();
     await mutate(3, '合成预检后并发修改');
     const beforeConflict = downloads.length;
-    await exportDialog().getByRole('button', { name: '下载 XLSX', exact: true }).click();
+    await exportDialog().getByRole('button', { name: '下载 Excel', exact: true }).click();
     await exportDialog()
       .locator('details')
       .filter({ hasText: '错误码：ANALYSIS_RESULT_VERSION_MISMATCH' })
@@ -242,7 +242,7 @@ export async function teacherAnalysisFlow({
     await acknowledge();
     admin('member-remove', '--teacher-id', reviewed.reviewed_by, '--scope-id', scope);
     const beforeRevoked = downloads.length;
-    await exportDialog().getByRole('button', { name: '下载 XLSX', exact: true }).click();
+    await exportDialog().getByRole('button', { name: '下载 Excel', exact: true }).click();
     await exportDialog().locator('.live-error').waitFor();
     assert.equal(downloads.length, beforeRevoked);
     admin('member-set', '--teacher-id', reviewed.reviewed_by, '--scope-id', scope, '--can-import');
@@ -275,7 +275,7 @@ export async function teacherAnalysisFlow({
     await openExport();
     await acknowledge();
     const readerDownload = page.waitForEvent('download');
-    await exportDialog().getByRole('button', { name: '下载 XLSX', exact: true }).click();
+    await exportDialog().getByRole('button', { name: '下载 Excel', exact: true }).click();
     assert.match((await readerDownload).suggestedFilename(), /-v4\.xlsx$/);
     checks.push(
       'authorized reader can list/read/export saved results but cannot save or edit judgments',
@@ -373,10 +373,10 @@ export async function saveEmptyAnalysis(page, title, expectedMatched, expectedNo
     await drawer.getByRole('button', { name: '导出测评报告', exact: true }).click();
     assert.equal((await (await preflightHTTP).json()).confirmed_finding_count, 0);
     const dialog = page.getByRole('dialog', { name: '导出测评报告', exact: true });
-    await dialog.getByText('报告预估大小', { exact: false }).waitFor();
+    await dialog.getByText('已确认发现', { exact: false }).waitFor();
     if (await dialog.getByRole('checkbox').count()) await dialog.getByRole('checkbox').check();
     const pendingDownload = page.waitForEvent('download');
-    await dialog.getByRole('button', { name: '下载 XLSX', exact: true }).click();
+    await dialog.getByRole('button', { name: '下载 Excel', exact: true }).click();
     assert.equal(
       (await pendingDownload).suggestedFilename(),
       `weiran-analysis-${result.result_id}-v1.xlsx`,

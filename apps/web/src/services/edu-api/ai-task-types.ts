@@ -15,10 +15,17 @@ import { conditionDto, dimensionCode } from './types';
 import { discoveryExactDto, exactRationalDto } from './exact';
 
 const origin = {
-  execution_origin: literal('http_mock'),
-  real_qwen: literal('not_run'),
-  production_enabled: literal(false),
+  execution_origin: literal('http_mock', 'qwen_live', 'not_run'),
+  real_qwen: optional(text),
+  production_enabled: optional(flag),
 };
+type ExecutionSource = { [Field in keyof typeof origin]: Decoded<(typeof origin)[Field]> };
+function validSource(source: ExecutionSource) {
+  return (
+    source.execution_origin !== 'http_mock' ||
+    (source.real_qwen === 'not_run' && source.production_enabled === false)
+  );
+}
 const sourceManifestDto = checked(text, (value) => /^[a-f0-9]{64}$/.test(value));
 const explorationDto = object({ snapshot_id: text, conditions: list(conditionDto) });
 const sourceReferenceDto = object({
@@ -140,11 +147,23 @@ export const aiTaskDto = checked(
     expires_at: numeric,
   }),
   (task) => {
+    if (!validSource(task)) return false;
     const result = task.result;
+    if (task.execution_origin === 'not_run')
+      return task.state !== 'completed' && !result && task.model_requests === 0;
+    if (
+      task.execution_origin === 'qwen_live' &&
+      (task.state === 'completed' || result) &&
+      (task.model_requests === 0 || task.real_qwen === 'not_run' || !result)
+    )
+      return false;
     if (!result) return true;
     const ids = new Set(result.facts.map((fact) => fact.fact_id));
     const projection = result.profile_projection;
     return (
+      validSource(result) &&
+      result.execution_origin === task.execution_origin &&
+      (result.execution_origin !== 'qwen_live' || result.real_qwen !== 'not_run') &&
       result.batch_id === task.batch_id &&
       result.snapshot_id === task.snapshot_id &&
       ids.size === result.facts.length &&

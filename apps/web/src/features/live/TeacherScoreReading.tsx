@@ -4,7 +4,7 @@ import {
   type AnalysisScope,
   type TeacherItemStatistics,
 } from '../../services/edu-api/teacher-analysis';
-import { dimensionName } from '../../services/edu-api/view-model';
+import { dimensionName, scoreDisplay } from '../../services/edu-api/view-model';
 import type { ApiRubric, ApiStatistics } from '../../services/edu-api/types';
 
 export function ItemReading({
@@ -68,10 +68,10 @@ export function ScoreReading({
         ? `${statistics.scope.record_count} 人参与本次测评。`
         : `当前查看 ${scopeCount} 名学生的评分。`}
       {scored.length === 1
-        ? `目前仅${names(high.mean.display)}有可用平均分，为 ${high.mean.display} 分。`
+        ? `目前仅${names(high.mean.display)}有可用平均分，为 ${scoreDisplay(high.mean.value)} 分。`
         : high.mean.display === low.mean.display
-          ? `有有效评分的各项目平均分均为 ${high.mean.display} 分。可切到评分分布查看实得分数和人数。`
-          : `平均分较高的是${names(high.mean.display)}（${high.mean.display} 分），较低的是${names(low.mean.display)}（${low.mean.display} 分）。`}
+          ? `有有效评分的各项目平均分均为 ${scoreDisplay(high.mean.value)} 分。可切到评分分布查看实得分数和人数。`
+          : `平均分较高的是${names(high.mean.display)}（${scoreDisplay(high.mean.value)} 分），较低的是${names(low.mean.display)}（${scoreDisplay(low.mean.value)} 分）。`}
     </p>
   );
 }

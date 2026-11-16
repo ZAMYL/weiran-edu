@@ -99,11 +99,14 @@ function zip(files) {
   end.writeUInt32LE(offset, 16);
   return Buffer.concat([...locals, directory, end]);
 }
-mkdirSync(new URL('../public/templates/', import.meta.url), { recursive: true });
+mkdirSync(new URL('../tests/fixtures/generated/', import.meta.url), { recursive: true });
 for (const [name, data] of [
   ['评价长表模板.xlsx', rows],
   ['评价_待校验示例.xlsx', invalidRows],
 ]) {
-  writeFileSync(new URL(`../public/templates/${name}`, import.meta.url), zip(workbook(data)));
+  writeFileSync(
+    new URL(`../tests/fixtures/generated/${name}`, import.meta.url),
+    zip(workbook(data)),
+  );
   console.log(`Generated ${name}`);
 }

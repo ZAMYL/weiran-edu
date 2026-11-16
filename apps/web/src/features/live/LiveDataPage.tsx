@@ -27,6 +27,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     revision,
     batchListRevision,
     batchArchiveChanged,
+    assessmentTitle,
     uploadDraft,
     setUploadDraft,
   } = useDataMode();
@@ -270,7 +271,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
                   title: '测评名称',
                   render: (_, target) => (
                     <div className="batch-title">
-                      <strong>{target.title}</strong>
+                      <strong>{assessmentTitle(target)}</strong>
                       {target.batch_id === batch?.batch_id && <Tag color="cyan">当前测评</Tag>}
                     </div>
                   ),
@@ -345,7 +346,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
           }}
           onOk={() => void changeArchive(archiveTarget)}
         >
-          <p>{archiveTarget.title}</p>
+          <p>{assessmentTitle(archiveTarget)}</p>
           {!archived && <p>归档仅影响当前教师账户，可从「已归档」恢复。原始评分与报告会保留。</p>}
           {archiveError && <RequestError error={archiveError} />}
         </Modal>
