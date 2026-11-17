@@ -322,16 +322,24 @@ class TaskService:
             raw, book, executor = asyncio.run(
                 run_database_profiles(binding, limits=self.profile_limits)
             )
-            self._persist_live_result(task_id, row, actor, source, raw, book, executor)
-            self.store.provenance(
-                task_id,
-                provenance_from(budget, executor).model_dump(mode="json"),
+            provenance = provenance_from(budget, executor).model_dump(mode="json")
+            self._persist_live_result(
+                task_id, row, actor, source, raw, book, executor, provenance=provenance
             )
         finally:
             budget.close()
 
     def _persist_live_result(
-        self, task_id: str, row: dict, actor: Principal, source, raw, book, executor
+        self,
+        task_id: str,
+        row: dict,
+        actor: Principal,
+        source,
+        raw,
+        book,
+        executor,
+        *,
+        provenance: dict,
     ) -> None:
         """Convert the reviewed database session into the existing proof/result path."""
         from .models import PROFILE_RESULT_CONTRACT
@@ -426,7 +434,7 @@ class TaskService:
             profile_projection=projected,
         )
         verified = extend_proof(proof(executor), result, executor, staged, self.profile_limits)
-        self.store.finish(task_id, actor, result, verified)
+        self.store.finish(task_id, actor, result, verified, provenance=provenance)
 
     def _row(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> dict:
         row = self.store.get(actor, task_id)
