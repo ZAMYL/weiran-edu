@@ -1,17 +1,20 @@
 <div align="center">
-
-# 未然 EDU · WEIRAN EDU
-
-**让高校编程测评，从分数统计走向可核验的能力洞察。**
-
-面向高校编程教学与程序设计竞赛的 AI 辅助测评分析平台
-
-![Next.js](https://img.shields.io/badge/Next.js-16-111827?style=flat-square) ![FastAPI](https://img.shields.io/badge/FastAPI-Python%203.12-087F8C?style=flat-square) ![AI Agent](https://img.shields.io/badge/AI-Agent%20Workflow-315E9D?style=flat-square) ![SQLite](https://img.shields.io/badge/Database-SQLite-526D86?style=flat-square)
-
-**数据导入 · 五维画像 · 群体差异 · AI 调查 · 评分依据 · 报告导出**
-
-[快速体验](#-快速体验) · [核心能力](#-核心能力) · [技术架构](#-技术架构) · [比赛展示](docs/competition/README.md)
-
+  <h1>未然 EDU · WEIRAN EDU</h1>
+  <p><strong>让高校编程测评，从分数统计走向可核验的能力洞察。</strong></p>
+  <p>面向高校编程教学与程序设计竞赛的 AI 辅助测评分析平台</p>
+  <p>
+    <img src="https://img.shields.io/badge/Next.js-16-111827?style=flat-square" alt="Next.js 16" />
+    <img src="https://img.shields.io/badge/FastAPI-Python%203.12-087F8C?style=flat-square" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/AI-Agent%20Workflow-315E9D?style=flat-square" alt="AI Agent" />
+    <img src="https://img.shields.io/badge/Database-SQLite-526D86?style=flat-square" alt="SQLite" />
+  </p>
+  <p><strong>数据导入 · 五维画像 · 群体差异 · AI 调查 · 评分依据 · 报告导出</strong></p>
+  <p>
+    <a href="#-快速体验">快速体验</a> ·
+    <a href="#-核心能力">核心能力</a> ·
+    <a href="#-技术架构">技术架构</a> ·
+    <a href="docs/competition/README.md">比赛展示</a>
+  </p>
 </div>
 
 ---
@@ -69,7 +72,7 @@ flowchart LR
 - **分析与 AI**：确定性评分计算、群体洞察、受控 Agent、Qwen 接口适配与离线执行测试
 - **质量验证**：pytest、Ruff、TypeScript、前端单测、真实浏览器端到端测试
 
-**模型执行边界：** 当前公开可复现的本地演示链路标记为 \`http_mock\`，**不能当作真实 Qwen API 已完成调用的证明**。真实 Qwen 路径仍需独立审批、费用控制与正式路由验收。详情见 [AI 接入说明](docs/QWEN_V131_BACKEND_WIRING.md)。
+**模型执行边界：** 当前公开可复现的本地演示链路标记为 `http_mock`，**不能当作真实 Qwen API 已完成调用的证明**。真实 Qwen 路径仍需独立审批、费用控制与正式路由验收。详情见 [AI 接入说明](docs/QWEN_V131_BACKEND_WIRING.md)。
 
 ## 🚀 快速体验
 
@@ -83,7 +86,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity sample
 ```
 
-默认访问 \`http://127.0.0.1:3000/insights\`。本机演示使用隔离 SQLite 和已登记的合成测试来源，不发送付费模型请求；**不要直接把真实评分文件提交进仓库或当作公开测试夹具**。
+默认访问 `http://127.0.0.1:3000/insights`。本机演示使用隔离 SQLite 和已登记的合成测试来源，不发送付费模型请求；**不要直接把真实评分文件提交进仓库或当作公开测试夹具**。
 
 需要在正式教师数据来源中导入工作簿时，请遵循 [数据库及权限说明](docs/DATABASE_BATCH_AUTH.md) 与 [Excel 模板说明](docs/EXCEL_PARSER.md)。
 
@@ -91,13 +94,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1
 
 | 路径 | 内容 |
 |:--|:--|
-| [\`apps/web/\`](apps/web/) | 教师工作台、交互、数据可视化 |
-| [\`apps/api/\`](apps/api/) | FastAPI、数据库、统计分析与 AI 服务 |
-| [\`prototypes/\`](prototypes/) | 受控 Agent 与任务编排原型 |
-| [\`evals/\`](evals/) | 测试与评估证据 |
-| [\`docs/competition/\`](docs/competition/README.md) | 比赛展示、演示材料与技术证据 |
-| [\`docs/\`](docs/) | 完整工程契约和历史技术记录 |
-| [\`AGENTS.md\`](AGENTS.md) | 协作规范与质量门槛 |
+| [`apps/web/`](apps/web/) | 教师工作台、交互、数据可视化 |
+| [`apps/api/`](apps/api/) | FastAPI、数据库、统计分析与 AI 服务 |
+| [`prototypes/`](prototypes/) | 受控 Agent 与任务编排原型 |
+| [`evals/`](evals/) | 测试与评估证据 |
+| [`docs/competition/`](docs/competition/README.md) | 比赛展示、演示材料与技术证据 |
+| [`docs/`](docs/) | 完整工程契约和历史技术记录 |
+| [`AGENTS.md`](AGENTS.md) | 协作规范与质量门槛 |
 
 历史设计文档保留用于追溯，**不代表当前运行时 API**；以仓库代码、OpenAPI 和实际验收结果为准。
 
