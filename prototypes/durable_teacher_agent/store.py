@@ -463,8 +463,19 @@ class TaskStore:
             )
 
     def finish(
-        self, task_id: str, actor: Principal, result: InvestigationResult, proof: dict
+        self,
+        task_id: str,
+        actor: Principal,
+        result: InvestigationResult,
+        proof: dict,
+        *,
+        provenance: dict | None = None,
     ) -> None:
+        """Commit result, proof and provenance in one transaction.
+
+        A Live completion must never be visible without its server-owned
+        provenance; an interruption rolls the whole update back.
+        """
         raw = result.model_dump(mode="json")
         with self.database.transaction(write=True) as c:
             row = self._row(c, task_id)
@@ -472,12 +483,33 @@ class TaskStore:
             profile_expected = self.profile_result_expected(row, proof)
             if isinstance(result, ProfileInvestigationResult) is not profile_expected:
                 blocked("AI_PROFILE_PROOF_CONFLICT", 503)
-            c.execute(
-                "UPDATE ai_synthetic_tasks SET "
-                "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=? "
-                "WHERE task_id=?",
-                (encode(raw), digest(raw), encode(proof), encode(proof["released"]), task_id),
-            )
+            if provenance is None:
+                c.execute(
+                    "UPDATE ai_synthetic_tasks SET "
+                    "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=? "
+                    "WHERE task_id=?",
+                    (
+                        encode(raw),
+                        digest(raw),
+                        encode(proof),
+                        encode(proof["released"]),
+                        task_id,
+                    ),
+                )
+            else:
+                c.execute(
+                    "UPDATE ai_synthetic_tasks SET "
+                    "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=?,"
+                    "provenance_json=? WHERE task_id=?",
+                    (
+                        encode(raw),
+                        digest(raw),
+                        encode(proof),
+                        encode(proof["released"]),
+                        encode(provenance),
+                        task_id,
+                    ),
+                )
             self.event(c, task_id, "result_committed", {"result_sha": digest(raw)})
 
     @staticmethod

@@ -85,6 +85,8 @@ docker compose logs -f api worker
 
 Caddy 自动申请 HTTPS。只暴露 80/443；FastAPI 不映射公网端口。
 
+`app.production:create_production_app` 和 `app.main:create_app` 共用同一接线：`WEIRAN_EDU_ENV=production` 且 `WEIRAN_EDU_REAL_DATA_APPROVAL` 存在时，正式 app 直接安装真实 `TaskService` 路由；未配置审批文件时才挂 503 骨架。
+
 ## 4. 发放 database_live 授权
 
 ```bash

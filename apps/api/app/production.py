@@ -1,4 +1,4 @@
-"""Production app factory: real data admission + durable task service.
+"""Production app factory: the controlled create_app path with Live wiring.
 
 Start with:
     uvicorn app.production:create_production_app --factory
@@ -10,14 +10,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI
-from prototypes.durable_teacher_agent.api import install_production
 from prototypes.durable_teacher_agent.service import TaskService
-from prototypes.durable_teacher_agent.store import TaskStore
-from prototypes.qwen_execution import code_fingerprint
-from prototypes.teacher_agent_bridge.provider import (
-    ProductionDatabaseProvider,
-    RealDataAdmission,
-)
 
 from app.core.config import Settings
 from app.main import create_app
@@ -39,25 +32,12 @@ def build_production() -> tuple[FastAPI, TaskService]:
     settings = Settings(
         environment="production",
         database_path=_outside_repository(os.environ["WEIRAN_EDU_DATABASE"], "WEIRAN_EDU_DATABASE"),
-        ai_task_routes=False,  # the real router is installed below, never the 503 skeleton
+        ai_task_routes=False,  # create_app installs the real router from approval env
     )
     application = create_app(settings)
-    approval_path = os.environ.get("WEIRAN_EDU_REAL_DATA_APPROVAL")
-    if not approval_path:
-        raise RuntimeError("WEIRAN_EDU_REAL_DATA_APPROVAL is required")
-    admission = RealDataAdmission.load(approval_path, code_sha256=code_fingerprint())
-    state = _outside_repository(
-        os.environ.get(
-            "WEIRAN_EDU_AI_STATE_DIR", str(Path(settings.database_path).parent / "ai-state")
-        ),
-        "WEIRAN_EDU_AI_STATE_DIR",
-    )
-    state.mkdir(parents=True, exist_ok=True)
-    provider = ProductionDatabaseProvider(application.state.edu_service, admission)
-    store = TaskStore(provider)
-    store.initialize()
-    service = TaskService(provider, store, state)
-    install_production(application, service)
+    service = getattr(application.state, "ai_task_service", None)
+    if service is None:
+        raise RuntimeError("real_data_approval_not_configured")
     return application, service
 
 

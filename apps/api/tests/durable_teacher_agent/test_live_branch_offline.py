@@ -40,6 +40,71 @@ def approval_for(campaign_id, source_sha):
     }
 
 
+def test_live_completion_rolls_back_result_and_provenance_together(tmp_path, monkeypatch):
+    fixture, service = profile_host(tmp_path)
+    client = TestClient(fixture.app)
+    client.headers["Authorization"] = "Bearer " + fixture.token
+    batch = upload(client, fixture, "balanced72")
+    teacher = actor(fixture, service)
+    service.store.grant(teacher, batch["batch_id"], batch["snapshot_id"])
+    with service.store.database.transaction(write=True) as connection:
+        connection.execute("UPDATE ai_synthetic_grants SET purpose='database_live'")
+        source_sha = connection.execute(
+            "SELECT source_sha FROM ai_synthetic_grants LIMIT 1"
+        ).fetchone()[0]
+    row, _ = service.store.create(
+        teacher,
+        batch["batch_id"],
+        TaskCreate(
+            snapshot_id=batch["snapshot_id"],
+            question="有哪些值得关注的问题？",
+            idempotency_key="live-atomic-01",
+        ),
+    )
+    approval = tmp_path / "approval.json"
+    approval.write_text(json.dumps(approval_for(row["campaign_id"], source_sha)), encoding="utf-8")
+    monkeypatch.setattr(live_admission, "code_fingerprint", lambda: FINGERPRINT)
+    monkeypatch.setenv("WEIRAN_EDU_QWEN_LIVE_APPROVAL", str(approval))
+    monkeypatch.setenv("WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT", str(tmp_path / "ledger"))
+    monkeypatch.setenv("DASHSCOPE_BASE_URL", MOCK_BASE)
+    monkeypatch.setenv("DASHSCOPE_API_KEY", "offline-placeholder")
+
+    calls = []
+
+    def handler(request):
+        payload = json.loads(request.content)
+        calls.append(payload)
+        view = json.loads(payload["messages"][-1]["content"])
+        return httpx.Response(
+            200, json=native_response(ProfileMockPolicy().choose(view), len(calls))
+        )
+
+    real_client = httpx.AsyncClient
+
+    def intercepted(*args, **kwargs):
+        kwargs["transport"] = httpx.MockTransport(handler)
+        return real_client(*args, **kwargs)
+
+    monkeypatch.setattr(httpx, "AsyncClient", intercepted)
+
+    original_event = service.store.event
+
+    def interrupt_commit(connection, task_id, phase, payload):
+        if phase == "result_committed":
+            raise RuntimeError("simulated_interruption")
+        return original_event(connection, task_id, phase, payload)
+
+    monkeypatch.setattr(service.store, "event", interrupt_commit)
+
+    service.execute(row["task_id"])
+
+    stored = service.store.get(teacher, row["task_id"])
+    assert stored["state"] == "failed"
+    assert stored["error_code"] == "AI_LIVE_TASK_FAILED"
+    assert stored["result_json"] is None
+    assert stored["provenance_json"] == "{}"
+
+
 def test_live_branch_reaches_the_agent_and_persists_provenance(tmp_path, monkeypatch):
     fixture, service = profile_host(tmp_path)
     client = TestClient(fixture.app)

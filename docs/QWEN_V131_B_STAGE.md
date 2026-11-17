@@ -23,6 +23,7 @@
   - 用真实 `staged` 分区调用 `project_selected`/`extend_proof`；
   - 写入 `qwen_live` / `completed` 结果与 `ExecutionProvenance`；
   - `dimension_evidence_http=live_task_profile_scores_v1`。
+- `TaskStore.finish(..., provenance=...)` 把 `completed` 结果、proof、disclosure 和 provenance 放在**同一个 SQLite 事务**里；`result_committed` 事件失败会整体回滚，测试覆盖了“完成态与来源证明同时不存在”的路径。
 - `InvestigationResult` 的 origin/real_qwen 联合类型已放宽；前端 DTO 接受 Live 结果和 Live 评分依据。
 - `DatabaseLiveBudget` 把预算镜像回 `ai_synthetic_tasks.budget_json`，回读/状态不再依赖 CLI 账本。
 
@@ -36,7 +37,7 @@
 ### B5 单机部署包
 
 - `deploy/`：API/Web Dockerfile、Compose、Caddy TLS、`.env.example`、secrets/data/ledger 目录约定。
-- `app.production:create_production_app` 安装真实路由（`qwen_live`，不挂 503 骨架）。
+- **正式 `create_app` 自动接线**：当 `environment=production` 且配置了 `WEIRAN_EDU_REAL_DATA_APPROVAL` 时，`app.main.create_app()` 直接构建并安装 `Live TaskService` 真实路由；只有未配置批准文件时才挂 503 骨架。`app.production:create_production_app` 复用同一路径。
 - `app.worker_main`、`app.grant_live` 两个操作员入口。
 
 ## 验证
@@ -58,7 +59,7 @@ corepack pnpm test
 corepack pnpm build
 ```
 
-实际结果（本机）：B1-B5 定向测试通过；完整 `tests/durable_teacher_agent` **119 passed**；前端 **258 passed**（`vitest --no-file-parallelism --maxWorkers=1`），lint、format、typecheck 通过。`next build` 在 B 段后因本机 Node 堆内存不足（`Zone Allocation failed` / worker exit 134）未完成，不是 TypeScript 编译错误；A 段时同一构建曾通过。Docker 未在本机实际构建（本机无 Docker）。
+实际结果（本机）：B1-B5 定向测试通过；完整 `tests/durable_teacher_agent` **121 passed**（含正式 `create_app` 安装真实路由、Live 完成原子回滚）；前端 **258 passed**（`vitest --no-file-parallelism --maxWorkers=1`），lint、format、typecheck 通过。`next build` 在 B 段后因本机 Node 堆内存不足（`Zone Allocation failed` / worker exit 134）未完成，不是 TypeScript 编译错误；A 段时同一构建曾通过。Docker 未在本机实际构建（本机无 Docker）。
 
 ## 真实合成数据运行（A 段之外，CLI）
 
