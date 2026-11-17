@@ -2,7 +2,7 @@
 
 这是已有确定性结果的内部产品适配，不增加分析公式，不代表教学标准已冻结。
 入口：`app.analysis.edu.insights`。不引入网络、LLM、HTTP、数据库或新依赖。
-字段对照与待协调差异见 [ANALYSIS_FRONTEND_HANDOFF.md](ANALYSIS_FRONTEND_HANDOFF.md)。
+字段对照与待协调差异见 [ANALYSIS_FRONTEND_HANDOFF.md](archive/ANALYSIS_FRONTEND_HANDOFF.md)。
 
 ## 接入与计算口径
 

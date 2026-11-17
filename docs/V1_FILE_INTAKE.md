@@ -26,7 +26,7 @@ if (currentScopeId) form.append("data_scope_id", currentScopeId);
 
 旧显式字段和 ImportView 响应兼容，未知/重复字段仍拒绝。默认 title 是该批次获授权读者可读的正式元数据，并非匿名字段；原文件名和路径不单独持久化，不进入证据或错误。修改名称不改变分数/原字节/摘要，重复导入不覆盖已有批次名称。
 
-交接补丁保留原响应字段，增量返回ImportView.recognized_items和CommitResult.snapshot_id。前端显示后端识别项目及全量计数，确认后直接进入返回批次的诊断；重复打开已有批次，不再手动选择。见[林明接入契约](IMPORT_FRONTEND_HANDOFF.md)和实际合成响应。
+交接补丁保留原响应字段，增量返回ImportView.recognized_items和CommitResult.snapshot_id。前端显示后端识别项目及全量计数，确认后直接进入返回批次的诊断；重复打开已有批次，不再手动选择。见[林明接入契约](archive/IMPORT_FRONTEND_HANDOFF.md)和实际合成响应。
 
 ## 结果及缺失项
 

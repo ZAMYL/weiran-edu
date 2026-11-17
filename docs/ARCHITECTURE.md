@@ -1,6 +1,6 @@
 # 未然 EDU — 架构与实现边界
 
-状态更新：2026-10-25。前端设计 Demo、后端导入/数据库/授权/统计/筛选/证据 API 已有实现，前端仍使用合成数据，尚未完成真实 API 接入和浏览器整条流程验收。完整状态与早期草案差异见 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)。
+状态更新：2026-10-25。前端设计 Demo、后端导入/数据库/授权/统计/筛选/证据 API 已有实现，前端仍使用合成数据，尚未完成真实 API 接入和浏览器整条流程验收。完整状态与早期草案差异见 [IMPLEMENTATION_STATUS.md](archive/IMPLEMENTATION_STATUS.md)。
 
 ## 模块边界
 
@@ -30,6 +30,6 @@
 
 内部候选和 AI 模块已存在，但正式批次洞察查询、逐指标参与记录 HTTP 回查、真实学生模型调用、导出、学校 SSO 和原文审核流程未交付。单次测评不直接证明学生真实能力、AI 依赖或学习提升。
 
-运行方法见 [数据库与权限](DATABASE_BATCH_AUTH.md)、[统计/群体/证据 API](STATISTICS_GROUP_EVIDENCE_API.md) 和 [BOOTSTRAP.md](BOOTSTRAP.md)。四条已确认行为见 [后端基线](BACKEND_CONTRACT_V0.1.md)；旧 [API](API_CONTRACT_V0.1.md)、[物理模型](DATA_MODEL_V0.1.md)、[Demo 对齐](FRONTEND_API_ALIGNMENT_V0.1.md) 和 OpenAPI 文件保留为历史设计，不覆盖运行时契约。
+运行方法见 [数据库与权限](DATABASE_BATCH_AUTH.md)、[统计/群体/证据 API](STATISTICS_GROUP_EVIDENCE_API.md) 和 [BOOTSTRAP.md](BOOTSTRAP.md)。四条已确认行为见 [后端基线](archive/BACKEND_CONTRACT_V0.1.md)；旧 [API](archive/API_CONTRACT_V0.1.md)、[物理模型](archive/DATA_MODEL_V0.1.md)、[Demo 对齐](archive/FRONTEND_API_ALIGNMENT_V0.1.md) 和 OpenAPI 文件保留为历史设计，不覆盖运行时契约。
 
 SQLite 当前面向受控试点。学校认证、部署 ACL、备份/加密、资源隔离及正式保留方案仍需落实；仓库不保存真实学生数据、数据库或凭据。

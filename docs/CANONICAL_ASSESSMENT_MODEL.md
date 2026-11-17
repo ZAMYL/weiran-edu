@@ -67,7 +67,7 @@ Profile 标识建议为 `weiran.edu.programming.default.v1`，推荐项目如下
 
 ## 4. 与当前 V1 的兼容路线（未来接入，非本轮改动）
 
-核对依据：[实现状态](IMPLEMENTATION_STATUS.md)、[冻结规则](BACKEND_CONTRACT_V0.1.md)、[统计接口](STATISTICS_GROUP_EVIDENCE_API.md)，以及 main 基线实际代码。
+核对依据：[实现状态](archive/IMPLEMENTATION_STATUS.md)、[冻结规则](archive/BACKEND_CONTRACT_V0.1.md)、[统计接口](STATISTICS_GROUP_EVIDENCE_API.md)，以及 main 基线实际代码。
 
 最终已只读复核 main 新合并的 [快照完整性修复](API_INTEGRITY_REVIEW.md)：匿名学生引用被冻结，读取在授权后的同一事务校验完整批次事实。未来 Canonical 投影也必须经过这些服务边界，不能绕过校验直接读表。该修复来自上游，不属于本轮补丁。
 
