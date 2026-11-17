@@ -2,14 +2,15 @@
 
 from dataclasses import dataclass, field
 
-from app.ai.edu.discovery.models import AgentError
-from app.importing.edu.types import DIMENSIONS
-
 from prototypes.teacher_agent_bridge.provider import (
     DatabaseEnvelope,
     DatabaseProvider,
     DatabaseSource,
+    ProductionDatabaseProvider,
 )
+
+from app.ai.edu.discovery.models import AgentError
+from app.importing.edu.types import DIMENSIONS
 
 
 @dataclass(frozen=True)
@@ -37,7 +38,10 @@ class DatabaseProfileSource:
             AuthorizedEnvelope,
         ):
             raise AgentError("trusted_database_profile_source_required")
-        if type(self.envelope.provider) is not DatabaseProvider:
+        if type(self.envelope.provider) not in (
+            DatabaseProvider,
+            ProductionDatabaseProvider,
+        ):
             raise AgentError("trusted_database_profile_source_required")
         self.source.validate()
         data = self.envelope.data
