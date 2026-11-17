@@ -96,6 +96,7 @@ def saved_inputs(size=17, *, statuses=None, filtered=True):
                 StudentScore(
                     dimension_code=CODE_MAP[c.dimension],
                     score=float(c.value),
+                    display=f"{float(c.value):.2f}",
                     evidence_id=f"synthetic-evidence-{i}-{c.dimension.name.lower()}",
                 )
                 for c in row.scores

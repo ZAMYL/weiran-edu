@@ -86,7 +86,10 @@ def pages(report, *, page_size=2, include_statistics=True):
             display_label="不应导出的合成姓名 202600000001",
             scores=tuple(
                 StudentScore(
-                    dimension_code=s.dimension_code, score=float(s.value), evidence_id=s.evidence_id
+                    dimension_code=s.dimension_code,
+                    score=float(s.value),
+                    display=f"{float(s.value):.2f}",
+                    evidence_id=s.evidence_id,
                 )
                 for s in row.scores
             ),
