@@ -59,7 +59,7 @@ corepack pnpm test
 corepack pnpm build
 ```
 
-实际结果（本机）：B1-B5 定向测试通过；完整 `tests/durable_teacher_agent` **121 passed**（含正式 `create_app` 安装真实路由、Live 完成原子回滚）；前端 **258 passed**（`vitest --no-file-parallelism --maxWorkers=1`），lint、format、typecheck 通过。`next build` 在 B 段后因本机 Node 堆内存不足（`Zone Allocation failed` / worker exit 134）未完成，不是 TypeScript 编译错误；A 段时同一构建曾通过。Docker 未在本机实际构建（本机无 Docker）。
+实际结果（本机）：B1-B5 定向测试通过；完整 `tests/durable_teacher_agent` **122 passed**（含正式 `create_app` 安装真实路由、Live 完成原子回滚、并发读取与重启）；前端 **258 passed**（`vitest --no-file-parallelism --maxWorkers=1`），lint、format、typecheck 通过。`next build` 在 B 段后因本机 Node 堆内存不足（`Zone Allocation failed` / worker exit 134）未完成，不是 TypeScript 编译错误；A 段时同一构建曾通过。Docker 未在本机实际构建（本机无 Docker）。
 
 ## 真实合成数据运行（A 段之外，CLI）
 
