@@ -160,3 +160,55 @@ def test_unknown_assessment_returns_404(client):
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "RESOURCE_NOT_FOUND"
+
+
+def one_student_zip(key: str, name: str) -> bytes:
+    stream = BytesIO()
+    with ZipFile(stream, "w") as archive:
+        archive.writestr(f"包/正式答卷/{key}.html", student_html(key=key, name=name))
+    return stream.getvalue()
+
+
+def test_multiple_packages_are_merged(client):
+    first = one_student_zip("S010", "钱同学")
+    second = one_student_zip("S011", "孙同学")
+
+    response = client.post(
+        URL,
+        data={"title": "合成竞赛"},
+        files=[("file", ("第一包.zip", first)), ("file", ("第二包.zip", second))],
+    )
+
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert (body["student_count"], body["submission_count"]) == (2, 2)
+
+    students = client.get(f"{URL}/{body['assessment_id']}/students").json()["items"]
+    assert [item["external_key"] for item in students] == ["S010", "S011"]
+
+
+def test_same_set_of_packages_is_reported_as_duplicate(client):
+    files = [
+        ("file", ("a.zip", one_student_zip("S020", "李同学"))),
+        ("file", ("b.zip", one_student_zip("S021", "王同学"))),
+    ]
+
+    first = client.post(URL, files=files)
+    second = client.post(URL, files=files)
+
+    assert first.status_code == 201, first.text
+    assert second.status_code == 200
+    assert second.json()["duplicate"] is True
+    assert second.json()["assessment_id"] == first.json()["assessment_id"]
+
+
+def test_duplicate_participant_across_packages_is_rejected(client):
+    files = [
+        ("file", ("a.zip", one_student_zip("S030", "周同学"))),
+        ("file", ("b.zip", one_student_zip("S030", "周同学"))),
+    ]
+
+    response = client.post(URL, files=files)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "ANSWERSHEET_DUPLICATE_PARTICIPANT"

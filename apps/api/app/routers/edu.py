@@ -1,5 +1,6 @@
 """Authenticated pilot API; management and credential issuance stay operator-only."""
 
+import hashlib
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response
@@ -50,7 +51,7 @@ from app.edu.service import EduService, stamp
 from app.edu.summary import BatchSummary
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
 from app.importing.edu.adapter import adapter_for
-from app.importing.edu.answersheet import parse_answersheet
+from app.importing.edu.answersheet import merge_answersheets, parse_answersheet
 from app.importing.edu.detect import ZIP_HTML, detect_asset
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
@@ -115,6 +116,23 @@ def _parse_failure(exc: ImportFileError) -> APIError:
     return APIError(422, "IMPORT_FILE_INVALID", "文件不符合当前Excel模板或解析限制")
 
 
+_ANSWERSHEET_FAILURES = {
+    "ANSWERSHEET_DUPLICATE_PARTICIPANT": "同一考号在多个文件或同一文件中重复出现",
+    "ANSWERSHEET_DUPLICATE_SUBMISSION": "同一学生的同一道题重复出现",
+    "ANSWERSHEET_NO_STUDENT": "没有解析到任何考生，请确认目录与答卷结构",
+    "ANSWERSHEET_INCONSISTENT": "答题卡内部引用不一致，未写入任何数据",
+    "ANSWERSHEET_ENCODING_UNKNOWN": "答卷编码无法识别",
+    "EXTRACTION_ZIP_UNREADABLE": "压缩包无法读取",
+}
+
+
+def _answersheet_failure(exc: ImportFileError) -> APIError:
+    message = _ANSWERSHEET_FAILURES.get(exc.code)
+    if message is None:
+        return _parse_failure(exc)
+    return APIError(422, exc.code, message)
+
+
 @router.get("/me")
 def me(actor: Actor, backend: Backend) -> dict[str, str]:
     with backend.database.transaction() as connection:
@@ -174,11 +192,16 @@ PREVIEW_FIELDS = frozenset(
     {"file", "data_scope_id", "title", "course", "assessment_date", "revision_of_batch_id"}
 )
 ASSESSMENT_FIELDS = frozenset({"file", "data_scope_id", "title", "course", "assessment_date"})
+# 一次最多合并多少个答题卡包；防止用分片绕过单文件大小限制。
+MAX_ASSESSMENT_FILES = 20
 
 
 async def _upload(
-    request: Request, *, allowed_fields: frozenset[str] = PREVIEW_FIELDS
-) -> tuple[bytes, UploadMetadata, str | None, str | None]:
+    request: Request,
+    *,
+    allowed_fields: frozenset[str] = PREVIEW_FIELDS,
+    max_files: int = 1,
+) -> tuple[list[tuple[bytes, str | None, str | None]], UploadMetadata]:
     # Authenticate before reading multipart. Bound actual streamed bytes, not just Content-Length.
     if request.headers.get("content-type", "").split(";", 1)[0].lower() != "multipart/form-data":
         raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用文件上传表单")
@@ -199,22 +222,38 @@ async def _upload(
 
     limited = Request(request.scope, receive)
     try:
-        async with limited.form(max_files=1, max_fields=5, max_part_size=4096) as form:
+        async with limited.form(max_files=max_files, max_fields=5, max_part_size=4096) as form:
             items = list(form.multi_items())
             keys = [key for key, _ in items]
-            if len(keys) != len(set(keys)) or set(keys) - set(allowed_fields):
+            if set(keys) - set(allowed_fields):
                 raise APIError(422, "VALIDATION_ERROR", "上传字段不符合要求")
-            file = form.get("file")
-            if not isinstance(file, UploadFile):
+            # file 可以出现多次（多文件上传），其它字段不允许重复。
+            duplicates = [key for key in set(keys) if key != "file" and keys.count(key) > 1]
+            if duplicates:
+                raise APIError(422, "VALIDATION_ERROR", "上传字段不符合要求")
+            files = [
+                value for key, value in items if key == "file" and isinstance(value, UploadFile)
+            ]
+            if not files:
                 raise APIError(422, "VALIDATION_ERROR", "缺少上传文件")
+            if len(files) > max_files:
+                raise APIError(422, "VALIDATION_ERROR", "一次上传的文件数量超过限制")
             fields = {key: value for key, value in items if key != "file"}
             if "title" not in fields:
-                fields["title"] = filename_title(file.filename or "")
+                fields["title"] = filename_title(files[0].filename or "")
             metadata = UploadMetadata.model_validate(fields)
-            data = await file.read(ParseLimits().compressed_bytes + 1)
-            if len(data) > ParseLimits().compressed_bytes:
-                raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
-            return data, metadata, file.filename, file.content_type
+            parts: list[tuple[bytes, str | None, str | None]] = []
+            total = 0
+            for upload in files:
+                data = await upload.read(ParseLimits().compressed_bytes + 1)
+                total += len(data)
+                if (
+                    len(data) > ParseLimits().compressed_bytes
+                    or total > ParseLimits().compressed_bytes
+                ):
+                    raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
+                parts.append((data, upload.filename, upload.content_type))
+            return parts, metadata
     except APIError:
         raise
     except ValidationError:
@@ -261,7 +300,8 @@ async def _upload(
     },
 )
 async def preview(request: Request, actor: Actor, backend: Backend) -> ImportView:
-    data, uploaded, asset_name, asset_content_type = await _upload(request)
+    parts, uploaded = await _upload(request)
+    data, asset_name, asset_content_type = parts[0]
     asset = detect_asset(data, content_type=asset_content_type)
     if adapter_for(asset.kind) is None:
         raise APIError(
@@ -302,14 +342,27 @@ async def create_assessment(
     这类资料没有逐行纠错需求，因此不走"预览 + 确认"，一次请求即入库；
     同一文件重复上传返回原测评（duplicate=true），不重复写入。
     """
-    data, uploaded, _, asset_content_type = await _upload(request, allowed_fields=ASSESSMENT_FIELDS)
-    asset = detect_asset(data, content_type=asset_content_type)
-    if asset.kind != ZIP_HTML:
-        raise APIError(
-            422,
-            "NO_ADAPTER_FOR_ASSET",
-            f"已识别为 {asset.kind}，答题卡导入只接受含网页答卷的 ZIP",
-        )
+    parts, uploaded = await _upload(
+        request, allowed_fields=ASSESSMENT_FIELDS, max_files=MAX_ASSESSMENT_FILES
+    )
+    documents = []
+    digests = []
+    for raw, _, asset_content_type in parts:
+        asset = detect_asset(raw, content_type=asset_content_type)
+        if asset.kind != ZIP_HTML:
+            raise APIError(
+                422,
+                "NO_ADAPTER_FOR_ASSET",
+                f"已识别为 {asset.kind}，答题卡导入只接受含网页答卷的 ZIP",
+            )
+        documents.append(await run_in_threadpool(parse_answersheet, raw))
+        digests.append(hashlib.sha256(raw).hexdigest())
+    # 多文件合并：跨包重复的学号或题目会被拒绝，不静默覆盖。
+    try:
+        evidence = documents[0] if len(documents) == 1 else merge_answersheets(documents)
+    except ImportFileError as exc:
+        raise _answersheet_failure(exc) from None
+    combined_sha256 = hashlib.sha256("".join(sorted(digests)).encode()).hexdigest()
     metadata = await run_in_threadpool(
         resolve_upload_metadata,
         backend.database,
@@ -318,19 +371,19 @@ async def create_assessment(
         now=stamp(backend.clock()),
     )
     try:
-        evidence = await run_in_threadpool(parse_answersheet, data)
         summary = await run_in_threadpool(
             assessments.create_answersheet,
             actor,
-            data,
+            parts[0][0],
             data_scope_id=metadata.data_scope_id,
             title=metadata.title,
             course=metadata.course,
             assessment_date=metadata.assessment_date,
             evidence=evidence,
+            file_sha256=combined_sha256,
         )
     except ImportFileError as exc:
-        raise _parse_failure(exc) from None
+        raise _answersheet_failure(exc) from None
     if summary.duplicate:
         response.status_code = 200
     response.headers["Cache-Control"] = "no-store"

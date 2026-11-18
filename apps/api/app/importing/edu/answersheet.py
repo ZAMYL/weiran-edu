@@ -250,6 +250,59 @@ def parse_answersheet(data: bytes, *, group: str = STUDENT_GROUP) -> AnswerSheet
     )
 
 
+def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvidence:
+    """把多份答题卡包的证据合成一份；跨包重复的学号或题目直接报错。
+
+    多文件上传时每份文件单独解析，这里只做"合并 + 冲突拒绝"，
+    不改变任何单包内的解析规则。
+    """
+    if not documents:
+        raise ImportFileError("ANSWERSHEET_NO_STUDENT")
+
+    students: dict[str, StudentRecord] = {}
+    submissions: list[SubmissionRecord] = []
+    observations: list[ObservationRecord] = []
+    seen_submissions: set[tuple[str, str]] = set()
+    problems: dict[str, ProblemRecord] = {}
+    skipped: list[tuple[str, str]] = []
+
+    for document in documents:
+        skipped.extend(document.skipped)
+        for student in document.students:
+            if student.participant_key in students:
+                raise ImportFileError("ANSWERSHEET_DUPLICATE_PARTICIPANT")
+            students[student.participant_key] = student
+        for problem in document.problems:
+            problems.setdefault(problem.label, problem)
+        for submission in document.submissions:
+            marker = (submission.participant_key, submission.problem_label)
+            if marker in seen_submissions:
+                raise ImportFileError("ANSWERSHEET_DUPLICATE_SUBMISSION")
+            seen_submissions.add(marker)
+            submissions.append(submission)
+        observations.extend(document.observations)
+
+    if not students:
+        raise ImportFileError("ANSWERSHEET_NO_STUDENT")
+
+    ordered = tuple(
+        sorted(
+            (
+                ProblemRecord(label=label, ordinal=index, total_score=problem.total_score)
+                for index, (label, problem) in enumerate(sorted(problems.items()))
+            ),
+            key=lambda item: item.ordinal,
+        )
+    )
+    return AnswerSheetEvidence(
+        students=tuple(students.values()),
+        problems=ordered,
+        submissions=tuple(submissions),
+        observations=tuple(observations),
+        skipped=tuple(skipped),
+    )
+
+
 def _parse_document(raw: bytes, entry: str) -> dict:
     try:
         html = raw.decode("utf-8")

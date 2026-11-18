@@ -55,8 +55,10 @@ class AssessmentService:
         course: str | None,
         assessment_date: str | None,
         evidence: AnswerSheetEvidence,
+        file_sha256: str | None = None,
     ) -> AssessmentSummary:
-        file_sha256 = hashlib.sha256(data).hexdigest()
+        # 多文件上传时由调用方传入"合并后的摘要"，单文件时可用原始字节计算。
+        digest = file_sha256 or hashlib.sha256(data).hexdigest()
         now = self.clock()
 
         with self.database.transaction(write=True) as connection:
@@ -65,7 +67,7 @@ class AssessmentService:
 
             existing = connection.execute(
                 "SELECT * FROM assessments WHERE data_scope_id=? AND file_sha256=?",
-                (data_scope_id, file_sha256),
+                (data_scope_id, digest),
             ).fetchone()
             if existing is not None:
                 # 同一份文件重复上传：返回原测评，不重复入库。
@@ -84,7 +86,7 @@ class AssessmentService:
                     title,
                     course,
                     assessment_date,
-                    file_sha256,
+                    digest,
                     ANSWERSHEET_PARSER_VERSION,
                     len(evidence.students),
                     len(evidence.problems),
