@@ -1,5 +1,7 @@
 # 智能学情发现候选 v0.1（草案）
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 这是已有确定性结果的内部产品适配，不增加分析公式，不代表教学标准已冻结。
 入口：`app.analysis.edu.insights`。不引入网络、LLM、HTTP、数据库或新依赖。
 字段对照与待协调差异见 [ANALYSIS_FRONTEND_HANDOFF.md](archive/ANALYSIS_FRONTEND_HANDOFF.md)。

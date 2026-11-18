@@ -1,5 +1,7 @@
 # 正式批次评分洞察 API
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 对应 Issue #18。数据来自**已确认入库且当前教师有权读取的批次**，
 复用 AnalysisReader._load、discover_candidates、metric_sources 与现有证据核验。
 没有新算法、数据库迁移、原文审核、外部模型调用或前端改动。

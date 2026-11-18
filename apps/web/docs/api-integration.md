@@ -1,5 +1,7 @@
 # 教师工作台真实 API 联调
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 > 本文保留固定基线的接口与集成记录；当前教师界面与验收入口以 [最终工作台说明](teacher-workbench-v1.md) 为准。
 
 Issue #26 第一阶段与后续教师第五步。沿用三页布局、Ant Design 和 ECharts，未改后端、公共 DTO、数据库、依赖或 CI。读取实际运行的 `/openapi.json` 后实现前端私有 DTO 及运行时响应校验；历史静态契约不作为依据。保存、核验和 XLSX / Markdown 导出见 [教师分析闭环](teacher-analysis-workflow.md)。

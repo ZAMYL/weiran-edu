@@ -1,5 +1,7 @@
 # 正式批次统计、群体筛选与证据查询 API
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 本轮实现位于 `apps/api/app/edu/analysis.py`、`analysis_models.py`、`query.py`、`reads.py` 与 `routers/edu.py`。依赖已实现的 Excel 导入确认、SQLite 数据库、教师凭证及批次授权；无新增依赖或数据库迁移。分析计算复用现有 `app.analysis.edu`，没有修改其算法，也没有接入模型或生成能力标签。
 
 ## 运行与入口
