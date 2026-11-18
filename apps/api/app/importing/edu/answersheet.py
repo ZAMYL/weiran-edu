@@ -360,11 +360,7 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
         pres = [node for node in _nodes(body, tag="pre")]
         if pres:
             code = _raw_text(pres[0]).strip()[:MAX_CODE_CHARS]
-        for node in _nodes(body, tag="div"):
-            own = _own_text(node)
-            if own.startswith("编译器:"):
-                language = own.split(":", 1)[1].strip() or None
-                break
+        language = _language_of(body)
         table = next(_nodes(body, tag="table"), None)
         if table is not None:
             rows = _observations(table, student, label)
@@ -410,6 +406,21 @@ def _observations(table: _Node, student, label: str) -> list[ObservationRecord]:
             )
         )
     return rows
+
+
+def _language_of(body: _Node) -> str | None:
+    """「编译器: GXX」可能直接是 div 文本，也可能被 span 包着。
+
+    外层容器文本也会以「编译器:」开头并连带整段代码，所以取**最短**的匹配节点。
+    """
+    best: str | None = None
+    for node in _nodes(body):
+        text = _text(node)
+        if text.startswith("编译器:") and (best is None or len(text) < len(best)):
+            best = text
+    if best is None:
+        return None
+    return best.split(":", 1)[1].strip() or None
 
 
 def _verdict(body: _Node) -> tuple[str | None, int | None, int | None]:
