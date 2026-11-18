@@ -13,6 +13,8 @@ from app.core.errors import APIError
 from app.core.exact_json import ExactJSONResponse
 from app.edu.analysis import AnalysisReader
 from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
+from app.edu.assessment_models import AssessmentResult
+from app.edu.assessments import AssessmentService
 from app.edu.auth import Principal, authenticate, deny, require_teacher
 from app.edu.diagnostic_models import Action, BatchCapabilities, IntegrityReport, IntegrityRequest
 from app.edu.diagnostics import DiagnosticReader
@@ -43,7 +45,8 @@ from app.edu.service import EduService, stamp
 from app.edu.summary import BatchSummary
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
 from app.importing.edu.adapter import adapter_for
-from app.importing.edu.detect import detect_asset
+from app.importing.edu.answersheet import parse_answersheet
+from app.importing.edu.detect import ZIP_HTML, detect_asset
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
 from app.schemas.common import ErrorResponse
@@ -74,6 +77,13 @@ def principal(
 
 type Actor = Annotated[Principal, Depends(principal)]
 type Backend = Annotated[EduService, Depends(service)]
+
+
+def assessments_of(request: Request) -> AssessmentService:
+    return request.app.state.assessment_service
+
+
+type Assessments = Annotated[AssessmentService, Depends(assessments_of)]
 
 
 def _parse_failure(exc: ImportFileError) -> APIError:
@@ -150,10 +160,18 @@ def scopes(actor: Actor, backend: Backend) -> Scopes:
         )
 
 
-async def _upload(request: Request) -> tuple[bytes, UploadMetadata, str | None, str | None]:
+PREVIEW_FIELDS = frozenset(
+    {"file", "data_scope_id", "title", "course", "assessment_date", "revision_of_batch_id"}
+)
+ASSESSMENT_FIELDS = frozenset({"file", "data_scope_id", "title", "course", "assessment_date"})
+
+
+async def _upload(
+    request: Request, *, allowed_fields: frozenset[str] = PREVIEW_FIELDS
+) -> tuple[bytes, UploadMetadata, str | None, str | None]:
     # Authenticate before reading multipart. Bound actual streamed bytes, not just Content-Length.
     if request.headers.get("content-type", "").split(";", 1)[0].lower() != "multipart/form-data":
-        raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用Excel文件上传表单")
+        raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用文件上传表单")
     maximum = ParseLimits().compressed_bytes + 64 * 1024
     body = bytearray()
     async for chunk in request.stream():
@@ -174,15 +192,7 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata, str | None, 
         async with limited.form(max_files=1, max_fields=5, max_part_size=4096) as form:
             items = list(form.multi_items())
             keys = [key for key, _ in items]
-            allowed = {
-                "file",
-                "data_scope_id",
-                "title",
-                "course",
-                "assessment_date",
-                "revision_of_batch_id",
-            }
-            if len(keys) != len(set(keys)) or set(keys) - allowed:
+            if len(keys) != len(set(keys)) or set(keys) - set(allowed_fields):
                 raise APIError(422, "VALIDATION_ERROR", "上传字段不符合要求")
             file = form.get("file")
             if not isinstance(file, UploadFile):
@@ -194,14 +204,6 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata, str | None, 
             data = await file.read(ParseLimits().compressed_bytes + 1)
             if len(data) > ParseLimits().compressed_bytes:
                 raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
-            # 按内容识别资产类型：扩展名与 Content-Type 都不可信。
-            asset = detect_asset(data, content_type=file.content_type)
-            if adapter_for(asset.kind) is None:
-                raise APIError(
-                    422,
-                    "NO_ADAPTER_FOR_ASSET",
-                    f"已识别为 {asset.kind}，当前还没有对应解析器",
-                )
             return data, metadata, file.filename, file.content_type
     except APIError:
         raise
@@ -250,6 +252,13 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata, str | None, 
 )
 async def preview(request: Request, actor: Actor, backend: Backend) -> ImportView:
     data, uploaded, asset_name, asset_content_type = await _upload(request)
+    asset = detect_asset(data, content_type=asset_content_type)
+    if adapter_for(asset.kind) is None:
+        raise APIError(
+            422,
+            "NO_ADAPTER_FOR_ASSET",
+            f"已识别为 {asset.kind}，当前还没有对应解析器",
+        )
     metadata = await run_in_threadpool(
         resolve_upload_metadata,
         backend.database,
@@ -268,6 +277,61 @@ async def preview(request: Request, actor: Actor, backend: Backend) -> ImportVie
         )
     except ImportFileError as exc:
         raise _parse_failure(exc) from None
+
+
+@router.post("/assessments", response_model=AssessmentResult, status_code=201)
+async def create_assessment(
+    request: Request,
+    response: Response,
+    actor: Actor,
+    assessments: Assessments,
+    backend: Backend,
+) -> AssessmentResult:
+    """答题卡包（ZIP 内多个 HTML 答卷）→ 解析 → 直接生成测评。
+
+    这类资料没有逐行纠错需求，因此不走"预览 + 确认"，一次请求即入库；
+    同一文件重复上传返回原测评（duplicate=true），不重复写入。
+    """
+    data, uploaded, _, asset_content_type = await _upload(request, allowed_fields=ASSESSMENT_FIELDS)
+    asset = detect_asset(data, content_type=asset_content_type)
+    if asset.kind != ZIP_HTML:
+        raise APIError(
+            422,
+            "NO_ADAPTER_FOR_ASSET",
+            f"已识别为 {asset.kind}，答题卡导入只接受含网页答卷的 ZIP",
+        )
+    metadata = await run_in_threadpool(
+        resolve_upload_metadata,
+        backend.database,
+        actor,
+        uploaded,
+        now=stamp(backend.clock()),
+    )
+    try:
+        evidence = await run_in_threadpool(parse_answersheet, data)
+        summary = await run_in_threadpool(
+            assessments.create_answersheet,
+            actor,
+            data,
+            data_scope_id=metadata.data_scope_id,
+            title=metadata.title,
+            course=metadata.course,
+            assessment_date=metadata.assessment_date,
+            evidence=evidence,
+        )
+    except ImportFileError as exc:
+        raise _parse_failure(exc) from None
+    if summary.duplicate:
+        response.status_code = 200
+    response.headers["Cache-Control"] = "no-store"
+    return AssessmentResult(
+        assessment_id=summary.assessment_id,
+        student_count=summary.student_count,
+        problem_count=summary.problem_count,
+        submission_count=summary.submission_count,
+        observation_count=summary.observation_count,
+        duplicate=summary.duplicate,
+    )
 
 
 @router.get("/imports/{import_id}", response_model=ImportView)
