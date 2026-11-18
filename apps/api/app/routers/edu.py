@@ -57,6 +57,12 @@ from app.importing.edu.answersheet import merge_answersheets, parse_answersheet
 from app.importing.edu.detect import ZIP_HTML, detect_asset
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
+from app.reporting.edu.assessment_report import (
+    render_csv as render_assessment_csv,
+)
+from app.reporting.edu.assessment_report import (
+    render_markdown as render_assessment_markdown,
+)
 from app.schemas.common import ErrorResponse
 
 router = APIRouter(prefix="/api/v1/edu", tags=["EDU"], default_response_class=ExactJSONResponse)
@@ -449,6 +455,32 @@ def assessment_problem_students(
         test_index=test_index,
         offset=offset,
         limit=limit,
+    )
+
+
+@router.get("/assessments/{assessment_id}/report")
+def assessment_report(
+    assessment_id: str,
+    actor: Actor,
+    reader: Reader,
+    format: Literal["md", "csv"] = "md",
+) -> PlainTextResponse:
+    """导出诊断报告：Markdown 正文或 CSV 表格，均不含个人代码原文。"""
+    overview = reader.overview(actor, assessment_id)
+    patterns = reader.problem_patterns(actor, assessment_id)
+    if format == "csv":
+        body = render_assessment_csv(overview, patterns)
+        media, suffix = "text/csv; charset=utf-8", "csv"
+    else:
+        body = render_assessment_markdown(overview, patterns)
+        media, suffix = "text/markdown; charset=utf-8", "md"
+    return PlainTextResponse(
+        body,
+        media_type=media,
+        headers={
+            "Content-Disposition": f'attachment; filename="assessment-{assessment_id}.{suffix}"',
+            "Cache-Control": "no-store",
+        },
     )
 
 

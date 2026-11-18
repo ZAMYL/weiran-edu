@@ -40,6 +40,7 @@ _STATUS_WORDS = (
     "编译错误",
     "格式错误",
     "部分正确",
+    "未作答",
 )
 
 
@@ -482,9 +483,13 @@ def _verdict(body: _Node) -> tuple[str | None, int | None, int | None]:
             continue
         text = _text(node)
         status = next((word for word in _STATUS_WORDS if word in text), None)
-        ratio = re.search(r"(\d+)\s*/\s*(\d+)", text)
-        score = int(ratio.group(1)) if ratio else None
-        total = int(ratio.group(2)) if ratio else None
+        # 未作答时该行的分数是「- / 20」：保留满分，得分置空而不是当成 0。
+        ratio = re.search(r"(-|\d+)\s*/\s*(\d+)", text)
+        score = None
+        total = None
+        if ratio is not None:
+            score = int(ratio.group(1)) if ratio.group(1).isdigit() else None
+            total = int(ratio.group(2))
         return status, score, total
     return None, None, None
 

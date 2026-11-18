@@ -145,3 +145,15 @@ def test_broken_zip_raises_unreadable():
         parse_answersheet(b"PK\x03\x04broken")
 
     assert error.value.code == "EXTRACTION_ZIP_UNREADABLE"
+
+
+def test_unanswered_problem_keeps_total_but_no_score():
+    html = student_html().replace("答案正确", "未作答").replace("5 / 5", "- / 5")
+    package = make_zip({"包/正式答卷/S001.html": html})
+
+    evidence = parse_answersheet(package)
+
+    submission = evidence.submissions[0]
+    assert submission.verdict == "未作答"
+    assert submission.score is None
+    assert submission.score_total == 5

@@ -309,3 +309,37 @@ def test_problem_students_unknown_problem_returns_404(client):
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "RESOURCE_NOT_FOUND"
+
+
+def test_report_markdown_contains_overview_and_patterns(client):
+    assessment_id = mixed_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}/report")
+
+    assert response.status_code == 200
+    assert "text/markdown" in response.headers["content-type"]
+    assert "attachment" in response.headers["content-disposition"]
+    body = response.text
+    assert "# 未然 EDU · 学情诊断报告" in body
+    assert "2 名学生 / 1 道题" in body
+    assert "| 7-1 |" in body
+
+
+def test_report_csv_has_one_row_per_problem(client):
+    assessment_id = mixed_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}/report?format=csv")
+
+    assert response.status_code == 200
+    lines = response.text.strip().splitlines()
+    assert lines[0].startswith("problem,submissions,full_pass")
+    assert len(lines) == 2
+    assert lines[1].startswith("7-1,2,1,1,2.50,0.5000")
+
+
+def test_report_rejects_unknown_format(client):
+    assessment_id = mixed_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}/report?format=pdf")
+
+    assert response.status_code == 422
