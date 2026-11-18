@@ -19,6 +19,7 @@ MAX_STUDENTS = 2000
 MAX_PROBLEMS = 100
 MAX_OBSERVATIONS_PER_SUBMISSION = 500
 MAX_CODE_CHARS = 200_000
+MAX_COMPILER_OUTPUT_CHARS = 20_000
 MAX_ENTRY_BYTES = 8 * 1024 * 1024
 
 _HEADER_LABELS = {
@@ -69,10 +70,28 @@ class SubmissionRecord:
     problem_label: str
     language: str | None
     code: str
+    compiler_output: str | None
     verdict: str | None
     score: int | None
     score_total: int | None
     source_entry: str
+
+
+# B-01 要求区分的资料类别；未识别的给 UNKNOWN，不猜。
+CATEGORY_STUDENT = "STUDENT_PAPER"
+CATEGORY_STANDARD_ANSWER = "STANDARD_ANSWER"
+CATEGORY_BLANK_PAPER = "BLANK_PAPER"
+CATEGORY_TEST_DATA = "TEST_DATA"
+CATEGORY_PROBLEM_STATEMENT = "PROBLEM_STATEMENT"
+CATEGORY_UNKNOWN = "UNKNOWN"
+
+
+@dataclass(frozen=True)
+class MaterialRecord:
+    """一个源文件及其类别，用于对账"输入里有什么、被怎么处理"。"""
+
+    entry: str
+    category: str
 
 
 @dataclass(frozen=True)
@@ -92,7 +111,8 @@ class AnswerSheetEvidence:
     problems: tuple[ProblemRecord, ...]
     submissions: tuple[SubmissionRecord, ...]
     observations: tuple[ObservationRecord, ...]
-    skipped: tuple[tuple[str, str], ...]
+    materials: tuple[MaterialRecord, ...] = ()
+    skipped: tuple[tuple[str, str], ...] = ()
 
 
 class _Node:
@@ -203,9 +223,6 @@ def parse_answersheet(data: bytes, *, group: str = STUDENT_GROUP) -> AnswerSheet
             parsed = []
             skipped: list[tuple[str, str]] = []
             for name in entries:
-                if f"/{group}/" not in name and not name.startswith(group + "/"):
-                    skipped.append((name, "NOT_STUDENT_GROUP"))
-                    continue
                 raw = archive.read(name)
                 if len(raw) > MAX_ENTRY_BYTES:
                     skipped.append((name, "ENTRY_TOO_LARGE"))
@@ -218,10 +235,13 @@ def parse_answersheet(data: bytes, *, group: str = STUDENT_GROUP) -> AnswerSheet
     submissions: list[SubmissionRecord] = []
     observations: list[ObservationRecord] = []
     problems: dict[str, ProblemRecord] = {}
+    materials: list[MaterialRecord] = []
 
     for name, document in parsed:
-        if document["paper_type"] is not None:
-            skipped.append((name, "REFERENCE_PAPER"))
+        category = _category_of(name, document, group)
+        materials.append(MaterialRecord(entry=name, category=category))
+        if category != CATEGORY_STUDENT:
+            skipped.append((name, category))
             continue
         student = document["student"]
         if student is None:
@@ -247,6 +267,7 @@ def parse_answersheet(data: bytes, *, group: str = STUDENT_GROUP) -> AnswerSheet
         problems=ordered_problems,
         submissions=tuple(submissions),
         observations=tuple(observations),
+        materials=tuple(materials),
         skipped=tuple(skipped),
     )
 
@@ -265,9 +286,11 @@ def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvide
     observations: list[ObservationRecord] = []
     seen_submissions: set[tuple[str, str]] = set()
     problems: dict[str, ProblemRecord] = {}
+    materials: list[MaterialRecord] = []
     skipped: list[tuple[str, str]] = []
 
     for document in documents:
+        materials.extend(document.materials)
         skipped.extend(document.skipped)
         for student in document.students:
             if student.participant_key in students:
@@ -300,8 +323,32 @@ def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvide
         problems=ordered,
         submissions=tuple(submissions),
         observations=tuple(observations),
+        materials=tuple(materials),
         skipped=tuple(skipped),
     )
+
+
+def _category_of(entry: str, document: dict, group: str) -> str:
+    """按内容优先、路径兜底的顺序判断资料类别。
+
+    内容里有「答卷类型」就不是学生答卷（标准答案 / 空白答卷）；
+    没有该字段时，才按目录名判断验题、测试或题目资料。
+    """
+    paper_type = document["paper_type"]
+    if paper_type:
+        if "空白" in paper_type:
+            return CATEGORY_BLANK_PAPER
+        if "答案" in paper_type:
+            return CATEGORY_STANDARD_ANSWER
+        return CATEGORY_UNKNOWN
+    in_group = f"/{group}/" in entry or entry.startswith(group + "/")
+    if in_group:
+        return CATEGORY_STUDENT if document["student"] is not None else CATEGORY_UNKNOWN
+    if "验题" in entry or "测试" in entry:
+        return CATEGORY_TEST_DATA
+    if "题目" in entry:
+        return CATEGORY_PROBLEM_STATEMENT
+    return CATEGORY_UNKNOWN
 
 
 def _parse_document(raw: bytes, entry: str) -> dict:
@@ -328,33 +375,29 @@ def _parse_document(raw: bytes, entry: str) -> dict:
 
 
 def _header_fields(root: _Node) -> dict[str, str]:
-    """页头是「加粗标签 span + 值 span」成对出现，按出现顺序收集。"""
+    """页头是「加粗标签 span + 值 span」成对出现，按出现顺序收集。
+
+    一次遍历带父节点，避免对每个 span 再全树找父节点（那是 O(n²)）。
+    """
     fields: dict[str, str] = {}
-    for node in _nodes(root, tag="span"):
-        label = _text(node).rstrip(":：")
-        if not label:
-            continue
-        parent = _parent_of(root, node)
-        if parent is None or len(parent.children) < 2:
-            continue
-        value_node = None
-        for sibling in parent.children:
-            if isinstance(sibling, _Node) and sibling is not node and sibling.tag == "span":
-                value_node = sibling
-        if value_node is None:
-            continue
-        key = _HEADER_LABELS.get(label)
-        if key:
-            fields.setdefault(key, _text(value_node))
-    return fields
 
-
-def _parent_of(root: _Node, target: _Node) -> _Node | None:
-    for node in _walk(root):
+    def visit(node: _Node, parent: _Node | None) -> None:
+        if node.tag == "span" and parent is not None:
+            label = _text(node).rstrip(":：")
+            if label and len(parent.children) >= 2:
+                value_node = None
+                for sibling in parent.children:
+                    if isinstance(sibling, _Node) and sibling is not node and sibling.tag == "span":
+                        value_node = sibling
+                key = _HEADER_LABELS.get(label)
+                if key and value_node is not None:
+                    fields.setdefault(key, _text(value_node))
         for child in node.children:
-            if child is target:
-                return node
-    return None
+            if isinstance(child, _Node):
+                visit(child, node)
+
+    visit(root, None)
+    return fields
 
 
 def _student_from_header(header: dict[str, str], entry: str) -> StudentRecord | None:
@@ -405,6 +448,7 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
 
     code = ""
     language = None
+    compiler_output = None
     verdict = None
     score = None
     score_total = None
@@ -415,6 +459,7 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
         if pres:
             code = _raw_text(pres[0]).strip()[:MAX_CODE_CHARS]
         language = _language_of(body)
+        compiler_output = _compiler_output(body)
         table = next(_nodes(body, tag="table"), None)
         if table is not None:
             rows = _observations(table, student, label)
@@ -430,6 +475,7 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
         problem_label=label,
         language=language,
         code=code,
+        compiler_output=compiler_output,
         verdict=verdict,
         score=score,
         score_total=score_total,
@@ -460,6 +506,49 @@ def _observations(table: _Node, student, label: str) -> list[ObservationRecord]:
             )
         )
     return rows
+
+
+def _compiler_output(body: _Node) -> str | None:
+    """「编译器输出」块里的 pre 原文；内容为「无」时视为没有输出。"""
+    pre = _pre_after_label(body, "编译器输出")
+    if pre is None:
+        return None
+    text = _raw_text(pre).strip()
+    if not text or text == "无":
+        return None
+    return text[:MAX_COMPILER_OUTPUT_CHARS]
+
+
+def _pre_after_label(root: _Node, label: str) -> _Node | None:
+    """找「标签 div + 内容 div」结构里的 pre。
+
+    结构是 ``<div><div>标签</div><div><pre>内容</pre></div></div>``，
+    所以要在 pre 的**祖父**节点上检查第一个子 div 的文本。
+    """
+
+    def matches(pre: _Node, ancestors: list[_Node]) -> bool:
+        if len(ancestors) < 2:
+            return False
+        container = ancestors[-2]
+        first = next((child for child in container.children if isinstance(child, _Node)), None)
+        return (
+            first is not None
+            and first.tag == "div"
+            and first is not pre
+            and _own_text(first).strip() == label
+        )
+
+    def search(node: _Node, ancestors: list[_Node]) -> _Node | None:
+        if node.tag == "pre" and matches(node, ancestors):
+            return node
+        for child in node.children:
+            if isinstance(child, _Node):
+                found = search(child, [*ancestors, node])
+                if found is not None:
+                    return found
+        return None
+
+    return search(root, [])
 
 
 def _language_of(body: _Node) -> str | None:

@@ -5,7 +5,14 @@ from zipfile import ZipFile
 
 import pytest
 
-from app.importing.edu.answersheet import parse_answersheet
+from app.importing.edu.answersheet import (
+    CATEGORY_BLANK_PAPER,
+    CATEGORY_PROBLEM_STATEMENT,
+    CATEGORY_STANDARD_ANSWER,
+    CATEGORY_STUDENT,
+    CATEGORY_TEST_DATA,
+    parse_answersheet,
+)
 from app.importing.edu.types import ImportFileError
 
 
@@ -16,6 +23,7 @@ def student_html(
     problem: str = "7-1",
     code: str = "int main(){ return 0; }",
     verify: bool = False,
+    compiler: str = "无",
 ) -> str:
     head = (
         "<div class='box'>"
@@ -34,6 +42,8 @@ def student_html(
         "<div class='flex-1 space-y-4'>"
         "<div class='space-y-2'><div class='text-xs text-light'>编译器: GXX</div>"
         f"<pre class='box text-xs font-mono'>{code}</pre></div>"
+        "<div style='display:flex'><div style='font-weight:bold'>编译器输出</div>"
+        f"<div class='flex-1'><pre class='box font-mono'>{compiler}</pre></div></div>"
         "<div class='space-y-2'><table class='result'><tbody>"
         "<tr><td>1</td><td>答案正确</td><td>5</td><td>2.00 ms</td><td>304 KB</td></tr>"
         "<tr><td>2</td><td>答案错误</td><td>0</td><td>12.50 ms</td><td>1 MB</td></tr>"
@@ -93,19 +103,26 @@ def test_observations_are_normalised():
     assert (second.duration_ms, second.memory_kb) == (12, 1024)
 
 
-def test_other_groups_are_skipped_with_reason():
+def test_materials_are_classified_by_content_then_path():
     package = make_zip(
         {
             "包/正式答卷/S001.html": student_html(),
             "包/验题测试组/T001.html": student_html(key="T001", name="叶同学"),
-            "包/参考资料/标准答案.html": student_html(key="X001", name="答案"),
+            "包/参考资料/标准答案.html": student_html(verify=True),
+            "包/参考资料/空白答卷.html": student_html(verify=True).replace("标准答案", "空白答卷"),
+            "包/题目资料/题面.html": student_html(key="P1", name="题面"),
         }
     )
 
     evidence = parse_answersheet(package)
 
     assert [student.participant_key for student in evidence.students] == ["S001"]
-    assert {reason for _, reason in evidence.skipped} == {"NOT_STUDENT_GROUP"}
+    categories = {material.entry: material.category for material in evidence.materials}
+    assert categories["包/正式答卷/S001.html"] == CATEGORY_STUDENT
+    assert categories["包/验题测试组/T001.html"] == CATEGORY_TEST_DATA
+    assert categories["包/参考资料/标准答案.html"] == CATEGORY_STANDARD_ANSWER
+    assert categories["包/参考资料/空白答卷.html"] == CATEGORY_BLANK_PAPER
+    assert categories["包/题目资料/题面.html"] == CATEGORY_PROBLEM_STATEMENT
 
 
 def test_reference_paper_inside_student_group_is_skipped():
@@ -157,3 +174,20 @@ def test_unanswered_problem_keeps_total_but_no_score():
     assert submission.verdict == "未作答"
     assert submission.score is None
     assert submission.score_total == 5
+
+
+def test_compiler_output_is_captured_and_normalised():
+    warning = "a.c:5:5: warning: ignoring return value of 'scanf'"
+    with_output = make_zip({"包/正式答卷/S001.html": student_html(compiler=warning)})
+    without_output = make_zip({"包/正式答卷/S001.html": student_html()})
+
+    assert parse_answersheet(with_output).submissions[0].compiler_output == warning
+    # 内容为「无」时视为没有输出，而不是字符串 "无"
+    assert parse_answersheet(without_output).submissions[0].compiler_output is None
+
+
+def test_compiler_output_is_capped():
+    huge = "x" * 30_000
+    package = make_zip({"包/正式答卷/S001.html": student_html(compiler=huge)})
+
+    assert len(parse_answersheet(package).submissions[0].compiler_output) == 20_000
