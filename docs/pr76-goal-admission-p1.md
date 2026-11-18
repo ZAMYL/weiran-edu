@@ -1,5 +1,7 @@
 # PR #76: full-request controlled-goal admission
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 Baseline: `dfce7cd8d0fefb5c722e77d0093b9ec7d889ee94`, original branch
 `codex/edu-v12-ai-acceptance`. This is the P1 admission fix only, not V1.3 integration.
 

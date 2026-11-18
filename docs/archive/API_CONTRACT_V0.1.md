@@ -1,5 +1,7 @@
 # 未然 EDU 后端 API 草案 v0.1
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 日期：2026-10-23；Demo 对齐更新：2026-10-24。状态：保留的历史设计草案，不能作为现行 API 契约。
 
 2026-10-25 审核更新：导入、数据库、教师试点授权、统计、群体筛选和证据查询已另行实现；候选查询和指标参与记录 HTTP 回查仍未实现。实际请求、响应和错误码以运行时 `/openapi.json`、[实现状态与差异](IMPLEMENTATION_STATUS.md)、[数据库接口](DATABASE_BATCH_AUTH.md) 和 [统计/取证接口](STATISTICS_GROUP_EVIDENCE_API.md) 为准。下文及同名静态 OpenAPI 记录原设计，不能直接用于生成当前客户端。

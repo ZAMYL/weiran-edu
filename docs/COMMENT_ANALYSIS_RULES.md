@@ -1,5 +1,7 @@
 # 评语主题与评价复核规则 v0.1（草案）
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 本阶段提供确定性、可追溯的辅助复核，不判断学生好坏、不修改成绩或原评语，也不宣称评价错误已经成立。模块为 `app.analysis.edu.comments`，与现有内部 Dataset/Dimension/EvidenceRef 兼容，不定义 HTTP、数据库或仲楷的 API 契约。
 
 ## 依据和确认状态

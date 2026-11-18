@@ -1,5 +1,7 @@
 # Qwen Adaptive Synthetic Live：受控真实调用入口
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 状态：叠加 PR #56 的独立后续实现；依赖 #49/#56，未合并前不作为正式教师能力。未迁移 #57 LangGraph。**本轮只运行 HTTP Mock，真实 Qwen 请求数为 0。** Mock 的路径、Token、费用记录不能当成模型质量或实际账单。
 
 ## 运行入口

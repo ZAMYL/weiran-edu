@@ -1,5 +1,7 @@
 # V1 学情报告导出核心交接
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 对应 Issue #20。工作分支 feat/edu-report-export-core，基于 main
 409d531（含已合并的 PR #19 / #22），独立 worktree。
 **核心与后端正式下载已接线；网页下载入口本轮未开发。**

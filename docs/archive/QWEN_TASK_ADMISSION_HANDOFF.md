@@ -1,5 +1,7 @@
 # Qwen task admission: local AI-side handoff
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 > 保留 #83 当时的交付记录。当前产品基线、#95 账本规则及统一调用入口见
 > [QWEN_V131_AI_CORE_HANDOFF.md](QWEN_V131_AI_CORE_HANDOFF.md)。旧测试数量、指纹和授权状态不能替代新版本验收。
 

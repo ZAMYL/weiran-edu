@@ -1,5 +1,7 @@
 # 旧未然通用能力迁移评估
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 ## 参考范围与证据
 
 本次只读参考旧仓库 `ZAMYL/weiran` 的 main 提交 [d8e84f9ed75e9a207cefe1759e5d04230bc68e5d](https://github.com/ZAMYL/weiran/tree/d8e84f9ed75e9a207cefe1759e5d04230bc68e5d)，核验日期为 2026-10-23。

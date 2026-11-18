@@ -1,5 +1,7 @@
 # Qwen 合成学情洞察接入（v0.1 草案）
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 本轮在 PR #5 的共同工作流上接入 Qwen，不新增 HTTP 路由、数据库、认证或前端。
 基础 PR #5 尚未合并，因此分支为 feat/edu-qwen-integration，
 新 PR 以 feat/edu-ai-insights 为目标。PR #2 的后端适配草案仍未作为正式 DTO 使用。

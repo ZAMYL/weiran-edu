@@ -1,5 +1,7 @@
 # V1 打印设置部件兼容与安全评估
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 基于 main 028493d；独立分支 codex/edu-printer-settings-compat。
 PR #35 开工时仍 OPEN，已知限制为合法双 Sheet 文件包含 xl/printerSettings/*.bin 时
 被 UNSUPPORTED_WORKBOOK_PART 拒绝；前端不删除部件。本轮不改前端、评分、数据库、权限或 AI。

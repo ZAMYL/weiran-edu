@@ -1,5 +1,7 @@
 # V1.3-P1 trusted database profile integration work record
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 ## Isolation and review dependency
 
 - Approved #72: `757bfd86cdd890e47d9e91fdc52c0742a39c2795`.

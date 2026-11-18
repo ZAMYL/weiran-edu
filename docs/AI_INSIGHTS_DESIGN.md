@@ -1,5 +1,7 @@
 # AI 教学解释引擎 v0.1（离线草案）
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 本模块位于 `apps/api/app/ai/edu/`。本文记录默认离线核心与事实校验规则；
 新增受控 Qwen Synthetic Live 见 [QWEN_INTEGRATION.md](QWEN_INTEGRATION.md)。
 没有业务 HTTP 路由、数据库或真实教师认证；默认离线路径不产生付费调用。

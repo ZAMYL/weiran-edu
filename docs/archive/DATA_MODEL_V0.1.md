@@ -1,5 +1,7 @@
 # 未然 EDU 数据结构草案 v0.1
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 日期：2026-10-23。状态：历史数据库与 DTO 设计草案。
 
 2026-10-25 审核更新：实际 SQLite 结构以 `apps/api/app/storage/migrations/001_edu.sql`、`002_immutable_facts.sql` 为准，运行与权限见 [DATABASE_BATCH_AUTH.md](DATABASE_BATCH_AUTH.md)。下文记录原物理模型建议，不是当前迁移脚本。当前 DTO 与草案差异见 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)，不通过本文声称已创建真实学生数据库。

@@ -1,5 +1,7 @@
 # DS-2 未然 EDU 全链路技术质检（ds/final-e2e）
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 基线：`release/v13-final-candidate` @ `e1c15ca092522aeb5b9fb1d4431cf09b7a114576`
 范围：前端 DTO ↔ FastAPI/合成宿主契约、AI 任务生命周期、群体画像、权限/撤权/超时/快照、
 教师待核查与报告导出、40 秒代理冲突、AI 运行来源真实性。

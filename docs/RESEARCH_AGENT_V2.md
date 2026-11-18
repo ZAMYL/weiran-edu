@@ -1,5 +1,7 @@
 # Evidence-Driven Research Agent V2（隔离合成原型）
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 基于main 5218af4的#49/#56/#58；不依赖未合并#47/#59运行代码。没有HTTP路由、前端、数据库或正式教师权限改动。唯一共享变化是synthetic.materialize对封闭V2配方的分派，原配方不变。不是生产安全能力。
 
 ## 可运行链路

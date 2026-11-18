@@ -1,5 +1,7 @@
 # 接口权限与快照一致性审查
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 审查日期：2026-10-25。基线：`12dd7f9d5693c379c99cc6ccbcf326921b03dd40`。
 关联问题：[#21](https://github.com/ZAMYL/weiran-edu/issues/21)。仅使用合成数据。
 

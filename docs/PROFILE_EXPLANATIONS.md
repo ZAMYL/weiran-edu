@@ -1,5 +1,7 @@
 # 画像解释质量增量
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 基线固定为#78 `578b0b20c80510ade792c0fb02af2e6b1968a3dd`。新PR base为`codex/edu-capability-profiles`，不修改#78原分支。
 
 ## 改进边界

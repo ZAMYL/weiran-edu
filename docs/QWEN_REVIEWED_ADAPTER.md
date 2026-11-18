@@ -1,5 +1,7 @@
 # Reviewed Qwen AI adapter
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 > 历史实现和当时验收记录。V1.3.1 的整合、统一入口、账本与后端接线以
 > [QWEN_V131_AI_CORE_HANDOFF.md](archive/QWEN_V131_AI_CORE_HANDOFF.md) 为准。下文旧指纹和未运行状态不是当前版本的审批或运行证据。
 

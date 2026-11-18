@@ -1,5 +1,7 @@
 # Research Agent V2.2：Live预检与Provider交接
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 隔离分支基于 #66 f3799a1；#66原工作区和#59不改。本轮是可运行的合成验证准备，正式教师前端、路由、数据库和权限未接入。没有新的Agent循环，复用ResearchPlanner/QwenAdaptivePlanner、原_run_session、工具、来源重放与CampaignBudget。
 
 ## 运行

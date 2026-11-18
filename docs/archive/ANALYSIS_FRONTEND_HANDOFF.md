@@ -1,5 +1,7 @@
 # 分析结果与前端交接 v0.1（草案）
 
+> ⚠️ 本文部分内容已被 V1.4 取代，以 docs/V1.4_BASELINE.md 为准。
+
 核验 main：0eaac70fa800e4e3e9b6354b45e3c057c56f2e2b。已阅读 model.ts、
 statistics.ts、InsightsPage / ExplorerPage / DataPage 及导入、演示和证据抽屉代码。
 PR #2 仍开放，参考其固定头 b71d1d26bef7e89980d22672a592bb42ff014d7b 的
