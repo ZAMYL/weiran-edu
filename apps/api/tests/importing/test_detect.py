@@ -11,9 +11,11 @@ import pytest
 from app.importing.edu.adapter import adapter_for, supported_kinds
 from app.importing.edu.detect import (
     CSV,
+    DOCX,
     HTML,
     IMAGE,
     PDF,
+    TXT,
     UNKNOWN,
     XLS,
     XLSX,
@@ -34,6 +36,7 @@ def zip_bytes(entries: dict[str, bytes]) -> bytes:
 XLSX_BYTES = zip_bytes({"xl/workbook.xml": b"<workbook/>", "xl/worksheets/sheet1.xml": b"<x/>"})
 ZIP_HTML_BYTES = zip_bytes({"index.html": b"<html></html>"})
 ZIP_OTHER_BYTES = zip_bytes({"data.txt": b"hello"})
+DOCX_BYTES = zip_bytes({"word/document.xml": b"<document/>"})
 
 
 @pytest.mark.parametrize(
@@ -42,11 +45,13 @@ ZIP_OTHER_BYTES = zip_bytes({"data.txt": b"hello"})
         (XLSX_BYTES, XLSX),
         (ZIP_HTML_BYTES, ZIP_HTML),
         (ZIP_OTHER_BYTES, ZIP_OTHER),
+        (DOCX_BYTES, DOCX),
         (b"<!doctype html><html><body>x</body></html>", HTML),
         (b"%PDF-1.7\nrest", PDF),
         (b"\x89PNG\r\n\x1a\nrest", IMAGE),
         (b"\xd0\xcf\x11\xe0rest", XLS),
         (b"name,score\nA,1\nB,2\n", CSV),
+        (b"\xe7\xac\xac\xe4\xb8\x80\xe8\xa1\x8c\n", TXT),
         (b"\x00\x01\x02\x03", UNKNOWN),
         (b"", UNKNOWN),
         (b"PK\x03\x04not really a zip", UNKNOWN),
