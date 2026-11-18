@@ -96,3 +96,24 @@ class ProblemPattern(Model):
 class PatternList(Model):
     assessment_id: str
     items: list[ProblemPattern]
+
+
+class ProblemStudentItem(Model):
+    """某道题下一个学生的表现；failed_test_points 只列非"答案正确"的测试点。"""
+
+    student_pk: str
+    external_key: str
+    display_name: str
+    verdict: str | None
+    score: float | None
+    score_total: float | None
+    failed_test_points: list[int]
+
+
+class ProblemStudentList(Model):
+    assessment_id: str
+    problem_label: str
+    total_count: int
+    offset: int
+    limit: int
+    items: list[ProblemStudentItem]

@@ -19,6 +19,7 @@ from app.edu.assessment_models import (
     AssessmentResult,
     ParticipantList,
     PatternList,
+    ProblemStudentList,
     StudentCodeEvidence,
 )
 from app.edu.assessments import AssessmentReader, AssessmentService
@@ -423,6 +424,32 @@ def get_assessment_student(
 def assessment_patterns(assessment_id: str, actor: Actor, reader: Reader) -> PatternList:
     """按题目聚合错误现象：结论分布、满分/零分、失败集中的测试点。"""
     return reader.problem_patterns(actor, assessment_id)
+
+
+@router.get(
+    "/assessments/{assessment_id}/problems/{problem_label}/students",
+    response_model=ProblemStudentList,
+)
+def assessment_problem_students(
+    assessment_id: str,
+    problem_label: str,
+    actor: Actor,
+    reader: Reader,
+    status: str | None = None,
+    test_index: int | None = Query(default=None, ge=1),
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> ProblemStudentList:
+    """从某题的错误现象钻到具体学生；可按结论或失败的测试点过滤。"""
+    return reader.problem_students(
+        actor,
+        assessment_id,
+        problem_label,
+        status=status,
+        test_index=test_index,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.get("/imports/{import_id}", response_model=ImportView)

@@ -19,6 +19,8 @@ from app.edu.assessment_models import (
     ParticipantList,
     PatternList,
     ProblemPattern,
+    ProblemStudentItem,
+    ProblemStudentList,
     StudentCodeEvidence,
     SubmissionEvidence,
     TestPointFailure,
@@ -232,6 +234,87 @@ class AssessmentReader:
             ).fetchall()
             items = [self._pattern(connection, row) for row in problems]
         return PatternList(assessment_id=assessment_id, items=items)
+
+    def problem_students(
+        self,
+        principal: Principal,
+        assessment_id: str,
+        problem_label: str,
+        *,
+        status: str | None = None,
+        test_index: int | None = None,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> ProblemStudentList:
+        """从"某题的错误现象"钻到具体学生：可按结论或某个失败测试点过滤。"""
+        if offset < 0 or not 1 <= limit <= 100:
+            raise APIError(422, "VALIDATION_ERROR", "分页参数不合法")
+
+        filters = ["s.assessment_id = ?", "pr.label = ?"]
+        params: list[object] = [assessment_id, problem_label]
+        if status is not None:
+            filters.append("s.verdict = ?")
+            params.append(status)
+        if test_index is not None:
+            filters.append(
+                "EXISTS (SELECT 1 FROM test_observations t "
+                "WHERE t.submission_id = s.submission_id AND t.test_index = ? "
+                "AND t.status <> '答案正确')"
+            )
+            params.append(test_index)
+        base = (
+            "FROM submissions s JOIN problems pr ON pr.problem_id = s.problem_id "
+            "JOIN assessment_participants p ON p.assessment_id = s.assessment_id "
+            "AND p.student_pk = s.student_pk WHERE " + " AND ".join(filters)
+        )
+
+        with self.database.transaction() as connection:
+            self._owned(connection, principal, assessment_id)
+            known = connection.execute(
+                "SELECT 1 FROM problems WHERE assessment_id=? AND label=?",
+                (assessment_id, problem_label),
+            ).fetchone()
+            if known is None:
+                raise APIError(404, "RESOURCE_NOT_FOUND", "该测评中没有此题目")
+            total = connection.execute("SELECT COUNT(*) " + base, tuple(params)).fetchone()[0]
+            rows = connection.execute(
+                "SELECT s.submission_id, s.student_pk, p.external_key, p.display_name, "
+                "s.verdict, s.score_units, s.score_total_units "
+                + base
+                + " ORDER BY p.external_key LIMIT ? OFFSET ?",
+                (*params, limit, offset),
+            ).fetchall()
+            failures: dict[str, list[int]] = {}
+            ids = [row["submission_id"] for row in rows]
+            if ids:
+                placeholders = ",".join("?" for _ in ids)
+                for item in connection.execute(
+                    "SELECT submission_id, test_index FROM test_observations "
+                    f"WHERE submission_id IN ({placeholders}) AND status <> '答案正确' "
+                    "ORDER BY test_index",
+                    tuple(ids),
+                ):
+                    failures.setdefault(item["submission_id"], []).append(item["test_index"])
+
+        return ProblemStudentList(
+            assessment_id=assessment_id,
+            problem_label=problem_label,
+            total_count=total,
+            offset=offset,
+            limit=limit,
+            items=[
+                ProblemStudentItem(
+                    student_pk=row["student_pk"],
+                    external_key=row["external_key"],
+                    display_name=row["display_name"],
+                    verdict=row["verdict"],
+                    score=_score(row["score_units"]),
+                    score_total=_score(row["score_total_units"]),
+                    failed_test_points=failures.get(row["submission_id"], []),
+                )
+                for row in rows
+            ],
+        )
 
     def _pattern(self, connection: sqlite3.Connection, problem: sqlite3.Row) -> ProblemPattern:
         submissions = connection.execute(

@@ -246,3 +246,66 @@ def test_problem_patterns_summarise_verdicts_and_test_points(client):
     assert pattern["failure_count"] == 1
     assert pattern["failure_rate"] == 0.5
     assert pattern["worst_test_points"] == [{"test_index": 1, "failure_count": 1}]
+
+
+def mixed_assessment(client) -> str:
+    stream = BytesIO()
+    with ZipFile(stream, "w") as archive:
+        archive.writestr("包/正式答卷/S001.html", student_html())
+        archive.writestr(
+            "包/正式答卷/S002.html", student_html(key="S002", name="吕同学", failing=True)
+        )
+    response = client.post(URL, files={"file": ("竞赛.zip", stream.getvalue())})
+    assert response.status_code == 201, response.text
+    return response.json()["assessment_id"]
+
+
+def test_problem_students_filter_by_verdict(client):
+    assessment_id = mixed_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}/problems/7-1/students?status=答案错误")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_count"] == 1
+    assert body["items"][0]["external_key"] == "S002"
+    assert body["items"][0]["failed_test_points"] == [1]
+
+
+def test_problem_students_filter_by_failed_test_point(client):
+    assessment_id = mixed_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}/problems/7-1/students?test_index=1")
+
+    assert response.status_code == 200
+    assert response.json()["total_count"] == 1
+
+
+def test_problem_students_without_filter_lists_everyone(client):
+    assessment_id = mixed_assessment(client)
+
+    body = client.get(f"{URL}/{assessment_id}/problems/7-1/students").json()
+
+    assert body["total_count"] == 2
+    assert [item["external_key"] for item in body["items"]] == ["S001", "S002"]
+    assert body["items"][0]["failed_test_points"] == []
+
+
+def test_problem_students_pagination_is_honoured(client):
+    assessment_id = mixed_assessment(client)
+
+    body = client.get(f"{URL}/{assessment_id}/problems/7-1/students?limit=1&offset=1").json()
+
+    assert body["total_count"] == 2
+    assert body["limit"] == 1
+    assert body["offset"] == 1
+    assert [item["external_key"] for item in body["items"]] == ["S002"]
+
+
+def test_problem_students_unknown_problem_returns_404(client):
+    assessment_id = mixed_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}/problems/9-9/students")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "RESOURCE_NOT_FOUND"
