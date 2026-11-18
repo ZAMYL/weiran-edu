@@ -17,8 +17,11 @@ from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
 from app.edu.assessment_models import (
     AssessmentOverview,
     AssessmentResult,
+    DimensionList,
+    DimensionMappingResult,
     ParticipantList,
     PatternList,
+    ProblemDimensionRequest,
     ProblemStudentList,
     StudentCodeEvidence,
 )
@@ -482,6 +485,30 @@ def assessment_report(
             "Cache-Control": "no-store",
         },
     )
+
+
+@router.put(
+    "/assessments/{assessment_id}/problem-dimensions",
+    response_model=DimensionMappingResult,
+)
+def set_assessment_dimensions(
+    assessment_id: str,
+    payload: ProblemDimensionRequest,
+    actor: Actor,
+    assessments: Assessments,
+) -> DimensionMappingResult:
+    """配置「题目 → 维度」映射；只有配置后五维才会显示推算结果。"""
+    return assessments.set_problem_dimensions(
+        actor,
+        assessment_id,
+        [(item.problem_label, item.dimension_code) for item in payload.items],
+    )
+
+
+@router.get("/assessments/{assessment_id}/dimensions", response_model=DimensionList)
+def get_assessment_dimensions(assessment_id: str, actor: Actor, reader: Reader) -> DimensionList:
+    """五维视图：默认只报"无评分数据"，配置映射后按题目得分推算。"""
+    return reader.dimensions(actor, assessment_id)
 
 
 @router.get("/imports/{import_id}", response_model=ImportView)

@@ -343,3 +343,72 @@ def test_report_rejects_unknown_format(client):
     response = client.get(f"{URL}/{assessment_id}/report?format=pdf")
 
     assert response.status_code == 422
+
+
+def test_dimensions_default_to_no_scoring_data(client):
+    assessment_id = mixed_assessment(client)
+
+    body = client.get(f"{URL}/{assessment_id}/dimensions").json()
+
+    assert body["mapping_configured"] is False
+    assert len(body["items"]) == 5
+    assert all(item["state"] == "no_scoring_data" for item in body["items"])
+    assert all(item["score_rate"] is None for item in body["items"])
+
+
+def test_mapping_enables_derived_dimension(client):
+    assessment_id = mixed_assessment(client)
+
+    mapping = client.put(
+        f"{URL}/{assessment_id}/problem-dimensions",
+        json={"items": [{"problem_label": "7-1", "dimension_code": "algorithm_data_structure"}]},
+    )
+    assert mapping.status_code == 200, mapping.text
+    assert mapping.json()["mapped_count"] == 1
+
+    body = client.get(f"{URL}/{assessment_id}/dimensions").json()
+    assert body["mapping_configured"] is True
+    derived = next(
+        item for item in body["items"] if item["dimension_code"] == "algorithm_data_structure"
+    )
+    assert derived["state"] == "derived_from_problem_scores"
+    assert derived["problem_labels"] == ["7-1"]
+    assert derived["submission_count"] == 2
+    assert derived["full_pass_count"] == 1
+    assert derived["score_rate"] == 0.5
+    assert derived["test_pass_rate"] == 0.5
+    # 没配置的维度保持"无数据"，不会被顺带填上
+    assert any(item["state"] == "no_scoring_data" for item in body["items"])
+
+
+def test_mapping_rejects_unknown_dimension_or_label(client):
+    assessment_id = mixed_assessment(client)
+
+    bad_dimension = client.put(
+        f"{URL}/{assessment_id}/problem-dimensions",
+        json={"items": [{"problem_label": "7-1", "dimension_code": "creativity"}]},
+    )
+    bad_label = client.put(
+        f"{URL}/{assessment_id}/problem-dimensions",
+        json={"items": [{"problem_label": "9-9", "dimension_code": "problem_modeling"}]},
+    )
+
+    assert bad_dimension.status_code == 422
+    assert bad_label.status_code == 422
+
+
+def test_mapping_cannot_assign_one_problem_twice(client):
+    assessment_id = mixed_assessment(client)
+
+    response = client.put(
+        f"{URL}/{assessment_id}/problem-dimensions",
+        json={
+            "items": [
+                {"problem_label": "7-1", "dimension_code": "problem_modeling"},
+                {"problem_label": "7-1", "dimension_code": "solution_strategy"},
+            ]
+        },
+    )
+
+    assert response.status_code == 422
+    assert "多个维度" in response.json()["error"]["message"]

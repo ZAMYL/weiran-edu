@@ -14,10 +14,14 @@ from uuid import uuid4
 from app.core.errors import APIError
 from app.edu.assessment_models import (
     AssessmentOverview,
+    DimensionList,
+    DimensionMappingResult,
+    DimensionView,
     Observation,
     Participant,
     ParticipantList,
     PatternList,
+    ProblemDimensionItem,
     ProblemPattern,
     ProblemStudentItem,
     ProblemStudentList,
@@ -31,6 +35,15 @@ from app.importing.edu.answersheet import AnswerSheetEvidence
 from app.storage.database import Database
 
 ANSWERSHEET_PARSER_VERSION = "answersheet.v1"
+
+# 五维固定编码；映射配置只能取这些值。
+DIMENSION_CODES: tuple[str, ...] = (
+    "algorithm_data_structure",
+    "code_implementation",
+    "problem_modeling",
+    "efficiency_awareness",
+    "solution_strategy",
+)
 
 # 分数与内部表示统一按百分之一分存，和现有 evaluations 约定一致。
 _SCORE_SCALE = 100
@@ -123,6 +136,63 @@ class AssessmentService:
             ).fetchone()
 
         return _summary(row, duplicate=False)
+
+    def set_problem_dimensions(
+        self, principal: Principal, assessment_id: str, items: list[tuple[str, str]]
+    ) -> DimensionMappingResult:
+        """配置"题目 → 维度"映射；整体替换，不做增量合并。"""
+        labels = [label for label, _ in items]
+        if len(set(labels)) != len(labels):
+            raise APIError(422, "VALIDATION_ERROR", "同一道题不能映射到多个维度")
+
+        with self.database.transaction(write=True) as connection:
+            _owned_assessment(connection, principal, assessment_id)
+            problems = {
+                row["label"]: row["problem_id"]
+                for row in connection.execute(
+                    "SELECT problem_id, label FROM problems WHERE assessment_id=?",
+                    (assessment_id,),
+                )
+            }
+            cleaned: list[tuple[str, str, str]] = []
+            for label, code in items:
+                if code not in DIMENSION_CODES:
+                    raise APIError(422, "VALIDATION_ERROR", f"未知维度编码：{code}")
+                problem_id = problems.get(label)
+                if problem_id is None:
+                    raise APIError(422, "VALIDATION_ERROR", f"该测评没有题目：{label}")
+                cleaned.append((problem_id, label, code))
+
+            connection.execute(
+                "DELETE FROM problem_dimensions WHERE assessment_id=?", (assessment_id,)
+            )
+            now = _stamp(self.clock())
+            for problem_id, _label, code in cleaned:
+                connection.execute(
+                    "INSERT INTO problem_dimensions VALUES (?,?,?,?)",
+                    (problem_id, assessment_id, code, now),
+                )
+
+        return DimensionMappingResult(
+            assessment_id=assessment_id,
+            mapped_count=len(cleaned),
+            items=[
+                ProblemDimensionItem(problem_label=label, dimension_code=code)
+                for _problem_id, label, code in cleaned
+            ],
+        )
+
+
+def _owned_assessment(
+    connection: sqlite3.Connection, principal: Principal, assessment_id: str
+) -> sqlite3.Row:
+    """不存在与无权访问统一返回 404，避免探测他人的测评 ID。"""
+    row = connection.execute(
+        "SELECT * FROM assessments WHERE assessment_id=?", (assessment_id,)
+    ).fetchone()
+    if row is None or row["owner_teacher_id"] != principal.teacher_id:
+        raise APIError(404, "RESOURCE_NOT_FOUND", "测评不存在")
+    return row
 
 
 def _stamp(moment: datetime) -> str:
@@ -234,6 +304,100 @@ class AssessmentReader:
             ).fetchall()
             items = [self._pattern(connection, row) for row in problems]
         return PatternList(assessment_id=assessment_id, items=items)
+
+    def dimensions(self, principal: Principal, assessment_id: str) -> DimensionList:
+        """五维视图：没映射时只报"无评分数据"，映射后才按题目得分推算。"""
+        with self.database.transaction() as connection:
+            self._owned(connection, principal, assessment_id)
+            rows = connection.execute(
+                "SELECT p.label, p.problem_id, d.dimension_code FROM problems p "
+                "LEFT JOIN problem_dimensions d ON d.problem_id = p.problem_id "
+                "WHERE p.assessment_id=? ORDER BY p.ordinal",
+                (assessment_id,),
+            ).fetchall()
+
+        mapped: dict[str, list[tuple[str, str]]] = {code: [] for code in DIMENSION_CODES}
+        for row in rows:
+            code = row["dimension_code"]
+            if code in mapped:
+                mapped[code].append((row["label"], row["problem_id"]))
+
+        items: list[DimensionView] = []
+        for code in DIMENSION_CODES:
+            pairs = mapped[code]
+            if not pairs:
+                items.append(
+                    DimensionView(
+                        dimension_code=code,
+                        state="no_scoring_data",
+                        problem_labels=[],
+                        submission_count=0,
+                        full_pass_count=0,
+                        unanswered_count=0,
+                        score_rate=None,
+                        test_pass_rate=None,
+                        note="本批没有该维度的评分数据，也没有配置题目映射",
+                    )
+                )
+                continue
+            items.append(self._dimension_from_problems(principal, assessment_id, code, pairs))
+        return DimensionList(
+            assessment_id=assessment_id,
+            mapping_configured=any(mapped[code] for code in DIMENSION_CODES),
+            items=items,
+        )
+
+    def _dimension_from_problems(
+        self,
+        principal: Principal,
+        assessment_id: str,
+        code: str,
+        pairs: list[tuple[str, str]],
+    ) -> DimensionView:
+        labels = [label for label, _ in pairs]
+        ids = [problem_id for _, problem_id in pairs]
+        placeholders = ",".join("?" for _ in ids)
+        with self.database.transaction() as connection:
+            self._owned(connection, principal, assessment_id)
+            submissions = connection.execute(
+                "SELECT score_units, score_total_units, verdict FROM submissions "
+                f"WHERE problem_id IN ({placeholders})",
+                tuple(ids),
+            ).fetchall()
+            observations = connection.execute(
+                "SELECT t.status FROM test_observations t "
+                "JOIN submissions s ON s.submission_id = t.submission_id "
+                f"WHERE s.problem_id IN ({placeholders})",
+                tuple(ids),
+            ).fetchall()
+
+        earned = 0
+        possible = 0
+        full_pass = 0
+        unanswered = 0
+        for row in submissions:
+            units, total = row["score_units"], row["score_total_units"]
+            if row["verdict"] == "未作答":
+                unanswered += 1
+            if units is None or total is None:
+                continue
+            earned += units
+            possible += total
+            if units == total and total > 0:
+                full_pass += 1
+        passed = sum(1 for row in observations if row["status"] == "答案正确")
+
+        return DimensionView(
+            dimension_code=code,
+            state="derived_from_problem_scores",
+            problem_labels=labels,
+            submission_count=len(submissions),
+            full_pass_count=full_pass,
+            unanswered_count=unanswered,
+            score_rate=round(earned / possible, 4) if possible else None,
+            test_pass_rate=round(passed / len(observations), 4) if observations else None,
+            note="由已配置题目的得分推算，不是官方五维评分",
+        )
 
     def problem_students(
         self,
@@ -377,13 +541,7 @@ class AssessmentReader:
     def _owned(
         self, connection: sqlite3.Connection, principal: Principal, assessment_id: str
     ) -> sqlite3.Row:
-        row = connection.execute(
-            "SELECT * FROM assessments WHERE assessment_id=?", (assessment_id,)
-        ).fetchone()
-        # 不存在与无权访问统一返回 404，避免探测他人的测评 ID。
-        if row is None or row["owner_teacher_id"] != principal.teacher_id:
-            raise APIError(404, "RESOURCE_NOT_FOUND", "测评不存在")
-        return row
+        return _owned_assessment(connection, principal, assessment_id)
 
 
 def _score(units: int | None) -> float | None:

@@ -117,3 +117,45 @@ class ProblemStudentList(Model):
     offset: int
     limit: int
     items: list[ProblemStudentItem]
+
+
+class ProblemDimensionItem(Model):
+    """题目 → 维度 的一条配置。"""
+
+    problem_label: str
+    dimension_code: str
+
+
+class ProblemDimensionRequest(Model):
+    items: list[ProblemDimensionItem]
+
+
+class DimensionMappingResult(Model):
+    assessment_id: str
+    mapped_count: int
+    items: list[ProblemDimensionItem]
+
+
+class DimensionView(Model):
+    """五维中的一个维度。
+
+    state：
+    - ``no_scoring_data``：本批没有该维度的评分或映射，只展示证据量；
+    - ``derived_from_problem_scores``：由已配置的题目得分推算，不是官方五维评分。
+    """
+
+    dimension_code: str
+    state: str
+    problem_labels: list[str]
+    submission_count: int
+    full_pass_count: int
+    unanswered_count: int
+    score_rate: float | None
+    test_pass_rate: float | None
+    note: str
+
+
+class DimensionList(Model):
+    assessment_id: str
+    mapping_configured: bool
+    items: list[DimensionView]
