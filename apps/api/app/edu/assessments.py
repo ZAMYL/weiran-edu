@@ -12,6 +12,14 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from app.core.errors import APIError
+from app.edu.assessment_models import (
+    AssessmentOverview,
+    Observation,
+    Participant,
+    ParticipantList,
+    StudentCodeEvidence,
+    SubmissionEvidence,
+)
 from app.edu.auth import Principal, require_scope, require_teacher
 from app.importing.edu.answersheet import AnswerSheetEvidence
 from app.storage.database import Database
@@ -111,6 +119,116 @@ class AssessmentService:
 
 def _stamp(moment: datetime) -> str:
     return moment.isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+class AssessmentReader:
+    """读取答题卡测评与个人证据。目前只允许测评拥有者访问。"""
+
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def overview(self, principal: Principal, assessment_id: str) -> AssessmentOverview:
+        with self.database.transaction() as connection:
+            row = self._owned(connection, principal, assessment_id)
+        return AssessmentOverview(
+            assessment_id=row["assessment_id"],
+            title=row["title"],
+            course=row["course"],
+            assessment_date=row["assessment_date"],
+            student_count=row["student_count"],
+            problem_count=row["problem_count"],
+            submission_count=row["submission_count"],
+            observation_count=row["observation_count"],
+            created_at=row["created_at"],
+        )
+
+    def participants(self, principal: Principal, assessment_id: str) -> ParticipantList:
+        with self.database.transaction() as connection:
+            self._owned(connection, principal, assessment_id)
+            rows = connection.execute(
+                "SELECT student_pk, external_key, display_name FROM assessment_participants "
+                "WHERE assessment_id=? ORDER BY external_key",
+                (assessment_id,),
+            ).fetchall()
+        return ParticipantList(
+            assessment_id=assessment_id,
+            total_count=len(rows),
+            items=[
+                Participant(
+                    student_pk=row["student_pk"],
+                    external_key=row["external_key"],
+                    display_name=row["display_name"],
+                )
+                for row in rows
+            ],
+        )
+
+    def student(
+        self, principal: Principal, assessment_id: str, student_pk: str
+    ) -> StudentCodeEvidence:
+        with self.database.transaction() as connection:
+            self._owned(connection, principal, assessment_id)
+            participant = connection.execute(
+                "SELECT * FROM assessment_participants WHERE assessment_id=? AND student_pk=?",
+                (assessment_id, student_pk),
+            ).fetchone()
+            if participant is None:
+                raise APIError(404, "RESOURCE_NOT_FOUND", "该测评中没有此学生")
+            rows = connection.execute(
+                "SELECT s.submission_id, s.language, s.code_text, s.verdict, "
+                "s.score_units, s.score_total_units, p.label, p.ordinal "
+                "FROM submissions s JOIN problems p ON p.problem_id=s.problem_id "
+                "WHERE s.assessment_id=? AND s.student_pk=? ORDER BY p.ordinal",
+                (assessment_id, student_pk),
+            ).fetchall()
+            submissions = [
+                SubmissionEvidence(
+                    problem_label=row["label"],
+                    ordinal=row["ordinal"],
+                    language=row["language"],
+                    code=row["code_text"],
+                    verdict=row["verdict"],
+                    score=_score(row["score_units"]),
+                    score_total=_score(row["score_total_units"]),
+                    observations=[
+                        Observation(
+                            test_index=item["test_index"],
+                            status=item["status"],
+                            score=_score(item["score_units"]),
+                            duration_ms=item["duration_ms"],
+                            memory_kb=item["memory_kb"],
+                        )
+                        for item in connection.execute(
+                            "SELECT * FROM test_observations WHERE submission_id=? "
+                            "ORDER BY test_index",
+                            (row["submission_id"],),
+                        ).fetchall()
+                    ],
+                )
+                for row in rows
+            ]
+        return StudentCodeEvidence(
+            assessment_id=assessment_id,
+            student_pk=participant["student_pk"],
+            external_key=participant["external_key"],
+            display_name=participant["display_name"],
+            submissions=submissions,
+        )
+
+    def _owned(
+        self, connection: sqlite3.Connection, principal: Principal, assessment_id: str
+    ) -> sqlite3.Row:
+        row = connection.execute(
+            "SELECT * FROM assessments WHERE assessment_id=?", (assessment_id,)
+        ).fetchone()
+        # 不存在与无权访问统一返回 404，避免探测他人的测评 ID。
+        if row is None or row["owner_teacher_id"] != principal.teacher_id:
+            raise APIError(404, "RESOURCE_NOT_FOUND", "测评不存在")
+        return row
+
+
+def _score(units: int | None) -> float | None:
+    return None if units is None else units / _SCORE_SCALE
 
 
 def _summary(row: sqlite3.Row, *, duplicate: bool) -> AssessmentSummary:

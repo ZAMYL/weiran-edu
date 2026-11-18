@@ -13,8 +13,13 @@ from app.core.errors import APIError
 from app.core.exact_json import ExactJSONResponse
 from app.edu.analysis import AnalysisReader
 from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
-from app.edu.assessment_models import AssessmentResult
-from app.edu.assessments import AssessmentService
+from app.edu.assessment_models import (
+    AssessmentOverview,
+    AssessmentResult,
+    ParticipantList,
+    StudentCodeEvidence,
+)
+from app.edu.assessments import AssessmentReader, AssessmentService
 from app.edu.auth import Principal, authenticate, deny, require_teacher
 from app.edu.diagnostic_models import Action, BatchCapabilities, IntegrityReport, IntegrityRequest
 from app.edu.diagnostics import DiagnosticReader
@@ -83,7 +88,12 @@ def assessments_of(request: Request) -> AssessmentService:
     return request.app.state.assessment_service
 
 
+def assessment_reader_of(request: Request) -> AssessmentReader:
+    return request.app.state.assessment_reader
+
+
 type Assessments = Annotated[AssessmentService, Depends(assessments_of)]
+type Reader = Annotated[AssessmentReader, Depends(assessment_reader_of)]
 
 
 def _parse_failure(exc: ImportFileError) -> APIError:
@@ -332,6 +342,27 @@ async def create_assessment(
         observation_count=summary.observation_count,
         duplicate=summary.duplicate,
     )
+
+
+@router.get("/assessments/{assessment_id}", response_model=AssessmentOverview)
+def get_assessment(assessment_id: str, actor: Actor, reader: Reader) -> AssessmentOverview:
+    return reader.overview(actor, assessment_id)
+
+
+@router.get("/assessments/{assessment_id}/students", response_model=ParticipantList)
+def list_assessment_students(assessment_id: str, actor: Actor, reader: Reader) -> ParticipantList:
+    return reader.participants(actor, assessment_id)
+
+
+@router.get(
+    "/assessments/{assessment_id}/students/{student_pk}",
+    response_model=StudentCodeEvidence,
+)
+def get_assessment_student(
+    assessment_id: str, student_pk: str, actor: Actor, reader: Reader
+) -> StudentCodeEvidence:
+    """单个学生的全部题目证据：代码原文、结论、每个测试点的状态与耗时。"""
+    return reader.student(actor, assessment_id, student_pk)
 
 
 @router.get("/imports/{import_id}", response_model=ImportView)

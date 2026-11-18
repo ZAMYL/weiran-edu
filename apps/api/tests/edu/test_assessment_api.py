@@ -77,3 +77,86 @@ def test_unknown_field_is_rejected(client):
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def create_assessment(client) -> str:
+    response = client.post(
+        URL,
+        data={"title": "合成竞赛"},
+        files={"file": ("竞赛.zip", answersheet_zip())},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()["assessment_id"]
+
+
+def test_overview_reports_counts(client):
+    assessment_id = create_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["title"] == "合成竞赛"
+    assert (body["student_count"], body["problem_count"]) == (2, 1)
+    assert (body["submission_count"], body["observation_count"]) == (2, 2)
+
+
+def test_participants_are_listed_with_original_names(client):
+    assessment_id = create_assessment(client)
+
+    response = client.get(f"{URL}/{assessment_id}/students")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_count"] == 2
+    # 验题组 T001 已被排除，只剩两位参赛者，姓名学号按原值展示
+    assert [(item["external_key"], item["display_name"]) for item in body["items"]] == [
+        ("S001", "周同学"),
+        ("S002", "吕同学"),
+    ]
+
+
+def test_student_detail_returns_code_and_observations(client):
+    assessment_id = create_assessment(client)
+    participants = client.get(f"{URL}/{assessment_id}/students").json()["items"]
+    student_pk = participants[0]["student_pk"]
+
+    response = client.get(f"{URL}/{assessment_id}/students/{student_pk}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["display_name"] == "周同学"
+    assert len(body["submissions"]) == 1
+    submission = body["submissions"][0]
+    assert submission["problem_label"] == "7-1"
+    assert submission["language"] == "GXX"
+    assert submission["code"] == "int main(){ return 0; }"
+    assert submission["verdict"] == "答案正确"
+    assert submission["score"] == 5.0
+    assert submission["observations"] == [
+        {
+            "test_index": 1,
+            "status": "答案正确",
+            "score": 5.0,
+            "duration_ms": 2,
+            "memory_kb": 304,
+        }
+    ]
+
+
+def test_other_teacher_cannot_read_the_assessment(client, client_factory, runtime):
+    assessment_id = create_assessment(client)
+
+    with client_factory(runtime.other_token) as other:
+        detail = other.get(f"{URL}/{assessment_id}")
+        students = other.get(f"{URL}/{assessment_id}/students")
+
+    assert detail.status_code == 404
+    assert students.status_code == 404
+
+
+def test_unknown_assessment_returns_404(client):
+    response = client.get(f"{URL}/00000000-0000-0000-0000-000000000000")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "RESOURCE_NOT_FOUND"
