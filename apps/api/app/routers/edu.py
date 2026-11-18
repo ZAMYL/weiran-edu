@@ -150,7 +150,7 @@ def scopes(actor: Actor, backend: Backend) -> Scopes:
         )
 
 
-async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
+async def _upload(request: Request) -> tuple[bytes, UploadMetadata, str | None, str | None]:
     # Authenticate before reading multipart. Bound actual streamed bytes, not just Content-Length.
     if request.headers.get("content-type", "").split(";", 1)[0].lower() != "multipart/form-data":
         raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用Excel文件上传表单")
@@ -202,7 +202,7 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
                     "NO_ADAPTER_FOR_ASSET",
                     f"已识别为 {asset.kind}，当前还没有对应解析器",
                 )
-            return data, metadata
+            return data, metadata, file.filename, file.content_type
     except APIError:
         raise
     except ValidationError:
@@ -249,7 +249,7 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
     },
 )
 async def preview(request: Request, actor: Actor, backend: Backend) -> ImportView:
-    data, uploaded = await _upload(request)
+    data, uploaded, asset_name, asset_content_type = await _upload(request)
     metadata = await run_in_threadpool(
         resolve_upload_metadata,
         backend.database,
@@ -258,7 +258,14 @@ async def preview(request: Request, actor: Actor, backend: Backend) -> ImportVie
         now=stamp(backend.clock()),
     )
     try:
-        return await run_in_threadpool(backend.create_import, actor, data, metadata)
+        return await run_in_threadpool(
+            backend.create_import,
+            actor,
+            data,
+            metadata,
+            asset_name=asset_name,
+            asset_content_type=asset_content_type,
+        )
     except ImportFileError as exc:
         raise _parse_failure(exc) from None
 

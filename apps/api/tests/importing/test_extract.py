@@ -111,7 +111,7 @@ def test_docx_extracts_table_and_paragraphs():
 
 def test_unsupported_kind_raises_instead_of_returning_empty():
     with pytest.raises(ImportFileError) as error:
-        extract_document(detect.PDF, b"%PDF-1.7\n")
+        extract_document(detect.IMAGE, b"\x89PNG\r\n\x1a\n")
 
     assert error.value.code == "EXTRACTION_UNSUPPORTED_KIND"
 
@@ -121,3 +121,49 @@ def test_broken_docx_raises_unreadable():
         extract_document(detect.DOCX, b"PK\x03\x04broken")
 
     assert error.value.code == "EXTRACTION_DOCX_UNREADABLE"
+
+
+def tiny_pdf(text: str = "Hello PDF") -> bytes:
+    """手工拼一个最小合法 PDF（带正确 xref 偏移），避免为测试引第三方生成器。"""
+    bodies = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        (
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] "
+            b"/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>"
+        ),
+    ]
+    stream = f"BT /F1 12 Tf 20 150 Td ({text}) Tj ET".encode()
+    bodies.append(
+        b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream"
+    )
+    bodies.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+
+    out = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for index, body in enumerate(bodies, start=1):
+        offsets.append(len(out))
+        out += f"{index} 0 obj\n".encode() + body + b"\nendobj\n"
+    xref_at = len(out)
+    out += f"xref\n0 {len(bodies) + 1}\n".encode() + b"0000000000 65535 f \n"
+    for offset in offsets:
+        out += f"{offset:010d} 00000 n \n".encode()
+    out += (
+        f"trailer\n<< /Size {len(bodies) + 1} /Root 1 0 R >>\nstartxref\n{xref_at}\n%%EOF\n"
+    ).encode()
+    return bytes(out)
+
+
+def test_pdf_text_layer_is_extracted():
+    document = extract_document(detect.PDF, tiny_pdf("Hello PDF"))
+
+    assert document.kind == detect.PDF
+    assert document.tables == ()
+    assert any("Hello PDF" in line for line in document.text_lines)
+
+
+def test_broken_pdf_raises_unreadable():
+    with pytest.raises(ImportFileError) as error:
+        extract_document(detect.PDF, b"%PDF-1.4\nnot really a pdf")
+
+    assert error.value.code == "EXTRACTION_PDF_UNREADABLE"

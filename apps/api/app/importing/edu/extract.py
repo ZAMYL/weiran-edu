@@ -13,6 +13,7 @@ from zipfile import BadZipFile, ZipFile
 
 from defusedxml import ElementTree as DefusedET
 from openpyxl import load_workbook
+from pypdf import PdfReader
 
 from app.importing.edu import detect
 from app.importing.edu.types import ImportFileError
@@ -25,6 +26,7 @@ MAX_CELLS_PER_ROW = 64
 MAX_CELL_CHARS = 2000
 MAX_TEXT_LINES = 20000
 MAX_HTML_ENTRIES = 200
+MAX_PDF_PAGES = 100
 
 
 @dataclass(frozen=True)
@@ -57,6 +59,8 @@ def extract_document(kind: str, data: bytes) -> ExtractedDocument:
     if kind == detect.DOCX:
         tables, lines = _from_docx(data)
         return _document(kind, tables, lines)
+    if kind == detect.PDF:
+        return _document(kind, (), _lines_from_pdf(data))
     raise ImportFileError("EXTRACTION_UNSUPPORTED_KIND")
 
 
@@ -198,6 +202,29 @@ def _tables_from_zip_html(data: bytes) -> tuple[ExtractedTable, ...]:
     except (BadZipFile, KeyError, OSError):
         raise ImportFileError("EXTRACTION_ZIP_UNREADABLE") from None
     return tuple(tables[:MAX_TABLES])
+
+
+def _lines_from_pdf(data: bytes) -> tuple[str, ...]:
+    """只抽文字层；扫描件（图片型 PDF）抽不到字，由调用方按空结果处理。"""
+    try:
+        reader = PdfReader(io.BytesIO(data))
+    except Exception:
+        raise ImportFileError("EXTRACTION_PDF_UNREADABLE") from None
+    if reader.is_encrypted:
+        raise ImportFileError("EXTRACTION_PDF_ENCRYPTED")
+    lines: list[str] = []
+    for page in reader.pages[:MAX_PDF_PAGES]:
+        try:
+            text = page.extract_text() or ""
+        except Exception:
+            continue
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped:
+                lines.append(stripped[:MAX_CELL_CHARS])
+            if len(lines) >= MAX_TEXT_LINES:
+                return tuple(lines)
+    return tuple(lines)
 
 
 def _from_docx(

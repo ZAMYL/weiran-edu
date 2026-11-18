@@ -1,9 +1,11 @@
 CREATE TABLE source_assets (
     asset_id TEXT PRIMARY KEY,
     import_id TEXT NOT NULL REFERENCES imports(import_id),
-    kind TEXT NOT NULL,
+    file_name TEXT,
+    content_type TEXT,
+    source_path TEXT,
+    file_hash TEXT NOT NULL CHECK (length(file_hash) = 64),
     byte_size INTEGER NOT NULL CHECK (byte_size >= 0),
-    file_sha256 TEXT NOT NULL CHECK (length(file_sha256) = 64),
     created_at TEXT NOT NULL
 ) STRICT;
 

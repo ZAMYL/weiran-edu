@@ -11,7 +11,6 @@ from uuid import uuid4
 
 from app.core.errors import APIError
 from app.importing.edu import ParsedWorkbook, build_preview, build_quality_report, parse_excel
-from app.importing.edu.detect import detect_asset
 from app.importing.edu.preview import (
     Page,
     PreviewIssue,
@@ -73,6 +72,21 @@ def batch_dto(row: sqlite3.Row, *, archived: bool = False) -> Batch:
     # Explicit model field whitelist; never serialize owner columns or private source data.
     values = {key: row[key] for key in Batch.model_fields if key not in {"is_current", "archived"}}
     return Batch(**values, is_current=bool(row["is_current"]), archived=archived)
+
+
+def _asset_file_name(raw: str | None) -> str | None:
+    """只保留 basename：上传方可能带目录、控制符或超长名字。"""
+    if not raw:
+        return None
+    name = raw.replace("\\", "/").rsplit("/", 1)[-1].strip()
+    return name[:200] or None
+
+
+def _asset_content_type(raw: str | None) -> str | None:
+    # 客户端声明的 Content-Type 只作记录，不作为判定依据（判定看 detect）。
+    if not raw:
+        return None
+    return raw.strip()[:120] or None
 
 
 class EduService:
@@ -150,7 +164,13 @@ class EduService:
         return conflicts
 
     def create_import(
-        self, principal: Principal, data: bytes, metadata: ImportMetadata
+        self,
+        principal: Principal,
+        data: bytes,
+        metadata: ImportMetadata,
+        *,
+        asset_name: str | None = None,
+        asset_content_type: str | None = None,
     ) -> ImportView:
         with self.database.transaction() as connection:
             self._teacher(connection, principal)
@@ -243,17 +263,19 @@ class EduService:
                     json.dumps(summarize(parsed).model_dump()),
                 ),
             )
-            # 记录本次上传资产的类型与摘要，供后续多格式来源追溯。
+            # 记录本次上传资产：文件名只保留 basename，路径目前不落盘。
             connection.execute(
                 "INSERT INTO source_assets "
-                "(asset_id,import_id,kind,byte_size,file_sha256,created_at) "
-                "VALUES (?,?,?,?,?,?)",
+                "(asset_id,import_id,file_name,content_type,source_path,file_hash,"
+                "byte_size,created_at) VALUES (?,?,?,?,?,?,?,?)",
                 (
                     str(uuid4()),
                     import_id,
-                    detect_asset(data).kind,
-                    len(data),
+                    _asset_file_name(asset_name),
+                    _asset_content_type(asset_content_type),
+                    None,
                     parsed.file_sha256,
+                    len(data),
                     stamp(created),
                 ),
             )
