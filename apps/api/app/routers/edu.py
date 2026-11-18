@@ -18,6 +18,7 @@ from app.edu.assessment_models import (
     AssessmentOverview,
     AssessmentResult,
     ParticipantList,
+    PatternList,
     StudentCodeEvidence,
 )
 from app.edu.assessments import AssessmentReader, AssessmentService
@@ -416,6 +417,12 @@ def get_assessment_student(
 ) -> StudentCodeEvidence:
     """单个学生的全部题目证据：代码原文、结论、每个测试点的状态与耗时。"""
     return reader.student(actor, assessment_id, student_pk)
+
+
+@router.get("/assessments/{assessment_id}/patterns", response_model=PatternList)
+def assessment_patterns(assessment_id: str, actor: Actor, reader: Reader) -> PatternList:
+    """按题目聚合错误现象：结论分布、满分/零分、失败集中的测试点。"""
+    return reader.problem_patterns(actor, assessment_id)
 
 
 @router.get("/imports/{import_id}", response_model=ImportView)

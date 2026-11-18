@@ -65,3 +65,34 @@ class StudentCodeEvidence(Model):
     external_key: str
     display_name: str
     submissions: list[SubmissionEvidence]
+
+
+class VerdictCount(Model):
+    status: str
+    count: int
+
+
+class TestPointFailure(Model):
+    test_index: int
+    failure_count: int
+
+
+class ProblemPattern(Model):
+    """一道题的确定性错误现象：结论分布、满分/零分人数、失败集中在哪些测试点。"""
+
+    problem_label: str
+    ordinal: int
+    submission_count: int
+    full_pass_count: int
+    zero_score_count: int
+    average_score: float | None
+    verdict_counts: list[VerdictCount]
+    test_point_count: int
+    failure_count: int
+    failure_rate: float
+    worst_test_points: list[TestPointFailure]
+
+
+class PatternList(Model):
+    assessment_id: str
+    items: list[ProblemPattern]

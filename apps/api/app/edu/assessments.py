@@ -17,8 +17,12 @@ from app.edu.assessment_models import (
     Observation,
     Participant,
     ParticipantList,
+    PatternList,
+    ProblemPattern,
     StudentCodeEvidence,
     SubmissionEvidence,
+    TestPointFailure,
+    VerdictCount,
 )
 from app.edu.auth import Principal, require_scope, require_teacher
 from app.importing.edu.answersheet import AnswerSheetEvidence
@@ -215,6 +219,76 @@ class AssessmentReader:
             external_key=participant["external_key"],
             display_name=participant["display_name"],
             submissions=submissions,
+        )
+
+    def problem_patterns(self, principal: Principal, assessment_id: str) -> PatternList:
+        """按题目聚合确定性错误现象；不做任何推测性解释。"""
+        with self.database.transaction() as connection:
+            self._owned(connection, principal, assessment_id)
+            problems = connection.execute(
+                "SELECT problem_id, label, ordinal FROM problems "
+                "WHERE assessment_id=? ORDER BY ordinal",
+                (assessment_id,),
+            ).fetchall()
+            items = [self._pattern(connection, row) for row in problems]
+        return PatternList(assessment_id=assessment_id, items=items)
+
+    def _pattern(self, connection: sqlite3.Connection, problem: sqlite3.Row) -> ProblemPattern:
+        submissions = connection.execute(
+            "SELECT score_units, score_total_units, verdict FROM submissions WHERE problem_id=?",
+            (problem["problem_id"],),
+        ).fetchall()
+        observations = connection.execute(
+            "SELECT t.test_index, t.status FROM test_observations t "
+            "JOIN submissions s ON s.submission_id=t.submission_id WHERE s.problem_id=?",
+            (problem["problem_id"],),
+        ).fetchall()
+
+        verdict_counts: dict[str, int] = {}
+        full_pass = 0
+        zero = 0
+        total_score = 0.0
+        scored = 0
+        for row in submissions:
+            status = row["verdict"] or "未标注"
+            verdict_counts[status] = verdict_counts.get(status, 0) + 1
+            units = row["score_units"]
+            total_units = row["score_total_units"]
+            if units is not None and total_units is not None:
+                scored += 1
+                total_score += units / _SCORE_SCALE
+                if units == total_units and total_units > 0:
+                    full_pass += 1
+            if units == 0:
+                zero += 1
+
+        failures: dict[int, int] = {}
+        for row in observations:
+            if row["status"] == "答案正确":
+                continue
+            failures[row["test_index"]] = failures.get(row["test_index"], 0) + 1
+        failure_count = sum(failures.values())
+        worst = sorted(failures.items(), key=lambda item: (-item[1], item[0]))[:3]
+
+        return ProblemPattern(
+            problem_label=problem["label"],
+            ordinal=problem["ordinal"],
+            submission_count=len(submissions),
+            full_pass_count=full_pass,
+            zero_score_count=zero,
+            average_score=round(total_score / scored, 2) if scored else None,
+            verdict_counts=[
+                VerdictCount(status=status, count=count)
+                for status, count in sorted(
+                    verdict_counts.items(), key=lambda item: (-item[1], item[0])
+                )
+            ],
+            test_point_count=len({row["test_index"] for row in observations}),
+            failure_count=failure_count,
+            failure_rate=round(failure_count / len(observations), 4) if observations else 0.0,
+            worst_test_points=[
+                TestPointFailure(test_index=index, failure_count=count) for index, count in worst
+            ],
         )
 
     def _owned(

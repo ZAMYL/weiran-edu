@@ -4,7 +4,12 @@ from io import BytesIO
 from zipfile import ZipFile
 
 
-def student_html(*, key: str = "S001", name: str = "周同学", label: str = "7-1") -> str:
+def student_html(
+    *, key: str = "S001", name: str = "周同学", label: str = "7-1", failing: bool = False
+) -> str:
+    status = "答案错误" if failing else "答案正确"
+    score = "0" if failing else "5"
+    ratio = "0 / 5" if failing else "5 / 5"
     return (
         "<html><body><div class='box'>"
         f"<div><span>考生</span><span>{key} {name}</span></div>"
@@ -17,10 +22,10 @@ def student_html(*, key: str = "S001", name: str = "周同学", label: str = "7-
         "<div><span>编译器: GXX</span></div>"
         "<pre class='box font-mono'>int main(){ return 0; }</pre>"
         "<table class='result'><tbody>"
-        "<tr><td>1</td><td>答案正确</td><td>5</td><td>2.00 ms</td><td>304 KB</td></tr>"
+        f"<tr><td>1</td><td>{status}</td><td>{score}</td><td>2.00 ms</td><td>304 KB</td></tr>"
         "</tbody></table>"
         "</div>"
-        "<div class='flex-none min-w-[5rem]'><div>答案正确</div><span>5 / 5</span></div>"
+        f"<div class='flex-none min-w-[5rem]'><div>{status}</div><span>{ratio}</span></div>"
         "</div></div></body></html>"
     )
 
@@ -212,3 +217,32 @@ def test_duplicate_participant_across_packages_is_rejected(client):
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "ANSWERSHEET_DUPLICATE_PARTICIPANT"
+
+
+def test_problem_patterns_summarise_verdicts_and_test_points(client):
+    stream = BytesIO()
+    with ZipFile(stream, "w") as archive:
+        archive.writestr("包/正式答卷/S001.html", student_html())
+        archive.writestr(
+            "包/正式答卷/S002.html", student_html(key="S002", name="吕同学", failing=True)
+        )
+    created = client.post(URL, files={"file": ("竞赛.zip", stream.getvalue())})
+    assessment_id = created.json()["assessment_id"]
+
+    response = client.get(f"{URL}/{assessment_id}/patterns")
+
+    assert response.status_code == 200
+    pattern = response.json()["items"][0]
+    assert pattern["problem_label"] == "7-1"
+    assert pattern["submission_count"] == 2
+    assert pattern["full_pass_count"] == 1
+    assert pattern["zero_score_count"] == 1
+    assert pattern["average_score"] == 2.5
+    assert {item["status"]: item["count"] for item in pattern["verdict_counts"]} == {
+        "答案正确": 1,
+        "答案错误": 1,
+    }
+    assert pattern["test_point_count"] == 1
+    assert pattern["failure_count"] == 1
+    assert pattern["failure_rate"] == 0.5
+    assert pattern["worst_test_points"] == [{"test_index": 1, "failure_count": 1}]
