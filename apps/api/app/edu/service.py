@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from app.core.errors import APIError
 from app.importing.edu import ParsedWorkbook, build_preview, build_quality_report, parse_excel
+from app.importing.edu.detect import detect_asset
 from app.importing.edu.preview import (
     Page,
     PreviewIssue,
@@ -240,6 +241,20 @@ class EduService:
                     stamp(created),
                     stamp(created + timedelta(hours=24)),
                     json.dumps(summarize(parsed).model_dump()),
+                ),
+            )
+            # 记录本次上传资产的类型与摘要，供后续多格式来源追溯。
+            connection.execute(
+                "INSERT INTO source_assets "
+                "(asset_id,import_id,kind,byte_size,file_sha256,created_at) "
+                "VALUES (?,?,?,?,?,?)",
+                (
+                    str(uuid4()),
+                    import_id,
+                    detect_asset(data).kind,
+                    len(data),
+                    parsed.file_sha256,
+                    stamp(created),
                 ),
             )
             connection.execute(

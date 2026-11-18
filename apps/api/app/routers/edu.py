@@ -42,6 +42,8 @@ from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
 from app.edu.summary import BatchSummary
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
+from app.importing.edu.adapter import adapter_for
+from app.importing.edu.detect import detect_asset
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
 from app.schemas.common import ErrorResponse
@@ -184,12 +186,7 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
                 raise APIError(422, "VALIDATION_ERROR", "上传字段不符合要求")
             file = form.get("file")
             if not isinstance(file, UploadFile):
-                raise APIError(422, "VALIDATION_ERROR", "缺少Excel文件")
-            if not (file.filename or "").lower().endswith(".xlsx") or file.content_type not in {
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/octet-stream",
-            }:
-                raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "当前支持xlsx测评文件")
+                raise APIError(422, "VALIDATION_ERROR", "缺少上传文件")
             fields = {key: value for key, value in items if key != "file"}
             if "title" not in fields:
                 fields["title"] = filename_title(file.filename or "")
@@ -197,6 +194,14 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
             data = await file.read(ParseLimits().compressed_bytes + 1)
             if len(data) > ParseLimits().compressed_bytes:
                 raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
+            # 按内容识别资产类型：扩展名与 Content-Type 都不可信。
+            asset = detect_asset(data, content_type=file.content_type)
+            if adapter_for(asset.kind) is None:
+                raise APIError(
+                    422,
+                    "NO_ADAPTER_FOR_ASSET",
+                    f"已识别为 {asset.kind}，当前还没有对应解析器",
+                )
             return data, metadata
     except APIError:
         raise
