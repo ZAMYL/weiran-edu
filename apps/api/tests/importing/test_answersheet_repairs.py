@@ -169,3 +169,112 @@ def test_conflicting_total_score_is_untrusted():
     problem = next(p for p in evidence.problems if p.label == "7-1")
     assert problem.total_score is None
     assert any(d.code == "TOTAL_SCORE_CONFLICT" for d in evidence.diagnostics)
+
+
+def test_unrecognised_block_structure_is_reported():
+    """页面有结论行但题块结构不认识时，不能悄悄少算。"""
+    broken = (
+        "<div class='flex'>"
+        "<div class='flex-none font-medium'>7-1</div>"
+        "<div class='flex-1'><pre class='box'>int main(){}</pre></div>"
+        "<div class='flex-none min-w-[5rem]'><div>答案正确</div><span>5 / 5</span></div>"
+        "</div>"
+    )
+    package = zip_bytes({"包/正式答卷/S001.html": page(blocks=broken)})
+
+    with pytest.raises(ImportFileError):
+        parse_answersheet(package)
+
+
+def test_unrecognised_block_structure_keeps_students_from_other_files():
+    broken = (
+        "<div class='flex'>"
+        "<div class='flex-none font-medium'>7-1</div>"
+        "<div class='flex-1'><pre class='box'>int main(){}</pre></div>"
+        "<div class='flex-none min-w-[5rem]'><div>答案正确</div><span>5 / 5</span></div>"
+        "</div>"
+    )
+    package = zip_bytes(
+        {
+            "包/正式答卷/S001.html": page(),
+            "包/正式答卷/S002.html": page(key="S002", name="吕同学", blocks=broken),
+        }
+    )
+
+    evidence = parse_answersheet(package)
+
+    assert any(
+        d.code == "PROBLEM_BLOCKS_UNRECOGNISED" and d.entry.endswith("S002.html")
+        for d in evidence.diagnostics
+    )
+
+
+def test_unknown_test_status_is_kept_but_marked_unknown():
+    body = (
+        "<div><span>编译器: GXX</span></div>"
+        "<pre class='box'>int main(){}</pre>"
+        f"<table class='result'>{HEADER}<tbody>"
+        "<tr><td>1</td><td>评测机抖动</td><td>5</td><td>2.00 ms</td><td>304 KB</td></tr>"
+        "</tbody></table>"
+    )
+    package = zip_bytes({"包/正式答卷/S001.html": page(blocks=block("7-1", body=body))})
+
+    evidence = parse_answersheet(package)
+    observation = evidence.observations[0]
+
+    assert observation.status == "评测机抖动"
+    assert observation.status_known is False
+    assert any(d.code == "TEST_STATUS_UNRECOGNISED" for d in evidence.diagnostics)
+
+
+def test_same_key_in_student_and_test_group_is_conflicted():
+    """同一考号同时出现在正式答卷与验题目录：无法判断真假，置为待确认。"""
+    package = zip_bytes(
+        {
+            "包/正式答卷/T001.html": page(key="T001", name="叶同学"),
+            "包/验题测试组/T001-copy.html": page(key="T001", name="叶同学"),
+            "包/正式答卷/S001.html": page(),
+        }
+    )
+
+    evidence = parse_answersheet(package)
+
+    skipped = dict(evidence.skipped)
+    assert skipped["包/正式答卷/T001.html"] == "UNKNOWN"
+    assert any(d.code == "PARTICIPANT_ROLE_CONFLICT" for d in evidence.diagnostics)
+    assert [student.participant_key for student in evidence.students] == ["S001"]
+
+
+def test_identical_content_in_two_roles_is_reported_not_excluded():
+    """答案内容相同的复本只提示可疑，不因此否定学生身份。"""
+    copy = page(key="X999", name="复本")
+    package = zip_bytes(
+        {
+            "包/正式答卷/S001.html": page(),
+            "包/验题测试组/复本.html": copy,
+        }
+    )
+
+    evidence = parse_answersheet(package)
+
+    assert [student.participant_key for student in evidence.students] == ["S001"]
+    assert any(d.code == "DUPLICATE_CONTENT_ACROSS_ROLES" for d in evidence.diagnostics)
+
+
+def test_real_official_verdicts_are_recognised():
+    """真实导出里的评测结论都要算已知，不能把段错误/非零返回当成未知。"""
+    for verdict in ("非零返回", "段错误", "运行时错误", "内存超限"):
+        body = (
+            "<div><span>编译器: GXX</span></div>"
+            "<pre class='box'>int main(){}</pre>"
+            f"<table class='result'>{HEADER}<tbody>"
+            f"<tr><td>1</td><td>{verdict}</td><td>0</td><td>2.00 ms</td><td>304 KB</td></tr>"
+            "</tbody></table>"
+        )
+        package = zip_bytes({"包/正式答卷/S001.html": page(blocks=block("7-1", body=body))})
+
+        evidence = parse_answersheet(package)
+
+        assert evidence.observations[0].status == verdict
+        assert evidence.observations[0].status_known is True
+        assert not any(d.code == "TEST_STATUS_UNRECOGNISED" for d in evidence.diagnostics)

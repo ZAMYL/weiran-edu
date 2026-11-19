@@ -35,9 +35,12 @@ _HEADER_LABELS = {
 _STATUS_WORDS = (
     "答案正确",
     "答案错误",
+    "运行时错误",
     "运行超时",
-    "内存超限",
     "运行错误",
+    "内存超限",
+    "段错误",
+    "非零返回",
     "编译错误",
     "格式错误",
     "部分正确",
@@ -141,6 +144,8 @@ class ObservationRecord:
     # 原始文本保留单位与小数位，避免下游只能看到取整后的值
     duration_text: str = ""
     memory_text: str = ""
+    # False 表示状态文本不在已知集合里：下游不得当成通过或失败
+    status_known: bool = True
 
 
 # 题目顺序的依据：来自各文件一致的原始顺序，或结构性排序。
@@ -289,8 +294,34 @@ def parse_answersheet(data: bytes, *, group: str | None = STUDENT_GROUP) -> Answ
     source_indexes: dict[str, int | None] = {}
     candidates = 0
 
+    decisions = {name: _category_of(name, document, group) for name, document in parsed}
+    content_conflicts, key_conflicts = _role_conflicts(parsed, decisions)
+
     for name, document in parsed:
-        material = _category_of(name, document, group)
+        material = decisions[name]
+        if name in key_conflicts:
+            material = MaterialRecord(
+                entry=name,
+                category=CATEGORY_UNKNOWN,
+                basis="conflict:participant_role",
+                signals=material.signals,
+                needs_confirmation=True,
+            )
+            diagnostics.append(
+                Diagnostic(
+                    "PARTICIPANT_ROLE_CONFLICT",
+                    name,
+                    "该考号同时出现在学生与验题/测试资料中，无法确认角色",
+                )
+            )
+        elif name in content_conflicts:
+            diagnostics.append(
+                Diagnostic(
+                    "DUPLICATE_CONTENT_ACROSS_ROLES",
+                    name,
+                    "该文件内容与其他角色的文件完全相同，建议人工核对",
+                )
+            )
         materials.append(material)
         diagnostics.extend(document["diagnostics"])
         if document["student"] is not None and document["problems"]:
@@ -374,6 +405,25 @@ def parse_answersheet(data: bytes, *, group: str | None = STUDENT_GROUP) -> Answ
                         f"该文件识别到 {len(sequence)} 个题块，其他文件为 {most_common}",
                     )
                 )
+
+    # 考号前缀不一致时给出提示：可能是正式学生与测试账号混在一起，
+    # 但仅凭内容无法判定谁是谁，因此只报告、不擅自排除。
+    prefixes: dict[str, int] = {}
+    for key in students:
+        prefix = re.match(r"^(\D*)", key).group(1)
+        prefixes[prefix] = prefixes.get(prefix, 0) + 1
+    if len([prefix for prefix in prefixes if prefix]) > 1:
+        diagnostics.append(
+            Diagnostic(
+                "PARTICIPANT_SERIES_MIXED",
+                None,
+                "考号前缀不一致（"
+                + "，".join(
+                    f"{prefix or '无'}={count}" for prefix, count in sorted(prefixes.items())
+                )
+                + "），可能是学生与测试账号混合，需人工确认",
+            )
+        )
 
     ordered, basis = _order_problems(sequences, totals, source_indexes)
     return AnswerSheetEvidence(
@@ -557,6 +607,47 @@ def _category_of(entry: str, document: dict, group: str | None) -> MaterialRecor
     )
 
 
+def _signature(document: dict) -> tuple:
+    """按题目内容生成指纹，用于发现"同一份答卷出现在不同角色"的情况。"""
+    return tuple(
+        sorted(
+            (problem.label, submission.code or "", submission.verdict or "", submission.score)
+            for problem, submission, _rows, _diagnostics in document["problems"]
+        )
+    )
+
+
+def _role_conflicts(
+    parsed: list[tuple[str, dict]], decisions: dict[str, MaterialRecord]
+) -> tuple[set[str], set[str]]:
+    """找出内容相同却分属不同角色的文件，以及考号跨角色重复的文件。
+
+    内容相同不足以否定学生身份（可能是复本），只做诊断；
+    同一考号同时出现在学生与验题资料里，则无法判断哪一个是真的，置为待确认。
+    """
+    signatures: dict[tuple, list[str]] = {}
+    keys: dict[str, set[str]] = {}
+    for name, document in parsed:
+        student = document["student"]
+        if student is None or not document["problems"]:
+            continue
+        signatures.setdefault(_signature(document), []).append(name)
+        keys.setdefault(student.participant_key, set()).add(decisions[name].category)
+
+    content_conflicts: set[str] = set()
+    for entries in signatures.values():
+        if len({decisions[entry].category for entry in entries}) > 1:
+            content_conflicts.update(entries)
+
+    key_conflicts = {
+        name
+        for name, document in parsed
+        if document["student"] is not None
+        and len(keys.get(document["student"].participant_key, set())) > 1
+    }
+    return content_conflicts, key_conflicts
+
+
 def _parse_document(raw: bytes, entry: str) -> dict:
     try:
         html = raw.decode("utf-8")
@@ -575,8 +666,20 @@ def _parse_document(raw: bytes, entry: str) -> dict:
 
     problems = []
     diagnostics: list[Diagnostic] = []
-    for ordinal, block in enumerate(_problem_blocks(root)):
+    blocks = _problem_blocks(root)
+    for ordinal, block in enumerate(blocks):
         problems.append(_parse_problem(block, ordinal, student, entry))
+
+    # 结论行数应等于识别到的题块数；不等说明有题块结构不认识，不能悄悄少算
+    markers = html.count("min-w-[5rem]")
+    if markers != len(blocks):
+        diagnostics.append(
+            Diagnostic(
+                "PROBLEM_BLOCKS_UNRECOGNISED",
+                entry,
+                f"页面上有 {markers} 个结论行，只识别出 {len(blocks)} 个题块",
+            )
+        )
 
     return {
         "paper_type": paper_type,
@@ -785,6 +888,7 @@ def _observations(
         )
 
     truncated_rows = False
+    unknown_status = 0
     for row_position, cells in enumerate(matrix):
         index_col = columns["index"]
         if len(cells) <= index_col or not cells[index_col].strip().isdigit():
@@ -802,19 +906,24 @@ def _observations(
             truncated_rows = True
             break
         index = int(cells[index_col].strip())
+        status_text = _cell(cells, columns["status"]).strip()
+        status_known = any(word in status_text for word in _STATUS_WORDS)
+        if status_text and not status_known:
+            unknown_status += 1
 
         rows.append(
             ObservationRecord(
                 participant_key=student.participant_key if student else "",
                 problem_label=label,
                 test_index=index,
-                status=_cell(cells, columns["status"]).strip(),
+                status=status_text,
                 score=_int_or_none(_cell(cells, columns["score"])),
                 duration_ms=_duration_ms(_cell(cells, columns["duration"])),
                 memory_kb=_memory_kb(_cell(cells, columns["memory"])),
                 source_row=row_position,
                 duration_text=_cell(cells, columns["duration"]).strip(),
                 memory_text=_cell(cells, columns["memory"]).strip(),
+                status_known=status_known,
             )
         )
     if truncated_rows:
@@ -823,6 +932,14 @@ def _observations(
                 "TEST_ROWS_TRUNCATED",
                 entry,
                 f"题块 {label} 测试行超过 {MAX_OBSERVATIONS_PER_SUBMISSION} 条，后续行未记录",
+            )
+        )
+    if unknown_status:
+        diagnostics.append(
+            Diagnostic(
+                "TEST_STATUS_UNRECOGNISED",
+                entry,
+                f"题块 {label} 有 {unknown_status} 行状态不在已知集合，保留原文并标记未知",
             )
         )
     return rows, diagnostics
