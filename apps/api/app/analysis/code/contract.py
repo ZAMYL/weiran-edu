@@ -86,10 +86,13 @@ class TestPointOutcome(Enum):
 
 @dataclass(frozen=True)
 class TestPointResult:
+    """A point observation. A coarse failure alone cannot identify a C-01 direction."""
+
     __test__ = False  # not a pytest test class
 
     testpoint_id: str
     outcome: TestPointOutcome
+    failure_verdict: Verdict | None = None
 
 
 @dataclass(frozen=True)

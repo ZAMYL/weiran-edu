@@ -3,7 +3,7 @@
 import json
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from hashlib import sha256
 from io import BytesIO
 from typing import cast, get_args
@@ -29,11 +29,12 @@ from app.analysis.code.features import FeatureId
 from app.analysis.code.interop import (
     b01_code_state,
     b01_language,
-    b01_test_point_outcome,
+    b01_test_point_result,
     b01_verdict,
     c01_feature_associations,
     c01_feature_code,
     c01_status,
+    c01_test_point_status,
 )
 from app.analysis.code.results import Analysis
 from app.importing.edu.answersheet import (
@@ -44,22 +45,14 @@ from app.importing.edu.answersheet import (
 )
 
 _FAILURES = frozenset(get_args(FindingStatus))
-_RUNTIME_LABELS = {"运行时错误", "段错误", "非零返回"}
 
 
 def digest(value: bytes) -> str:
     return sha256(value).hexdigest()
 
 
-def normalize_status(raw: str | None) -> str | None:
-    return "运行错误" if raw in _RUNTIME_LABELS else raw
-
-
-def test_status(row: ObservationRecord) -> TestStatus:
-    status = (
-        c01_status(b01_verdict(normalize_status(row.status))) if row.status_known else "unknown"
-    )
-    return cast(TestStatus, status) if status in _FAILURES | {"accepted"} else "unknown"
+def test_point(row: ObservationRecord) -> TestPointResult:
+    return b01_test_point_result(str(row.test_index), row.status if row.status_known else None)
 
 
 @dataclass(frozen=True, repr=False)
@@ -116,7 +109,7 @@ def materialize(blob: bytes, batch: str) -> AcceptedMaterial:
         anchor = f"block/{submission.source_index}"
         location = f"{entry}#{anchor}"
         entry_by_block[subject] = entry, anchor
-        verdict = b01_verdict(normalize_status(submission.verdict))
+        verdict = b01_verdict(submission.verdict)
         verdict_ref = witness(
             subject,
             entry,
@@ -135,8 +128,9 @@ def materialize(blob: bytes, batch: str) -> AcceptedMaterial:
             code_ref = witness(subject, entry, anchor + "/code", "code", None, code)
         point_evidence, points = [], []
         for row in observations.pop(subject, ()):
-            point = str(row.test_index)
-            status = test_status(row)
+            observation = test_point(row)
+            point = observation.testpoint_id
+            status = cast(TestStatus, c01_test_point_status(observation))
             content = json.dumps(
                 [point, row.status, row.score, row.duration_text, row.memory_text],
                 ensure_ascii=False,
@@ -150,14 +144,7 @@ def materialize(blob: bytes, batch: str) -> AcceptedMaterial:
                 content,
             )
             point_evidence.append(TestEvidence(point, status, ref))
-            points.append(
-                TestPointResult(
-                    point,
-                    b01_test_point_outcome(normalize_status(row.status))
-                    if status != "unknown"
-                    else b01_test_point_outcome(None),
-                )
-            )
+            points.append(observation)
         row = SubmissionEvidence(
             person,
             problem,
@@ -191,27 +178,18 @@ def materialize(blob: bytes, batch: str) -> AcceptedMaterial:
         analyze(batch, problem.label, records[problem.label]) for problem in parsed.problems
     )
     for analysis in analyses:
-        cohorts = defaultdict(list)
+        directions: dict[tuple[str | None, str], None] = {}
         problem = analysis.problem_id
+        features = {item.reference.student_id: item.features for item in analysis.submissions}
         for item in analysis.submissions:
             row = by_subject[item.reference.student_id, problem]
             for point in row.tests:
                 if point.status in _FAILURES:
-                    # This local projection describes the test verdict. The original
-                    # DS-03 whole-submission association and its inputs stay intact.
-                    point_status = next(
-                        v for v in type(item.verdict) if c01_status(v) == point.status
-                    )
-                    cohorts[point.point, point.status].append(replace(item, verdict=point_status))
+                    directions[point.point, point.status] = None
             if not row.tests and row.verdict in _FAILURES | {"compile_error"}:
-                cohorts[None, row.verdict].append(item)
-        for (point, status), cohort in cohorts.items():
-            projected = c01_feature_associations(
-                replace(analysis, submissions=tuple(cohort)),
-                status=status,
-                point=point,
-            )
-            features = {item.reference.student_id: item.features for item in cohort}
+                directions[None, row.verdict] = None
+        for point, status in directions:
+            projected = c01_feature_associations(analysis, status=status, point=point)
             for feature in projected:
                 feature_id = next(f for f in FeatureId if c01_feature_code(f) == feature.code)
                 present = []
