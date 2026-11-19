@@ -3,7 +3,7 @@
 import json
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from hashlib import sha256
 from io import BytesIO
 from typing import cast, get_args
@@ -53,6 +53,20 @@ def digest(value: bytes) -> str:
 
 def test_point(row: ObservationRecord) -> TestPointResult:
     return b01_test_point_result(str(row.test_index), row.status if row.status_known else None)
+
+
+def _without_test_points(analysis: Analysis) -> Analysis:
+    """An analysis view limited to no-test-point submissions.
+
+    C-01's ``point=None`` direction is a fallback for failures that carry no
+    per-point evidence; a whole-problem query over the full submission set would
+    otherwise mix in submissions that do have test points.
+    """
+
+    return replace(
+        analysis,
+        submissions=tuple(s for s in analysis.submissions if not s.test_points),
+    )
 
 
 @dataclass(frozen=True, repr=False)
@@ -189,7 +203,8 @@ def materialize(blob: bytes, batch: str) -> AcceptedMaterial:
             if not row.tests and row.verdict in _FAILURES | {"compile_error"}:
                 directions[None, row.verdict] = None
         for point, status in directions:
-            projected = c01_feature_associations(analysis, status=status, point=point)
+            view = _without_test_points(analysis) if point is None else analysis
+            projected = c01_feature_associations(view, status=status, point=point)
             for feature in projected:
                 feature_id = next(f for f in FeatureId if c01_feature_code(f) == feature.code)
                 present = []

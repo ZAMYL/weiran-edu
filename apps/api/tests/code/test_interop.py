@@ -245,6 +245,8 @@ def test_duplicate_participant_has_no_ambiguous_feature_witness(
     analysis = analyze("batch-1", "problem-1", rows)
     with pytest.raises(CodeAnalysisError, match="duplicate_feature_cohort_participant"):
         c01_feature_associations(analysis, point="t1", status="wrong_answer")
+    with pytest.raises(CodeAnalysisError, match="duplicate_feature_cohort_participant"):
+        c01_feature_associations(analysis, status="accepted")
 
 
 # Mirrors ``importing/edu/answersheet.py`` ``_STATUS_WORDS`` at B-01 ``a0d1422``.

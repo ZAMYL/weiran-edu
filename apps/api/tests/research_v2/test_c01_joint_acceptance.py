@@ -29,6 +29,14 @@ from prototypes.research_agent_v2.programming_evidence import (
 )
 
 from app.ai.edu.discovery.models import AgentError, Limits
+from app.analysis.code import (
+    Language,
+    SourceRef,
+    SubmissionRecord,
+    Verdict,
+    analyze,
+    b01_test_point_result,
+)
 from app.analysis.code.features import FeatureId, is_present
 from app.analysis.code.interop import (
     c01_feature_associations,
@@ -38,6 +46,7 @@ from app.analysis.code.interop import (
 from app.importing.edu.answersheet import MAX_CODE_CHARS
 from scripts.c01_joint_acceptance import (
     LocalAcceptanceProvider,
+    _without_test_points,
     digest,
     materialize,
 )
@@ -320,6 +329,39 @@ def make_source(blob: bytes):
     scope = EvidenceScope("local-teacher", "local-task", "local-batch", accepted.snapshot.snapshot)
     provider = LocalAcceptanceProvider(scope, accepted.snapshot, lambda: blob)
     return accepted, ProgrammingSource(scope, provider), provider
+
+
+def test_point_none_fallback_excludes_test_point_submissions() -> None:
+    loop = "for i in range(3):\n    print(i)\n"
+
+    def record(sid: str, tests=()) -> SubmissionRecord:
+        return SubmissionRecord(
+            "b",
+            "p",
+            sid,
+            f"student-{sid}",
+            Language.PYTHON,
+            loop,
+            Verdict.WRONG_ANSWER,
+            tuple(tests),
+            SourceRef("src", sid),
+        )
+
+    rows = [
+        record("A"),  # no test points -> the C-01 fallback participant
+        record("B", (b01_test_point_result("900", "答案错误"),)),
+        record("C", (b01_test_point_result("900", "答案错误"),)),
+    ]
+    analysis = analyze("b", "p", rows)
+
+    fallback = c01_feature_associations(_without_test_points(analysis), status="wrong_answer")
+    loop_feature = next(f for f in fallback if f.code == "loop")
+    assert loop_feature.checked == ("student-A",)
+    assert loop_feature.present == (("student-A", "A"),)
+
+    whole = c01_feature_associations(analysis, status="wrong_answer")
+    whole_loop = next(f for f in whole if f.code == "loop")
+    assert set(whole_loop.checked) == {"student-A", "student-B", "student-C"}
 
 
 def test_zip_distribution_changes_investigation_and_sources(tmp_path: Path):

@@ -198,9 +198,12 @@ def c01_feature_associations(
 ) -> tuple[C01FeatureAssociation, ...]:
     """Project one failure cohort of ``analysis`` into C-01's feature shape.
 
-    Whole-submission cohorts use the verdict. Point cohorts require the exact
-    failure at that point. Coarse FAILED observations still count in DS-03
-    aggregates, but lack the evidence to join a specific C-01 failure cohort.
+    ``point=None`` is a whole-submission query: every submission whose C-01
+    verdict equals ``status``, with or without test points. C-01's
+    no-test-points fallback is the caller's responsibility (pre-filter
+    ``analysis.submissions`` before calling). A point direction requires the
+    exact failure at that point. Coarse FAILED observations still count in
+    DS-03 aggregates, but lack the evidence to join a specific C-01 cohort.
     """
 
     if point is None:
