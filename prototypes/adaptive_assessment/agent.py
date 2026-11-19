@@ -303,6 +303,11 @@ class AdaptiveExecutor:
                 identity = self._identity(calculation)
                 if identity in self.identities:
                     raise AgentError("duplicate_discovery")
+        return self._commit_fact(name, query, projection, sources, staged, calculation, identity)
+
+    def _commit_fact(
+        self, name, query, projection, sources, staged, calculation=None, identity=None
+    ):
         identity_id = f"{self.run_id}-f{len(self.facts) + 1:03}"
         view = wire(
             {
@@ -330,7 +335,7 @@ class AdaptiveExecutor:
                     witness is None
                     or witness.participant_id != pid
                     or witness.item_id != source.item_id
-                    or witness.source_sha256 != self.source.fingerprint
+                    or not self._witness_in_snapshot(witness)
                 ):
                     raise AgentError("source_scope_mismatch")
         fact = AdaptiveFact(
@@ -354,6 +359,9 @@ class AdaptiveExecutor:
         if identity is not None:
             self.identities.add(identity)
         return (fact,)
+
+    def _witness_in_snapshot(self, witness):
+        return witness.source_sha256 == self.source.fingerprint
 
     def _verify(self, fact):
         try:
