@@ -261,3 +261,42 @@ def test_code_keeps_entities_and_inner_whitespace():
 
     # 实体解码成真实字符，内部缩进（含制表符）与换行不被改写
     assert parsed == 'if (a < b && c > d) {\n\treturn "x";\n}'
+
+
+def test_oversized_code_is_marked_not_silently_truncated():
+    package = make_zip({"包/正式答卷/S001.html": student_html(code="x" * 250_000)})
+
+    evidence = parse_answersheet(package)
+    submission = evidence.submissions[0]
+
+    assert submission.code_truncated is True
+    assert len(submission.code or "") == 200_000
+    assert any(d.code == "CODE_TRUNCATED" for d in evidence.diagnostics)
+
+
+def test_oversized_compiler_output_is_marked():
+    package = make_zip({"包/正式答卷/S001.html": student_html(compiler="y" * 250_000)})
+
+    evidence = parse_answersheet(package)
+    submission = evidence.submissions[0]
+
+    assert submission.compiler_output_truncated is True
+    assert len(submission.compiler_output or "") == 200_000
+    assert any(d.code == "COMPILER_OUTPUT_TRUNCATED" for d in evidence.diagnostics)
+
+
+def test_skipped_files_stay_traceable():
+    package = make_zip(
+        {
+            "包/正式答卷/S001.html": student_html(),
+            "包/参考资料/标准答案.html": student_html(verify=True),
+        }
+    )
+
+    evidence = parse_answersheet(package)
+
+    skipped = dict(evidence.skipped)
+    assert skipped["包/参考资料/标准答案.html"] == "STANDARD_ANSWER"
+    material = next(m for m in evidence.materials if m.entry.endswith("标准答案.html"))
+    assert material.category == "STANDARD_ANSWER"
+    assert material.basis == "content:paper_type"
