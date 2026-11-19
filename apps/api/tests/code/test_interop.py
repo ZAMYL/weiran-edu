@@ -32,12 +32,16 @@ _LOOP = "for i in range(10):\n    print(i)\n"
         ("运行超时", Verdict.TIME_LIMIT_EXCEEDED),
         ("内存超限", Verdict.MEMORY_LIMIT_EXCEEDED),
         ("运行错误", Verdict.RUNTIME_ERROR),
+        ("运行时错误", Verdict.RUNTIME_ERROR),
+        ("段错误", Verdict.RUNTIME_ERROR),
+        ("非零返回", Verdict.RUNTIME_ERROR),
         ("格式错误", Verdict.FORMAT_ERROR),
         ("编译错误", Verdict.COMPILE_ERROR),
         ("部分正确", Verdict.PARTIAL),
         ("未作答", Verdict.NOT_ATTEMPTED),
         (None, Verdict.UNKNOWN),
         ("未知状态", Verdict.UNKNOWN),
+        ("评测中", Verdict.UNKNOWN),
     ],
 )
 def test_b01_verdict_mapping(status: str | None, expected: Verdict) -> None:
@@ -52,11 +56,15 @@ def test_b01_verdict_mapping(status: str | None, expected: Verdict) -> None:
         ("运行超时", TestPointOutcome.FAILED),
         ("内存超限", TestPointOutcome.FAILED),
         ("运行错误", TestPointOutcome.FAILED),
+        ("运行时错误", TestPointOutcome.FAILED),
+        ("段错误", TestPointOutcome.FAILED),
+        ("非零返回", TestPointOutcome.FAILED),
         ("格式错误", TestPointOutcome.FAILED),
         ("编译错误", TestPointOutcome.UNKNOWN),
         ("部分正确", TestPointOutcome.UNKNOWN),
         ("未作答", TestPointOutcome.UNKNOWN),
         (None, TestPointOutcome.UNKNOWN),
+        ("评测中", TestPointOutcome.UNKNOWN),
     ],
 )
 def test_b01_test_point_outcome_mapping(status: str | None, expected: TestPointOutcome) -> None:
@@ -178,3 +186,82 @@ def test_c01_feature_associations_point_filter(
     assert recursion.point == "t1"
     assert recursion.checked == ("student-1",)
     assert recursion.present == (("student-1", "1"),)
+
+
+# Mirrors ``importing/edu/answersheet.py`` ``_STATUS_WORDS`` at B-01 ``a0d1422``.
+_B01_CANONICAL_WORDS = (
+    "答案正确",
+    "答案错误",
+    "运行时错误",
+    "运行超时",
+    "运行错误",
+    "内存超限",
+    "段错误",
+    "非零返回",
+    "编译错误",
+    "格式错误",
+    "部分正确",
+    "未作答",
+)
+
+# Mirrors C-01's ``Verdict`` union in ``prototypes/research_agent_v2/programming_evidence.py``.
+_C01_VERDICTS = frozenset(
+    {
+        "accepted",
+        "wrong_answer",
+        "timeout",
+        "memory_limit",
+        "runtime_error",
+        "format_error",
+        "other_failure",
+        "unknown",
+        "not_attempted",
+        "compile_error",
+        "partial",
+    }
+)
+
+
+def test_b01_canonical_words_have_consistent_meaning_across_contracts() -> None:
+    """Every canonical B-01 word maps to a typed verdict whose C-01 status exists."""
+    for word in _B01_CANONICAL_WORDS:
+        verdict = b01_verdict(word)
+        assert verdict is not Verdict.UNKNOWN, word
+        assert c01_status(verdict) in _C01_VERDICTS, word
+
+
+@pytest.mark.parametrize("word", ["运行错误", "运行时错误", "段错误", "非零返回"])
+def test_runtime_family_means_runtime_error_everywhere(word: str) -> None:
+    """The runtime family shares one meaning in B-01, DS-03 and C-01 (PR #112 parity)."""
+    assert b01_verdict(word) is Verdict.RUNTIME_ERROR
+    assert c01_status(b01_verdict(word)) == "runtime_error"
+    assert b01_test_point_outcome(word) is TestPointOutcome.FAILED
+
+
+def test_unrecognized_status_never_enters_statistical_denominators(
+    make_submission: Callable[..., SubmissionRecord],
+) -> None:
+    """Unknown verdict/test statuses stay unknown and out of pass/fail counts."""
+    records = [
+        make_submission("1", _RECURSIVE, b01_verdict("答案错误")),
+        make_submission("2", _LOOP, b01_verdict("答案正确")),
+        make_submission(
+            "3",
+            _LOOP,
+            b01_verdict("评测中"),
+            test_points=(TestPointResult("t1", b01_test_point_outcome("评测中")),),
+        ),
+    ]
+    result = analyze("batch-1", "problem-1", records)
+
+    assert b01_verdict("评测中") is Verdict.UNKNOWN
+    assert c01_status(b01_verdict("评测中")) == "unknown"
+    assert result.outcomes.passed == 1
+    assert result.outcomes.failed == 1
+    assert result.outcomes.other == 1
+    for association in result.associations:
+        contingency = association.contingency
+        # Only the two judged submissions may enter any 2x2 cell.
+        assert contingency.feature_total + contingency.no_feature_total == 2
+    aggregate = next(point for point in result.test_points if point.testpoint_id == "t1")
+    assert (aggregate.passed, aggregate.failed, aggregate.unknown) == (0, 0, 1)
