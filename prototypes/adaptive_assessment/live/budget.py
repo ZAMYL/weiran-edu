@@ -109,6 +109,9 @@ class OfflineSnapshotPermit:
 
         if type(self.source) is not DatabaseSource:
             raise AgentError("offline_database_proof_required")
+        self._check_scope(today)
+
+    def _check_scope(self, today):
         self.source.validate()
         if (
             not 1 <= self.max_requests <= 6
@@ -138,6 +141,21 @@ class OfflineSnapshotPermit:
         )
 
 
+@dataclass(frozen=True)
+class OfflineProgrammingPermit(OfflineSnapshotPermit):
+    """Bind the same offline reservation ledger to one server-side C-01 source."""
+
+    def check(self, today):
+        from prototypes.research_agent_v2.programming_evidence import ProgrammingSource
+
+        if type(self.source) is not ProgrammingSource:
+            raise AgentError("offline_programming_proof_required")
+        self._check_scope(today)
+
+
+_OFFLINE_PERMITS = (OfflineSnapshotPermit, OfflineProgrammingPermit)
+
+
 class CampaignBudget:
     """A trusted operator creates this once. New planners share it, never reconstruct it.
 
@@ -158,14 +176,14 @@ class CampaignBudget:
         today: date | None = None,
     ):
         # Preserve the existing DB-only permit rejection and error contract.
-        if type(authorization) is OfflineSnapshotPermit and origin != "http_mock":
+        if type(authorization) in _OFFLINE_PERMITS and origin != "http_mock":
             raise AgentError("invalid_live_authorization")
         if origin == "synthetic_live":
             deny_live()
         if not (
             type(authorization) is SyntheticLiveAuthorization
             and origin in ("synthetic_live", "http_mock")
-            or type(authorization) is OfflineSnapshotPermit
+            or type(authorization) in _OFFLINE_PERMITS
             and origin == "http_mock"
         ):
             raise AgentError("invalid_live_authorization")
@@ -176,7 +194,7 @@ class CampaignBudget:
         self._today = today if origin == "http_mock" else None
         self.authorization = (
             authorization
-            if type(authorization) is OfflineSnapshotPermit
+            if type(authorization) in _OFFLINE_PERMITS
             else type(authorization).model_validate_json(authorization.model_dump_json())
         )
         self._bound_price = reviewed_price(self.authorization.price_fingerprint)
@@ -229,7 +247,7 @@ class CampaignBudget:
     def _bind_approval(self, directory):
         """One human approval may fund at most one campaign, whatever its campaign id."""
         authorization = self.authorization
-        if self._origin == "http_mock" or type(authorization) is OfflineSnapshotPermit:
+        if self._origin == "http_mock" or type(authorization) in _OFFLINE_PERMITS:
             # Offline rehearsal approvals are placeholders, not human approvals.
             return
         index = directory / _APPROVAL_INDEX_DIRECTORY
@@ -297,7 +315,7 @@ class CampaignBudget:
         if self._closed or self._blocked:
             raise AgentError(self._blocked or "budget_closed")
         a = self.authorization
-        if type(a) is OfflineSnapshotPermit and source is not a.source:
+        if type(a) in _OFFLINE_PERMITS and source is not a.source:
             raise AgentError("offline_source_identity_mismatch")
         self._check_authorization()
         self.price.check(settings.model, settings.base_url, self.today)
