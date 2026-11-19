@@ -19,7 +19,7 @@ MAX_STUDENTS = 2000
 MAX_PROBLEMS = 100
 MAX_OBSERVATIONS_PER_SUBMISSION = 500
 MAX_CODE_CHARS = 200_000
-MAX_COMPILER_OUTPUT_CHARS = 20_000
+MAX_COMPILER_OUTPUT_CHARS = 200_000
 MAX_ENTRY_BYTES = 8 * 1024 * 1024
 
 _HEADER_LABELS = {
@@ -309,14 +309,10 @@ def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvide
     if not students:
         raise ImportFileError("ANSWERSHEET_NO_STUDENT")
 
+    # 题序按首次出现顺序保留；不能按题号字符串排序（7-10 会排到 7-2 前面）。
     ordered = tuple(
-        sorted(
-            (
-                ProblemRecord(label=label, ordinal=index, total_score=problem.total_score)
-                for index, (label, problem) in enumerate(sorted(problems.items()))
-            ),
-            key=lambda item: item.ordinal,
-        )
+        ProblemRecord(label=label, ordinal=index, total_score=problem.total_score)
+        for index, (label, problem) in enumerate(problems.items())
     )
     return AnswerSheetEvidence(
         students=tuple(students.values()),
@@ -486,26 +482,51 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
 
 def _observations(table: _Node, student, label: str) -> list[ObservationRecord]:
     rows: list[ObservationRecord] = []
+    # 列序以表头为准；导出模板调整列顺序时不需要改代码。
+    columns = _column_indexes(table)
+    index_col = columns.get("测试点", 0)
+    status_col = columns.get("结果", 1)
+    score_col = columns.get("测试点得分", 2)
+    time_col = columns.get("耗时", 3)
+    memory_col = columns.get("内存", 4)
     body = next(_nodes(table, tag="tbody"), table)
     for row in _nodes(body, tag="tr"):
         cells = [_text(cell) for cell in row.children if isinstance(cell, _Node)]
-        if len(cells) < 5 or not cells[0].isdigit():
+        if len(cells) <= index_col or not cells[index_col].isdigit():
             continue
-        index = int(cells[0])
+        index = int(cells[index_col])
         if index > MAX_OBSERVATIONS_PER_SUBMISSION:
             continue
+
         rows.append(
             ObservationRecord(
                 participant_key=student.participant_key if student else "",
                 problem_label=label,
                 test_index=index,
-                status=cells[1],
-                score=_int_or_none(cells[2]),
-                duration_ms=_duration_ms(cells[3]),
-                memory_kb=_memory_kb(cells[4]),
+                status=_cell(cells, status_col),
+                score=_int_or_none(_cell(cells, score_col)),
+                duration_ms=_duration_ms(_cell(cells, time_col)),
+                memory_kb=_memory_kb(_cell(cells, memory_col)),
             )
         )
     return rows
+
+
+def _cell(cells: list[str], column: int) -> str:
+    return cells[column] if column < len(cells) else ""
+
+
+def _column_indexes(table: _Node) -> dict[str, int]:
+    """读 thead 的列名；没有表头时返回空字典，调用方用默认顺序兜底。"""
+    head = next(_nodes(table, tag="thead"), None)
+    if head is None:
+        return {}
+    indexes: dict[str, int] = {}
+    for index, header in enumerate(_nodes(head, tag="th")):
+        name = _text(header).strip()
+        if name:
+            indexes.setdefault(name, index)
+    return indexes
 
 
 def _compiler_output(body: _Node) -> str | None:

@@ -11,6 +11,7 @@ from app.importing.edu.answersheet import (
     CATEGORY_STANDARD_ANSWER,
     CATEGORY_STUDENT,
     CATEGORY_TEST_DATA,
+    merge_answersheets,
     parse_answersheet,
 )
 from app.importing.edu.types import ImportFileError
@@ -187,7 +188,52 @@ def test_compiler_output_is_captured_and_normalised():
 
 
 def test_compiler_output_is_capped():
-    huge = "x" * 30_000
+    huge = "x" * 250_000
     package = make_zip({"包/正式答卷/S001.html": student_html(compiler=huge)})
 
-    assert len(parse_answersheet(package).submissions[0].compiler_output) == 20_000
+    assert len(parse_answersheet(package).submissions[0].compiler_output) == 200_000
+
+
+def test_observation_columns_follow_the_header():
+    html = (
+        student_html()
+        .replace(
+            "<table class='result'><tbody>",
+            "<table class='result'><thead><tr><th>测试点</th><th>内存</th><th>耗时</th>"
+            "<th>结果</th><th>测试点得分</th></tr></thead><tbody>",
+        )
+        .replace(
+            "<tr><td>1</td><td>答案正确</td><td>5</td><td>2.00 ms</td><td>304 KB</td></tr>",
+            "<tr><td>1</td><td>304 KB</td><td>2.00 ms</td><td>答案正确</td><td>5</td></tr>",
+        )
+    )
+    package = make_zip({"包/正式答卷/S001.html": html})
+
+    observation = parse_answersheet(package).observations[0]
+
+    assert (observation.test_index, observation.status) == (1, "答案正确")
+    assert (observation.duration_ms, observation.memory_kb) == (2, 304)
+    assert observation.score == 5
+
+
+def test_merge_keeps_first_seen_problem_order():
+    first = parse_answersheet(make_zip({"包/正式答卷/S001.html": student_html(problem="7-10")}))
+    second = parse_answersheet(
+        make_zip({"包/正式答卷/S002.html": student_html(key="S002", name="吕同学", problem="7-2")})
+    )
+
+    merged = merge_answersheets([first, second])
+
+    # 按字符串排序会把 7-10 排到 7-2 前面，这里必须保持出现顺序
+    assert [problem.label for problem in merged.problems] == ["7-10", "7-2"]
+    assert [problem.ordinal for problem in merged.problems] == [0, 1]
+
+
+def test_code_keeps_entities_and_inner_whitespace():
+    code = 'if (a &lt; b &amp;&amp; c &gt; d) {\n\treturn "x";\n}'
+    package = make_zip({"包/正式答卷/S001.html": student_html(code=code)})
+
+    parsed = parse_answersheet(package).submissions[0].code
+
+    # 实体解码成真实字符，内部缩进（含制表符）与换行不被改写
+    assert parsed == 'if (a < b && c > d) {\n\treturn "x";\n}'
