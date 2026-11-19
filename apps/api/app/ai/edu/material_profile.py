@@ -93,11 +93,22 @@ _TOKENS = {
 }
 
 
-def _header_tokens(label: str) -> list[str]:
+_HEADER_ALIASES = {
+    "参赛编号": "考号",
+    "小题代码": "题号",
+    "程序正文": "源代码",
+    "实得分": "得分",
+    "oj verdict": "verdict",
+}
+
+
+def _header_tokens(label: str, *, aliases: bool = True) -> list[str]:
     # Reject the entire label unless each token is from the reviewed vocabulary.
     if len(label) > 64 or not re.fullmatch(r"[a-zA-Z\u4e00-\u9fff _-]+", label):
         return []
-    tokens = re.split(r"[ _-]+", label.strip().lower())
+    normalized = label.strip().lower()
+    hint = _HEADER_ALIASES.get(normalized, normalized) if aliases else normalized
+    tokens = re.split(r"[ _-]+", hint)
     return tokens if all(token in _TOKENS for token in tokens) else []
 
 

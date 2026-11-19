@@ -6,22 +6,14 @@ from collections.abc import Awaitable, Callable
 
 from .material_contract import CapabilityRule, MaterialInput, MaterialPlan, Suggestions
 from .material_planning import DEFAULT_RULES, plan_capabilities
-from .material_profile import build_profile
+from .material_profile import MaterialProfile, build_profile
 from .material_validation import validate_material
 from .qwen import _unique_pairs
 
 SuggestionSender = Callable[[dict], Awaitable[dict]]
 
 
-async def understand_materials(
-    inputs: tuple[MaterialInput, ...],
-    send: SuggestionSender,
-    *,
-    rules: tuple[CapabilityRule, ...] = DEFAULT_RULES,
-) -> MaterialPlan:
-    """`send` may wrap existing post_chat only after admission and budget reservation."""
-    profile = build_profile(inputs)
-    overview = profile.safe()
+def suggestion_payload(profile: MaterialProfile) -> dict:
     payload = {
         "messages": [
             {
@@ -37,7 +29,7 @@ async def understand_materials(
             {
                 "role": "user",
                 "content": json.dumps(
-                    {"overview": overview, "schema": Suggestions.model_json_schema()},
+                    {"overview": profile.safe(), "schema": Suggestions.model_json_schema()},
                     ensure_ascii=False,
                     allow_nan=False,
                 ),
@@ -47,8 +39,19 @@ async def understand_materials(
     }
     if len(json.dumps(payload, ensure_ascii=False).encode()) > 56_000:
         raise ValueError("material_prompt_limit")
+    return payload
+
+
+async def understand_materials(
+    inputs: tuple[MaterialInput, ...],
+    send: SuggestionSender,
+    *,
+    rules: tuple[CapabilityRule, ...] = DEFAULT_RULES,
+) -> MaterialPlan:
+    """`send` may wrap existing post_chat only after admission and budget reservation."""
+    profile = build_profile(inputs)
     async with asyncio.timeout(30):
-        message = await send(payload)
+        message = await send(suggestion_payload(profile))
     raw = (
         message.get("content")
         if isinstance(message, dict) and not message.get("tool_calls")
@@ -62,5 +65,5 @@ async def understand_materials(
         raise ValueError("invalid_material_suggestion") from None
     assessed = validate_material(profile, suggestions)
     return MaterialPlan(
-        assessed, plan_capabilities(profile, assessed, rules), profile.locators, overview
+        assessed, plan_capabilities(profile, assessed, rules), profile.locators, profile.safe()
     )

@@ -1,0 +1,463 @@
+{
+  "cases": [
+    {
+      "error": null,
+      "errors": [],
+      "id": "contest_standard",
+      "masked_gold_fields": [],
+      "prompt_sha256": "04b7e6a3225661ed471a15c6f79388c3dc4889bf0b77de58acfdefe0083442a3",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [],
+        "states": {
+          "candidate": 9
+        },
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 8,
+        "field_total": 8,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 8
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "role_exact": 1,
+        "role_total": 1,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "unknown_abstained": 0,
+        "unknown_total": 0,
+        "unsubstantiated": 0
+      },
+      "split": "development"
+    },
+    {
+      "error": null,
+      "errors": [],
+      "id": "five_dimensions",
+      "masked_gold_fields": [],
+      "prompt_sha256": "c75b74948eb8be3694394dead60515037c90b0c3abf8b4168c2872348f38b9a4",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [],
+        "states": {
+          "candidate": 5
+        },
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 4,
+        "field_total": 4,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 4
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "role_exact": 1,
+        "role_total": 1,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "unknown_abstained": 0,
+        "unknown_total": 0,
+        "unsubstantiated": 0
+      },
+      "split": "holdout"
+    },
+    {
+      "error": null,
+      "errors": [],
+      "id": "custom_synonyms",
+      "masked_gold_fields": [],
+      "prompt_sha256": "600349b31d53d707c0a228881e7aee04dabdc40f1d70092ba8c16989c0628113",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [],
+        "states": {
+          "candidate": 6
+        },
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 5,
+        "field_total": 5,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 5
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "role_exact": 1,
+        "role_total": 1,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "unknown_abstained": 2,
+        "unknown_total": 2,
+        "unsubstantiated": 0
+      },
+      "split": "development"
+    },
+    {
+      "error": null,
+      "errors": [],
+      "id": "paired_non_five",
+      "masked_gold_fields": [],
+      "prompt_sha256": "0f1ce9b34bf134dd9fcf961995017c9511ba89f8aebe45cb5480a39cd703a945",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [
+          "needs_confirmation"
+        ],
+        "states": {
+          "candidate": 9,
+          "needs_confirmation": 1
+        },
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 7,
+        "field_total": 7,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 7
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "role_exact": 2,
+        "role_total": 2,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "unknown_abstained": 0,
+        "unknown_total": 0,
+        "unsubstantiated": 0
+      },
+      "split": "development"
+    },
+    {
+      "error": null,
+      "errors": [
+        {
+          "kind": "link",
+          "reason": "wrong_or_unproved_link",
+          "ref": [
+            "F2.T1.C1",
+            "F1.T1.C1",
+            "many_to_one"
+          ]
+        },
+        {
+          "kind": "link",
+          "reason": "gold_not_recovered",
+          "ref": [
+            "F1.T1.C1",
+            "F2.T1.C1",
+            "many_to_one"
+          ]
+        }
+      ],
+      "id": "duplicate_and_missing",
+      "masked_gold_fields": [],
+      "prompt_sha256": "19107eb2186aeb86436026f14038588e99d73b5a6973b9f747ba7398d514a6fe",
+      "safety": {
+        "field_review": {
+          "F2.T1.C3": "unsupported"
+        },
+        "link_reviews": [
+          "not_proposed"
+        ],
+        "states": {
+          "candidate": 6,
+          "needs_confirmation": 2,
+          "unsupported": 1
+        },
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 6,
+        "field_total": 6,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 6
+        },
+        "links": {
+          "fn": 1,
+          "fp": 1,
+          "tp": 0
+        },
+        "role_exact": 2,
+        "role_total": 2,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 2
+        },
+        "unknown_abstained": 0,
+        "unknown_total": 0,
+        "unsubstantiated": 1
+      },
+      "split": "holdout"
+    },
+    {
+      "error": null,
+      "errors": [],
+      "id": "masked_numeric_ambiguity",
+      "masked_gold_fields": [],
+      "prompt_sha256": "754d780eb7e8d364f901d9c5ca7d9bb4c4790a6d11217493430ede644e77be04",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [],
+        "states": {},
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 0,
+        "field_total": 0,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "role_exact": 0,
+        "role_total": 0,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "unknown_abstained": 5,
+        "unknown_total": 5,
+        "unsubstantiated": 0
+      },
+      "split": "holdout"
+    },
+    {
+      "error": null,
+      "errors": [],
+      "id": "unsafe_and_partial",
+      "masked_gold_fields": [],
+      "prompt_sha256": "d2946136409239cec3b9f3a1ece8b433933b465ba7e72931a111ace92d8a3ef5",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [],
+        "states": {
+          "candidate": 4
+        },
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 3,
+        "field_total": 3,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 3
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "role_exact": 1,
+        "role_total": 1,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 1
+        },
+        "unknown_abstained": 1,
+        "unknown_total": 1,
+        "unsubstantiated": 0
+      },
+      "split": "holdout"
+    },
+    {
+      "error": null,
+      "errors": [],
+      "id": "unsupported_text",
+      "masked_gold_fields": [],
+      "prompt_sha256": "e633dd0c9f5caa1a79b25648cdf6c887b8227dc39641ce03d08aabbec8fc65f6",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [],
+        "states": {},
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 0,
+        "field_total": 0,
+        "fields": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "role_exact": 0,
+        "role_total": 0,
+        "roles": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "unknown_abstained": 0,
+        "unknown_total": 0,
+        "unsubstantiated": 0
+      },
+      "split": "holdout"
+    },
+    {
+      "error": null,
+      "errors": [
+        {
+          "kind": "role",
+          "reason": "gold_not_recovered",
+          "ref": "F1.T1"
+        },
+        {
+          "kind": "field",
+          "reason": "gold_not_recovered",
+          "ref": "F1.T1.C1"
+        },
+        {
+          "kind": "field",
+          "reason": "gold_not_recovered",
+          "ref": "F1.T1.C2"
+        },
+        {
+          "kind": "field",
+          "reason": "gold_not_recovered",
+          "ref": "F1.T1.C3"
+        },
+        {
+          "kind": "field",
+          "reason": "gold_not_recovered",
+          "ref": "F1.T1.C4"
+        }
+      ],
+      "id": "opaque_school_holdout",
+      "masked_gold_fields": [
+        "F1.T1.C1",
+        "F1.T1.C2",
+        "F1.T1.C3",
+        "F1.T1.C4"
+      ],
+      "prompt_sha256": "055f22bf9dc3919ed004f8683346ee35a330daed740ba799f3e205265eb93ef3",
+      "safety": {
+        "field_review": {},
+        "link_reviews": [],
+        "states": {},
+        "without_authority_available": [],
+        "without_authority_confirmed": 0
+      },
+      "score": {
+        "field_exact": 0,
+        "field_total": 4,
+        "fields": {
+          "fn": 4,
+          "fp": 0,
+          "tp": 0
+        },
+        "links": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 0
+        },
+        "role_exact": 0,
+        "role_total": 1,
+        "roles": {
+          "fn": 1,
+          "fp": 0,
+          "tp": 0
+        },
+        "unknown_abstained": 3,
+        "unknown_total": 3,
+        "unsubstantiated": 0
+      },
+      "split": "holdout"
+    }
+  ],
+  "dataset_sha256": "7bcaf8714ad157063f9b979a3314cd7946fa9bcc58ee35f722daadfc759c920a",
+  "live_model": {
+    "calls": null,
+    "quality": null,
+    "status": "not_run"
+  },
+  "metrics": {
+    "field_exact_accuracy": 0.8918918918918919,
+    "fields": {
+      "fn": 4,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.8918918918918919,
+      "tp": 33
+    },
+    "links": {
+      "fn": 1,
+      "fp": 1,
+      "precision": 0.5,
+      "recall": 0.5,
+      "tp": 1
+    },
+    "response_errors": {},
+    "role_exact_accuracy": 0.8888888888888888,
+    "roles": {
+      "fn": 1,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.8888888888888888,
+      "tp": 8
+    },
+    "unknown_abstained": 11,
+    "unknown_total": 11,
+    "unsubstantiated": 1
+  },
+  "origin": "deterministic_rules",
+  "split": "all"
+}
