@@ -208,7 +208,11 @@ def test_c01_feature_associations_point_filter(
     assert recursion.present == (("student-1", "1"),)
     runtime = c01_feature_associations(result, status="runtime_error", point="t1")
     assert next(f for f in runtime if f.code == "recursion").checked == ("student-3",)
-    assert not any(f.checked for f in c01_feature_associations(result, status="wrong_answer"))
+    # point=None is a whole-problem query by verdict, not a no-test-point fallback.
+    whole = c01_feature_associations(result, status="wrong_answer")
+    whole_recursion = next(f for f in whole if f.code == "recursion")
+    assert whole_recursion.checked == ("student-2", "student-3", "student-4", "student-5")
+    assert whole_recursion.present == (("student-2", "2"), ("student-4", "4"), ("student-5", "5"))
     compile_error = c01_feature_associations(result, status="compile_error")
     assert next(f for f in compile_error if f.code == "recursion").checked == ("student-6",)
     assert result.outcomes.failed == 4  # Whole-submission counts retain their original meaning.
