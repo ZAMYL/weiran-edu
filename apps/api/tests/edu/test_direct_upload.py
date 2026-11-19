@@ -2,7 +2,7 @@
 
 from hashlib import sha256
 from io import BytesIO
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
 
 import pytest
 
@@ -281,7 +281,10 @@ def zip_with_html() -> bytes:
     """造一个只含 HTML 的 ZIP：内容确实是 zip_html，不是 xlsx。"""
     stream = BytesIO()
     with ZipFile(stream, "w") as archive:
-        archive.writestr("index.html", "<html><body>合成答题卡</body></html>")
+        archive.writestr(
+            ZipInfo("index.html", date_time=(1980, 1, 1, 0, 0, 0)),
+            "<html><body>合成答题卡</body></html>",
+        )
     return stream.getvalue()
 
 
@@ -292,9 +295,9 @@ PDF_DOC = b"%PDF-1.7\n% synthetic\n"
 @pytest.mark.parametrize(
     ("filename", "payload", "kind"),
     [
-        ("合成资料.zip", zip_with_html(), "zip_html"),
-        ("合成资料.html", HTML_DOC, "html"),
-        ("合成资料.pdf", PDF_DOC, "pdf"),
+        pytest.param("合成资料.zip", zip_with_html(), "zip_html", id="zip_html"),
+        pytest.param("合成资料.html", HTML_DOC, "html", id="html"),
+        pytest.param("合成资料.pdf", PDF_DOC, "pdf", id="pdf"),
     ],
 )
 def test_recognised_containers_without_adapter_are_rejected(

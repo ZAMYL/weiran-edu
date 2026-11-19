@@ -4,7 +4,7 @@
 """
 
 from io import BytesIO
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
 
 import pytest
 
@@ -26,10 +26,11 @@ from app.importing.edu.detect import (
 
 
 def zip_bytes(entries: dict[str, bytes]) -> bytes:
+    """固定时间戳生成 ZIP：字节必须可复现，否则参数 ID 每次都变。"""
     stream = BytesIO()
     with ZipFile(stream, "w") as archive:
         for name, payload in entries.items():
-            archive.writestr(name, payload)
+            archive.writestr(ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), payload)
     return stream.getvalue()
 
 
@@ -55,6 +56,21 @@ DOCX_BYTES = zip_bytes({"word/document.xml": b"<document/>"})
         (b"\x00\x01\x02\x03", UNKNOWN),
         (b"", UNKNOWN),
         (b"PK\x03\x04not really a zip", UNKNOWN),
+    ],
+    ids=[
+        "xlsx",
+        "zip_html",
+        "zip_other",
+        "docx",
+        "html",
+        "pdf",
+        "png",
+        "xls",
+        "csv",
+        "txt",
+        "binary",
+        "empty",
+        "zip_magic_only",
     ],
 )
 def test_detect_by_content(payload, kind):
