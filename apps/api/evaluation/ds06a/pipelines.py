@@ -100,28 +100,23 @@ def _record(case: Case, row: dict) -> SubmissionRecord:
         language=_LANGUAGES[row["language"]],
         source_code=row["code"] or "",
         verdict=_VERDICTS[row["verdict"]],
-        test_points=tuple(
-            TestPointResult(test["point"], _test_outcome(test["status"])) for test in row["tests"]
-        ),
+        test_points=tuple(_test_point(test["point"], test["status"]) for test in row["tests"]),
         source=SourceRef(row["source_id"], row["location"]),
         code_state=_CODE_STATES[row["code_state"]],
         code_truncated=row["code_truncated"],
     )
 
 
-def _test_outcome(status: str) -> TestPointOutcome:
+def _test_point(point: str, status: str) -> TestPointResult:
     if status == "accepted":
-        return TestPointOutcome.PASSED
-    if status in {
-        "wrong_answer",
-        "timeout",
-        "memory_limit",
-        "runtime_error",
-        "format_error",
-        "other_failure",
-    }:
-        return TestPointOutcome.FAILED
-    return TestPointOutcome.UNKNOWN
+        return TestPointResult(point, TestPointOutcome.PASSED)
+    verdict = _VERDICTS.get(status, Verdict.UNKNOWN)
+    if verdict.is_failure:
+        return TestPointResult(point, TestPointOutcome.FAILED, failure_verdict=verdict)
+    if status == "other_failure":
+        # The observation supports a coarse failure but no exact DS-03 failure category.
+        return TestPointResult(point, TestPointOutcome.FAILED)
+    return TestPointResult(point, TestPointOutcome.UNKNOWN)
 
 
 def _collect_analysis(result: dict, analysis) -> None:

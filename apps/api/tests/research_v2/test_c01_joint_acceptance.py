@@ -30,7 +30,11 @@ from prototypes.research_agent_v2.programming_evidence import (
 
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.analysis.code.features import FeatureId, is_present
-from app.analysis.code.interop import c01_feature_associations, c01_feature_code
+from app.analysis.code.interop import (
+    c01_feature_associations,
+    c01_feature_code,
+    c01_test_point_status,
+)
 from app.importing.edu.answersheet import MAX_CODE_CHARS
 from scripts.c01_joint_acceptance import (
     LocalAcceptanceProvider,
@@ -38,7 +42,7 @@ from scripts.c01_joint_acceptance import (
     materialize,
 )
 from scripts.c01_joint_acceptance import (
-    test_status as observed_status,
+    test_point as observed_test_point,
 )
 
 RAW_FAILURES = {
@@ -385,32 +389,75 @@ def test_zip_distribution_changes_investigation_and_sources(tmp_path: Path):
         assert index.excluded_count == 15
         # The five partial verdicts lie outside the whole-submission 2x2 population.
         assert index.contingency.failed_total + index.contingency.passed_total == 20
-        # Reproduce the unadapted interface failure on the same parsed ZIP.
-        original = c01_feature_associations(a, point="900", status="wrong_answer")
-        old = next(f for f in original if f.code == "indexing")
-        assert (len(old.checked), len(old.present)) == (5, 0)
-        assert len(executor.resolve(run.facts[1].fact_id, "indexing.present")) == 5
-        print("unadapted indexing checked/present=5/0, aligned=10/5")
+        projected = c01_feature_associations(a, point="900", status="wrong_answer")
+        indexing = next(f for f in projected if f.code == "indexing")
+        checked = executor.resolve(run.facts[1].fact_id, "indexing.checked")
+        present = executor.resolve(run.facts[1].fact_id, "indexing.present")
+        assert len(checked) == len(indexing.checked) == 10
+        assert len(present) == len(indexing.present) == 5
+        assert {w.participant_id for w in checked} == set(indexing.checked)
+        assert {w.participant_id for w in present} == {p for p, _ in indexing.present}
+        assert {w.kind for w in checked} == {"code"}
+        assert {w.kind for w in present} == {"feature"}
         fact = run.facts[1].fact_id
         for key in ("actor", "batch", "task", "snapshot"):
             with pytest.raises(AgentError, match="access_denied"):
                 ProgrammingSource(replace(source.scope, **{key: "wrong"}), provider)
         other = ProgrammingExecutor(source, "separate-run", Limits(), source.material.problems)
         with pytest.raises(AgentError, match="unknown_fact_id"):
-            other.resolve(fact, "D1.coverage")
+            other.resolve(fact, "indexing.present")
+        newer_zip = BytesIO(blob)
+        with ZipFile(newer_zip, "a") as archive:
+            archive.comment = b"new snapshot, same participants and observations"
+        newer_blob = newer_zip.getvalue()
+        newer = materialize(newer_blob, source.scope.batch)
+        newer_scope = replace(source.scope, task="next-task", snapshot=newer.snapshot.snapshot)
+        newer_provider = LocalAcceptanceProvider(
+            newer_scope, newer.snapshot, lambda newer_blob=newer_blob: newer_blob
+        )
+        newer_source = ProgrammingSource(newer_scope, newer_provider)
+        newer_executor = ProgrammingExecutor(
+            newer_source, "next-run", Limits(), newer_source.material.problems
+        )
+        with pytest.raises(AgentError, match="unknown_fact_id"):
+            newer_executor.resolve(fact, "indexing.present")
+        assert present[0].reference_id not in {
+            w.reference_id for w in newer_source.material.witnesses
+        }
+        altered_features = tuple(
+            replace(
+                item, present=((item.present[0][0], present[0].reference_id), *item.present[1:])
+            )
+            if item.point == "900" and item.status == "wrong_answer" and item.code == "indexing"
+            else item
+            for item in newer.snapshot.features
+        )
+        newer_provider.snapshot = replace(newer.snapshot, features=altered_features)
+        altered_source = ProgrammingSource(newer_scope, newer_provider)
+        altered_executor = ProgrammingExecutor(
+            altered_source, "altered-run", Limits(), altered_source.material.problems
+        )
+        (overview,) = altered_executor.execute(OVERVIEW, altered_executor.parse(OVERVIEW, {}))
+        with pytest.raises(AgentError, match="source_scope_mismatch"):
+            altered_executor.execute(
+                INSPECT,
+                altered_executor.parse(
+                    INSPECT, {"overview_id": overview.fact_id, "direction": "D1"}
+                ),
+            )
         original_source = provider.read_bytes
         provider.read_bytes = lambda blob=blob: blob + b"changed"
         with pytest.raises(AgentError, match="source_validation_failed"):
-            executor.resolve(fact, "D1.coverage")
+            executor.resolve(fact, "indexing.present")
         provider.read_bytes = original_source
         original_scope = provider.scope
         provider.scope = replace(original_scope, task="replacement-task")
         with pytest.raises(AgentError, match="access_denied"):
-            executor.resolve(fact, "D1.coverage")
+            executor.resolve(fact, "indexing.present")
         provider.scope = original_scope
         provider.details_allowed = False
         with pytest.raises(AgentError, match="access_denied"):
-            executor.resolve(fact, "D1.coverage")
+            executor.resolve(fact, "indexing.checked")
         provider.details_allowed = True
         original_snapshot = provider.snapshot
         provider.snapshot = replace(original_snapshot, witnesses=original_snapshot.witnesses[:-1])
@@ -490,7 +537,9 @@ def verify_local_redacted_zip(path: Path, tmp_path: Path) -> None:
         original = student_files[s.source_entry][1][s.source_index]["rows"][t.source_row]
         if (str(t.test_index), t.status, str(t.score), t.duration_text, t.memory_text) != original:
             pytest.fail("DS-02 test row source or field mismatch", pytrace=False)
-        assert observed_status(t) == RAW_FAILURES.get(original[1], "unknown")
+        assert c01_test_point_status(observed_test_point(t)) == RAW_FAILURES.get(
+            original[1], "unknown"
+        )
     verify_witnesses(accepted, blob)
     terms = tuple(p for p in expected_students if len(p) >= 8)
     run, executor, decisions = trace(

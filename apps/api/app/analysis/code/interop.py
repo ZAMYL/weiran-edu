@@ -17,18 +17,34 @@ Three gaps are bridged here:
 
 from dataclasses import dataclass
 
-from .contract import CodeState, Language, TestPointOutcome, Verdict
+from .contract import (
+    CodeAnalysisError,
+    CodeState,
+    Language,
+    TestPointOutcome,
+    TestPointResult,
+    Verdict,
+)
 from .features import FeatureId, is_present
 from .results import Analysis
 
 # B-01 answer-sheet status words -> this kernel's verdicts. The words are the
-# canonical values emitted by ``importing/edu/answersheet.py``.
+# canonical values emitted by ``importing/edu/answersheet.py`` (``_STATUS_WORDS``,
+# including the runtime family added at B-01 ``a0d1422``). The runtime family
+# (``运行时错误`` / ``段错误`` / ``非零返回``) shares one meaning with ``运行错误``:
+# a runtime failure. This is the same mapping PR #112's acceptance script applied
+# via its private ``normalize_status`` shim, now owned by this formal adapter so
+# integrations no longer need a per-consumer shim. Unlisted text stays ``UNKNOWN``
+# and is never reclassified as compile/runtime failure or success.
 _B01_VERDICT: dict[str, Verdict] = {
     "答案正确": Verdict.ACCEPTED,
     "答案错误": Verdict.WRONG_ANSWER,
     "运行超时": Verdict.TIME_LIMIT_EXCEEDED,
     "内存超限": Verdict.MEMORY_LIMIT_EXCEEDED,
     "运行错误": Verdict.RUNTIME_ERROR,
+    "运行时错误": Verdict.RUNTIME_ERROR,
+    "段错误": Verdict.RUNTIME_ERROR,
+    "非零返回": Verdict.RUNTIME_ERROR,
     "格式错误": Verdict.FORMAT_ERROR,
     "编译错误": Verdict.COMPILE_ERROR,
     "部分正确": Verdict.PARTIAL,
@@ -37,7 +53,18 @@ _B01_VERDICT: dict[str, Verdict] = {
 
 # Status words that mean a clean per-test-point failure (the rest are ambiguous
 # at the test-point level, e.g. "编译错误" is a whole-submission outcome).
-_B01_TESTPOINT_FAILURES = frozenset({"答案错误", "运行超时", "内存超限", "运行错误", "格式错误"})
+_B01_TESTPOINT_FAILURES = frozenset(
+    {
+        "答案错误",
+        "运行超时",
+        "内存超限",
+        "运行错误",
+        "运行时错误",
+        "段错误",
+        "非零返回",
+        "格式错误",
+    }
+)
 
 # This kernel's verdicts -> C-01 status strings (``programming_evidence.py``).
 _VERDICT_TO_C01: dict[Verdict, str] = {
@@ -89,6 +116,13 @@ def b01_test_point_outcome(status: str | None) -> TestPointOutcome:
     return TestPointOutcome.UNKNOWN
 
 
+def b01_test_point_result(point: str, status: str | None) -> TestPointResult:
+    """Keep the point's exact failure alongside its coarse statistical outcome."""
+    outcome = b01_test_point_outcome(status)
+    failure = b01_verdict(status) if outcome is TestPointOutcome.FAILED else None
+    return TestPointResult(point, outcome, failure)
+
+
 def b01_language(label: str | None) -> Language | None:
     """Map a B-01 compiler label (``编译器: GXX``) to a supported language.
 
@@ -127,6 +161,14 @@ def c01_status(verdict: Verdict) -> str:
     return _VERDICT_TO_C01[verdict]
 
 
+def c01_test_point_status(point: TestPointResult) -> str:
+    if point.outcome is TestPointOutcome.PASSED:
+        return "accepted"
+    if point.outcome is TestPointOutcome.FAILED and point.failure_verdict is not None:
+        return c01_status(point.failure_verdict)
+    return "unknown"
+
+
 def c01_feature_code(feature: FeatureId) -> str | None:
     return _C01_FEATURE_CODE.get(feature)
 
@@ -156,24 +198,33 @@ def c01_feature_associations(
 ) -> tuple[C01FeatureAssociation, ...]:
     """Project one failure cohort of ``analysis`` into C-01's feature shape.
 
-    The cohort is every submission whose C-01 status equals ``status`` (and, when
-    ``point`` is given, that also failed that test point). For each whitelisted
-    feature, ``checked`` lists cohort participants with a known feature value and
-    ``present`` lists those where the feature is present.
+    A point direction requires a matching failure on that exact point. Whole-
+    submission verdicts apply only to C-01's fallback when no points were observed.
+    Unknown and unclassified point outcomes cannot establish a failure direction.
     """
 
-    cohort = [
-        submission
-        for submission in analysis.submissions
-        if c01_status(submission.verdict) == status
-        and (
-            point is None
-            or any(
-                test.testpoint_id == point and test.outcome is TestPointOutcome.FAILED
-                for test in submission.test_points
+    if point is None:
+        cohort = [
+            row
+            for row in analysis.submissions
+            if not row.test_points
+            and (row.verdict.is_failure or row.verdict is Verdict.COMPILE_ERROR)
+            and c01_status(row.verdict) == status
+        ]
+    else:
+        cohort = [
+            row
+            for row in analysis.submissions
+            if any(
+                test.testpoint_id == point
+                and test.outcome is TestPointOutcome.FAILED
+                and test.failure_verdict is not None
+                and c01_test_point_status(test) == status
+                for test in row.test_points
             )
-        )
-    ]
+        ]
+    if len({row.reference.student_id for row in cohort}) != len(cohort):
+        raise CodeAnalysisError("duplicate_feature_cohort_participant")
     associations = []
     for feature in FeatureId:
         code = c01_feature_code(feature)
