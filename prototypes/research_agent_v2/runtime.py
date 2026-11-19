@@ -109,7 +109,7 @@ class ResearchExecutor(AdaptiveExecutor):
         key = self._ledger_key()
         if key == self._verified_ledger:
             return
-        replay = AdaptiveExecutor(self.source, self.run_id, self.limits)
+        replay = self._replay_executor()
         for original in self.facts.values():
             fresh = replay.execute(
                 original.tool, replay.parse(original.tool, original.query["arguments"])
@@ -119,7 +119,14 @@ class ResearchExecutor(AdaptiveExecutor):
                 raise AgentError("source_validation_failed")
         if replay.released != self.released or replay.output_bytes != self.output_bytes:
             raise AgentError("disclosure_history_mismatch")
+        self._verify_replayed_state(replay)
         self._verified_ledger = key
+
+    def _verify_replayed_state(self, replay):
+        pass
+
+    def _replay_executor(self):
+        return AdaptiveExecutor(self.source, self.run_id, self.limits)
 
     def _verify(self, fact):
         # Always recheck the requested Fact's own hashes/calculation. Only the
