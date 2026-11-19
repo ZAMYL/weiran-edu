@@ -30,14 +30,22 @@ class Language(Enum):
 
 
 class Verdict(Enum):
-    """A judge result. ``UNKNOWN`` means no judge evidence was supplied."""
+    """A judge result. ``UNKNOWN`` means no judge evidence was supplied.
+
+    The set mirrors B-01's answer-sheet status words and C-01's status union so a
+    submission can be classified into success / failure / other without a lossy
+    string compare at the call site.
+    """
 
     ACCEPTED = "accepted"
     WRONG_ANSWER = "wrong_answer"
     RUNTIME_ERROR = "runtime_error"
     TIME_LIMIT_EXCEEDED = "time_limit_exceeded"
     MEMORY_LIMIT_EXCEEDED = "memory_limit_exceeded"
+    FORMAT_ERROR = "format_error"
     COMPILE_ERROR = "compile_error"
+    PARTIAL = "partial"
+    NOT_ATTEMPTED = "not_attempted"
     UNKNOWN = "unknown"
 
     @property
@@ -51,6 +59,7 @@ class Verdict(Enum):
             Verdict.RUNTIME_ERROR,
             Verdict.TIME_LIMIT_EXCEEDED,
             Verdict.MEMORY_LIMIT_EXCEEDED,
+            Verdict.FORMAT_ERROR,
         )
 
 

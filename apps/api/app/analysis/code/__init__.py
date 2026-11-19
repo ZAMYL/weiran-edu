@@ -36,6 +36,15 @@ from .features import (
     is_present,
     presence_threshold,
 )
+from .interop import (
+    C01FeatureAssociation,
+    b01_language,
+    b01_test_point_outcome,
+    b01_verdict,
+    c01_feature_associations,
+    c01_feature_code,
+    c01_status,
+)
 from .languages import CppExtractor, PythonExtractor, extractor_for
 from .results import (
     Analysis,
@@ -48,6 +57,7 @@ from .results import (
 __all__ = [
     "Analysis",
     "AssociationState",
+    "C01FeatureAssociation",
     "CodeAnalysisError",
     "Confidence",
     "Contingency",
@@ -74,6 +84,12 @@ __all__ = [
     "TestPointResult",
     "Verdict",
     "analyze",
+    "b01_language",
+    "b01_test_point_outcome",
+    "b01_verdict",
+    "c01_feature_associations",
+    "c01_feature_code",
+    "c01_status",
     "extractor_for",
     "is_present",
     "presence_threshold",
