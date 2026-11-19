@@ -1,7 +1,7 @@
 # B-03 交付说明：可信证据持久化与查询
 
 - 分支：`feat/b03-evidence-provenance`（从 `a0d1422` 切出，PR #105 的 HEAD）
-- 堆叠：Draft PR，base `feat/generic-extraction`；不改 PR #105、不改 main
+- PR：[#120](https://github.com/ZAMYL/weiran-edu/pull/120)（**Draft**），base `feat/generic-extraction`，head `19b2b62d4882022c615c1e1df400c288f90a6a49`；不改 PR #105、不改 main
 - 负责人：彭仲楷 ｜ 日期：2026-11-19
 - 边界遵守：未重写解析器、未做 B-02 表格关联、未改 DS-03 / C-01 / 前端 / Live Worker；真实学生资料未上传仓库，测试全部为合成样本
 
@@ -63,7 +63,8 @@
 ## 4. 测试与检查
 
 - 新增测试：`tests/storage/test_migration_009.py`（旧库升级/约束/幂等）、`tests/edu/test_assessment_provenance.py`（字段对账/重启回读/权限与来源反例/整批回滚/小数毫秒）、`tests/edu/test_pattern_statistics.py`（五桶口径/满分冲突/待确认/下钻过滤）、`tests/importing/test_status_classification.py`（分类与耗时解析）、合成样本 `tests/edu/answersheet_samples.py`
-- 既有断言更新：`test_assessment_api.py` 的观测字典补上新字段；`test_database.py` 的迁移计数 8 → 9
+- 既有断言更新：`test_assessment_api.py` 的观测字典补上新字段；`test_database.py` 的迁移计数 8 → 9；`test_reviewed_results.py` 与 `test_snapshot_integrity.py` 的旧库模拟同步拆除 009 新表、迁移计数改为 9
+
 ### 验证记录（2026-11-19，Linux，Python 3.12）
 
 | 检查 | 结果 |
@@ -73,7 +74,7 @@
 | 其中 B-03 定向（来源/统计/迁移/既有评估与适配器） | 299 passed，17.61s |
 | 旧库升级回归（`test_reviewed_results`、`test_snapshot_integrity`） | 50 passed；两处旧库模拟已同步拆除 009 新表、迁移计数改为 9 |
 | HTTP + 关库重开实测 | 见第 3 节，全部符合预期 |
-| GitHub Actions | 以 PR 页面实际状态为准 |
+| GitHub Actions | **未触发**：`.github/workflows/ci.yml` 只在 `pull_request → main`、`push → main` 或手动 `workflow_dispatch` 时运行；本 PR base 是 `feat/generic-extraction`，因此 PR #120 的 check runs 为 0。需要 CI 证据时手动触发一次 `workflow_dispatch`，或等 #105 合入 main 后由上游 CI 覆盖 |
 
 过程记录：第一轮全量为 871 passed / 2 failed，失败的是两个"模拟旧库"的测试——它们只拆掉 004–008 的表，没有拆 009 的新表；修复后第二轮全量 873 passed。
 
