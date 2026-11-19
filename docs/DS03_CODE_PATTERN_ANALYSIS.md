@@ -98,14 +98,16 @@ language, source_code, verdict, test_points, source, code_state, code_truncated)
 
 ```bash
 cd apps/api
-uv run --locked pytest -q tests/code          # 72 passed
-uv run --locked ruff check .                    # 通过
-uv run --locked ruff format --check .           # 通过
+uv run --locked pytest -q tests/code                          # 84 passed
+uv run --locked pytest -q tests/test_windows_shard_plan.py    # 4 passed
+uv run --locked ruff check .                                  # 通过
+uv run --locked ruff format --check .                         # 通过
 ```
 
 测试覆盖：控制流/函数/递归识别、循环嵌套、容器/索引、I/O、注释干扰、缺源码/语法错、测试点
-分布、极少样本、重复提交与身份不一致、B-01/C-01 映射。当前为合成小代码片段；真实资料联合验收
-待 B-01 验收版落地后执行。
+分布、极少样本、重复提交与身份不一致、B-01/C-01 映射、代码缺失/截断/未知语言的排除。Windows
+分片规划器回归覆盖每个目录恰好分配一次、未知/重叠目录仍被拒绝。当前为合成小代码片段；真实资料
+联合验收待 B-01 验收版落地后执行。
 
 ## 七、已知限制
 
