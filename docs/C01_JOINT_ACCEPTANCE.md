@@ -51,7 +51,7 @@ GitHub PR 接口和实际 fetch 确认 #105 已从提示中的 6e39de7 更新至
 ## 最小适配及归属
 
 - scripts/c01_joint_acceptance.py（位于 apps/api）使用 B-01 和 DS-03 既有接口。本地对编译器别名和三种运行错误状态做明确转换，过渡到 C-01 时按实际测试点状态划分群体。DS-03 的整题关联计算沿用原实现。
-- tests/research_v2/test_c01_joint_acceptance.py（位于 apps/api）补上从原始 ZIP 到完整工具轨迹的回归。实际脱敏样本通过本机环境变量接入，常规 CI 自动跳过私有数据用例。
+- tests/research_v2/test_c01_joint_acceptance.py（位于 apps/api）补上从合成原始 ZIP 到完整工具轨迹的默认回归。私有数据通过显式运行 c01_local_redacted_check.py 接入，远端 CI 无需私有 ZIP，也不会产生跳过用例。
 - DS-03 / C-01 交接应明确按整题或按点位划定群体。正式 Provider 仍由 B-03/B-04 保留代码状态、截断、原始字段和来源定位，再绑定账号与任务。当前本地 Provider 仅用于隔离验收。
 - B-01 对未作答的原始分数占位保留空值。首轮验收脚本误用 int 读取该占位，修正独立核验脚本后再次执行通过。
 
@@ -97,12 +97,12 @@ uv run --locked --no-sync pytest -q tests/importing tests/code tests/research_v2
 uv run --locked --no-sync pytest -q -s tests/research_v2/test_c01_joint_acceptance.py
 ~~~
 
-有本地授权脱敏 ZIP 和 DS-02 脚本时，在同目录设置下列变量。真实核验只输出汇总，保留终端回溯关闭。
+有本地授权脱敏 ZIP 和 DS-02 脚本时，在同目录设置下列变量并显式运行本机核验。默认 CI 收集全部合成回归，Windows 分片汇总保持严格校验。真实核验只输出汇总，保留终端回溯关闭。
 
 ~~~powershell
 $env:EDU_C01_REDACTED_ZIP = '<本机已授权脱敏 ZIP 路径>'
 $env:PYTHONPATH = '.;../..;<含 ds02_audit.py 的本地目录>'
-uv run --locked --no-sync pytest -q -s --tb=no tests/research_v2/test_c01_joint_acceptance.py
+uv run --locked --no-sync pytest -q -s --tb=no tests/research_v2/c01_local_redacted_check.py
 ~~~
 
 实际环境为 Windows、CPython 3.12.10。底层定向检查 323 passed。联合用例含真实 ZIP 为 3 passed，15.25 秒。最终导入、DS-03、Research V2 与分片计划定向回归包含真实样本，共 480 passed，244.07 秒。后端 Ruff / format 293 文件通过，原型六个变更文件从仓库根按原型门禁执行 Ruff / format 通过。
