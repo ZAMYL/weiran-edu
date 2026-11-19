@@ -198,19 +198,16 @@ def c01_feature_associations(
 ) -> tuple[C01FeatureAssociation, ...]:
     """Project one failure cohort of ``analysis`` into C-01's feature shape.
 
-    A point direction requires a matching failure on that exact point. Whole-
-    submission verdicts apply only to C-01's fallback when no points were observed.
-    Unknown and unclassified point outcomes cannot establish a failure direction.
+    ``point=None`` keeps the original whole-submission query for backward
+    compatibility: every submission whose C-01 verdict equals ``status``, with or
+    without test points. C-01's no-test-points fallback is the caller's
+    responsibility (pre-filter ``analysis.submissions`` before calling). A point
+    direction requires a matching failure on that exact point. Unknown and
+    unclassified point outcomes cannot establish a failure direction.
     """
 
     if point is None:
-        cohort = [
-            row
-            for row in analysis.submissions
-            if not row.test_points
-            and (row.verdict.is_failure or row.verdict is Verdict.COMPILE_ERROR)
-            and c01_status(row.verdict) == status
-        ]
+        cohort = [row for row in analysis.submissions if c01_status(row.verdict) == status]
     else:
         cohort = [
             row
