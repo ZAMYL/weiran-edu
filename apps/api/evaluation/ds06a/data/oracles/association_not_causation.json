@@ -1,0 +1,40 @@
+{
+  "case_id": "association_not_causation",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "失败组全部含循环/下标，通过组全部不含，足以形成完全共现的统计关联。",
+      "题面、输入、预期输出和运行轨迹均不足以排除混杂因素，人工标准明确要求保留 cause_unconfirmed。"
+    ],
+    "verification": "独立列出 2×2 共现群体和候选证据，不编写任何根因标签。"
+  },
+  "statistics": {
+    "long-sequence": {
+      "verdict_counts": {"accepted": 5, "wrong_answer": 5},
+      "test_points": {"large-case": {"passed": 5, "failed": 5, "unknown": 0}}
+    }
+  },
+  "phenomena": {
+    "A": [{"problem": "long-sequence", "point": "large-case", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "B": [{"problem": "long-sequence", "point": "large-case", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "C": [{"problem": "long-sequence", "point": "large-case", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}]
+  },
+  "feature_values": {
+    "association_not_causation-long-sequence-01": {"loops": 1, "index_accesses": 2},
+    "association_not_causation-long-sequence-06": {"loops": 0, "index_accesses": 0}
+  },
+  "feature_cohorts": [
+    {"problem": "long-sequence", "point": "large-case", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]}
+  ],
+  "candidate_evidence": [
+    {"problem": "long-sequence", "feature": "loops", "submissions": ["association_not_causation-long-sequence-01", "association_not_causation-long-sequence-02", "association_not_causation-long-sequence-03", "association_not_causation-long-sequence-04", "association_not_causation-long-sequence-05"]},
+    {"problem": "long-sequence", "feature": "index_accesses", "submissions": ["association_not_causation-long-sequence-01", "association_not_causation-long-sequence-02", "association_not_causation-long-sequence-03", "association_not_causation-long-sequence-04", "association_not_causation-long-sequence-05"]}
+  ],
+  "card_features": [
+    {"problem": "long-sequence", "point": "large-case", "status": "wrong_answer", "features": {"boundary_check": {"checked": 5, "present": 0}, "indexing": {"checked": 5, "present": 5}, "input_parsing": {"checked": 5, "present": 5}, "loop": {"checked": 5, "present": 5}, "recursion": {"checked": 5, "present": 0}}}
+  ],
+  "abstentions": [
+    {"systems": ["A", "B", "C"], "kind": "no_root_assertion"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "long-sequence", "point": "large-case", "status": "wrong_answer", "limit": "cause_unconfirmed"}
+  ]
+}

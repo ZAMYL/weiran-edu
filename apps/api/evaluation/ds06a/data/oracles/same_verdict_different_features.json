@@ -1,0 +1,41 @@
+{
+  "case_id": "same_verdict_different_features",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "五条错答均使用显式循环和两处下标，五条通过均直接求和；判题分布不能单独说明结构差异。",
+      "人工只核验循环、下标与 I/O 结构，不把结构与失败的共现解释为根因。"
+    ],
+    "verification": "逐条阅读源代码并按 ordinary 测试状态独立计数；答案未提供给分析模块。"
+  },
+  "statistics": {
+    "ordinary-sum": {
+      "verdict_counts": {"accepted": 5, "wrong_answer": 5},
+      "test_points": {"ordinary": {"passed": 5, "failed": 5, "unknown": 0}}
+    }
+  },
+  "phenomena": {
+    "A": [{"problem": "ordinary-sum", "point": "ordinary", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "B": [{"problem": "ordinary-sum", "point": "ordinary", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "C": [{"problem": "ordinary-sum", "point": "ordinary", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}]
+  },
+  "feature_values": {
+    "same_verdict_different_features-ordinary-sum-01": {"loops": 1, "index_accesses": 2, "io_operations": 2},
+    "same_verdict_different_features-ordinary-sum-06": {"loops": 0, "index_accesses": 0, "io_operations": 2}
+  },
+  "feature_cohorts": [
+    {"problem": "ordinary-sum", "point": "ordinary", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]},
+    {"problem": "ordinary-sum", "point": "ordinary", "status": "wrong_answer", "feature": "loop", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]}
+  ],
+  "candidate_evidence": [
+    {"problem": "ordinary-sum", "feature": "loops", "submissions": ["same_verdict_different_features-ordinary-sum-01", "same_verdict_different_features-ordinary-sum-02", "same_verdict_different_features-ordinary-sum-03", "same_verdict_different_features-ordinary-sum-04", "same_verdict_different_features-ordinary-sum-05"]},
+    {"problem": "ordinary-sum", "feature": "index_accesses", "submissions": ["same_verdict_different_features-ordinary-sum-01", "same_verdict_different_features-ordinary-sum-02", "same_verdict_different_features-ordinary-sum-03", "same_verdict_different_features-ordinary-sum-04", "same_verdict_different_features-ordinary-sum-05"]}
+  ],
+  "card_features": [
+    {"problem": "ordinary-sum", "point": "ordinary", "status": "wrong_answer", "features": {"boundary_check": {"checked": 5, "present": 0}, "indexing": {"checked": 5, "present": 5}, "input_parsing": {"checked": 5, "present": 5}, "loop": {"checked": 5, "present": 5}, "recursion": {"checked": 5, "present": 0}}}
+  ],
+  "abstentions": [
+    {"systems": ["A", "B", "C"], "kind": "no_root_assertion"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "ordinary-sum", "point": "ordinary", "status": "wrong_answer", "limit": "cause_unconfirmed"}
+  ]
+}

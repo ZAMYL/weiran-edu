@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "case_id": "insufficient_test_evidence",
+  "distribution": "no_test_points_10x1",
+  "batch_id": "ds06a-insufficient_test_evidence",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10"
+  ],
+  "problems": [
+    "compile-check"
+  ],
+  "submissions": [
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-01",
+      "participant": "anon-01",
+      "problem": "compile-check",
+      "language": "python",
+      "code": null,
+      "code_state": "missing",
+      "code_truncated": false,
+      "verdict": "compile_error",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-01",
+      "location": "synthetic/insufficient_test_evidence/compile-check/01.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-02",
+      "participant": "anon-02",
+      "problem": "compile-check",
+      "language": "python",
+      "code": null,
+      "code_state": "missing",
+      "code_truncated": false,
+      "verdict": "compile_error",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-02",
+      "location": "synthetic/insufficient_test_evidence/compile-check/02.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-03",
+      "participant": "anon-03",
+      "problem": "compile-check",
+      "language": "python",
+      "code": null,
+      "code_state": "missing",
+      "code_truncated": false,
+      "verdict": "compile_error",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-03",
+      "location": "synthetic/insufficient_test_evidence/compile-check/03.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-04",
+      "participant": "anon-04",
+      "problem": "compile-check",
+      "language": "python",
+      "code": null,
+      "code_state": "missing",
+      "code_truncated": false,
+      "verdict": "compile_error",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-04",
+      "location": "synthetic/insufficient_test_evidence/compile-check/04.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-05",
+      "participant": "anon-05",
+      "problem": "compile-check",
+      "language": "python",
+      "code": null,
+      "code_state": "missing",
+      "code_truncated": false,
+      "verdict": "compile_error",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-05",
+      "location": "synthetic/insufficient_test_evidence/compile-check/05.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-06",
+      "participant": "anon-06",
+      "problem": "compile-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-06",
+      "location": "synthetic/insufficient_test_evidence/compile-check/06.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-07",
+      "participant": "anon-07",
+      "problem": "compile-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-07",
+      "location": "synthetic/insufficient_test_evidence/compile-check/07.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-08",
+      "participant": "anon-08",
+      "problem": "compile-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-08",
+      "location": "synthetic/insufficient_test_evidence/compile-check/08.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-09",
+      "participant": "anon-09",
+      "problem": "compile-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-09",
+      "location": "synthetic/insufficient_test_evidence/compile-check/09.html"
+    },
+    {
+      "submission_id": "insufficient_test_evidence-compile-check-10",
+      "participant": "anon-10",
+      "problem": "compile-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [],
+      "source_id": "synthetic-insufficient_test_evidence-10",
+      "location": "synthetic/insufficient_test_evidence/compile-check/10.html"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+system,cases,completed,rejected,basic_statistics_accuracy,phenomenon_discovery_accuracy,evidence_localization_success_rate,feature_extraction_accuracy,association_accuracy,unsupported_root_cause_assertions,incomplete_evidence_correct_abstention_rate,source_fact_consistency,minimum_distribution_phenomenon_accuracy,distribution_accuracy_range,actual_runtime_ms
+A,11,10,1,1.0,1.0,1.0,,,0,1.0,1.0,1.0,0.0,1.0706930006563198
+B,11,10,1,1.0,1.0,1.0,1.0,1.0,0,1.0,1.0,1.0,0.0,16.61348800007545
+C,11,8,3,1.0,1.0,1.0,1.0,1.0,0,1.0,1.0,1.0,0.0,156.00028700009716
