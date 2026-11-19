@@ -51,7 +51,7 @@ GitHub PR 接口和实际 fetch 确认 #105 已从提示中的 6e39de7 更新至
 ## 最小适配及归属
 
 - scripts/c01_joint_acceptance.py（位于 apps/api）使用 B-01 和 DS-03 既有接口。本地对编译器别名和三种运行错误状态做明确转换，过渡到 C-01 时按实际测试点状态划分群体。DS-03 的整题关联计算沿用原实现。
-- tests/research_v2/test_c01_joint_acceptance.py（位于 apps/api）补上从原始 ZIP 到完整工具轨迹的回归。实际脱敏样本通过本机环境变量接入，常规 CI 自动跳过私有数据用例。
+- tests/research_v2/test_c01_joint_acceptance.py（位于 apps/api）补上从原始 ZIP 到完整工具轨迹的回归。常规 CI 收集两个合成用例。私有用例只在本机提供环境变量时收集。初版使用 pytest.skip，实际被 Windows 汇总门禁拒绝，修复改为明确选择本机用例，沿用原门禁。
 - DS-03 / C-01 交接应明确按整题或按点位划定群体。正式 Provider 仍由 B-03/B-04 保留代码状态、截断、原始字段和来源定位，再绑定账号与任务。当前本地 Provider 仅用于隔离验收。
 - B-01 对未作答的原始分数占位保留空值。首轮验收脚本误用 int 读取该占位，修正独立核验脚本后再次执行通过。
 
