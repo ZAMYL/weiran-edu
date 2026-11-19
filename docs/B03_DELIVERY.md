@@ -64,7 +64,18 @@
 
 - 新增测试：`tests/storage/test_migration_009.py`（旧库升级/约束/幂等）、`tests/edu/test_assessment_provenance.py`（字段对账/重启回读/权限与来源反例/整批回滚/小数毫秒）、`tests/edu/test_pattern_statistics.py`（五桶口径/满分冲突/待确认/下钻过滤）、`tests/importing/test_status_classification.py`（分类与耗时解析）、合成样本 `tests/edu/answersheet_samples.py`
 - 既有断言更新：`test_assessment_api.py` 的观测字典补上新字段；`test_database.py` 的迁移计数 8 → 9
-- 结果见下方"验证记录"（以最终 CI 为准）
+### 验证记录（2026-11-19，Linux，Python 3.12）
+
+| 检查 | 结果 |
+| --- | --- |
+| `ruff check app tests` | All checks passed |
+| `pytest tests/edu tests/importing tests/storage` | **873 passed**，389.30s，0 failed |
+| 其中 B-03 定向（来源/统计/迁移/既有评估与适配器） | 299 passed，17.61s |
+| 旧库升级回归（`test_reviewed_results`、`test_snapshot_integrity`） | 50 passed；两处旧库模拟已同步拆除 009 新表、迁移计数改为 9 |
+| HTTP + 关库重开实测 | 见第 3 节，全部符合预期 |
+| GitHub Actions | 以 PR 页面实际状态为准 |
+
+过程记录：第一轮全量为 871 passed / 2 failed，失败的是两个"模拟旧库"的测试——它们只拆掉 004–008 的表，没有拆 009 的新表；修复后第二轮全量 873 passed。
 
 ## 5. 交接
 
