@@ -10,7 +10,7 @@ from hashlib import sha256
 import httpx
 from fastapi.testclient import TestClient
 from prototypes.adaptive_assessment.live.demo import MOCK_BASE, native_response
-from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261112 as PRICE
+from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261119 as PRICE
 from prototypes.capability_profiles.agent import ProfileMockPolicy
 from prototypes.durable_teacher_agent import live_admission
 from prototypes.durable_teacher_agent.service import TaskService

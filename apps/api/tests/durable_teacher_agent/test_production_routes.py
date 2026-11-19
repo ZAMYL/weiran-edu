@@ -90,7 +90,13 @@ def test_formal_create_app_installs_the_live_service_when_approved(tmp_path, mon
     )
     assert application.state.ai_task_service is not None
     assert application.state.ai_task_mode == "qwen_live"
-    assert "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks" in application.openapi()["paths"]
+    paths = application.openapi()["paths"]
+    assert "/api/v1/edu/batches/{batch_id}/ai-investigation-tasks" in paths
+    # B-04A: the answersheet API must stay mounted beside the Live install.
+    assert application.state.assessment_service is not None
+    assert application.state.assessment_reader is not None
+    assert "/api/v1/edu/assessments" in paths
+    assert "/api/v1/edu/assessments/{assessment_id}" in paths
     with TestClient(application, headers={"Authorization": "Bearer " + fixture.token}) as client:
         response = client.post(
             f"/api/v1/edu/batches/{batch['batch_id']}/ai-investigation-tasks",
