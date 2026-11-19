@@ -22,13 +22,22 @@ from .features import FeatureId, is_present
 from .results import Analysis
 
 # B-01 answer-sheet status words -> this kernel's verdicts. The words are the
-# canonical values emitted by ``importing/edu/answersheet.py``.
+# canonical values emitted by ``importing/edu/answersheet.py`` (``_STATUS_WORDS``,
+# including the runtime family added at B-01 ``a0d1422``). The runtime family
+# (``运行时错误`` / ``段错误`` / ``非零返回``) shares one meaning with ``运行错误``:
+# a runtime failure. This is the same mapping PR #112's acceptance script applied
+# via its private ``normalize_status`` shim, now owned by this formal adapter so
+# integrations no longer need a per-consumer shim. Unlisted text stays ``UNKNOWN``
+# and is never reclassified as compile/runtime failure or success.
 _B01_VERDICT: dict[str, Verdict] = {
     "答案正确": Verdict.ACCEPTED,
     "答案错误": Verdict.WRONG_ANSWER,
     "运行超时": Verdict.TIME_LIMIT_EXCEEDED,
     "内存超限": Verdict.MEMORY_LIMIT_EXCEEDED,
     "运行错误": Verdict.RUNTIME_ERROR,
+    "运行时错误": Verdict.RUNTIME_ERROR,
+    "段错误": Verdict.RUNTIME_ERROR,
+    "非零返回": Verdict.RUNTIME_ERROR,
     "格式错误": Verdict.FORMAT_ERROR,
     "编译错误": Verdict.COMPILE_ERROR,
     "部分正确": Verdict.PARTIAL,
@@ -37,7 +46,18 @@ _B01_VERDICT: dict[str, Verdict] = {
 
 # Status words that mean a clean per-test-point failure (the rest are ambiguous
 # at the test-point level, e.g. "编译错误" is a whole-submission outcome).
-_B01_TESTPOINT_FAILURES = frozenset({"答案错误", "运行超时", "内存超限", "运行错误", "格式错误"})
+_B01_TESTPOINT_FAILURES = frozenset(
+    {
+        "答案错误",
+        "运行超时",
+        "内存超限",
+        "运行错误",
+        "运行时错误",
+        "段错误",
+        "非零返回",
+        "格式错误",
+    }
+)
 
 # This kernel's verdicts -> C-01 status strings (``programming_evidence.py``).
 _VERDICT_TO_C01: dict[Verdict, str] = {
