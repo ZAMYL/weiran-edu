@@ -170,6 +170,12 @@ def _validate_test_points(test_points) -> tuple:
         require_id(point.testpoint_id, "nonempty_testpoint_id_required")
         if not isinstance(point.outcome, TestPointOutcome):
             raise CodeAnalysisError("typed_testpoint_outcome_required")
+        if point.failure_verdict is not None and (
+            not isinstance(point.failure_verdict, Verdict)
+            or not point.failure_verdict.is_failure
+            or point.outcome is not TestPointOutcome.FAILED
+        ):
+            raise CodeAnalysisError("invalid_testpoint_failure_verdict")
         if point.testpoint_id in seen:
             raise CodeAnalysisError("duplicate_testpoint_in_submission")
         seen.add(point.testpoint_id)

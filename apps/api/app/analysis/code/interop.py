@@ -17,7 +17,14 @@ Three gaps are bridged here:
 
 from dataclasses import dataclass
 
-from .contract import CodeState, Language, TestPointOutcome, Verdict
+from .contract import (
+    CodeAnalysisError,
+    CodeState,
+    Language,
+    TestPointOutcome,
+    TestPointResult,
+    Verdict,
+)
 from .features import FeatureId, is_present
 from .results import Analysis
 
@@ -109,6 +116,13 @@ def b01_test_point_outcome(status: str | None) -> TestPointOutcome:
     return TestPointOutcome.UNKNOWN
 
 
+def b01_test_point_result(point: str, status: str | None) -> TestPointResult:
+    """Keep the point's exact failure alongside its coarse statistical outcome."""
+    outcome = b01_test_point_outcome(status)
+    failure = b01_verdict(status) if outcome is TestPointOutcome.FAILED else None
+    return TestPointResult(point, outcome, failure)
+
+
 def b01_language(label: str | None) -> Language | None:
     """Map a B-01 compiler label (``编译器: GXX``) to a supported language.
 
@@ -147,6 +161,14 @@ def c01_status(verdict: Verdict) -> str:
     return _VERDICT_TO_C01[verdict]
 
 
+def c01_test_point_status(point: TestPointResult) -> str:
+    if point.outcome is TestPointOutcome.PASSED:
+        return "accepted"
+    if point.outcome is TestPointOutcome.FAILED and point.failure_verdict is not None:
+        return c01_status(point.failure_verdict)
+    return "unknown"
+
+
 def c01_feature_code(feature: FeatureId) -> str | None:
     return _C01_FEATURE_CODE.get(feature)
 
@@ -176,24 +198,33 @@ def c01_feature_associations(
 ) -> tuple[C01FeatureAssociation, ...]:
     """Project one failure cohort of ``analysis`` into C-01's feature shape.
 
-    The cohort is every submission whose C-01 status equals ``status`` (and, when
-    ``point`` is given, that also failed that test point). For each whitelisted
-    feature, ``checked`` lists cohort participants with a known feature value and
-    ``present`` lists those where the feature is present.
+    A point direction requires a matching failure on that exact point. Whole-
+    submission verdicts apply only to C-01's fallback when no points were observed.
+    Unknown and unclassified point outcomes cannot establish a failure direction.
     """
 
-    cohort = [
-        submission
-        for submission in analysis.submissions
-        if c01_status(submission.verdict) == status
-        and (
-            point is None
-            or any(
-                test.testpoint_id == point and test.outcome is TestPointOutcome.FAILED
-                for test in submission.test_points
+    if point is None:
+        cohort = [
+            row
+            for row in analysis.submissions
+            if not row.test_points
+            and (row.verdict.is_failure or row.verdict is Verdict.COMPILE_ERROR)
+            and c01_status(row.verdict) == status
+        ]
+    else:
+        cohort = [
+            row
+            for row in analysis.submissions
+            if any(
+                test.testpoint_id == point
+                and test.outcome is TestPointOutcome.FAILED
+                and test.failure_verdict is not None
+                and c01_test_point_status(test) == status
+                for test in row.test_points
             )
-        )
-    ]
+        ]
+    if len({row.reference.student_id for row in cohort}) != len(cohort):
+        raise CodeAnalysisError("duplicate_feature_cohort_participant")
     associations = []
     for feature in FeatureId:
         code = c01_feature_code(feature)

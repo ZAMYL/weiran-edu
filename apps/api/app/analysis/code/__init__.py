@@ -42,10 +42,12 @@ from .interop import (
     b01_code_state,
     b01_language,
     b01_test_point_outcome,
+    b01_test_point_result,
     b01_verdict,
     c01_feature_associations,
     c01_feature_code,
     c01_status,
+    c01_test_point_status,
 )
 from .languages import CppExtractor, PythonExtractor, extractor_for
 from .results import (
@@ -92,10 +94,12 @@ __all__ = [
     "b01_code_state",
     "b01_language",
     "b01_test_point_outcome",
+    "b01_test_point_result",
     "b01_verdict",
     "c01_feature_associations",
     "c01_feature_code",
     "c01_status",
+    "c01_test_point_status",
     "extractor_for",
     "is_present",
     "presence_threshold",
