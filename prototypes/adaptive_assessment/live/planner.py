@@ -45,8 +45,11 @@ class QwenAdaptivePlanner(NativeDialogue):
         self._http = None
         self.metrics = []
         self.choices = []
-        self.schemas = bound_schemas(executor.kernel.catalog(executor.limits.minimum_cell))
+        self.schemas = self._tool_schemas(executor)
         self._init_dialogue()
+
+    def _tool_schemas(self, executor):
+        return bound_schemas(executor.kernel.catalog(executor.limits.minimum_cell))
 
     def _admit_execution(self, budget, transport, allow_network):
         if budget.origin != "http_mock":
