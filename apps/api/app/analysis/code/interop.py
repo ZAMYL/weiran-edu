@@ -17,7 +17,7 @@ Three gaps are bridged here:
 
 from dataclasses import dataclass
 
-from .contract import CodeState, Language, TestPointOutcome, Verdict
+from .contract import CodeState, Language, TestPointOutcome, TestPointResult, Verdict
 from .features import FeatureId, is_present
 from .results import Analysis
 
@@ -109,6 +109,13 @@ def b01_test_point_outcome(status: str | None) -> TestPointOutcome:
     return TestPointOutcome.UNKNOWN
 
 
+def b01_test_point_result(point: str, status: str | None) -> TestPointResult:
+    """Retain the specific point failure while preserving coarse DS-03 counts."""
+    outcome = b01_test_point_outcome(status)
+    failure = b01_verdict(status) if outcome is TestPointOutcome.FAILED else None
+    return TestPointResult(point, outcome, failure)
+
+
 def b01_language(label: str | None) -> Language | None:
     """Map a B-01 compiler label (``编译器: GXX``) to a supported language.
 
@@ -147,6 +154,15 @@ def c01_status(verdict: Verdict) -> str:
     return _VERDICT_TO_C01[verdict]
 
 
+def c01_test_point_status(point: TestPointResult) -> str:
+    """Return the status supported by the observation, including its failure category."""
+    if point.outcome is TestPointOutcome.PASSED:
+        return "accepted"
+    if point.outcome is TestPointOutcome.FAILED and point.failure_verdict is not None:
+        return c01_status(point.failure_verdict)
+    return "unknown"
+
+
 def c01_feature_code(feature: FeatureId) -> str | None:
     return _C01_FEATURE_CODE.get(feature)
 
@@ -176,24 +192,29 @@ def c01_feature_associations(
 ) -> tuple[C01FeatureAssociation, ...]:
     """Project one failure cohort of ``analysis`` into C-01's feature shape.
 
-    The cohort is every submission whose C-01 status equals ``status`` (and, when
-    ``point`` is given, that also failed that test point). For each whitelisted
-    feature, ``checked`` lists cohort participants with a known feature value and
-    ``present`` lists those where the feature is present.
+    Whole-submission cohorts use the verdict. Point cohorts require the exact
+    failure at that point. Coarse FAILED observations still count in DS-03
+    aggregates, but lack the evidence to join a specific C-01 failure cohort.
     """
 
-    cohort = [
-        submission
-        for submission in analysis.submissions
-        if c01_status(submission.verdict) == status
-        and (
-            point is None
-            or any(
-                test.testpoint_id == point and test.outcome is TestPointOutcome.FAILED
+    if point is None:
+        cohort = [
+            submission
+            for submission in analysis.submissions
+            if c01_status(submission.verdict) == status
+        ]
+    else:
+        cohort = [
+            submission
+            for submission in analysis.submissions
+            if any(
+                test.testpoint_id == point
+                and test.outcome is TestPointOutcome.FAILED
+                and test.failure_verdict is not None
+                and c01_test_point_status(test) == status
                 for test in submission.test_points
             )
-        )
-    ]
+        ]
     associations = []
     for feature in FeatureId:
         code = c01_feature_code(feature)

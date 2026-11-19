@@ -86,10 +86,13 @@ class TestPointOutcome(Enum):
 
 @dataclass(frozen=True)
 class TestPointResult:
+    """A point observation with an optional, evidence-backed failure category."""
+
     __test__ = False  # not a pytest test class
 
     testpoint_id: str
     outcome: TestPointOutcome
+    failure_verdict: Verdict | None = None
 
 
 @dataclass(frozen=True)
