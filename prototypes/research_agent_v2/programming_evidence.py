@@ -3,9 +3,9 @@
 from dataclasses import dataclass, field
 from typing import Literal, Protocol
 
-from prototypes.adaptive_assessment.data import Witness
-
 from app.ai.edu.discovery.models import AgentError
+
+from prototypes.adaptive_assessment.data import Witness
 
 FindingStatus = Literal[
     "wrong_answer", "timeout", "memory_limit", "runtime_error", "format_error", "other_failure"

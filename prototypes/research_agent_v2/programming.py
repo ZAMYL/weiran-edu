@@ -8,11 +8,6 @@ from typing import Literal, get_args
 from uuid import uuid4
 
 import httpx
-from prototypes.adaptive_assessment.analysis import MetricSource
-from prototypes.adaptive_assessment.live.budget import CampaignBudget, OfflineProgrammingPermit
-from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
-from pydantic import Field, ValidationError
-
 from app.ai.edu.discovery.models import (
     AgentError,
     FactId,
@@ -21,6 +16,11 @@ from app.ai.edu.discovery.models import (
     Strict,
 )
 from app.ai.edu.discovery.session import _run_session
+from pydantic import Field, ValidationError
+
+from prototypes.adaptive_assessment.analysis import MetricSource
+from prototypes.adaptive_assessment.live.budget import CampaignBudget, OfflineProgrammingPermit
+from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
 
 from .programming_evidence import (
     FeatureCode,
