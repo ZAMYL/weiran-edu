@@ -66,7 +66,7 @@ def package(*, changed: bool = False, empty_coverage: bool = False) -> bytes:
             status = "答案错误" if i < 25 else "答案正确"
             verdict = "部分正确" if i < 5 else status
             lang = "GCC" if 10 <= i < 15 else "PYTHON3"
-            code = indexed if i < 5 else "print(2)\n"
+            code = indexed if i < 5 or 25 <= i < 30 else "print(2)\n"
             if 15 <= i < 20:
                 code += "#" * MAX_CODE_CHARS
             pre = f"<pre>{escape(code)}</pre>" if not 20 <= i < 25 else ""
@@ -137,7 +137,13 @@ def raw_synthetic_blocks(blob: bytes) -> dict:
     return result
 
 
-def trace(source: ProgrammingSource, directory: Path, *, private_terms: tuple[str, ...] = ()):
+def trace(
+    source: ProgrammingSource,
+    directory: Path,
+    *,
+    private_terms: tuple[str, ...] = (),
+    max_requests: int = 6,
+):
     decisions = []
 
     def respond(request: httpx.Request) -> httpx.Response:
@@ -174,7 +180,9 @@ def trace(source: ProgrammingSource, directory: Path, *, private_terms: tuple[st
         decisions.append(decision)
         return httpx.Response(200, json=native_response(decision, len(decisions)))
 
-    permit = OfflineProgrammingPermit(source, "joint-acceptance", PRICE.fingerprint)
+    permit = OfflineProgrammingPermit(
+        source, "joint-acceptance", PRICE.fingerprint, max_requests=max_requests
+    )
     budget = CampaignBudget(permit, directory, origin="http_mock", today=MOCK_DATE)
     try:
         run, executor = asyncio.run(
@@ -306,6 +314,9 @@ def verify_card(run, executor, accepted) -> dict:
         "direction": observed,
         "features": card["features"],
         "limitations": card["limitations"],
+        "next_check": card["next_check"],
+        "executed_tools": [step.tool for step in run.tools],
+        "offline_requests": run.model_requests,
         "affected_with_code": card["affected_with_code"],
         "resolved": {key: len(items) for key, items in resolved.items()},
     }
@@ -384,7 +395,15 @@ def test_zip_distribution_changes_investigation_and_sources(tmp_path: Path):
         index = next(x for x in a.associations if x.feature is FeatureId.INDEX_ACCESSES)
         assert index.excluded_count == 15
         # The five partial verdicts lie outside the whole-submission 2x2 population.
-        assert index.contingency.failed_total + index.contingency.passed_total == 20
+        table = index.contingency
+        assert (
+            table.feature_failed,
+            table.feature_passed,
+            table.no_feature_failed,
+            table.no_feature_passed,
+        ) == (0, 5, 5, 10)
+        assert table.failure_rate_difference == Fraction(-1, 3)
+        assert "cause_unconfirmed" in result["limitations"]
         # Reproduce the unadapted interface failure on the same parsed ZIP.
         original = c01_feature_associations(a, point="900", status="wrong_answer")
         old = next(f for f in original if f.code == "indexing")
@@ -422,6 +441,38 @@ def test_zip_distribution_changes_investigation_and_sources(tmp_path: Path):
             executor.verify_all()
     assert [alias for alias, _ in traces] == ["D1", "D2"]
     assert [direction["problem"] for _, direction in traces] == ["P1", "P2"]
+
+
+def test_budget_exhaustion_blocks_publication_and_reopening(tmp_path: Path):
+    blob = package()
+    _, source, _ = make_source(blob)
+    run, _, decisions = trace(source, tmp_path, max_requests=2)
+    assert [step["name"] for step in decisions] == [OVERVIEW, INSPECT]
+    assert (run.status, run.reason) == ("failed", "authorized_request_limit")
+    assert not run.cards
+    with pytest.raises(AgentError, match="campaign_already_consumed"):
+        trace(source, tmp_path)
+
+    # Equal source bytes do not transfer a task-owned budget to a different run scope.
+    scope = replace(source.scope, task="different-task")
+    other = ProgrammingSource(scope, LocalAcceptanceProvider(scope, source.material, lambda: blob))
+    permit = OfflineProgrammingPermit(source, "same-source-new-task", PRICE.fingerprint)
+    budget = CampaignBudget(permit, tmp_path, origin="http_mock", today=MOCK_DATE)
+    try:
+        with pytest.raises(AgentError, match="offline_programming_binding_required"):
+            asyncio.run(
+                investigate_programming(
+                    other,
+                    "调查编程错误模式",
+                    budget,
+                    transport=httpx.MockTransport(
+                        lambda _: pytest.fail("model must not be called")
+                    ),
+                )
+            )
+        assert budget.snapshot()["request_count"] == 0
+    finally:
+        budget.close()
 
 
 def test_unknown_coverage_and_missing_witness_fail_closed(tmp_path: Path):
