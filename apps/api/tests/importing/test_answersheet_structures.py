@@ -3,12 +3,15 @@
 from io import BytesIO
 from zipfile import ZipFile, ZipInfo
 
+import pytest
+
 from app.importing.edu.answersheet import (
     CATEGORY_STUDENT,
     ORDER_NATURAL,
     ORDER_SOURCE,
     parse_answersheet,
 )
+from app.importing.edu.types import ImportFileError
 
 HEADER = (
     "<thead><tr><th>测试点</th><th>结果</th><th>测试点得分</th><th>耗时</th><th>内存</th>"
@@ -54,9 +57,9 @@ def zip_bytes(entries: dict[str, str]) -> bytes:
     return stream.getvalue()
 
 
-def test_student_role_comes_from_content_not_directory():
-    """学生答卷换到任意目录、改成任意文件名仍被识别。"""
-    package = zip_bytes({"包/其他目录/任意文件名.html": student_html()})
+def test_student_role_comes_from_content_and_directory_hint():
+    """目录名带学生线索时，内容与路径互相印证即确认；改名不影响结果。"""
+    package = zip_bytes({"包/某年级学生答卷/任意文件名.html": student_html()})
 
     evidence = parse_answersheet(package)
 
@@ -64,6 +67,16 @@ def test_student_role_comes_from_content_not_directory():
     material = next(m for m in evidence.materials if m.entry.endswith("任意文件名.html"))
     assert material.category == CATEGORY_STUDENT
     assert "content:participant" in material.basis
+
+
+def test_role_without_evidence_is_refused_not_guessed():
+    """无目录线索时不能猜角色：必须显式要求人工确认，而不是静默纳入。"""
+    package = zip_bytes({"包/material-001.html": student_html()})
+
+    with pytest.raises(ImportFileError) as error:
+        parse_answersheet(package)
+
+    assert error.value.code == "ANSWERSHEET_ROLE_UNCONFIRMED"
 
 
 def test_file_order_does_not_change_problem_order():

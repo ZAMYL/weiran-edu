@@ -135,9 +135,12 @@ class ObservationRecord:
     test_index: int
     status: str
     score: int | None
-    duration_ms: int | None
+    duration_ms: float | None
     memory_kb: int | None
     source_row: int
+    # 原始文本保留单位与小数位，避免下游只能看到取整后的值
+    duration_text: str = ""
+    memory_text: str = ""
 
 
 # 题目顺序的依据：来自各文件一致的原始顺序，或结构性排序。
@@ -284,11 +287,14 @@ def parse_answersheet(data: bytes, *, group: str | None = STUDENT_GROUP) -> Answ
     sequences: list[list[str]] = []
     totals: dict[str, int | None] = {}
     source_indexes: dict[str, int | None] = {}
+    candidates = 0
 
     for name, document in parsed:
         material = _category_of(name, document, group)
         materials.append(material)
         diagnostics.extend(document["diagnostics"])
+        if document["student"] is not None and document["problems"]:
+            candidates += 1
         if material.needs_confirmation:
             diagnostics.append(
                 Diagnostic(
@@ -314,16 +320,60 @@ def parse_answersheet(data: bytes, *, group: str | None = STUDENT_GROUP) -> Answ
             raise ImportFileError("ANSWERSHEET_TOO_MANY_STUDENTS")
         students[student.participant_key] = student
 
-        sequences.append([problem.label for problem, _, _, _ in document["problems"]])
+        seen_blocks: dict[str, tuple] = {}
         for problem, submission, rows, extra in document["problems"]:
-            totals.setdefault(problem.label, problem.total_score)
+            marker = (submission.code, submission.verdict, submission.score, submission.score_total)
+            previous = seen_blocks.get(problem.label)
+            if previous is not None:
+                diagnostics.append(
+                    Diagnostic(
+                        "DUPLICATE_BLOCK_IGNORED"
+                        if previous == marker
+                        else "DUPLICATE_BLOCK_CONFLICT",
+                        name,
+                        f"题目 {problem.label} 在文件内重复出现，保留首个题块",
+                    )
+                )
+                continue
+            seen_blocks[problem.label] = marker
+            if problem.label in totals and totals[problem.label] != problem.total_score:
+                diagnostics.append(
+                    Diagnostic(
+                        "TOTAL_SCORE_CONFLICT",
+                        name,
+                        f"题目 {problem.label} 满分不一致："
+                        f"{totals[problem.label]} / {problem.total_score}",
+                    )
+                )
+                totals[problem.label] = None
+            else:
+                totals.setdefault(problem.label, problem.total_score)
             source_indexes.setdefault(problem.label, problem.source_index)
             submissions.append(submission)
             observations.extend(rows)
             diagnostics.extend(extra)
+        sequences.append(list(seen_blocks))
 
     if not students:
+        # 有"看起来像答卷"的文件但无法确认角色时，不能静默当成空数据
+        if candidates:
+            raise ImportFileError("ANSWERSHEET_ROLE_UNCONFIRMED")
         raise ImportFileError("ANSWERSHEET_NO_STUDENT")
+
+    counts = [len(sequence) for sequence in sequences]
+    if len(set(counts)) > 1:
+        most_common = max(set(counts), key=counts.count)
+        for name, sequence in zip(
+            [m.entry for m in materials if m.category == CATEGORY_STUDENT], sequences, strict=False
+        ):
+            if len(sequence) != most_common:
+                diagnostics.append(
+                    Diagnostic(
+                        "PROBLEM_COUNT_MISMATCH",
+                        name,
+                        f"该文件识别到 {len(sequence)} 个题块，其他文件为 {most_common}",
+                    )
+                )
 
     ordered, basis = _order_problems(sequences, totals, source_indexes)
     return AnswerSheetEvidence(
@@ -435,26 +485,35 @@ def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvide
     )
 
 
-def _category_of(entry: str, document: dict, group: str | None) -> MaterialRecord:
-    """综合内容与目录线索判断角色，并记录依据。
+STUDENT_DIR_HINTS = ("正式答卷", "学生答卷", "答卷", "学生", "提交")
+NON_STUDENT_DIR_HINTS = ("验题", "测试", "参考", "标准答案", "空白答卷", "题目")
 
-    内容（「答卷类型」、考生字段）优先；目录/文件名只是线索，
-    单靠路径得出的结论一律标记为"待确认"，不静默计入或丢弃。
+
+def _category_of(entry: str, document: dict, group: str | None) -> MaterialRecord:
+    """判断资料角色，只把"内容 + 路径"互相印证的答卷确认为正式学生。
+
+    - 内容有「答卷类型」→ 直接按其类型定性
+    - 有身份与题块、且路径是学生线索 → 确认为学生
+    - 内容像答卷但路径是验题/测试等 → 冲突，待确认且不计入学生
+    - 既无内容证据也无路径证据 → 待确认，绝不当成学生
     """
     paper_type = document["paper_type"]
     student = document["student"]
-    in_group = bool(group) and (f"/{group}/" in entry or entry.startswith(f"{group}/"))
+    candidate = student is not None and bool(document["problems"])
 
     signals: list[str] = []
     if paper_type:
         signals.append(f"content:paper_type={paper_type}")
     if student is not None:
         signals.append("content:participant")
-    if in_group:
-        signals.append(f"path:{group}")
-    for hint in ("验题", "测试", "题目", "参考"):
-        if hint in entry:
-            signals.append(f"path:{hint}")
+    student_hint = [hint for hint in STUDENT_DIR_HINTS if hint in entry]
+    if group and (f"/{group}/" in entry or entry.startswith(f"{group}/")):
+        student_hint.append(group)
+    non_hint = [hint for hint in NON_STUDENT_DIR_HINTS if hint in entry]
+    for hint in student_hint:
+        signals.append(f"path:student:{hint}")
+    for hint in non_hint:
+        signals.append(f"path:non_student:{hint}")
 
     if paper_type:
         if "空白" in paper_type:
@@ -467,36 +526,34 @@ def _category_of(entry: str, document: dict, group: str | None) -> MaterialRecor
             entry, CATEGORY_UNKNOWN, "content:paper_type", tuple(signals), needs_confirmation=True
         )
 
-    if student is not None:
-        # 有身份信息，但路径提示这是验题、测试、题目或参考资料时，
-        # 不能擅自纳入正式学生集合：给出类别并标记待确认。
-        suspicious = [hint for hint in ("验题", "测试", "题目", "参考") if hint in entry]
-        if suspicious:
-            category = (
-                CATEGORY_TEST_DATA
-                if any(hint in entry for hint in ("验题", "测试"))
-                else CATEGORY_PROBLEM_STATEMENT
-            )
-            return MaterialRecord(
-                entry, category, "path_hint_over_content", tuple(signals), needs_confirmation=True
-            )
-        basis = "content:participant" + ("+path" if in_group else "")
-        return MaterialRecord(entry, CATEGORY_STUDENT, basis, tuple(signals))
-
-    if any(hint in entry for hint in ("验题", "测试")):
+    if not candidate:
         return MaterialRecord(
-            entry, CATEGORY_TEST_DATA, "path_hint", tuple(signals), needs_confirmation=True
+            entry, CATEGORY_UNKNOWN, "no_student_content", tuple(signals), needs_confirmation=True
         )
-    if "题目" in entry:
+
+    if student_hint and non_hint:
+        # 路径同时给出相反线索：不靠优先级覆盖，交给人工
+        return MaterialRecord(
+            entry, CATEGORY_UNKNOWN, "conflict:path_hints", tuple(signals), needs_confirmation=True
+        )
+    if student_hint:
         return MaterialRecord(
             entry,
-            CATEGORY_PROBLEM_STATEMENT,
-            "path_hint",
+            CATEGORY_STUDENT,
+            "content:participant+path:student",
             tuple(signals),
-            needs_confirmation=True,
+        )
+    if non_hint:
+        category = (
+            CATEGORY_TEST_DATA
+            if any(hint in entry for hint in ("验题", "测试"))
+            else CATEGORY_PROBLEM_STATEMENT
+        )
+        return MaterialRecord(
+            entry, category, "path:non_student", tuple(signals), needs_confirmation=True
         )
     return MaterialRecord(
-        entry, CATEGORY_UNKNOWN, "insufficient_evidence", tuple(signals), needs_confirmation=True
+        entry, CATEGORY_UNKNOWN, "no_role_evidence", tuple(signals), needs_confirmation=True
     )
 
 
@@ -613,9 +670,9 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
     diagnostics: list[Diagnostic] = []
 
     if body is not None:
-        pres = [node for node in _nodes(body, tag="pre")]
-        if pres:
-            raw_code = _raw_text(pres[0]).strip()
+        code_pre = _code_pre(body)
+        if code_pre is not None:
+            raw_code = _raw_text(code_pre)
             if len(raw_code) > MAX_CODE_CHARS:
                 raw_code = raw_code[:MAX_CODE_CHARS]
                 code_truncated = True
@@ -666,13 +723,33 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
     return problem, submission, rows, diagnostics
 
 
+COMPILER_LABELS = ("编译器输出", "编译输出", "编译信息", "诊断信息")
+
+
+def _code_pre(body: _Node) -> _Node | None:
+    """代码区域：第一个不属于编译输出/诊断的 pre。
+
+    不能直接取第一个 pre——有的版式把编译器输出放在前面，
+    那样会把警告当成学生代码。
+    """
+    excluded = {
+        id(node) for node in (_pre_after_label(body, label) for label in COMPILER_LABELS) if node
+    }
+    for pre in _nodes(body, tag="pre"):
+        if id(pre) in excluded:
+            continue
+        return pre
+    return None
+
+
 def _code_state(code_text: str | None, verdict: str | None) -> tuple[str | None, str]:
-    """区分真实代码、占位符与缺失；占位符不当作有效代码。"""
+    """区分真实代码、占位符与缺失；已作答但缺代码区必须是 MISSING。"""
+    stripped = (code_text or "").strip()
+    if verdict == "未作答":
+        return None, CODE_UNANSWERED
     if code_text is None:
         return None, CODE_MISSING
-    if code_text in CODE_PLACEHOLDERS:
-        return None, CODE_UNANSWERED
-    if verdict == "未作答":
+    if stripped in CODE_PLACEHOLDERS:
         return None, CODE_UNANSWERED
     return code_text, CODE_PRESENT
 
@@ -685,7 +762,19 @@ def _observations(
     body = next(_nodes(table, tag="tbody"), table)
     tr_nodes = [row for row in _nodes(body, tag="tr")]
     matrix = [[_text(cell) for cell in row.children if isinstance(cell, _Node)] for row in tr_nodes]
-    columns, basis = _infer_columns(table, matrix)
+    columns, basis, confirmed = _infer_columns(table, matrix)
+
+    if not confirmed:
+        # 列含义无法确定时，不按位置生成"看起来可信"的测试记录
+        diagnostics.append(
+            Diagnostic(
+                "TEST_COLUMNS_UNCONFIRMED",
+                entry,
+                f"题块 {label} 测试表列含义无法确定（{basis}），未生成测试点记录",
+            )
+        )
+        return [], diagnostics
+
     if basis != "thead":
         diagnostics.append(
             Diagnostic(
@@ -695,6 +784,7 @@ def _observations(
             )
         )
 
+    truncated_rows = False
     for row_position, cells in enumerate(matrix):
         index_col = columns["index"]
         if len(cells) <= index_col or not cells[index_col].strip().isdigit():
@@ -707,9 +797,11 @@ def _observations(
                     )
                 )
             continue
+        # 编号本身不做阈值过滤：只限制单题记录条数，且截断必须可见
+        if len(rows) >= MAX_OBSERVATIONS_PER_SUBMISSION:
+            truncated_rows = True
+            break
         index = int(cells[index_col].strip())
-        if index > MAX_OBSERVATIONS_PER_SUBMISSION:
-            continue
 
         rows.append(
             ObservationRecord(
@@ -721,6 +813,16 @@ def _observations(
                 duration_ms=_duration_ms(_cell(cells, columns["duration"])),
                 memory_kb=_memory_kb(_cell(cells, columns["memory"])),
                 source_row=row_position,
+                duration_text=_cell(cells, columns["duration"]).strip(),
+                memory_text=_cell(cells, columns["memory"]).strip(),
+            )
+        )
+    if truncated_rows:
+        diagnostics.append(
+            Diagnostic(
+                "TEST_ROWS_TRUNCATED",
+                entry,
+                f"题块 {label} 测试行超过 {MAX_OBSERVATIONS_PER_SUBMISSION} 条，后续行未记录",
             )
         )
     return rows, diagnostics
@@ -742,21 +844,25 @@ _DURATION_HINT = re.compile(r"(ms|毫秒|s$|秒)", re.I)
 _MEMORY_HINT = re.compile(r"(KB|MB|字节)", re.I)
 
 
-def _infer_columns(table: _Node, matrix: list[list[str]]) -> tuple[dict[str, int], str]:
-    """识别测试表的列含义：表头优先，其次按单元格内容特征，最后退回位置约定。"""
+def _infer_columns(table: _Node, matrix: list[list[str]]) -> tuple[dict[str, int], str, bool]:
+    """识别测试表列含义，返回 (列映射, 依据, 是否可信)。
+
+    只有表头完整、或内容特征全部命中且列互不重复时才可信；
+    否则如实返回不可信，调用方不得按默认位置生成记录。
+    """
     named = _column_indexes(table)
     mapping = {key: named[name] for name, key in _HEADER_KEYS if name in named}
     if len(mapping) == len(_HEADER_KEYS):
-        return mapping, "thead"
+        return mapping, "thead", True
 
     width = max((len(row) for row in matrix), default=0)
     if width < len(_HEADER_KEYS):
-        return {**DEFAULT_COLUMNS, **mapping}, "position"
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
 
     samples = [row for row in matrix if len(row) >= width and any(cell.strip() for cell in row)]
     samples = samples[:100]
     if not samples:
-        return {**DEFAULT_COLUMNS, **mapping}, "position"
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
 
     def rate(column: int, predicate) -> float:
         return sum(1 for row in samples if predicate(row[column].strip())) / len(samples)
@@ -782,22 +888,28 @@ def _infer_columns(table: _Node, matrix: list[list[str]]) -> tuple[dict[str, int
 
     # 内容特征必须真的命中，否则不算识别成功
     if rate(duration_column, lambda v: bool(_DURATION_HINT.search(v))) < 0.5:
-        return {**DEFAULT_COLUMNS, **mapping}, "position"
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
     if rate(memory_column, lambda v: bool(_MEMORY_HINT.search(v))) < 0.5:
-        return {**DEFAULT_COLUMNS, **mapping}, "position"
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
     if rate(status_column, lambda v: any(w in v for w in _STATUS_WORDS)) < 0.5:
-        return {**DEFAULT_COLUMNS, **mapping}, "position"
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
+    if index_column is None:
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
 
     inferred = {
-        "index": index_column if index_column is not None else DEFAULT_COLUMNS["index"],
+        "index": index_column,
         "status": status_column,
         "duration": duration_column,
         "memory": memory_column,
     }
+    if len(set(inferred.values())) != len(inferred):
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
     used = set(inferred.values())
-    score_column = next((c for c in range(width) if c not in used), DEFAULT_COLUMNS["score"])
+    score_column = next((c for c in range(width) if c not in used), None)
+    if score_column is None:
+        return {**DEFAULT_COLUMNS, **mapping}, "position", False
     inferred["score"] = score_column
-    return {**inferred, **mapping}, "content_signals"
+    return {**inferred, **mapping}, "content_signals", True
 
 
 def _compiler_output(body: _Node) -> tuple[str | None, bool]:
@@ -805,8 +917,9 @@ def _compiler_output(body: _Node) -> tuple[str | None, bool]:
     pre = _pre_after_label(body, "编译器输出")
     if pre is None:
         return None, False
-    text = _raw_text(pre).strip()
-    if not text or text == "无":
+    text = _raw_text(pre)
+    stripped = text.strip()
+    if not stripped or stripped == "无":
         return None, False
     if len(text) > MAX_COMPILER_OUTPUT_CHARS:
         return text[:MAX_COMPILER_OUTPUT_CHARS], True
@@ -897,11 +1010,15 @@ def _int_or_none(value: str | None) -> int | None:
     return int(match.group(0)) if match else None
 
 
-def _duration_ms(value: str) -> int | None:
+def _duration_ms(value: str) -> float | None:
+    """保留小数毫秒：0.5 ms 不能变成 0。"""
     match = re.search(r"([\d.]+)\s*ms", value)
     if match is None:
         return None
-    return int(round(float(match.group(1))))
+    try:
+        return float(match.group(1))
+    except ValueError:
+        return None
 
 
 def _memory_kb(value: str) -> int | None:

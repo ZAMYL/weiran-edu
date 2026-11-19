@@ -133,6 +133,7 @@ _ANSWERSHEET_FAILURES = {
     "ANSWERSHEET_NO_STUDENT": "没有解析到任何考生，请确认目录与答卷结构",
     "ANSWERSHEET_INCONSISTENT": "答题卡内部引用不一致，未写入任何数据",
     "ANSWERSHEET_ENCODING_UNKNOWN": "答卷编码无法识别",
+    "ANSWERSHEET_ROLE_UNCONFIRMED": "有疑似答卷的文件但无法确认其角色，请人工确认目录或资料类型",
     "EXTRACTION_ZIP_UNREADABLE": "压缩包无法读取",
 }
 

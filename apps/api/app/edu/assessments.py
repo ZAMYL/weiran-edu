@@ -659,7 +659,7 @@ def _insert_observations(
                 observation.test_index,
                 observation.status,
                 None if observation.score is None else observation.score * _SCORE_SCALE,
-                observation.duration_ms,
+                None if observation.duration_ms is None else int(round(observation.duration_ms)),
                 observation.memory_kb,
             ),
         )

@@ -89,8 +89,8 @@ def test_code_keeps_line_breaks():
 
     evidence = parse_answersheet(package)
 
-    # 首尾空白去掉，但行内换行必须保留
-    assert evidence.submissions[0].code == "int main(){\n  return 0;\n}"
+    # 原文保真：换行与首尾空白都不改写
+    assert evidence.submissions[0].code == "int main(){\n  return 0;\n}\n"
 
 
 def test_observations_are_normalised():
@@ -100,8 +100,10 @@ def test_observations_are_normalised():
     first, second = evidence.observations
 
     assert (first.test_index, first.status, first.score) == (1, "答案正确", 5)
-    assert (first.duration_ms, first.memory_kb) == (2, 304)
-    assert (second.duration_ms, second.memory_kb) == (12, 1024)
+    # 小数毫秒原样保留（2.00 ms 不能变成 2，12.50 ms 不能变成 12）
+    assert (first.duration_ms, first.memory_kb) == (2.0, 304)
+    assert (second.duration_ms, second.memory_kb) == (12.5, 1024)
+    assert (first.duration_text, first.memory_text) == ("2.00 ms", "304 KB")
 
 
 def test_materials_are_classified_by_content_then_path():
