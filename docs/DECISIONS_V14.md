@@ -44,14 +44,17 @@
 5. **建表约定**：沿用现有风格——`STRICT` 表、字段级 `CHECK`（长度、枚举、非负）、`TEXT` 存时间、外键显式 `REFERENCES`、索引命名 `<表名>_<用途>`。
 6. **同步交付**：新增迁移必须同 PR 带最小测试（建表成功、约束生效、重复/越权场景被拒），否则不合入。
 
-### 1.4 已预留的下两号
+### 1.4 已预留的下几个号
+
+> 2026-11-19 修订：代码梳理（`docs/CODEBASE_MAP_V14.md` 第 7 节）发现 007 的 `submissions` 缺 `code_state`/`compiler_output`/来源定位，且链路 B 没有写 `source_assets`，`EvidenceRef` 无法落地。因此**来源与定位优先于代码特征**，009 调整如下。
 
 | 编号 | 计划内容 | 对应文档要求 | 触发条件 |
 | --- | --- | --- | --- |
-| 009 | `code_features`：`submission_id`、`feature_type`、`value`、`location` | 12 节 CodeFeature | 错误模式需要可查询代码结构特征时；当前 007 未建该表 |
+| 009 | 证据定位与来源：`submissions` 增列（`code_state`、`compiler_output`、`code_truncated`、`source_asset_id`、`source_entry`、`source_index`）+ `assessment_assets` + `assessment_materials` + `assessment_diagnostics` | 12 节 Submission / EvidenceRef；12.2 定位 | 立即：它是"群体发现→个人代码→原始包"可追溯的前置 |
 | 010 | `findings` / `evidence_refs`：五维结论、错误发现、来源引用、模型来源 | 12 节 Finding / EvidenceRef | 真实 Qwen 结果需要落库回读时 |
+| 011 | `code_features`：`submission_id`、`feature_type`、`value`、`location` | 12 节 CodeFeature | 错误模式需要可查询代码结构特征时 |
 
-009 / 010 为**预留位**，不是已批准发号；正式发号走 1.3 流程。
+009–011 为**预留位**，不是已批准发号；正式发号走 1.3 流程。
 
 ---
 
@@ -153,7 +156,7 @@
 | 出境 payload 白名单构造 | `apps/api/app/routers/ai.py`（正式服务接线时） | 彭仲楷 | 待实现 |
 | 别名映射与回程过滤 | `apps/api/app/edu/` 新模块 + `privacy.py` 复用 | 彭仲楷 | 待实现 |
 | 任务审计记录字段 | `prototypes/durable_teacher_agent/` 接线 + `storage/migrations` | 彭仲楷 | 待实现 |
-| 009 / 010 发号 | PR 占号后新增迁移 | 彭仲楷 | 预留 |
+| 009–011 发号 | PR 占号后新增迁移 | 彭仲楷 | 预留 |
 | 确认 k-匿名口径用于测评批次 | 与佘俊泽对齐 | 佘俊泽 / 彭仲楷 | 待确认 |
 
 ## 四、变更记录
@@ -161,3 +164,4 @@
 | 日期 | 变更 |
 | --- | --- |
 | 2026-11-19 | 初版：确定 006–008 占用、009/010 预留、条件卡方案作废；确定三层数据边界与出境白名单 |
+| 2026-11-19 | 修订 1.4：依 `CODEBASE_MAP_V14.md` 的实测缺口，009 改为「证据定位与来源」，finding 后移到 010、code_features 到 011 |
