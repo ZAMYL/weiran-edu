@@ -1,5 +1,6 @@
 """Authenticated pilot API; management and credential issuance stay operator-only."""
 
+import hashlib
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response
@@ -13,6 +14,18 @@ from app.core.errors import APIError
 from app.core.exact_json import ExactJSONResponse
 from app.edu.analysis import AnalysisReader
 from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
+from app.edu.assessment_models import (
+    AssessmentOverview,
+    AssessmentResult,
+    DimensionList,
+    DimensionMappingResult,
+    ParticipantList,
+    PatternList,
+    ProblemDimensionRequest,
+    ProblemStudentList,
+    StudentCodeEvidence,
+)
+from app.edu.assessments import AssessmentReader, AssessmentService
 from app.edu.auth import Principal, authenticate, deny, require_teacher
 from app.edu.diagnostic_models import Action, BatchCapabilities, IntegrityReport, IntegrityRequest
 from app.edu.diagnostics import DiagnosticReader
@@ -42,8 +55,17 @@ from app.edu.reads import BatchReader
 from app.edu.service import EduService, stamp
 from app.edu.summary import BatchSummary
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
+from app.importing.edu.adapter import adapter_for
+from app.importing.edu.answersheet import merge_answersheets, parse_answersheet
+from app.importing.edu.detect import ZIP_HTML, detect_asset
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
+from app.reporting.edu.assessment_report import (
+    render_csv as render_assessment_csv,
+)
+from app.reporting.edu.assessment_report import (
+    render_markdown as render_assessment_markdown,
+)
 from app.schemas.common import ErrorResponse
 
 router = APIRouter(prefix="/api/v1/edu", tags=["EDU"], default_response_class=ExactJSONResponse)
@@ -74,6 +96,18 @@ type Actor = Annotated[Principal, Depends(principal)]
 type Backend = Annotated[EduService, Depends(service)]
 
 
+def assessments_of(request: Request) -> AssessmentService:
+    return request.app.state.assessment_service
+
+
+def assessment_reader_of(request: Request) -> AssessmentReader:
+    return request.app.state.assessment_reader
+
+
+type Assessments = Annotated[AssessmentService, Depends(assessments_of)]
+type Reader = Annotated[AssessmentReader, Depends(assessment_reader_of)]
+
+
 def _parse_failure(exc: ImportFileError) -> APIError:
     if exc.code == "UNSUPPORTED_SHEETS":
         return APIError(422, "IMPORT_FORMAT_UNSUPPORTED", "当前暂不支持此文件结构，未创建测评批次")
@@ -91,6 +125,24 @@ def _parse_failure(exc: ImportFileError) -> APIError:
     if exc.code in {"PARSE_TIME_LIMIT", "PARSER_BUSY", "PARSER_UNAVAILABLE"}:
         return APIError(503, "IMPORT_PROCESSING_UNAVAILABLE", "解析服务暂不可用，请稍后重试")
     return APIError(422, "IMPORT_FILE_INVALID", "文件不符合当前Excel模板或解析限制")
+
+
+_ANSWERSHEET_FAILURES = {
+    "ANSWERSHEET_DUPLICATE_PARTICIPANT": "同一考号在多个文件或同一文件中重复出现",
+    "ANSWERSHEET_DUPLICATE_SUBMISSION": "同一学生的同一道题重复出现",
+    "ANSWERSHEET_NO_STUDENT": "没有解析到任何考生，请确认目录与答卷结构",
+    "ANSWERSHEET_INCONSISTENT": "答题卡内部引用不一致，未写入任何数据",
+    "ANSWERSHEET_ENCODING_UNKNOWN": "答卷编码无法识别",
+    "ANSWERSHEET_ROLE_UNCONFIRMED": "有疑似答卷的文件但无法确认其角色，请人工确认目录或资料类型",
+    "EXTRACTION_ZIP_UNREADABLE": "压缩包无法读取",
+}
+
+
+def _answersheet_failure(exc: ImportFileError) -> APIError:
+    message = _ANSWERSHEET_FAILURES.get(exc.code)
+    if message is None:
+        return _parse_failure(exc)
+    return APIError(422, exc.code, message)
 
 
 @router.get("/me")
@@ -148,10 +200,23 @@ def scopes(actor: Actor, backend: Backend) -> Scopes:
         )
 
 
-async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
+PREVIEW_FIELDS = frozenset(
+    {"file", "data_scope_id", "title", "course", "assessment_date", "revision_of_batch_id"}
+)
+ASSESSMENT_FIELDS = frozenset({"file", "data_scope_id", "title", "course", "assessment_date"})
+# 一次最多合并多少个答题卡包；防止用分片绕过单文件大小限制。
+MAX_ASSESSMENT_FILES = 20
+
+
+async def _upload(
+    request: Request,
+    *,
+    allowed_fields: frozenset[str] = PREVIEW_FIELDS,
+    max_files: int = 1,
+) -> tuple[list[tuple[bytes, str | None, str | None]], UploadMetadata]:
     # Authenticate before reading multipart. Bound actual streamed bytes, not just Content-Length.
     if request.headers.get("content-type", "").split(";", 1)[0].lower() != "multipart/form-data":
-        raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用Excel文件上传表单")
+        raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用文件上传表单")
     maximum = ParseLimits().compressed_bytes + 64 * 1024
     body = bytearray()
     async for chunk in request.stream():
@@ -169,35 +234,38 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
 
     limited = Request(request.scope, receive)
     try:
-        async with limited.form(max_files=1, max_fields=5, max_part_size=4096) as form:
+        async with limited.form(max_files=max_files, max_fields=5, max_part_size=4096) as form:
             items = list(form.multi_items())
             keys = [key for key, _ in items]
-            allowed = {
-                "file",
-                "data_scope_id",
-                "title",
-                "course",
-                "assessment_date",
-                "revision_of_batch_id",
-            }
-            if len(keys) != len(set(keys)) or set(keys) - allowed:
+            if set(keys) - set(allowed_fields):
                 raise APIError(422, "VALIDATION_ERROR", "上传字段不符合要求")
-            file = form.get("file")
-            if not isinstance(file, UploadFile):
-                raise APIError(422, "VALIDATION_ERROR", "缺少Excel文件")
-            if not (file.filename or "").lower().endswith(".xlsx") or file.content_type not in {
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/octet-stream",
-            }:
-                raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "当前支持xlsx测评文件")
+            # file 可以出现多次（多文件上传），其它字段不允许重复。
+            duplicates = [key for key in set(keys) if key != "file" and keys.count(key) > 1]
+            if duplicates:
+                raise APIError(422, "VALIDATION_ERROR", "上传字段不符合要求")
+            files = [
+                value for key, value in items if key == "file" and isinstance(value, UploadFile)
+            ]
+            if not files:
+                raise APIError(422, "VALIDATION_ERROR", "缺少上传文件")
+            if len(files) > max_files:
+                raise APIError(422, "VALIDATION_ERROR", "一次上传的文件数量超过限制")
             fields = {key: value for key, value in items if key != "file"}
             if "title" not in fields:
-                fields["title"] = filename_title(file.filename or "")
+                fields["title"] = filename_title(files[0].filename or "")
             metadata = UploadMetadata.model_validate(fields)
-            data = await file.read(ParseLimits().compressed_bytes + 1)
-            if len(data) > ParseLimits().compressed_bytes:
-                raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
-            return data, metadata
+            parts: list[tuple[bytes, str | None, str | None]] = []
+            total = 0
+            for upload in files:
+                data = await upload.read(ParseLimits().compressed_bytes + 1)
+                total += len(data)
+                if (
+                    len(data) > ParseLimits().compressed_bytes
+                    or total > ParseLimits().compressed_bytes
+                ):
+                    raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
+                parts.append((data, upload.filename, upload.content_type))
+            return parts, metadata
     except APIError:
         raise
     except ValidationError:
@@ -244,7 +312,15 @@ async def _upload(request: Request) -> tuple[bytes, UploadMetadata]:
     },
 )
 async def preview(request: Request, actor: Actor, backend: Backend) -> ImportView:
-    data, uploaded = await _upload(request)
+    parts, uploaded = await _upload(request)
+    data, asset_name, asset_content_type = parts[0]
+    asset = detect_asset(data, content_type=asset_content_type)
+    if adapter_for(asset.kind) is None:
+        raise APIError(
+            422,
+            "NO_ADAPTER_FOR_ASSET",
+            f"已识别为 {asset.kind}，当前还没有对应解析器",
+        )
     metadata = await run_in_threadpool(
         resolve_upload_metadata,
         backend.database,
@@ -253,9 +329,187 @@ async def preview(request: Request, actor: Actor, backend: Backend) -> ImportVie
         now=stamp(backend.clock()),
     )
     try:
-        return await run_in_threadpool(backend.create_import, actor, data, metadata)
+        return await run_in_threadpool(
+            backend.create_import,
+            actor,
+            data,
+            metadata,
+            asset_name=asset_name,
+            asset_content_type=asset_content_type,
+        )
     except ImportFileError as exc:
         raise _parse_failure(exc) from None
+
+
+@router.post("/assessments", response_model=AssessmentResult, status_code=201)
+async def create_assessment(
+    request: Request,
+    response: Response,
+    actor: Actor,
+    assessments: Assessments,
+    backend: Backend,
+) -> AssessmentResult:
+    """答题卡包（ZIP 内多个 HTML 答卷）→ 解析 → 直接生成测评。
+
+    这类资料没有逐行纠错需求，因此不走"预览 + 确认"，一次请求即入库；
+    同一文件重复上传返回原测评（duplicate=true），不重复写入。
+    """
+    parts, uploaded = await _upload(
+        request, allowed_fields=ASSESSMENT_FIELDS, max_files=MAX_ASSESSMENT_FILES
+    )
+    documents = []
+    digests = []
+    for raw, _, asset_content_type in parts:
+        asset = detect_asset(raw, content_type=asset_content_type)
+        if asset.kind != ZIP_HTML:
+            raise APIError(
+                422,
+                "NO_ADAPTER_FOR_ASSET",
+                f"已识别为 {asset.kind}，答题卡导入只接受含网页答卷的 ZIP",
+            )
+        documents.append(await run_in_threadpool(parse_answersheet, raw))
+        digests.append(hashlib.sha256(raw).hexdigest())
+    # 多文件合并：跨包重复的学号或题目会被拒绝，不静默覆盖。
+    try:
+        evidence = documents[0] if len(documents) == 1 else merge_answersheets(documents)
+    except ImportFileError as exc:
+        raise _answersheet_failure(exc) from None
+    combined_sha256 = hashlib.sha256("".join(sorted(digests)).encode()).hexdigest()
+    metadata = await run_in_threadpool(
+        resolve_upload_metadata,
+        backend.database,
+        actor,
+        uploaded,
+        now=stamp(backend.clock()),
+    )
+    try:
+        summary = await run_in_threadpool(
+            assessments.create_answersheet,
+            actor,
+            parts[0][0],
+            data_scope_id=metadata.data_scope_id,
+            title=metadata.title,
+            course=metadata.course,
+            assessment_date=metadata.assessment_date,
+            evidence=evidence,
+            file_sha256=combined_sha256,
+        )
+    except ImportFileError as exc:
+        raise _answersheet_failure(exc) from None
+    if summary.duplicate:
+        response.status_code = 200
+    response.headers["Cache-Control"] = "no-store"
+    return AssessmentResult(
+        assessment_id=summary.assessment_id,
+        student_count=summary.student_count,
+        problem_count=summary.problem_count,
+        submission_count=summary.submission_count,
+        observation_count=summary.observation_count,
+        duplicate=summary.duplicate,
+    )
+
+
+@router.get("/assessments/{assessment_id}", response_model=AssessmentOverview)
+def get_assessment(assessment_id: str, actor: Actor, reader: Reader) -> AssessmentOverview:
+    return reader.overview(actor, assessment_id)
+
+
+@router.get("/assessments/{assessment_id}/students", response_model=ParticipantList)
+def list_assessment_students(assessment_id: str, actor: Actor, reader: Reader) -> ParticipantList:
+    return reader.participants(actor, assessment_id)
+
+
+@router.get(
+    "/assessments/{assessment_id}/students/{student_pk}",
+    response_model=StudentCodeEvidence,
+)
+def get_assessment_student(
+    assessment_id: str, student_pk: str, actor: Actor, reader: Reader
+) -> StudentCodeEvidence:
+    """单个学生的全部题目证据：代码原文、结论、每个测试点的状态与耗时。"""
+    return reader.student(actor, assessment_id, student_pk)
+
+
+@router.get("/assessments/{assessment_id}/patterns", response_model=PatternList)
+def assessment_patterns(assessment_id: str, actor: Actor, reader: Reader) -> PatternList:
+    """按题目聚合错误现象：结论分布、满分/零分、失败集中的测试点。"""
+    return reader.problem_patterns(actor, assessment_id)
+
+
+@router.get(
+    "/assessments/{assessment_id}/problems/{problem_label}/students",
+    response_model=ProblemStudentList,
+)
+def assessment_problem_students(
+    assessment_id: str,
+    problem_label: str,
+    actor: Actor,
+    reader: Reader,
+    status: str | None = None,
+    test_index: int | None = Query(default=None, ge=1),
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> ProblemStudentList:
+    """从某题的错误现象钻到具体学生；可按结论或失败的测试点过滤。"""
+    return reader.problem_students(
+        actor,
+        assessment_id,
+        problem_label,
+        status=status,
+        test_index=test_index,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.get("/assessments/{assessment_id}/report")
+def assessment_report(
+    assessment_id: str,
+    actor: Actor,
+    reader: Reader,
+    format: Literal["md", "csv"] = "md",
+) -> PlainTextResponse:
+    """导出诊断报告：Markdown 正文或 CSV 表格，均不含个人代码原文。"""
+    overview = reader.overview(actor, assessment_id)
+    patterns = reader.problem_patterns(actor, assessment_id)
+    if format == "csv":
+        body = render_assessment_csv(overview, patterns)
+        media, suffix = "text/csv; charset=utf-8", "csv"
+    else:
+        body = render_assessment_markdown(overview, patterns)
+        media, suffix = "text/markdown; charset=utf-8", "md"
+    return PlainTextResponse(
+        body,
+        media_type=media,
+        headers={
+            "Content-Disposition": f'attachment; filename="assessment-{assessment_id}.{suffix}"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@router.put(
+    "/assessments/{assessment_id}/problem-dimensions",
+    response_model=DimensionMappingResult,
+)
+def set_assessment_dimensions(
+    assessment_id: str,
+    payload: ProblemDimensionRequest,
+    actor: Actor,
+    assessments: Assessments,
+) -> DimensionMappingResult:
+    """配置「题目 → 维度」映射；只有配置后五维才会显示推算结果。"""
+    return assessments.set_problem_dimensions(
+        actor,
+        assessment_id,
+        [(item.problem_label, item.dimension_code) for item in payload.items],
+    )
+
+
+@router.get("/assessments/{assessment_id}/dimensions", response_model=DimensionList)
+def get_assessment_dimensions(assessment_id: str, actor: Actor, reader: Reader) -> DimensionList:
+    """五维视图：默认只报"无评分数据"，配置映射后按题目得分推算。"""
+    return reader.dimensions(actor, assessment_id)
 
 
 @router.get("/imports/{import_id}", response_model=ImportView)

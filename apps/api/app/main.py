@@ -28,6 +28,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.add_exception_handler(Exception, handle_internal_error)
     application.include_router(health_router)
     if application.state.settings.database_path is not None:
+        from app.edu.assessments import AssessmentReader, AssessmentService
         from app.edu.discovery_disconnect import DiscoveryDisconnectMiddleware
         from app.edu.service import EduService
         from app.importing.edu.worker import parse_isolated
@@ -40,6 +41,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         application.state.edu_service = EduService(
             Database(application.state.settings.database_path),
             parser=parse_isolated,
+        )
+        application.state.assessment_service = AssessmentService(
+            application.state.edu_service.database
+        )
+        application.state.assessment_reader = AssessmentReader(
+            application.state.edu_service.database
         )
         application.include_router(edu_router)
         application.include_router(edu_discoveries_router)
