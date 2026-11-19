@@ -8,7 +8,7 @@ from pathlib import Path
 from app.ai.edu.qwen_config import QwenSettings
 
 from prototypes.adaptive_assessment.live.budget import ledger_root
-from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261112
+from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261119
 from prototypes.adaptive_assessment.synthetic import admit
 
 from .runtime import (
@@ -27,7 +27,7 @@ def main():
     parser.add_argument("--execute", action="store_true")
     args = parser.parse_args()
     source = admit(args.recipe)
-    price = REVIEWED_PRICE_20261112
+    price = REVIEWED_PRICE_20261119
     # Server-owned: no CLI flag, working directory or report path may pick the ledger.
     root = ledger_root()
     if not args.execute:

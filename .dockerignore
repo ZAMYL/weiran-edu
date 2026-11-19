@@ -10,3 +10,7 @@
 outputs
 deploy/secrets
 deploy/data
+deploy/ledger
+**/.env
+**/.env.*
+!**/.env.example
