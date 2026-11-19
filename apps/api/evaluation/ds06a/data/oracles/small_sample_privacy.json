@@ -1,0 +1,34 @@
+{
+  "case_id": "small_sample_privacy",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "基础统计可以如实报告两人失败、一人通过；C-01 的 minimum_cell=5 不允许披露这些小组。",
+      "C 的正确行为是无可调查卡片，而不是为了与 A/B 一致绕过隐私门限。"
+    ],
+    "verification": "独立计算小样本计数，并将 C 的无卡片列为正确弃答而非现象发现错误。"
+  },
+  "statistics": {
+    "tiny-sum": {
+      "verdict_counts": {"accepted": 1, "wrong_answer": 2},
+      "test_points": {"tiny-case": {"passed": 1, "failed": 2, "unknown": 0}}
+    }
+  },
+  "overview_unavailable": ["tiny-sum"],
+  "phenomena": {
+    "A": [{"problem": "tiny-sum", "point": "tiny-case", "status": "wrong_answer", "affected": ["anon-01", "anon-02"], "covered": ["anon-01", "anon-02", "anon-03"]}],
+    "B": [{"problem": "tiny-sum", "point": "tiny-case", "status": "wrong_answer", "affected": ["anon-01", "anon-02"], "covered": ["anon-01", "anon-02", "anon-03"]}],
+    "C": []
+  },
+  "feature_values": {
+    "small_sample_privacy-tiny-sum-01": {"loops": 1, "index_accesses": 2},
+    "small_sample_privacy-tiny-sum-03": {"loops": 0, "index_accesses": 0}
+  },
+  "feature_cohorts": [
+    {"problem": "tiny-sum", "point": "tiny-case", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-01", "anon-02"], "present": ["anon-01", "anon-02"]}
+  ],
+  "abstentions": [
+    {"systems": ["C"], "kind": "no_cards"},
+    {"systems": ["A", "B", "C"], "kind": "no_root_assertion"}
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "case_id": "witness_mismatch",
+  "distribution": "source_integrity_rejection",
+  "batch_id": "ds06a-witness_mismatch",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10"
+  ],
+  "problems": [
+    "source-check"
+  ],
+  "submissions": [
+    {
+      "submission_id": "witness_mismatch-source-check-01",
+      "participant": "anon-01",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-01",
+      "location": "synthetic/witness_mismatch/source-check/01.html",
+      "witness_fault": "verdict"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-02",
+      "participant": "anon-02",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-02",
+      "location": "synthetic/witness_mismatch/source-check/02.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-03",
+      "participant": "anon-03",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-03",
+      "location": "synthetic/witness_mismatch/source-check/03.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-04",
+      "participant": "anon-04",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-04",
+      "location": "synthetic/witness_mismatch/source-check/04.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-05",
+      "participant": "anon-05",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-05",
+      "location": "synthetic/witness_mismatch/source-check/05.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-06",
+      "participant": "anon-06",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-06",
+      "location": "synthetic/witness_mismatch/source-check/06.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-07",
+      "participant": "anon-07",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-07",
+      "location": "synthetic/witness_mismatch/source-check/07.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-08",
+      "participant": "anon-08",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-08",
+      "location": "synthetic/witness_mismatch/source-check/08.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-09",
+      "participant": "anon-09",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-09",
+      "location": "synthetic/witness_mismatch/source-check/09.html"
+    },
+    {
+      "submission_id": "witness_mismatch-source-check-10",
+      "participant": "anon-10",
+      "problem": "source-check",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-witness_mismatch-10",
+      "location": "synthetic/witness_mismatch/source-check/10.html"
+    }
+  ]
+}

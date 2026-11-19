@@ -1,0 +1,59 @@
+{
+  "case_id": "varied_distribution",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "alpha 有 10 条提交且失败率 50%；beta 有 15 条记录，其中 5 条超时、5 条通过、5 条未作答。",
+      "未作答不能计作失败，两个题必须分别分析，不能跨题池化关联。",
+      "beta 的失败与通过提交使用相同结构，不应产生循环或下标的区分性候选。"
+    ],
+    "verification": "分题独立计算结论与测试点分母，并复核 beta 的五条未作答没有测试点。"
+  },
+  "statistics": {
+    "alpha": {
+      "verdict_counts": {"accepted": 5, "wrong_answer": 5},
+      "test_points": {"tail": {"passed": 5, "failed": 5, "unknown": 0}}
+    },
+    "beta": {
+      "verdict_counts": {"accepted": 5, "not_attempted": 5, "timeout": 5},
+      "test_points": {"large": {"passed": 5, "failed": 5, "unknown": 0}}
+    }
+  },
+  "phenomena": {
+    "A": [
+      {"problem": "alpha", "point": "tail", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]},
+      {"problem": "beta", "point": "large", "status": "timeout", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}
+    ],
+    "B": [
+      {"problem": "alpha", "point": "tail", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]},
+      {"problem": "beta", "point": "large", "status": "timeout", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}
+    ],
+    "C": [
+      {"problem": "alpha", "point": "tail", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]},
+      {"problem": "beta", "point": "large", "status": "timeout", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}
+    ]
+  },
+  "feature_values": {
+    "varied_distribution-alpha-01": {"loops": 1, "index_accesses": 2},
+    "varied_distribution-alpha-06": {"loops": 0, "index_accesses": 0},
+    "varied_distribution-beta-01": {"loops": 1, "index_accesses": 2}
+  },
+  "feature_cohorts": [
+    {"problem": "alpha", "point": "tail", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]},
+    {"problem": "beta", "point": "large", "status": "timeout", "feature": "indexing", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]}
+  ],
+  "candidate_evidence": [
+    {"problem": "alpha", "feature": "loops", "submissions": ["varied_distribution-alpha-01", "varied_distribution-alpha-02", "varied_distribution-alpha-03", "varied_distribution-alpha-04", "varied_distribution-alpha-05"]},
+    {"problem": "alpha", "feature": "index_accesses", "submissions": ["varied_distribution-alpha-01", "varied_distribution-alpha-02", "varied_distribution-alpha-03", "varied_distribution-alpha-04", "varied_distribution-alpha-05"]}
+  ],
+  "card_features": [
+    {"problem": "alpha", "point": "tail", "status": "wrong_answer", "features": {"boundary_check": {"checked": 5, "present": 0}, "indexing": {"checked": 5, "present": 5}, "input_parsing": {"checked": 5, "present": 5}, "loop": {"checked": 5, "present": 5}, "recursion": {"checked": 5, "present": 0}}},
+    {"problem": "beta", "point": "large", "status": "timeout", "features": {"boundary_check": {"checked": 5, "present": 0}, "indexing": {"checked": 5, "present": 5}, "input_parsing": {"checked": 5, "present": 5}, "loop": {"checked": 5, "present": 5}, "recursion": {"checked": 5, "present": 0}}}
+  ],
+  "abstentions": [
+    {"systems": ["B", "C"], "kind": "unknown_features", "submission_id": "varied_distribution-beta-11", "status": "missing_source"},
+    {"systems": ["A", "B", "C"], "kind": "no_root_assertion"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "alpha", "point": "tail", "status": "wrong_answer", "limit": "cause_unconfirmed"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "beta", "point": "large", "status": "timeout", "limit": "cause_unconfirmed"}
+  ]
+}

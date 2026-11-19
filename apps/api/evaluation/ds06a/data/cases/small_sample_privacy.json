@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "case_id": "small_sample_privacy",
+  "distribution": "privacy_limited_3x1",
+  "batch_id": "ds06a-small_sample_privacy",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03"
+  ],
+  "problems": [
+    "tiny-sum"
+  ],
+  "submissions": [
+    {
+      "submission_id": "small_sample_privacy-tiny-sum-01",
+      "participant": "anon-01",
+      "problem": "tiny-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "tiny-case",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-small_sample_privacy-01",
+      "location": "synthetic/small_sample_privacy/tiny-sum/01.html"
+    },
+    {
+      "submission_id": "small_sample_privacy-tiny-sum-02",
+      "participant": "anon-02",
+      "problem": "tiny-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "tiny-case",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-small_sample_privacy-02",
+      "location": "synthetic/small_sample_privacy/tiny-sum/02.html"
+    },
+    {
+      "submission_id": "small_sample_privacy-tiny-sum-03",
+      "participant": "anon-03",
+      "problem": "tiny-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "tiny-case",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-small_sample_privacy-03",
+      "location": "synthetic/small_sample_privacy/tiny-sum/03.html"
+    }
+  ]
+}
