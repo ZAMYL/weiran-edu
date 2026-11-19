@@ -66,9 +66,22 @@ REVIEWED_PRICE_20261112 = Price(
     valid_until="2026-11-19",
 )
 
+# Official Beijing list price rechecked on 2026-11-19. Use a new identity so an
+# older approval cannot acquire a longer validity window.
+REVIEWED_PRICE_20261119 = Price(
+    price_id="qwen3.8-flash-beijing-2026-11-19-v1",
+    checked_on="2026-11-19",
+    valid_until="2026-11-26",
+)
+
 
 def reviewed_price(fingerprint: str) -> Price:
-    for price in (PRICE, RESEARCH_PRICE_20261104, REVIEWED_PRICE_20261112):
+    for price in (
+        PRICE,
+        RESEARCH_PRICE_20261104,
+        REVIEWED_PRICE_20261112,
+        REVIEWED_PRICE_20261119,
+    ):
         if price.fingerprint == fingerprint:
             return price
     raise AgentError("stale_authorization_or_price")

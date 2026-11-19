@@ -15,7 +15,7 @@ Caddy (TLS)
 - Linux 主机（2C4G 起步，持久磁盘）
 - 域名解析到主机，80/443 可达
 - Docker Engine + Compose v2
-- 已获批准的真实数据来源、`RealDataAdmission` 文件
+- 已获批准的测评数据来源、`RealDataAdmission` 文件
 - 已获批准的单次 `DatabaseLiveApproval` 文件（每个 campaign 一份）
 - 服务端 DashScope Key
 
@@ -69,7 +69,7 @@ chmod 600 .env
 
 - 这个文件决定哪些真实批次可以进入 AI 链路；未列出的批次返回 `AI_REAL_DATA_NOT_APPROVED`。
 - `reviewed_code_sha256` 由 `prototypes.qwen_execution.code_fingerprint()` 生成；代码变更后必须重审。
-- 当前 `RealDataAdmission` 只校验来源和日期；代码指纹由每次任务的 `LiveAdmission` 复核。
+- 正式应用启动时核对该审批的代码指纹和有效期。每个任务的 `LiveAdmission` 独立核对单次审批。
 
 ### 单次 Live 任务（每个 campaign 一份）
 
@@ -77,7 +77,11 @@ chmod 600 .env
 
 ## 3. 启动
 
+首次部署先初始化 SQLite，再在 Worker 的配置环境中运行只读自检。启动顺序和获批后的一次合成验收见 [DS-LIVE 联网前验收](QWEN_LIVE_PREFLIGHT.md)。
+
 ```bash
+docker compose build api
+docker compose run --rm --no-deps api uv run --project apps/api --locked python -m app.edu init
 docker compose up -d --build
 docker compose ps
 docker compose logs -f api worker
@@ -90,11 +94,12 @@ Caddy 自动申请 HTTPS。只暴露 80/443；FastAPI 不映射公网端口。
 ## 4. 发放 database_live 授权
 
 ```bash
-docker compose exec -e WEIRAN_EDU_GRANT_TOKEN="<teacher token>" api \
+# 操作员先经受控渠道把令牌注入本地环境，再按变量名传入。
+docker compose exec -e WEIRAN_EDU_GRANT_TOKEN api \
   python -m app.grant_live --batch <batch_id> --snapshot <snapshot_id>
 ```
 
-Token 只通过容器环境传入，不写命令行、不写仓库。
+Token 通过容器环境传入。禁止将值写入命令历史或仓库。
 
 ## 5. 提交任务
 
