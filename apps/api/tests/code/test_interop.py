@@ -3,6 +3,8 @@ from collections.abc import Callable
 import pytest
 
 from app.analysis.code import (
+    Analysis,
+    CodeAnalysisError,
     CodeState,
     FeatureId,
     Language,
@@ -14,10 +16,12 @@ from app.analysis.code import (
     b01_code_state,
     b01_language,
     b01_test_point_outcome,
+    b01_test_point_result,
     b01_verdict,
     c01_feature_associations,
     c01_feature_code,
     c01_status,
+    c01_test_point_status,
 )
 
 _RECURSIVE = "def fact(n):\n    if n <= 1:\n        return 1\n    return n * fact(n - 1)\n"
@@ -157,35 +161,105 @@ def test_c01_feature_associations_shape(make_submission: Callable[..., Submissio
     assert indexing.present == ()
 
 
-def test_c01_feature_associations_point_filter(
+@pytest.fixture
+def point_analysis(
     make_submission: Callable[..., SubmissionRecord],
-) -> None:
+) -> Analysis:
+    wrong = b01_test_point_result("t1", "答案错误")
+    timeout = b01_test_point_result("t1", "运行超时")
     records = [
         make_submission(
             "1",
             _RECURSIVE,
-            Verdict.WRONG_ANSWER,
-            test_points=(TestPointResult("t1", TestPointOutcome.FAILED),),
+            Verdict.PARTIAL,
+            test_points=(wrong, b01_test_point_result("t2", "运行超时")),
         ),
         make_submission(
             "2",
-            _RECURSIVE,
+            _LOOP,
             Verdict.WRONG_ANSWER,
-            test_points=(TestPointResult("t1", TestPointOutcome.PASSED),),
+            test_points=(timeout, b01_test_point_result("t2", "答案错误")),
         ),
         make_submission(
             "3",
-            _LOOP,
-            Verdict.ACCEPTED,
-            test_points=(TestPointResult("t1", TestPointOutcome.PASSED),),
+            _RECURSIVE,
+            Verdict.WRONG_ANSWER,
+            test_points=(b01_test_point_result("t1", "答案正确"),),
         ),
+        make_submission(
+            "4",
+            _RECURSIVE,
+            Verdict.WRONG_ANSWER,
+            test_points=(b01_test_point_result("t1", "评测中"),),
+        ),
+        make_submission(
+            "5",
+            _RECURSIVE,
+            Verdict.WRONG_ANSWER,
+            test_points=(TestPointResult("t1", TestPointOutcome.FAILED),),
+        ),
+        make_submission("6", _RECURSIVE, Verdict.WRONG_ANSWER),
+        make_submission(
+            "7", "", Verdict.WRONG_ANSWER, test_points=(wrong,), code_state=CodeState.MISSING
+        ),
+        make_submission(
+            "8", _RECURSIVE, Verdict.WRONG_ANSWER, test_points=(wrong,), code_truncated=True
+        ),
+        make_submission("9", _RECURSIVE, Verdict.WRONG_ANSWER, test_points=(wrong,), language=None),
     ]
-    result = analyze("batch-1", "problem-1", records)
-    associations = c01_feature_associations(result, status="wrong_answer", point="t1")
+    return analyze("batch-1", "problem-1", records)
+
+
+@pytest.mark.parametrize(
+    ("point", "status", "checked", "present"),
+    [
+        ("t1", "wrong_answer", ("student-1",), (("student-1", "1"),)),
+        ("t1", "timeout", ("student-2",), ()),
+        ("t2", "wrong_answer", ("student-2",), ()),
+        ("t2", "timeout", ("student-1",), (("student-1", "1"),)),
+        ("t1", "accepted", (), ()),
+        ("t1", "unknown", (), ()),
+        ("uncovered", "wrong_answer", (), ()),
+    ],
+)
+def test_c01_feature_associations_point_filter(
+    point_analysis: Analysis,
+    point: str,
+    status: str,
+    checked: tuple[str, ...],
+    present: tuple[tuple[str, str], ...],
+) -> None:
+    associations = c01_feature_associations(point_analysis, status=status, point=point)
     recursion = next(a for a in associations if a.code == "recursion")
-    assert recursion.point == "t1"
-    assert recursion.checked == ("student-1",)
-    assert recursion.present == (("student-1", "1"),)
+    assert (recursion.point, recursion.status) == (point, status)
+    assert recursion.checked == checked
+    assert recursion.present == present
+    assert all(person in a.checked for a in associations for person, _ in a.present)
+
+
+def test_whole_submission_cohort_and_coarse_counts_are_preserved(point_analysis: Analysis) -> None:
+    associations = c01_feature_associations(point_analysis, status="wrong_answer")
+    recursion = next(a for a in associations if a.code == "recursion")
+    assert recursion.checked == tuple(f"student-{i}" for i in range(2, 7))
+    assert point_analysis.outcomes.failed == 8
+    coarse = next(point for point in point_analysis.test_points if point.testpoint_id == "t1")
+    assert (coarse.passed, coarse.failed, coarse.unknown) == (1, 6, 1)
+
+
+@pytest.mark.parametrize(
+    "point",
+    [
+        TestPointResult("t1", TestPointOutcome.PASSED, Verdict.WRONG_ANSWER),
+        TestPointResult("t1", TestPointOutcome.UNKNOWN, Verdict.WRONG_ANSWER),
+        TestPointResult("t1", TestPointOutcome.FAILED, Verdict.COMPILE_ERROR),
+    ],
+)
+def test_invalid_specific_point_failure_is_rejected(
+    make_submission: Callable[..., SubmissionRecord], point: TestPointResult
+) -> None:
+    record = make_submission("1", _LOOP, test_points=(point,))
+    with pytest.raises(CodeAnalysisError, match="invalid_testpoint_failure_verdict"):
+        analyze("batch-1", "problem-1", (record,))
 
 
 # Mirrors ``importing/edu/answersheet.py`` ``_STATUS_WORDS`` at B-01 ``a0d1422``.
@@ -236,6 +310,7 @@ def test_runtime_family_means_runtime_error_everywhere(word: str) -> None:
     assert b01_verdict(word) is Verdict.RUNTIME_ERROR
     assert c01_status(b01_verdict(word)) == "runtime_error"
     assert b01_test_point_outcome(word) is TestPointOutcome.FAILED
+    assert c01_test_point_status(b01_test_point_result("t1", word)) == "runtime_error"
 
 
 def test_unrecognized_status_never_enters_statistical_denominators(
