@@ -12,16 +12,24 @@ from threading import Lock
 
 from prototypes.adaptive_assessment.analysis import VERSION
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
+from prototypes.capability_profiles.agent import project_selected
 from prototypes.capability_profiles.engine import CODES, DIMS, ITEMS
+from prototypes.research_agent_v2.goals import Goal
 from prototypes.research_agent_v2.runtime import ResearchExecutor
 from prototypes.teacher_agent_bridge.api import InvestigationHost
 from prototypes.teacher_agent_bridge.models import (
     InvestigationRequest,
-    InvestigationResult,
+    InvocationBudget,
     SourceRequest,
     SourceResult,
+    ToolStep,
 )
-from prototypes.teacher_agent_bridge.provider import DatabaseEnvelope, DatabaseSource, digest
+from prototypes.teacher_agent_bridge.provider import (
+    ALIASES,
+    DatabaseEnvelope,
+    DatabaseSource,
+    digest,
+)
 
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.ai.edu.qwen_config import QwenSettings
@@ -29,6 +37,7 @@ from app.core.errors import APIError
 from app.edu.auth import Principal
 
 from .models import (
+    LIVE_PROFILE_SCORE_EVIDENCE_MODE,
     PROFILE_SCORE_EVIDENCE_MODE,
     ProfileInvestigationResult,
     ProfileScoreEvidence,
@@ -42,6 +51,7 @@ from .profiles import (
     parse_result,
     projection,
     replay_profiles,
+    uncovered,
 )
 from .store import TaskStore, blocked
 
@@ -248,7 +258,7 @@ class TaskService:
         except AgentError as error:
             self.store.fail(
                 task_id,
-                self.LIVE_CODES.get(str(error), "AI_LIVE_EXECUTION_BLOCKED")
+                self.LIVE_CODES.get(str(error), "AI_LIVE_" + str(error).upper()[:48])
                 if live
                 else "AI_INVESTIGATION_BLOCKED",
             )
@@ -292,10 +302,12 @@ class TaskService:
                 self.LIVE_CODES.get(str(error), "AI_LIVE_BLOCKED"),
                 "真实模型执行未获批准或已失效，未发起任何请求",
             ) from None
+        settings = QwenSettings.from_env()
         source = self.source(row, actor, running=True)
         budget = admission.budget(self.store, task_id, source)
         try:
-            budget.claim(QwenSettings.from_env(), source)
+            # The reviewed planner claims the campaign on its first request; an
+            # explicit claim here would be a second claim and fail closed.
             binding = DatabaseTaskInput(
                 task_id=task_id,
                 batch_id=row["batch_id"],
@@ -304,24 +316,125 @@ class TaskService:
                 store=self.store,
                 source=source,
                 budget=budget,
-                settings=QwenSettings.from_env(),
+                settings=settings,
                 require_externalization=admission.require,
             )
-            invocation = Invocation(self, row)
-            invocation.profile_active = True
             raw, book, executor = asyncio.run(
                 run_database_profiles(binding, limits=self.profile_limits)
             )
-            invocation.profile_projection = projection(source, raw, book, executor)
-            invocation.profile_staged = tuple(tuple(sorted(group)) for group in executor.released)
-            result = InvestigationResult.model_validate(raw)
-            invocation.completed(actor, source, executor, result)
-            self.store.provenance(
-                task_id,
-                provenance_from(budget, executor).model_dump(mode="json"),
+            provenance = provenance_from(budget, executor).model_dump(mode="json")
+            self._persist_live_result(
+                task_id, row, actor, source, raw, book, executor, provenance=provenance
             )
         finally:
             budget.close()
+
+    def _persist_live_result(
+        self,
+        task_id: str,
+        row: dict,
+        actor: Principal,
+        source,
+        raw,
+        book,
+        executor,
+        *,
+        provenance: dict,
+    ) -> None:
+        """Convert the reviewed database session into the existing proof/result path."""
+        from .models import PROFILE_RESULT_CONTRACT
+
+        request = json.loads(row["request_json"])
+        if request.get("_result_contract") != PROFILE_RESULT_CONTRACT:
+            raise AgentError("live_profile_contract_required")
+        if raw.get("status") != "completed":
+            raise AgentError("live_profile_not_completed")
+        raw["goal"] = Goal(kind="priority", items=()).view()
+        raw["missing_evidence"] = []
+        raw["trace"] = [
+            {
+                "tool": event.get("tool"),
+                "round": event["round"],
+                "phase": event["phase"],
+                "status": event["status"],
+                "fact_ids": event.get("fact_ids", []),
+            }
+            for event in raw["trace"]
+        ]
+        raw["investigation_coverage"] = {"uncovered_direction_ids": uncovered(book, executor)}
+        raw["stop_reason"] = raw["profile_stop"] if book.candidates else "no_supported_findings"
+        selection_origin = (
+            raw["profiles"][0].get("selection_origin", "qwen_live")
+            if raw["profiles"]
+            else "qwen_live"
+        )
+        staged: list = []
+        raw["profiles"] = project_selected(
+            book, raw, executor, staged=staged, selection_origin=selection_origin
+        )
+        projected = projection(
+            source,
+            raw,
+            book,
+            executor,
+            evidence_mode=LIVE_PROFILE_SCORE_EVIDENCE_MODE,
+        )
+        facts = Invocation(self, row).verified_facts(
+            source, executor, row["batch_id"], row["snapshot_id"], task_id
+        )
+        records_path = (
+            f"/api/v1/edu/batches/{row['batch_id']}/ai-investigation-tasks/{task_id}/records/query"
+        )
+        facts = tuple(
+            fact.model_copy(
+                update={
+                    "source_refs": tuple(
+                        reference.model_copy(update={"records_path": records_path})
+                        for reference in fact.source_refs
+                    )
+                }
+            )
+            for fact in facts
+        )
+        result = ProfileInvestigationResult(
+            run_id=task_id,
+            batch_id=row["batch_id"],
+            snapshot_id=row["snapshot_id"],
+            source_manifest_sha256=source.fingerprint,
+            batch_record_count=len(source.envelope.data.participants),
+            execution_origin="qwen_live",
+            strategy=request.get("strategy", "adaptive"),
+            real_qwen="completed" if raw["model_requests"] else "not_run",
+            production_enabled=False,
+            status=raw["status"],
+            stop_reason=raw["stop_reason"],
+            controlled_goal=raw["goal"]["type"],
+            goal_items=tuple(ALIASES[item] for item in raw["goal"]["items"]),
+            missing_evidence=(),
+            facts=facts,
+            selected_fact_ids=tuple(card["fact_id"] for card in raw["findings"]),
+            retained_fact_ids=tuple(raw.get("retained_fact_ids", ())),
+            trace=tuple(
+                ToolStep(
+                    tool=event["tool"],
+                    round=event["round"],
+                    phase=event["phase"],
+                    status=event["status"],
+                    fact_ids=tuple(event["fact_ids"]),
+                )
+                for event in raw["trace"]
+            ),
+            budget=InvocationBudget(
+                model_requests=raw["model_requests"],
+                tool_attempts=raw["tool_attempts"],
+                verification_replays=executor.replay_executions,
+            ),
+            uncovered_direction_count=len(raw["investigation_coverage"]["uncovered_direction_ids"]),
+            report_integration="eligible_facts_require_formal_recomputation",
+            profile_projection=projected,
+        )
+        verified = extend_proof(proof(executor), result, executor, staged, self.profile_limits)
+        self.store.finish(task_id, actor, result, verified, provenance=provenance)
 
     def _row(self, actor: Principal, batch_id: str, task_id: str, snapshot_id: str) -> dict:
         row = self.store.get(actor, task_id)
@@ -499,7 +612,10 @@ class TaskService:
             result, replayed = self.verified_result(actor, row, source=source)
             if not isinstance(result, ProfileInvestigationResult) or replayed is None:
                 blocked("AI_PROFILE_NOT_FOUND", 404)
-            if result.profile_projection.dimension_evidence_http != PROFILE_SCORE_EVIDENCE_MODE:
+            if result.profile_projection.dimension_evidence_http not in {
+                PROFILE_SCORE_EVIDENCE_MODE,
+                LIVE_PROFILE_SCORE_EVIDENCE_MODE,
+            }:
                 blocked("AI_PROFILE_EVIDENCE_NOT_ENABLED")
             profiles = [
                 profile

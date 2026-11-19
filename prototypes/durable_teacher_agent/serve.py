@@ -9,12 +9,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import httpx
-from app.edu.auth import authenticate
-from app.importing.edu import parse_excel
-
 from prototypes.capability_profiles.synthetic import workbook as profile_workbook
 from prototypes.teacher_agent_bridge.fixtures import build_host
 from prototypes.teacher_agent_bridge.provider import DatabaseProvider
+
+from app.edu.auth import authenticate
+from app.importing.edu import parse_excel
 
 from .api import install
 from .demo import QUESTION, server

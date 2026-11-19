@@ -6,6 +6,16 @@ from datetime import date
 from pathlib import Path
 from uuid import uuid4
 
+from fastapi import APIRouter, FastAPI, Request
+from prototypes.adaptive_assessment.analysis import VERSION, Kernel
+from prototypes.adaptive_assessment.live.budget import CampaignBudget, OfflineSnapshotPermit
+from prototypes.adaptive_assessment.live.pricing import RESEARCH_PRICE_20261104 as PRICE
+from prototypes.adaptive_assessment.planners import AdaptiveFake
+from prototypes.research_agent_v2.demo import mock_transport
+from prototypes.research_agent_v2.goals import understand
+from prototypes.research_agent_v2.runtime import investigate_database
+from starlette.concurrency import run_in_threadpool
+
 from app.ai.edu.discovery.models import AgentError, Limits
 from app.core.errors import APIError
 from app.core.exact_json import ExactJSONResponse
@@ -16,16 +26,6 @@ from app.edu.query import read_query, request_schema
 from app.edu.review_models import AnalysisCreate
 from app.routers.edu import Actor
 from app.schemas.common import ErrorResponse
-from fastapi import APIRouter, FastAPI, Request
-from starlette.concurrency import run_in_threadpool
-
-from prototypes.adaptive_assessment.analysis import VERSION, Kernel
-from prototypes.adaptive_assessment.live.budget import CampaignBudget, OfflineSnapshotPermit
-from prototypes.adaptive_assessment.live.pricing import RESEARCH_PRICE_20261104 as PRICE
-from prototypes.adaptive_assessment.planners import AdaptiveFake
-from prototypes.research_agent_v2.demo import mock_transport
-from prototypes.research_agent_v2.goals import understand
-from prototypes.research_agent_v2.runtime import investigate_database
 
 from .models import (
     EvidenceLink,

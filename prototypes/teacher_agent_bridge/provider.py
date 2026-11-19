@@ -3,15 +3,11 @@
 import json
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
+from datetime import date
 from hashlib import sha256
+from pathlib import Path
 from threading import Lock
-
-from app.core.errors import APIError
-from app.edu.analysis import DIMENSION_MAP, AnalysisReader
-from app.edu.auth import Principal
-from app.edu.reviews import require_owner
-from app.importing.edu import parse_excel
-from app.importing.edu.types import DIMENSIONS
+from typing import Literal
 
 from docs.canonical_assessment.model import (
     AssessmentItem,
@@ -23,6 +19,15 @@ from docs.canonical_assessment.model import (
     Scale,
 )
 from prototypes.adaptive_assessment.data import Envelope, Materialized, Witness
+from pydantic import Field
+
+from app.ai.edu.discovery.models import Strict
+from app.core.errors import APIError
+from app.edu.analysis import DIMENSION_MAP, AnalysisReader
+from app.edu.auth import Principal
+from app.edu.reviews import require_owner
+from app.importing.edu import parse_excel
+from app.importing.edu.types import DIMENSIONS, ImportFileError
 
 ALIASES = {f"I{i + 1:02}": spec.code for i, spec in enumerate(DIMENSIONS)}
 REVERSE = {v: k for k, v in ALIASES.items()}
@@ -102,6 +107,82 @@ class DatabaseSource:
                 self.validate()
 
 
+REAL_DATA_APPROVAL_MAX_BYTES = 65_536
+REPOSITORY = Path(__file__).resolve().parents[2]
+
+
+class RealDataSource(Strict):
+    source_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    valid_until: str
+    human_approval_reference: str = Field(
+        min_length=8, max_length=120, pattern=r"^[A-Za-z0-9:_-]+$"
+    )
+
+    def check(self, today: date) -> None:
+        try:
+            expiry = date.fromisoformat(self.valid_until)
+        except ValueError:
+            raise APIError(403, "AI_REAL_DATA_APPROVAL_STALE", "真实数据授权日期无效") from None
+        if expiry < today:
+            raise APIError(403, "AI_REAL_DATA_APPROVAL_STALE", "真实数据授权已过期")
+
+
+class RealDataAdmission(Strict):
+    """Operator-owned allowlist for real teacher batches. No browser can create one."""
+
+    purpose: Literal["real_teacher_data"]
+    human_approval_reference: str = Field(
+        min_length=8, max_length=120, pattern=r"^[A-Za-z0-9:_-]+$"
+    )
+    independent_review_reference: str = Field(min_length=8, max_length=200)
+    reviewed_code_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    valid_until: str
+    sources: tuple[RealDataSource, ...] = Field(min_length=1, max_length=100)
+
+    @classmethod
+    def load(
+        cls,
+        path: Path | str,
+        *,
+        today: date | None = None,
+        code_sha256: str | None = None,
+    ) -> "RealDataAdmission":
+        path = Path(path).expanduser()
+        if not path.is_absolute() or path.resolve().is_relative_to(REPOSITORY):
+            raise APIError(403, "AI_REAL_DATA_APPROVAL_LOCATION", "真实数据授权文件必须在仓库外")
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            raise APIError(403, "AI_REAL_DATA_APPROVAL_MISSING", "真实数据授权文件不可读") from None
+        if len(payload) > REAL_DATA_APPROVAL_MAX_BYTES:
+            raise APIError(413, "AI_REAL_DATA_APPROVAL_TOO_LARGE", "真实数据授权文件过大")
+        admission = cls.model_validate_json(payload)
+        admission.check(today=today)
+        if code_sha256 is not None and admission.reviewed_code_sha256 != code_sha256:
+            raise APIError(403, "AI_REAL_DATA_REVIEW_STALE", "真实数据审核绑定的代码已变化")
+        return admission
+
+    def check(self, *, today: date | None = None) -> None:
+        current = today or date.today()
+        try:
+            expiry = date.fromisoformat(self.valid_until)
+        except ValueError:
+            raise APIError(403, "AI_REAL_DATA_APPROVAL_STALE", "真实数据授权日期无效") from None
+        if expiry < current:
+            raise APIError(403, "AI_REAL_DATA_APPROVAL_STALE", "真实数据授权已过期")
+        for source in self.sources:
+            source.check(current)
+
+    def require(self, source_sha256: str, *, today: date | None = None) -> None:
+        current = today or date.today()
+        self.check(today=current)
+        matching = [source for source in self.sources if source.source_sha256 == source_sha256]
+        if not matching:
+            raise APIError(403, "AI_REAL_DATA_NOT_APPROVED", "这份真实测评尚未获得外发批准")
+        for source in matching:
+            source.check(current)
+
+
 class DatabaseProvider:
     """Local test host only. Real teacher auth; only server-generated XLSX hashes allowed.
 
@@ -109,38 +190,67 @@ class DatabaseProvider:
     durable cross-process disclosure history: production registration is forbidden.
     """
 
-    def __init__(self, service, generated_workbooks: tuple[bytes, ...]):
-        if type(generated_workbooks) is not tuple or not generated_workbooks:
+    def __init__(
+        self,
+        service,
+        generated_workbooks: tuple[bytes, ...],
+        *,
+        allow_unregistered: bool = False,
+    ):
+        if type(generated_workbooks) is not tuple:
+            raise ValueError("server_generated_sources_required")
+        if not generated_workbooks and not allow_unregistered:
             raise ValueError("server_generated_sources_required")
         self._scoring = {}
+        self._allow_unregistered = allow_unregistered
         for raw in generated_workbooks:
             if type(raw) is not bytes:
                 raise ValueError("server_generated_bytes_required")
             parsed = parse_excel(raw)
             if not parsed.can_commit:
                 raise ValueError("invalid_generated_fixture")
-            # Retain only immutable original score coordinates/lexemes, never names/comments.
-            cells = {}
-            for index, block in enumerate(parsed.students):
-                for evaluation in block.evaluations:
-                    origin = evaluation.source
-                    key = (
-                        origin.sheet_name,
-                        origin.row_number,
-                        evaluation.dimension_code,
-                        origin.score_cell,
-                        origin.dimension_cell,
-                        origin.comment_cell,
-                    )
-                    if key in cells:
-                        raise ValueError("ambiguous_generated_witness")
-                    cells[key] = (index, evaluation.score_units, str(evaluation.score_raw))
-            self._scoring[parsed.file_sha256] = cells
+            self._scoring[parsed.file_sha256] = self._score_cells(parsed)
         self.service = service
         self.reader = AnalysisReader(service.database, clock=service.clock)
         self.allowed_hashes = frozenset(self._scoring)
         self._consumed = set()
         self._lock = Lock()
+
+    @staticmethod
+    def _score_cells(parsed) -> dict:
+        """Retain only original score coordinates/lexemes, never names or comments."""
+        cells = {}
+        for index, block in enumerate(parsed.students):
+            for evaluation in block.evaluations:
+                origin = evaluation.source
+                key = (
+                    origin.sheet_name,
+                    origin.row_number,
+                    evaluation.dimension_code,
+                    origin.score_cell,
+                    origin.dimension_cell,
+                    origin.comment_cell,
+                )
+                if key in cells:
+                    raise ValueError("ambiguous_generated_witness")
+                cells[key] = (index, evaluation.score_units, str(evaluation.score_raw))
+        return cells
+
+    def _scores_for(self, file_sha256: str, raw: bytes) -> dict:
+        cached = self._scoring.get(file_sha256)
+        if cached is not None:
+            return cached
+        if not self._allow_unregistered:
+            raise APIError(403, "AI_SYNTHETIC_SOURCE_REQUIRED", "当前仅开放服务器登记的合成测评")
+        try:
+            parsed = parse_excel(raw)
+        except (ImportFileError, ValueError):
+            raise APIError(422, "IMPORT_FILE_INVALID", "真实测评原件无法安全解析") from None
+        if not parsed.can_commit or parsed.file_sha256 != file_sha256:
+            raise APIError(422, "IMPORT_FILE_INVALID", "真实测评原件不一致")
+        cells = self._score_cells(parsed)
+        self._scoring[file_sha256] = cells
+        return cells
 
     def require_registered_source(self, file_sha256: str) -> None:
         if file_sha256 not in self.allowed_hashes:
@@ -155,11 +265,11 @@ class DatabaseProvider:
                 "SELECT raw_xlsx FROM batch_sources WHERE batch_id=?", (batch_id,)
             ).fetchone()
             if original is None or sha256(original["raw_xlsx"]).hexdigest() != batch["file_sha256"]:
-                raise APIError(503, "DATA_INTEGRITY_ERROR", "合成原文件摘要不一致")
-            original_scores = self._scoring[batch["file_sha256"]]
+                raise APIError(503, "DATA_INTEGRITY_ERROR", "测评原文件摘要不一致")
+            original_scores = self._scores_for(batch["file_sha256"], original["raw_xlsx"])
             dataset, students = self.reader._load(connection, batch)
             if not 5 <= len(students) <= 100:
-                raise APIError(422, "AI_SAMPLE_LIMIT", "合成接入验证仅接受5至100份记录")
+                raise APIError(422, "AI_SAMPLE_LIMIT", "AI 接入验证仅接受5至100份记录")
             proofs = {
                 row["evidence_id"]: self.reader._evidence(row)
                 for row in connection.execute(self.reader._evidence_rows(), (batch_id,))
@@ -291,7 +401,7 @@ class DatabaseProvider:
         with self._lock:
             if key in self._consumed:
                 raise APIError(
-                    409, "AI_CAMPAIGN_ALREADY_USED", "该合成测评已发起过调查，请读取已有结果"
+                    409, "AI_CAMPAIGN_ALREADY_USED", "该测评已发起过调查，请读取已有结果"
                 )
             self._consumed.add(key)  # Failure also consumes; never refund disclosure history.
         return DatabaseSource(
@@ -322,3 +432,20 @@ class DatabaseProvider:
             result.append(witness)
         source.validate()
         return tuple(result)
+
+
+class ProductionDatabaseProvider(DatabaseProvider):
+    """Real-batch provider; only sources named by an operator RealDataAdmission pass.
+
+    The admission is loaded outside the repository and is separate from the
+    per-task LiveAdmission. It never converts a browser flag into permission.
+    """
+
+    def __init__(self, service, admission: RealDataAdmission):
+        if type(admission) is not RealDataAdmission:
+            raise ValueError("real_data_admission_required")
+        super().__init__(service, (), allow_unregistered=True)
+        self.admission = admission
+
+    def require_registered_source(self, file_sha256: str) -> None:
+        self.admission.require(file_sha256)
