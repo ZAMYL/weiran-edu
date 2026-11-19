@@ -1,0 +1,36 @@
+{
+  "case_id": "witness_mismatch",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "首条 wrong_answer 判题行对应 Witness 的值被故意改为 accepted，来源与事实不一致。",
+      "A/B 的输入契约不含 Witness，因此只评其统计；C 必须在调查或重放时拒绝该快照。"
+    ],
+    "verification": "独立对照判题行与 Witness.value；C 的预期错误为 source_scope_mismatch。"
+  },
+  "statistics": {
+    "source-check": {
+      "verdict_counts": {"accepted": 5, "wrong_answer": 5},
+      "test_points": {"one": {"passed": 5, "failed": 5, "unknown": 0}}
+    }
+  },
+  "phenomena": {
+    "A": [{"problem": "source-check", "point": "one", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "B": [{"problem": "source-check", "point": "one", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}]
+  },
+  "feature_values": {
+    "witness_mismatch-source-check-01": {"loops": 1, "index_accesses": 2},
+    "witness_mismatch-source-check-06": {"loops": 0, "index_accesses": 0}
+  },
+  "feature_cohorts": [
+    {"problem": "source-check", "point": "one", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]}
+  ],
+  "candidate_evidence": [
+    {"problem": "source-check", "feature": "loops", "submissions": ["witness_mismatch-source-check-01", "witness_mismatch-source-check-02", "witness_mismatch-source-check-03", "witness_mismatch-source-check-04", "witness_mismatch-source-check-05"]},
+    {"problem": "source-check", "feature": "index_accesses", "submissions": ["witness_mismatch-source-check-01", "witness_mismatch-source-check-02", "witness_mismatch-source-check-03", "witness_mismatch-source-check-04", "witness_mismatch-source-check-05"]}
+  ],
+  "rejections": {"C": "source_scope_mismatch"},
+  "abstentions": [
+    {"systems": ["A", "B"], "kind": "no_root_assertion"}
+  ]
+}

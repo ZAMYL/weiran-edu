@@ -1,0 +1,45 @@
+{
+  "case_id": "incomplete_code",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "缺源码、截断、语言未知和语法不完整均不能产生完整代码特征；只有 anon-05 的失败代码可完整解析。",
+      "C-01 可报告错答现象，但单份可检查特征低于披露门限时不得展示特征计数，也不得推断根因。"
+    ],
+    "verification": "逐条核对 code_state、截断标志、语言和 AST 可解析性，并检查所有未知特征被排除。"
+  },
+  "statistics": {
+    "boundary-sum": {
+      "verdict_counts": {"accepted": 5, "wrong_answer": 5},
+      "test_points": {"boundary": {"passed": 5, "failed": 5, "unknown": 0}}
+    }
+  },
+  "phenomena": {
+    "A": [{"problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "B": [{"problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "C": [{"problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}]
+  },
+  "feature_values": {
+    "incomplete_code-boundary-sum-05": {"loops": 1, "index_accesses": 2},
+    "incomplete_code-boundary-sum-06": {"loops": 0, "index_accesses": 0}
+  },
+  "feature_cohorts": [
+    {"problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-05"], "present": ["anon-05"]},
+    {"problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "feature": "loop", "checked": ["anon-05"], "present": ["anon-05"]}
+  ],
+  "card_features": [
+    {"problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "features": {}}
+  ],
+  "abstentions": [
+    {"systems": ["B", "C"], "kind": "unknown_features", "submission_id": "incomplete_code-boundary-sum-01", "status": "missing_source"},
+    {"systems": ["B", "C"], "kind": "unknown_features", "submission_id": "incomplete_code-boundary-sum-02", "status": "truncated"},
+    {"systems": ["B", "C"], "kind": "unknown_features", "submission_id": "incomplete_code-boundary-sum-03", "status": "unknown_language"},
+    {"systems": ["B", "C"], "kind": "unknown_features", "submission_id": "incomplete_code-boundary-sum-04", "status": "unparseable"},
+    {"systems": ["B", "C"], "kind": "candidate_absent", "problem": "boundary-sum", "feature": "index_accesses"},
+    {"systems": ["B", "C"], "kind": "candidate_absent", "problem": "boundary-sum", "feature": "loops"},
+    {"systems": ["C"], "kind": "no_features", "problem": "boundary-sum", "point": "boundary", "status": "wrong_answer"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "limit": "cause_unconfirmed"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "limit": "code_unavailable_or_withheld"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "boundary-sum", "point": "boundary", "status": "wrong_answer", "limit": "features_unavailable_or_withheld"}
+  ]
+}

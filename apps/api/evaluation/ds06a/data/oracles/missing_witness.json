@@ -1,0 +1,36 @@
+{
+  "case_id": "missing_witness",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "首条判题行保留 verdict_ref，但对应 Witness 被人为移除，属于来源材料缺失而非代码缺失。",
+      "A/B 的输入契约不读取 Witness，因此仍评基础统计；C 必须拒绝 source_scope_mismatch，不得跳过该引用继续调查。"
+    ],
+    "verification": "人工核对首条 verdict_ref 在 Witness 表中无对应记录，并区分该负例与 witness_mismatch 的值冲突。"
+  },
+  "statistics": {
+    "missing-source": {
+      "verdict_counts": {"accepted": 5, "wrong_answer": 5},
+      "test_points": {"one": {"passed": 5, "failed": 5, "unknown": 0}}
+    }
+  },
+  "phenomena": {
+    "A": [{"problem": "missing-source", "point": "one", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "B": [{"problem": "missing-source", "point": "one", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}]
+  },
+  "feature_values": {
+    "missing_witness-missing-source-01": {"loops": 1, "index_accesses": 2},
+    "missing_witness-missing-source-06": {"loops": 0, "index_accesses": 0}
+  },
+  "feature_cohorts": [
+    {"problem": "missing-source", "point": "one", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]}
+  ],
+  "candidate_evidence": [
+    {"problem": "missing-source", "feature": "loops", "submissions": ["missing_witness-missing-source-01", "missing_witness-missing-source-02", "missing_witness-missing-source-03", "missing_witness-missing-source-04", "missing_witness-missing-source-05"]},
+    {"problem": "missing-source", "feature": "index_accesses", "submissions": ["missing_witness-missing-source-01", "missing_witness-missing-source-02", "missing_witness-missing-source-03", "missing_witness-missing-source-04", "missing_witness-missing-source-05"]}
+  ],
+  "rejections": {"C": "source_scope_mismatch"},
+  "abstentions": [
+    {"systems": ["A", "B"], "kind": "no_root_assertion"}
+  ]
+}
