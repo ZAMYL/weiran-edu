@@ -65,11 +65,16 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
     dimension: AiProfileDimension;
   } | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
+  const [restoreNotice, setRestoreNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(true);
   const pending = useRef<AbortController | null>(null);
   const submission = useRef<{ question: string; key: string } | null>(null);
   const storageKey = `weiran.edu.ai-task.${teacherId}.${batch.batch_id}.${batch.snapshot_id}`;
+  const running = aiRunning(task);
+  const campaignUsed = error?.status === 409 && error.code === 'AI_CAMPAIGN_ALREADY_USED';
+  const canStart = !task && !campaignUsed;
+  const showQuestion = canStart || running;
   useEffect(() => {
     const controller = new AbortController();
     let taskId: string | null = null;
@@ -82,7 +87,21 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       try {
         if (taskId) setTask(await client.aiTask(batch, taskId, controller.signal));
       } catch (e) {
-        if (!controller.signal.aborted && e instanceof ApiError) setError(e);
+        if (!controller.signal.aborted && e instanceof ApiError) {
+          // A missing or expired task pointer is not an actionable error: clear it and
+          // show a short neutral notice instead of a stale import/expiry error message.
+          // Auth/session/source failures (401/403/409/5xx) still surface as errors.
+          if (e.status === 404 || e.status === 410) {
+            try {
+              sessionStorage.removeItem(storageKey);
+            } catch {
+              /* optional pointer */
+            }
+            setRestoreNotice('暂时无法读取上次分析任务。');
+          } else {
+            setError(e);
+          }
+        }
       } finally {
         if (!controller.signal.aborted) setRestoring(false);
       }
@@ -99,7 +118,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       try {
         const next = await client.aiTask(batch, task.task_id, controller.signal);
         if (controller.signal.aborted) return;
-        setTask(next);
+        setTask((current) => (current === task ? next : current));
       } catch (e) {
         if (!controller.signal.aborted && e instanceof ApiError) setError(e);
       }
@@ -129,7 +148,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   }
   function start() {
     const text = question.trim();
-    if (!text || text.length > 300) return;
+    if (!canStart || restoring || !text || text.length > 300) return;
     if (submission.current?.question !== text)
       submission.current = { question: text, key: crypto.randomUUID() };
     void operate(async (signal) => {
@@ -169,49 +188,55 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
   return (
     <Panel title="AI 分析" className="ai-investigation-panel">
       <div className="ai-question-heading">
-        <label htmlFor="ai-question">想了解什么？</label>
+        {showQuestion && <label htmlFor="ai-question">想了解什么？</label>}
         <span id="ai-scope" className="muted">
           全体参评者 · {batch.student_count} 人
         </span>
       </div>
-      <Input.TextArea
-        id="ai-question"
-        aria-describedby="ai-scope"
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        maxLength={300}
-        autoSize={{ minRows: 2, maxRows: 4 }}
-        placeholder="有哪些值得关注的问题？"
-        disabled={busy || restoring || aiRunning(task)}
-      />
-      <div className="ai-task-actions">
-        <Button
-          type="primary"
-          disabled={!question.trim() || busy || restoring || aiRunning(task)}
-          loading={busy}
-          onClick={start}
-        >
-          开始分析
-        </Button>
-        {aiRunning(task) && (
-          <Button
-            disabled={busy}
-            onClick={() =>
-              void operate(async (signal) => {
-                const value = await client.cancelAiTask(batch, task!.task_id, signal);
-                if (!signal.aborted) setTask(value);
-              })
-            }
-          >
-            停止分析
-          </Button>
-        )}
-        {status && !task?.error_code && (
-          <span className="ai-task-status" role="status">
-            {status}
-          </span>
-        )}
-      </div>
+      {showQuestion && (
+        <Input.TextArea
+          id="ai-question"
+          aria-describedby="ai-scope"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          maxLength={300}
+          autoSize={{ minRows: 2, maxRows: 4 }}
+          placeholder="有哪些值得关注的问题？"
+          disabled={busy || restoring || running}
+        />
+      )}
+      {(showQuestion || (status && !task?.error_code)) && (
+        <div className="ai-task-actions">
+          {canStart && (
+            <Button
+              type="primary"
+              disabled={!question.trim() || busy || restoring}
+              loading={busy}
+              onClick={start}
+            >
+              开始分析
+            </Button>
+          )}
+          {running && task && (
+            <Button
+              disabled={busy}
+              onClick={() =>
+                void operate(async (signal) => {
+                  const value = await client.cancelAiTask(batch, task.task_id, signal);
+                  if (!signal.aborted) setTask(value);
+                })
+              }
+            >
+              停止分析
+            </Button>
+          )}
+          {status && !task?.error_code && (
+            <span className="ai-task-status" role="status">
+              {status}
+            </span>
+          )}
+        </div>
+      )}
       {error && (
         <RequestError
           error={error}
@@ -226,7 +251,19 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
           }
         />
       )}
-      {task?.error_code && !error && <Alert showIcon type="warning" title={taskLabel} />}
+      {restoreNotice && !error && !task && <Alert showIcon type="info" title={restoreNotice} />}
+      {task?.error_code && !error && (
+        <Alert
+          showIcon
+          type={task.state === 'cancelled' ? 'info' : 'warning'}
+          title={taskLabel}
+          description={
+            task.state === 'failed' || task.state === 'timed_out'
+              ? '本轮分析未完成，可切换其他测评批次。'
+              : undefined
+          }
+        />
+      )}
       {task?.result && (
         <>
           {task.result.missing_evidence.length > 0 && (
