@@ -13,6 +13,7 @@ from app.ai.edu.discovery.session import _run_session
 
 from prototypes.adaptive_assessment.agent import AdaptiveExecutor, Decision, wire
 from prototypes.adaptive_assessment.analysis import VERSION
+from prototypes.adaptive_assessment.data import PrototypeError
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.planner import QwenAdaptivePlanner
 from prototypes.adaptive_assessment.live.safety import deny_live
@@ -75,37 +76,27 @@ class ResearchExecutor(AdaptiveExecutor):
             raise
 
     def _ledger_key(self):
+        # Every AdaptiveFact field participates, including hidden calculation sources,
+        # stored hashes and base Fact fields. A repr(calculation) alone omits sources.
         return (
+            id(self.source),
             self.source.fingerprint,
-            tuple(
-                (
-                    identifier,
-                    original.tool,
-                    json.dumps(original.query, sort_keys=True, separators=(",", ":")),
-                    sha256(
-                        json.dumps(
-                            original.view,
-                            sort_keys=True,
-                            ensure_ascii=False,
-                            allow_nan=False,
-                        ).encode()
-                    ).hexdigest(),
-                    sha256(
-                        json.dumps(
-                            [asdict(source) for source in original.item_sources],
-                            sort_keys=True,
-                        ).encode()
-                    ).hexdigest(),
-                    original.snapshot_id,
-                    repr(original.calculation),
-                )
-                for identifier, original in self.facts.items()
-            ),
+            self.run_id,
+            VERSION,
+            repr(self.limits),
+            tuple((identifier, repr(asdict(fact))) for identifier, fact in self.facts.items()),
+            repr(self.attempt_ledger),
             tuple(tuple(sorted(group)) for group in self.released),
             self.output_bytes,
         )
 
     def _verify_ledger(self):
+        # Authorization/source validation is never cached. DB validation_scope still
+        # performs a fresh complete capture on phase exit, before anything is released.
+        try:
+            self.source.validate()
+        except PrototypeError:
+            raise AgentError("source_validation_failed") from None
         key = self._ledger_key()
         if key == self._verified_ledger:
             return
@@ -115,21 +106,39 @@ class ResearchExecutor(AdaptiveExecutor):
                 original.tool, replay.parse(original.tool, original.query["arguments"])
             )[0]
             self.replay_executions += 1
-            if fresh != original:
+            # Python numerical equality (1 == 1.0) is weaker than the canonical
+            # hashes. Keep both cheap checks; only repeated Kernel work is removed.
+            if (
+                fresh != original
+                or sha256(
+                    json.dumps(
+                        original.view, sort_keys=True, ensure_ascii=False, allow_nan=False
+                    ).encode()
+                ).hexdigest()
+                != original.view_sha256
+                or sha256(
+                    json.dumps(
+                        [asdict(source) for source in original.item_sources], sort_keys=True
+                    ).encode()
+                ).hexdigest()
+                != original.proof_sha256
+            ):
                 raise AgentError("source_validation_failed")
         if replay.released != self.released or replay.output_bytes != self.output_bytes:
             raise AgentError("disclosure_history_mismatch")
         self._verified_ledger = key
 
     def _verify(self, fact):
-        # Always recheck the requested Fact's own hashes/calculation. Only the
-        # expensive replay of the unchanged complete ledger is request-local reuse.
-        super()._verify(fact)
+        if self.facts.get(fact.fact_id) is not fact:
+            raise AgentError("source_validation_failed")
+        if fact.snapshot_id != self.source.fingerprint:
+            raise AgentError("source_scope_mismatch")
+        # The complete replay compares every rebuilt Fact (including hashes,
+        # calculations and Witness bindings), not just the requested one. Re-deriving
+        # this Fact again after that same replay adds no independent evidence.
         self._verify_ledger()
 
     def verify_all(self):
-        for fact in self.facts.values():
-            super()._verify(fact)
         self._verify_ledger()
 
 
