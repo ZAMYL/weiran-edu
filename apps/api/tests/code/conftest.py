@@ -3,6 +3,7 @@ from collections.abc import Callable
 import pytest
 
 from app.analysis.code import (
+    CodeState,
     Language,
     SourceRef,
     SubmissionRecord,
@@ -19,10 +20,12 @@ def make_submission() -> Callable[..., SubmissionRecord]:
         code: str,
         verdict: Verdict = Verdict.ACCEPTED,
         *,
-        language: Language = Language.PYTHON,
+        language: Language | None = Language.PYTHON,
         student_id: str | None = None,
         problem_id: str = "problem-1",
         test_points: tuple[TestPointResult, ...] = (),
+        code_state: CodeState = CodeState.PRESENT,
+        code_truncated: bool = False,
     ) -> SubmissionRecord:
         return SubmissionRecord(
             "batch-1",
@@ -34,6 +37,8 @@ def make_submission() -> Callable[..., SubmissionRecord]:
             verdict,
             test_points,
             SourceRef("synthetic-source", submission_id),
+            code_state,
+            code_truncated,
         )
 
     return make

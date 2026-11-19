@@ -55,13 +55,19 @@ Agent 继续调查的模式候选。它不执行学生代码、不搭沙箱、�
 ## 四、输入 / 输出契约
 
 输入（`contract.py`）：`SubmissionRecord(batch_id, problem_id, submission_id, student_id,
-language, source_code, verdict, test_points, source)`；`TestPointResult(testpoint_id, outcome)`；
+language, source_code, verdict, test_points, source, code_state, code_truncated)`；其中
+`language` 可为 `None`（语言无法确定），`code_state` 为 `PRESENT`/`UNANSWERED`/`MISSING`，
+`code_truncated` 标记代码是否被截断。`TestPointResult(testpoint_id, outcome)`；
 `SourceRef(source_id, location)`。
 
+**代码不完整时不产生「完整代码」特征**：`UNANSWERED`/`MISSING`/截断/语言未知的提交，其全部
+特征标为 `unknown` 并从需要完整代码的关联中排除（`Analysis.source_statuses` 保留排除原因与
+数量），绝不当作完整、可靠的代码事实。
+
 输出（`results.py`）：`Analysis` 含 `submissions`（`SubmissionFeatures`）、`outcomes`、
-`associations`、`test_points`、`candidates`、`limits`；查询方法 `matching_submissions`、
-`submissions_failing_testpoint`、`failed_verdict_submissions`、`association_for`、
-`candidate_for`。
+`associations`、`test_points`、`candidates`、`source_statuses`、`limits`；查询方法
+`matching_submissions`、`submissions_failing_testpoint`、`failed_verdict_submissions`、
+`association_for`、`candidate_for`。
 
 ## 五、与 B-01 / C-01 的接口差异（最小要求）
 
@@ -80,11 +86,13 @@ language, source_code, verdict, test_points, source)`；`TestPointResult(testpoi
 
 需要 B-01 / C-01 配合的最小差异：
 
-- **B-01**：`submissions.code_text` 需包含完整代码（当前 `code_truncated` 情况本内核会当作
-  「可解析但可能不完整」处理，不额外标记）；`language` 是自由文本编译器标签，建议固化取值，
-  至少区分 C++（`GXX`/`G++`）与 Python，避免 `GCC` 歧义。
+- **B-01**：请随提交提供 `code_state`（`PRESENT`/`UNANSWERED`/`MISSING`）与 `code_truncated`
+  两个字段（`answersheet.py` 已产出，需在逐题读取接口透出）。本内核据此把 `UNANSWERED`/
+  `MISSING`/截断的代码特征标为 `unknown` 并排除出关联。`language` 是自由文本编译器标签，
+  建议固化取值，至少区分 C++（`GXX`/`G++`）与 Python，避免 `GCC` 歧义（歧义时语言标为未知）。
 - **C-01**：`FeatureAssociation.present` 的 `Witness` 引用需由 C-01 Provider 根据本内核的
-  `(participant, source.location)` 建立；DS-03 不生成 Witness。
+  `(participant, source.location)` 建立；DS-03 不生成 Witness。特征值未知（代码缺失/截断/
+  语言未知）的参与者不进入 `checked`/`present`。
 
 ## 六、验证
 

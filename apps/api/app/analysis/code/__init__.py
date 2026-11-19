@@ -17,6 +17,7 @@ observed facts, statistical associations, and unverified hypotheses.
 from .association import AssociationState, Contingency, FeatureAssociation
 from .contract import (
     CodeAnalysisError,
+    CodeState,
     Language,
     SourceRef,
     SubmissionRecord,
@@ -38,6 +39,7 @@ from .features import (
 )
 from .interop import (
     C01FeatureAssociation,
+    b01_code_state,
     b01_language,
     b01_test_point_outcome,
     b01_verdict,
@@ -50,6 +52,7 @@ from .results import (
     Analysis,
     OutcomeCounts,
     PatternCandidate,
+    SourceStatusCount,
     SubmissionFeatures,
     TestPointAggregate,
 )
@@ -59,6 +62,7 @@ __all__ = [
     "AssociationState",
     "C01FeatureAssociation",
     "CodeAnalysisError",
+    "CodeState",
     "Confidence",
     "Contingency",
     "CppExtractor",
@@ -75,6 +79,7 @@ __all__ = [
     "PatternCandidate",
     "PythonExtractor",
     "SourceRef",
+    "SourceStatusCount",
     "StatisticalAssociation",
     "SubmissionFeatures",
     "SubmissionRecord",
@@ -84,6 +89,7 @@ __all__ = [
     "TestPointResult",
     "Verdict",
     "analyze",
+    "b01_code_state",
     "b01_language",
     "b01_test_point_outcome",
     "b01_verdict",

@@ -17,7 +17,7 @@ Three gaps are bridged here:
 
 from dataclasses import dataclass
 
-from .contract import Language, TestPointOutcome, Verdict
+from .contract import CodeState, Language, TestPointOutcome, Verdict
 from .features import FeatureId, is_present
 from .results import Analysis
 
@@ -104,6 +104,23 @@ def b01_language(label: str | None) -> Language | None:
     if any(token in normalized for token in ("python", "pypy", "python3")):
         return Language.PYTHON
     return None
+
+
+def b01_code_state(state: str | None) -> CodeState:
+    """Map a B-01 code-state word to a typed state; unknown text stays ``MISSING``.
+
+    ``MISSING`` is the conservative fallback: when the state cannot be confirmed as
+    ``PRESENT``, features must be ``UNKNOWN`` rather than extracted from a possible
+    placeholder. B-01's canonical values are ``PRESENT`` / ``UNANSWERED`` / ``MISSING``.
+    """
+
+    if state == "PRESENT":
+        return CodeState.PRESENT
+    if state == "UNANSWERED":
+        return CodeState.UNANSWERED
+    if state == "MISSING":
+        return CodeState.MISSING
+    return CodeState.MISSING
 
 
 def c01_status(verdict: Verdict) -> str:

@@ -54,6 +54,8 @@ class ParseStatus(Enum):
     MISSING_SOURCE = "missing_source"
     UNPARSEABLE = "unparseable"
     UNSUPPORTED_LANGUAGE = "unsupported_language"
+    UNKNOWN_LANGUAGE = "unknown_language"
+    TRUNCATED = "truncated"
 
 
 @dataclass(frozen=True)
@@ -66,7 +68,7 @@ class FeatureValue:
 
 @dataclass(frozen=True)
 class FeatureSet:
-    language: Language
+    language: Language | None
     status: ParseStatus
     detail: str | None
     values: tuple[FeatureValue, ...]
@@ -83,7 +85,9 @@ class FeatureExtractor(Protocol):
     def extract(self, source_code: str) -> FeatureSet: ...
 
 
-def unknown_set(language: Language, status: ParseStatus, detail: str | None = None) -> FeatureSet:
+def unknown_set(
+    language: Language | None, status: ParseStatus, detail: str | None = None
+) -> FeatureSet:
     """An all-``UNKNOWN`` feature set for missing/unparseable/unsupported input."""
 
     values = tuple(FeatureValue(feature, None, Confidence.UNKNOWN, detail) for feature in FeatureId)

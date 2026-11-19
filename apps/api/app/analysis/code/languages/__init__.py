@@ -17,15 +17,19 @@ _EXTRACTORS = {
 __all__ = ["CppExtractor", "PythonExtractor", "extractor_for"]
 
 
-def extractor_for(language: Language):
+def extractor_for(language: Language | None):
     """Return the extractor for ``language`` (``None`` when unsupported)."""
 
+    if language is None:
+        return None
     return _EXTRACTORS.get(language)
 
 
-def extract(language: Language, source_code: str) -> FeatureSet:
-    """Extract features, or an all-``UNKNOWN`` set for an unsupported language."""
+def extract(language: Language | None, source_code: str) -> FeatureSet:
+    """Extract features, or an all-``UNKNOWN`` set for an undetermined/unsupported language."""
 
+    if language is None:
+        return unknown_set(None, ParseStatus.UNKNOWN_LANGUAGE, "language_undetermined")
     extractor = _EXTRACTORS.get(language)
     if extractor is None:
         return unknown_set(language, ParseStatus.UNSUPPORTED_LANGUAGE)

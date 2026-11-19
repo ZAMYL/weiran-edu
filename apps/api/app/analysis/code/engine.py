@@ -1,11 +1,13 @@
 """Orchestration: validate, extract, associate, and emit pattern candidates."""
 
+from collections import Counter
 from dataclasses import replace
 from fractions import Fraction
 
 from .association import AssociationState, FeatureAssociation, build_association
 from .contract import (
     CodeAnalysisError,
+    CodeState,
     Language,
     SourceRef,
     SubmissionRecord,
@@ -16,12 +18,13 @@ from .contract import (
     require_id,
 )
 from .explanation import ObservedFact
-from .features import FeatureId, is_present
+from .features import FeatureId, FeatureSet, ParseStatus, is_present, unknown_set
 from .languages import extract
 from .results import (
     Analysis,
     OutcomeCounts,
     PatternCandidate,
+    SourceStatusCount,
     SubmissionFeatures,
     TestPointAggregate,
 )
@@ -59,7 +62,7 @@ def analyze(
         SubmissionFeatures(
             reference_of(record),
             record.verdict,
-            extract(record.language, record.source_code),
+            _extract_for(record),
             record.test_points,
         )
         for record in records
@@ -71,6 +74,7 @@ def analyze(
     )
     test_points = _testpoint_aggregates(submissions_features)
     candidates = _candidates(associations, submissions_features)
+    source_statuses = _source_statuses(submissions_features)
 
     return Analysis(
         batch_id,
@@ -80,7 +84,34 @@ def analyze(
         associations,
         test_points,
         candidates,
+        source_statuses,
         _LIMITS,
+    )
+
+
+def _extract_for(record: SubmissionRecord) -> FeatureSet:
+    """Extract features, or an all-``UNKNOWN`` set for incomplete/untrusted code.
+
+    Only ``PRESENT``, untruncated code is analysed. Missing/unanswered/truncated
+    code and an undetermined language never produce feature facts that could be
+    mistaken for complete code.
+    """
+
+    if record.code_state is not CodeState.PRESENT:
+        return unknown_set(
+            record.language, ParseStatus.MISSING_SOURCE, f"code_state_{record.code_state.value}"
+        )
+    if record.code_truncated:
+        return unknown_set(record.language, ParseStatus.TRUNCATED, "code_truncated")
+    return extract(record.language, record.source_code)
+
+
+def _source_statuses(
+    submissions: tuple[SubmissionFeatures, ...],
+) -> tuple[SourceStatusCount, ...]:
+    counts = Counter(submission.features.status for submission in submissions)
+    return tuple(
+        SourceStatusCount(status, counts[status]) for status in ParseStatus if counts[status]
     )
 
 
@@ -103,7 +134,7 @@ def _validate(batch_id: str, problem_id: str, submissions) -> tuple[SubmissionRe
             record.source.location,
         ):
             require_id(identifier, "nonempty_identifier_required")
-        if not isinstance(record.language, Language):
+        if record.language is not None and not isinstance(record.language, Language):
             raise CodeAnalysisError("typed_language_required")
         if not isinstance(record.source_code, str):
             raise CodeAnalysisError("source_code_must_be_a_string")
@@ -111,6 +142,10 @@ def _validate(batch_id: str, problem_id: str, submissions) -> tuple[SubmissionRe
             raise CodeAnalysisError("typed_verdict_required")
         if not isinstance(record.source, SourceRef):
             raise CodeAnalysisError("typed_source_reference_required")
+        if not isinstance(record.code_state, CodeState):
+            raise CodeAnalysisError("typed_code_state_required")
+        if not isinstance(record.code_truncated, bool):
+            raise CodeAnalysisError("typed_code_truncated_required")
         record = replace(record, test_points=_validate_test_points(record.test_points))
         previous_student = identity.get(record.submission_id)
         if previous_student is not None and previous_student != record.student_id:

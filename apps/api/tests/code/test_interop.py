@@ -3,6 +3,7 @@ from collections.abc import Callable
 import pytest
 
 from app.analysis.code import (
+    CodeState,
     FeatureId,
     Language,
     SubmissionRecord,
@@ -10,6 +11,7 @@ from app.analysis.code import (
     TestPointResult,
     Verdict,
     analyze,
+    b01_code_state,
     b01_language,
     b01_test_point_outcome,
     b01_verdict,
@@ -76,6 +78,20 @@ def test_b01_test_point_outcome_mapping(status: str | None, expected: TestPointO
 )
 def test_b01_language_mapping(label: str | None, expected: Language | None) -> None:
     assert b01_language(label) is expected
+
+
+@pytest.mark.parametrize(
+    ("state", "expected"),
+    [
+        ("PRESENT", CodeState.PRESENT),
+        ("UNANSWERED", CodeState.UNANSWERED),
+        ("MISSING", CodeState.MISSING),
+        (None, CodeState.MISSING),
+        ("UNKNOWN", CodeState.MISSING),
+    ],
+)
+def test_b01_code_state_mapping(state: str | None, expected: CodeState) -> None:
+    assert b01_code_state(state) is expected
 
 
 def test_c01_status_mapping() -> None:

@@ -29,6 +29,19 @@ class Language(Enum):
     CPP = "cpp"
 
 
+class CodeState(Enum):
+    """Whether a submission carries a real, untruncated program.
+
+    Mirrors B-01's ``CODE_PRESENT`` / ``CODE_UNANSWERED`` / ``CODE_MISSING``. Only
+    ``PRESENT`` code is analysed; the other states, and truncated code, produce
+    ``UNKNOWN`` features rather than presenting partial code as complete.
+    """
+
+    PRESENT = "present"
+    UNANSWERED = "unanswered"
+    MISSING = "missing"
+
+
 class Verdict(Enum):
     """A judge result. ``UNKNOWN`` means no judge evidence was supplied.
 
@@ -89,17 +102,25 @@ class SourceRef:
 
 @dataclass(frozen=True)
 class SubmissionRecord:
-    """One actual submitted program with its judge and test-point evidence."""
+    """One actual submitted program with its judge and test-point evidence.
+
+    ``language`` may be ``None`` when the language cannot be determined (for
+    example B-01's ambiguous ``GCC`` compiler label); such a submission yields
+    ``UNKNOWN`` features. ``code_state`` and ``code_truncated`` gate feature
+    extraction so incomplete code is never presented as complete code facts.
+    """
 
     batch_id: str
     problem_id: str
     submission_id: str
     student_id: str
-    language: Language
+    language: Language | None
     source_code: str
     verdict: Verdict
     test_points: tuple[TestPointResult, ...]
     source: SourceRef
+    code_state: CodeState = CodeState.PRESENT
+    code_truncated: bool = False
 
 
 @dataclass(frozen=True)

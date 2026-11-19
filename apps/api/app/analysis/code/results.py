@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from .association import FeatureAssociation
 from .contract import SourceRef, SubmissionRef, TestPointOutcome, TestPointResult, Verdict
 from .explanation import Hypothesis, ObservedFact
-from .features import FeatureId, FeatureSet, presence_threshold
+from .features import FeatureId, FeatureSet, ParseStatus, presence_threshold
 
 
 @dataclass(frozen=True)
@@ -20,6 +20,14 @@ class SubmissionFeatures:
     verdict: Verdict
     features: FeatureSet
     test_points: tuple[TestPointResult, ...]
+
+
+@dataclass(frozen=True)
+class SourceStatusCount:
+    """How many submissions fell into each parse state (exclusion reason + count)."""
+
+    status: ParseStatus
+    count: int
 
 
 @dataclass(frozen=True)
@@ -70,6 +78,7 @@ class Analysis:
     associations: tuple[FeatureAssociation, ...]
     test_points: tuple[TestPointAggregate, ...]
     candidates: tuple[PatternCandidate, ...]
+    source_statuses: tuple[SourceStatusCount, ...]
     limits: tuple[str, ...]
 
     def association_for(self, feature: FeatureId) -> FeatureAssociation | None:
