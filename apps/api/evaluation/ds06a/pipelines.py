@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from app.analysis.code import (
     CodeState,
     Language,
@@ -60,8 +62,23 @@ def build_ds03(case: Case) -> tuple[dict, dict]:
             for phenomenon in (
                 item for item in baseline["phenomena"] if item["problem"] == problem
             ):
+                if phenomenon["point"] is None:
+                    # #119 restored point=None as a whole-problem query by verdict; the
+                    # no-test-point phenomenon must only project submissions that carry
+                    # no test-point evidence, or with-test-point wrong answers would leak
+                    # into the fallback cohort.
+                    cohort = replace(
+                        analysis,
+                        submissions=tuple(
+                            submission
+                            for submission in analysis.submissions
+                            if not submission.test_points
+                        ),
+                    )
+                else:
+                    cohort = analysis
                 for association in c01_feature_associations(
-                    analysis,
+                    cohort,
                     status=phenomenon["status"],
                     point=phenomenon["point"],
                 ):

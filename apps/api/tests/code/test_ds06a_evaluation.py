@@ -118,6 +118,66 @@ def test_ds03_record_preserves_point_status_independently_of_submission(
     )
 
 
+def _mixed_no_testpoint_case() -> Case:
+    return Case(
+        {
+            "schema_version": 1,
+            "case_id": "mixed_no_testpoint_fallback",
+            "distribution": "mixed_no_testpoint_fallback",
+            "batch_id": "ds06a-mixed-no-testpoint-fallback",
+            "participants": ["anon-a", "anon-b"],
+            "problems": ["p1"],
+            "submissions": [
+                {
+                    "submission_id": "p1-a",
+                    "participant": "anon-a",
+                    "problem": "p1",
+                    "language": "python",
+                    "code": "for i in range(3):\n    print(i)\n",
+                    "code_state": "present",
+                    "code_truncated": False,
+                    "verdict": "wrong_answer",
+                    "tests": [],
+                    "source_id": "src-a",
+                    "location": "p1/a.html",
+                },
+                {
+                    "submission_id": "p1-b",
+                    "participant": "anon-b",
+                    "problem": "p1",
+                    "language": "python",
+                    "code": "for i in range(3):\n    print(i)\n",
+                    "code_state": "present",
+                    "code_truncated": False,
+                    "verdict": "wrong_answer",
+                    "tests": [{"point": "900", "status": "wrong_answer"}],
+                    "source_id": "src-b",
+                    "location": "p1/b.html",
+                },
+            ],
+        }
+    )
+
+
+def test_no_testpoint_fallback_excludes_testpoint_submissions() -> None:
+    """The DS-06A no-test-point phenomenon must not absorb a test-point wrong answer."""
+    result = run_ds03(_mixed_no_testpoint_case())
+    assert result["status"] == "ok"
+    fallback = [
+        cohort
+        for cohort in result["feature_cohorts"]
+        if cohort["point"] is None and cohort["status"] == "wrong_answer"
+    ]
+    point900 = [
+        cohort
+        for cohort in result["feature_cohorts"]
+        if cohort["point"] == "900" and cohort["status"] == "wrong_answer"
+    ]
+    assert fallback and point900
+    assert {p for cohort in fallback for p in cohort["checked"]} == {"anon-a"}
+    assert {p for cohort in point900 for p in cohort["checked"]} == {"anon-b"}
+
+
 def test_c01_adapter_calls_the_real_investigation(monkeypatch: pytest.MonkeyPatch) -> None:
     import evaluation.ds06a.c01 as c01
 

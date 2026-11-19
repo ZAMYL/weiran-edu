@@ -125,6 +125,43 @@ def package(*, changed: bool = False, empty_coverage: bool = False) -> bytes:
     return out.getvalue()
 
 
+def mixed_package() -> bytes:
+    """One problem mixing a no-test-point and a test-point wrong-answer submission."""
+    problem = "算法A-2"
+    code = "items = [2, 3]\nprint(items[0])\n"
+    heads = "".join(f"<th>{k}</th>" for k in ("测试点", "结果", "测试点得分", "耗时", "内存"))
+    table = (
+        f"<table><thead><tr>{heads}</tr></thead><tbody><tr>"
+        + "".join(f"<td>{v}</td>" for v in ("900", "答案错误", "0", "12.50 ms", "304 KB"))
+        + "</tr></tbody></table>"
+    )
+    body = f"<div>编译器: PYTHON3</div><pre>{escape(code)}</pre>"
+
+    def block(label: str, inner: str, outcome: str) -> str:
+        return (
+            "<div class='flex space-x-2'>"
+            f"<div class='flex-none font-medium'>{label}</div>"
+            f"<div class='flex-1 space-y-4'>{inner}</div>"
+            f"<div class='flex-none min-w-[5rem]'><div>{outcome}</div>"
+            "<span>0 / 5</span></div></div>"
+        )
+
+    def document(key: str, with_test: bool) -> str:
+        return (
+            "<html><body><div class='box'>"
+            f"<div><span>考生</span><span>{key} 合成测试</span></div></div>"
+            "<div class='space-y-8'>"
+            + block(problem, body + (table if with_test else ""), "答案错误")
+            + "</div></body></html>"
+        )
+
+    out = BytesIO()
+    with ZipFile(out, "w") as zip_file:
+        zip_file.writestr("合成包/正式答卷/mixed-A.html", document("STU-A", with_test=False))
+        zip_file.writestr("合成包/正式答卷/mixed-B.html", document("STU-B", with_test=True))
+    return out.getvalue()
+
+
 def raw_synthetic_blocks(blob: bytes) -> dict:
     """Independent XML read of fixture HTML, including exact source locations."""
     result = {}
@@ -362,6 +399,31 @@ def test_point_none_fallback_excludes_test_point_submissions() -> None:
     whole = c01_feature_associations(analysis, status="wrong_answer")
     whole_loop = next(f for f in whole if f.code == "loop")
     assert set(whole_loop.checked) == {"student-A", "student-B", "student-C"}
+
+
+def test_materialize_no_testpoint_fallback_excludes_testpoint_submissions() -> None:
+    """The joint-acceptance no-test-point fallback queue must pre-filter test points."""
+    accepted = materialize(mixed_package(), "local-batch")
+    fallback = [
+        feature
+        for feature in accepted.snapshot.features
+        if feature.problem == "算法A-2"
+        and feature.point is None
+        and feature.status == "wrong_answer"
+    ]
+    point900 = [
+        feature
+        for feature in accepted.snapshot.features
+        if feature.problem == "算法A-2"
+        and feature.point == "900"
+        and feature.status == "wrong_answer"
+    ]
+    assert fallback and point900
+    # The no-test-point fallback must only project the participant without test
+    # points, even though the with-test-point submission is also whole-problem wrong.
+    assert {p for feature in fallback for p in feature.checked} == {"STU-A"}
+    assert {p for feature in fallback for p, _ in feature.present} == {"STU-A"}
+    assert {p for feature in point900 for p in feature.checked} == {"STU-B"}
 
 
 def test_zip_distribution_changes_investigation_and_sources(tmp_path: Path):
