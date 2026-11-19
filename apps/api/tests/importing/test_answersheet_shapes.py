@@ -44,7 +44,9 @@ def test_twelve_problems_keep_their_order(make_answersheet):
     evidence = parse_answersheet(package)
 
     assert [problem.label for problem in evidence.problems] == labels
-    assert [problem.ordinal for problem in evidence.problems] == list(range(12))
+    assert [problem.display_ordinal for problem in evidence.problems] == list(range(12))
+    # 所有文件题序一致，可以如实声称是原始顺序
+    assert evidence.order_basis == "SOURCE"
 
 
 def test_non_student_files_never_reach_the_counts(make_answersheet):

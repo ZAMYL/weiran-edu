@@ -175,6 +175,29 @@ def test_unanswered_problem_keeps_total_but_no_score():
     assert submission.verdict == "未作答"
     assert submission.score is None
     assert submission.score_total == 5
+    # 未作答不得冒充有效代码
+    assert submission.code is None
+    assert submission.code_state == "UNANSWERED"
+
+
+def test_placeholder_text_is_not_treated_as_code():
+    html = student_html().replace("int main(){ return 0; }", "<span class='text-light'>无</span>")
+    package = make_zip({"包/正式答卷/S001.html": html})
+
+    submission = parse_answersheet(package).submissions[0]
+
+    assert submission.code is None
+    assert submission.code_state == "UNANSWERED"
+
+
+def test_empty_code_block_is_present_but_empty():
+    html = student_html().replace("int main(){ return 0; }", "")
+    package = make_zip({"包/正式答卷/S001.html": html})
+
+    submission = parse_answersheet(package).submissions[0]
+
+    assert submission.code == ""
+    assert submission.code_state == "PRESENT"
 
 
 def test_compiler_output_is_captured_and_normalised():
@@ -224,9 +247,10 @@ def test_merge_keeps_first_seen_problem_order():
 
     merged = merge_answersheets([first, second])
 
-    # 按字符串排序会把 7-10 排到 7-2 前面，这里必须保持出现顺序
-    assert [problem.label for problem in merged.problems] == ["7-10", "7-2"]
-    assert [problem.ordinal for problem in merged.problems] == [0, 1]
+    # 两个包题序不一致 → 不能声称是原始顺序，改用稳定的自然排序（7-2 在 7-10 前）
+    assert [problem.label for problem in merged.problems] == ["7-2", "7-10"]
+    assert [problem.display_ordinal for problem in merged.problems] == [0, 1]
+    assert merged.order_basis == "NATURAL_SORT"
 
 
 def test_code_keeps_entities_and_inner_whitespace():

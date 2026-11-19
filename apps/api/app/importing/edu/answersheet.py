@@ -59,9 +59,23 @@ class StudentRecord:
 
 @dataclass(frozen=True)
 class ProblemRecord:
+    """题目。
+
+    ``source_index`` 是它在原始文件里首次出现的块序号（可能为 None），
+    ``display_ordinal`` 是稳定展示顺序；两者不混用，避免把展示顺序谎称为原始顺序。
+    """
+
     label: str
-    ordinal: int
+    source_index: int | None
+    display_ordinal: int
     total_score: int | None
+
+
+# 代码字段的状态：有真实代码 / 占位（未作答）/ 文件里根本没有该字段。
+CODE_PRESENT = "PRESENT"
+CODE_UNANSWERED = "UNANSWERED"
+CODE_MISSING = "MISSING"
+CODE_PLACEHOLDERS = frozenset({"无", "-", "—", "/"})
 
 
 @dataclass(frozen=True)
@@ -69,11 +83,15 @@ class SubmissionRecord:
     participant_key: str
     problem_label: str
     language: str | None
-    code: str
+    code: str | None
+    code_state: str
+    code_truncated: bool
     compiler_output: str | None
+    compiler_output_truncated: bool
     verdict: str | None
     score: int | None
     score_total: int | None
+    source_index: int
     source_entry: str
 
 
@@ -88,10 +106,26 @@ CATEGORY_UNKNOWN = "UNKNOWN"
 
 @dataclass(frozen=True)
 class MaterialRecord:
-    """一个源文件及其类别，用于对账"输入里有什么、被怎么处理"。"""
+    """一个源文件、它的角色，以及判定依据。
+
+    ``needs_confirmation`` 为真表示证据不足以自动定论，需要人工确认；
+    这类文件不会被静默计入或静默丢弃。
+    """
 
     entry: str
     category: str
+    basis: str
+    signals: tuple[str, ...] = ()
+    needs_confirmation: bool = False
+
+
+@dataclass(frozen=True)
+class Diagnostic:
+    """可诊断反馈：哪条数据、什么问题、依据是什么。"""
+
+    code: str
+    entry: str | None
+    detail: str
 
 
 @dataclass(frozen=True)
@@ -103,6 +137,12 @@ class ObservationRecord:
     score: int | None
     duration_ms: int | None
     memory_kb: int | None
+    source_row: int
+
+
+# 题目顺序的依据：来自各文件一致的原始顺序，或结构性排序。
+ORDER_SOURCE = "SOURCE"
+ORDER_NATURAL = "NATURAL_SORT"
 
 
 @dataclass(frozen=True)
@@ -113,6 +153,8 @@ class AnswerSheetEvidence:
     observations: tuple[ObservationRecord, ...]
     materials: tuple[MaterialRecord, ...] = ()
     skipped: tuple[tuple[str, str], ...] = ()
+    diagnostics: tuple[Diagnostic, ...] = ()
+    order_basis: str = ORDER_NATURAL
 
 
 class _Node:
@@ -211,8 +253,11 @@ def _own_text(node: _Node) -> str:
     return "".join(child for child in node.children if isinstance(child, str)).strip()
 
 
-def parse_answersheet(data: bytes, *, group: str = STUDENT_GROUP) -> AnswerSheetEvidence:
-    """解析整包：同一批里的重复学号视为错误，绝不静默覆盖。"""
+def parse_answersheet(data: bytes, *, group: str | None = STUDENT_GROUP) -> AnswerSheetEvidence:
+    """解析整包：同一批里的重复学号视为错误，绝不静默覆盖。
+
+    ``group`` 只是目录线索，不单独决定角色；角色由内容与依据共同判断。
+    """
     try:
         with ZipFile(io.BytesIO(data)) as archive:
             entries = [
@@ -234,18 +279,34 @@ def parse_answersheet(data: bytes, *, group: str = STUDENT_GROUP) -> AnswerSheet
     students: dict[str, StudentRecord] = {}
     submissions: list[SubmissionRecord] = []
     observations: list[ObservationRecord] = []
-    problems: dict[str, ProblemRecord] = {}
     materials: list[MaterialRecord] = []
+    diagnostics: list[Diagnostic] = []
+    sequences: list[list[str]] = []
+    totals: dict[str, int | None] = {}
+    source_indexes: dict[str, int | None] = {}
 
     for name, document in parsed:
-        category = _category_of(name, document, group)
-        materials.append(MaterialRecord(entry=name, category=category))
-        if category != CATEGORY_STUDENT:
-            skipped.append((name, category))
+        material = _category_of(name, document, group)
+        materials.append(material)
+        diagnostics.extend(document["diagnostics"])
+        if material.needs_confirmation:
+            diagnostics.append(
+                Diagnostic(
+                    code="MATERIAL_ROLE_UNCONFIRMED",
+                    entry=name,
+                    detail=f"依据：{material.basis}；线索：{'/'.join(material.signals) or '无'}",
+                )
+            )
+        if material.category != CATEGORY_STUDENT:
+            skipped.append((name, material.category))
             continue
+
         student = document["student"]
         if student is None:
             skipped.append((name, "PARTICIPANT_MISSING"))
+            diagnostics.append(
+                Diagnostic("PARTICIPANT_MISSING", name, "分类为学生答卷但没有考生字段")
+            )
             continue
         if student.participant_key in students:
             raise ImportFileError("ANSWERSHEET_DUPLICATE_PARTICIPANT")
@@ -253,22 +314,68 @@ def parse_answersheet(data: bytes, *, group: str = STUDENT_GROUP) -> AnswerSheet
             raise ImportFileError("ANSWERSHEET_TOO_MANY_STUDENTS")
         students[student.participant_key] = student
 
-        for problem, submission, rows in document["problems"]:
-            problems.setdefault(problem.label, problem)
+        sequences.append([problem.label for problem, _, _, _ in document["problems"]])
+        for problem, submission, rows, extra in document["problems"]:
+            totals.setdefault(problem.label, problem.total_score)
+            source_indexes.setdefault(problem.label, problem.source_index)
             submissions.append(submission)
             observations.extend(rows)
+            diagnostics.extend(extra)
 
     if not students:
         raise ImportFileError("ANSWERSHEET_NO_STUDENT")
 
-    ordered_problems = tuple(sorted(problems.values(), key=lambda item: item.ordinal))
+    ordered, basis = _order_problems(sequences, totals, source_indexes)
     return AnswerSheetEvidence(
         students=tuple(students.values()),
-        problems=ordered_problems,
+        problems=ordered,
         submissions=tuple(submissions),
         observations=tuple(observations),
         materials=tuple(materials),
         skipped=tuple(skipped),
+        diagnostics=tuple(diagnostics),
+        order_basis=basis,
+    )
+
+
+def _natural_key(label: str) -> tuple:
+    """7-2 排在 7-10 前面；非数字段按字符串比较。"""
+    parts = re.split(r"(\d+)", label)
+    return tuple((0, int(part)) if part.isdigit() else (1, part) for part in parts if part)
+
+
+def _order_problems(
+    sequences: list[list[str]],
+    totals: dict[str, int | None],
+    source_indexes: dict[str, int | None],
+) -> tuple[tuple[ProblemRecord, ...], str]:
+    """决定题目展示顺序。
+
+    仅当所有文件给出的题序完全一致时，才声称这是原始顺序；否则用稳定的自然排序，
+    并如实标注依据。
+    """
+    first_seen: dict[str, int] = {}
+    for sequence in sequences:
+        for label in sequence:
+            first_seen.setdefault(label, len(first_seen))
+    agreed = bool(sequences) and len({tuple(sequence) for sequence in sequences}) == 1
+    if agreed:
+        order = list(sequences[0])
+        basis = ORDER_SOURCE
+    else:
+        order = sorted(first_seen, key=lambda label: (_natural_key(label), first_seen[label]))
+        basis = ORDER_NATURAL
+    return (
+        tuple(
+            ProblemRecord(
+                label=label,
+                source_index=source_indexes.get(label),
+                display_ordinal=index,
+                total_score=totals.get(label),
+            )
+            for index, label in enumerate(order)
+        ),
+        basis,
     )
 
 
@@ -285,19 +392,25 @@ def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvide
     submissions: list[SubmissionRecord] = []
     observations: list[ObservationRecord] = []
     seen_submissions: set[tuple[str, str]] = set()
-    problems: dict[str, ProblemRecord] = {}
     materials: list[MaterialRecord] = []
     skipped: list[tuple[str, str]] = []
+    diagnostics: list[Diagnostic] = []
+    sequences: list[list[str]] = []
+    totals: dict[str, int | None] = {}
+    source_indexes: dict[str, int | None] = {}
 
     for document in documents:
         materials.extend(document.materials)
         skipped.extend(document.skipped)
+        diagnostics.extend(document.diagnostics)
+        sequences.append([problem.label for problem in document.problems])
+        for problem in document.problems:
+            totals.setdefault(problem.label, problem.total_score)
+            source_indexes.setdefault(problem.label, problem.source_index)
         for student in document.students:
             if student.participant_key in students:
                 raise ImportFileError("ANSWERSHEET_DUPLICATE_PARTICIPANT")
             students[student.participant_key] = student
-        for problem in document.problems:
-            problems.setdefault(problem.label, problem)
         for submission in document.submissions:
             marker = (submission.participant_key, submission.problem_label)
             if marker in seen_submissions:
@@ -309,11 +422,7 @@ def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvide
     if not students:
         raise ImportFileError("ANSWERSHEET_NO_STUDENT")
 
-    # 题序按首次出现顺序保留；不能按题号字符串排序（7-10 会排到 7-2 前面）。
-    ordered = tuple(
-        ProblemRecord(label=label, ordinal=index, total_score=problem.total_score)
-        for index, (label, problem) in enumerate(problems.items())
-    )
+    ordered, basis = _order_problems(sequences, totals, source_indexes)
     return AnswerSheetEvidence(
         students=tuple(students.values()),
         problems=ordered,
@@ -321,30 +430,74 @@ def merge_answersheets(documents: list[AnswerSheetEvidence]) -> AnswerSheetEvide
         observations=tuple(observations),
         materials=tuple(materials),
         skipped=tuple(skipped),
+        diagnostics=tuple(diagnostics),
+        order_basis=basis,
     )
 
 
-def _category_of(entry: str, document: dict, group: str) -> str:
-    """按内容优先、路径兜底的顺序判断资料类别。
+def _category_of(entry: str, document: dict, group: str | None) -> MaterialRecord:
+    """综合内容与目录线索判断角色，并记录依据。
 
-    内容里有「答卷类型」就不是学生答卷（标准答案 / 空白答卷）；
-    没有该字段时，才按目录名判断验题、测试或题目资料。
+    内容（「答卷类型」、考生字段）优先；目录/文件名只是线索，
+    单靠路径得出的结论一律标记为"待确认"，不静默计入或丢弃。
     """
     paper_type = document["paper_type"]
+    student = document["student"]
+    in_group = bool(group) and (f"/{group}/" in entry or entry.startswith(f"{group}/"))
+
+    signals: list[str] = []
+    if paper_type:
+        signals.append(f"content:paper_type={paper_type}")
+    if student is not None:
+        signals.append("content:participant")
+    if in_group:
+        signals.append(f"path:{group}")
+    for hint in ("验题", "测试", "题目", "参考"):
+        if hint in entry:
+            signals.append(f"path:{hint}")
+
     if paper_type:
         if "空白" in paper_type:
-            return CATEGORY_BLANK_PAPER
+            return MaterialRecord(entry, CATEGORY_BLANK_PAPER, "content:paper_type", tuple(signals))
         if "答案" in paper_type:
-            return CATEGORY_STANDARD_ANSWER
-        return CATEGORY_UNKNOWN
-    in_group = f"/{group}/" in entry or entry.startswith(group + "/")
-    if in_group:
-        return CATEGORY_STUDENT if document["student"] is not None else CATEGORY_UNKNOWN
-    if "验题" in entry or "测试" in entry:
-        return CATEGORY_TEST_DATA
+            return MaterialRecord(
+                entry, CATEGORY_STANDARD_ANSWER, "content:paper_type", tuple(signals)
+            )
+        return MaterialRecord(
+            entry, CATEGORY_UNKNOWN, "content:paper_type", tuple(signals), needs_confirmation=True
+        )
+
+    if student is not None:
+        # 有身份信息，但路径提示这是验题、测试、题目或参考资料时，
+        # 不能擅自纳入正式学生集合：给出类别并标记待确认。
+        suspicious = [hint for hint in ("验题", "测试", "题目", "参考") if hint in entry]
+        if suspicious:
+            category = (
+                CATEGORY_TEST_DATA
+                if any(hint in entry for hint in ("验题", "测试"))
+                else CATEGORY_PROBLEM_STATEMENT
+            )
+            return MaterialRecord(
+                entry, category, "path_hint_over_content", tuple(signals), needs_confirmation=True
+            )
+        basis = "content:participant" + ("+path" if in_group else "")
+        return MaterialRecord(entry, CATEGORY_STUDENT, basis, tuple(signals))
+
+    if any(hint in entry for hint in ("验题", "测试")):
+        return MaterialRecord(
+            entry, CATEGORY_TEST_DATA, "path_hint", tuple(signals), needs_confirmation=True
+        )
     if "题目" in entry:
-        return CATEGORY_PROBLEM_STATEMENT
-    return CATEGORY_UNKNOWN
+        return MaterialRecord(
+            entry,
+            CATEGORY_PROBLEM_STATEMENT,
+            "path_hint",
+            tuple(signals),
+            needs_confirmation=True,
+        )
+    return MaterialRecord(
+        entry, CATEGORY_UNKNOWN, "insufficient_evidence", tuple(signals), needs_confirmation=True
+    )
 
 
 def _parse_document(raw: bytes, entry: str) -> dict:
@@ -364,10 +517,16 @@ def _parse_document(raw: bytes, entry: str) -> dict:
         student = _student_from_header(header, entry)
 
     problems = []
+    diagnostics: list[Diagnostic] = []
     for ordinal, block in enumerate(_problem_blocks(root)):
         problems.append(_parse_problem(block, ordinal, student, entry))
 
-    return {"paper_type": paper_type, "student": student, "problems": problems}
+    return {
+        "paper_type": paper_type,
+        "student": student,
+        "problems": problems,
+        "diagnostics": diagnostics,
+    }
 
 
 def _header_fields(root: _Node) -> dict[str, str]:
@@ -442,28 +601,51 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
         None,
     )
 
-    code = ""
+    code_text: str | None = None
+    code_truncated = False
     language = None
-    compiler_output = None
+    compiler_output: str | None = None
+    compiler_truncated = False
     verdict = None
     score = None
     score_total = None
     rows: list[ObservationRecord] = []
+    diagnostics: list[Diagnostic] = []
 
     if body is not None:
         pres = [node for node in _nodes(body, tag="pre")]
         if pres:
-            code = _raw_text(pres[0]).strip()[:MAX_CODE_CHARS]
+            raw_code = _raw_text(pres[0]).strip()
+            if len(raw_code) > MAX_CODE_CHARS:
+                raw_code = raw_code[:MAX_CODE_CHARS]
+                code_truncated = True
+            code_text = raw_code
         language = _language_of(body)
-        compiler_output = _compiler_output(body)
+        compiler_output, compiler_truncated = _compiler_output(body)
         table = next(_nodes(body, tag="table"), None)
         if table is not None:
-            rows = _observations(table, student, label)
+            rows, row_diagnostics = _observations(table, student, label, ordinal, entry)
+            diagnostics.extend(row_diagnostics)
     verdict, score, score_total = _verdict(block)
+
+    code, code_state = _code_state(code_text, verdict)
+    if code_truncated:
+        diagnostics.append(
+            Diagnostic("CODE_TRUNCATED", entry, f"题块 {label} 代码超过 {MAX_CODE_CHARS} 字符")
+        )
+    if compiler_truncated:
+        diagnostics.append(
+            Diagnostic(
+                "COMPILER_OUTPUT_TRUNCATED",
+                entry,
+                f"题块 {label} 编译日志超过 {MAX_COMPILER_OUTPUT_CHARS} 字符",
+            )
+        )
 
     problem = ProblemRecord(
         label=label,
-        ordinal=ordinal,
+        source_index=ordinal,
+        display_ordinal=ordinal,
         total_score=score_total,
     )
     submission = SubmissionRecord(
@@ -471,30 +653,61 @@ def _parse_problem(block: _Node, ordinal: int, student, entry: str):
         problem_label=label,
         language=language,
         code=code,
+        code_state=code_state,
+        code_truncated=code_truncated,
         compiler_output=compiler_output,
+        compiler_output_truncated=compiler_truncated,
         verdict=verdict,
         score=score,
         score_total=score_total,
+        source_index=ordinal,
         source_entry=entry,
     )
-    return problem, submission, rows
+    return problem, submission, rows, diagnostics
 
 
-def _observations(table: _Node, student, label: str) -> list[ObservationRecord]:
+def _code_state(code_text: str | None, verdict: str | None) -> tuple[str | None, str]:
+    """区分真实代码、占位符与缺失；占位符不当作有效代码。"""
+    if code_text is None:
+        return None, CODE_MISSING
+    if code_text in CODE_PLACEHOLDERS:
+        return None, CODE_UNANSWERED
+    if verdict == "未作答":
+        return None, CODE_UNANSWERED
+    return code_text, CODE_PRESENT
+
+
+def _observations(
+    table: _Node, student, label: str, block_index: int, entry: str
+) -> tuple[list[ObservationRecord], list[Diagnostic]]:
     rows: list[ObservationRecord] = []
-    # 列序以表头为准；导出模板调整列顺序时不需要改代码。
-    columns = _column_indexes(table)
-    index_col = columns.get("测试点", 0)
-    status_col = columns.get("结果", 1)
-    score_col = columns.get("测试点得分", 2)
-    time_col = columns.get("耗时", 3)
-    memory_col = columns.get("内存", 4)
+    diagnostics: list[Diagnostic] = []
     body = next(_nodes(table, tag="tbody"), table)
-    for row in _nodes(body, tag="tr"):
-        cells = [_text(cell) for cell in row.children if isinstance(cell, _Node)]
-        if len(cells) <= index_col or not cells[index_col].isdigit():
+    tr_nodes = [row for row in _nodes(body, tag="tr")]
+    matrix = [[_text(cell) for cell in row.children if isinstance(cell, _Node)] for row in tr_nodes]
+    columns, basis = _infer_columns(table, matrix)
+    if basis != "thead":
+        diagnostics.append(
+            Diagnostic(
+                "TEST_COLUMNS_INFERRED",
+                entry,
+                f"题块 {label} 测试表按{basis}识别列序：{columns}",
+            )
+        )
+
+    for row_position, cells in enumerate(matrix):
+        index_col = columns["index"]
+        if len(cells) <= index_col or not cells[index_col].strip().isdigit():
+            if cells and any(cell.strip() for cell in cells):
+                diagnostics.append(
+                    Diagnostic(
+                        "TEST_ROW_UNRECOGNISED",
+                        entry,
+                        f"题块 {label} 第 {row_position + 1} 行无法识别测试点序号",
+                    )
+                )
             continue
-        index = int(cells[index_col])
+        index = int(cells[index_col].strip())
         if index > MAX_OBSERVATIONS_PER_SUBMISSION:
             continue
 
@@ -503,21 +716,105 @@ def _observations(table: _Node, student, label: str) -> list[ObservationRecord]:
                 participant_key=student.participant_key if student else "",
                 problem_label=label,
                 test_index=index,
-                status=_cell(cells, status_col),
-                score=_int_or_none(_cell(cells, score_col)),
-                duration_ms=_duration_ms(_cell(cells, time_col)),
-                memory_kb=_memory_kb(_cell(cells, memory_col)),
+                status=_cell(cells, columns["status"]).strip(),
+                score=_int_or_none(_cell(cells, columns["score"])),
+                duration_ms=_duration_ms(_cell(cells, columns["duration"])),
+                memory_kb=_memory_kb(_cell(cells, columns["memory"])),
+                source_row=row_position,
             )
         )
-    return rows
+    return rows, diagnostics
 
 
 def _cell(cells: list[str], column: int) -> str:
     return cells[column] if column < len(cells) else ""
 
 
+DEFAULT_COLUMNS = {"index": 0, "status": 1, "score": 2, "duration": 3, "memory": 4}
+_HEADER_KEYS = (
+    ("测试点", "index"),
+    ("结果", "status"),
+    ("测试点得分", "score"),
+    ("耗时", "duration"),
+    ("内存", "memory"),
+)
+_DURATION_HINT = re.compile(r"(ms|毫秒|s$|秒)", re.I)
+_MEMORY_HINT = re.compile(r"(KB|MB|字节)", re.I)
+
+
+def _infer_columns(table: _Node, matrix: list[list[str]]) -> tuple[dict[str, int], str]:
+    """识别测试表的列含义：表头优先，其次按单元格内容特征，最后退回位置约定。"""
+    named = _column_indexes(table)
+    mapping = {key: named[name] for name, key in _HEADER_KEYS if name in named}
+    if len(mapping) == len(_HEADER_KEYS):
+        return mapping, "thead"
+
+    width = max((len(row) for row in matrix), default=0)
+    if width < len(_HEADER_KEYS):
+        return {**DEFAULT_COLUMNS, **mapping}, "position"
+
+    samples = [row for row in matrix if len(row) >= width and any(cell.strip() for cell in row)]
+    samples = samples[:100]
+    if not samples:
+        return {**DEFAULT_COLUMNS, **mapping}, "position"
+
+    def rate(column: int, predicate) -> float:
+        return sum(1 for row in samples if predicate(row[column].strip())) / len(samples)
+
+    index_column = next(
+        (
+            column
+            for column in range(width)
+            if all(
+                row[column].strip().isdigit() and int(row[column]) == position + 1
+                for position, row in enumerate(samples)
+            )
+        ),
+        None,
+    )
+    status_column = max(
+        range(width), key=lambda c: rate(c, lambda v: any(w in v for w in _STATUS_WORDS))
+    )
+    duration_column = max(
+        range(width), key=lambda c: rate(c, lambda v: bool(_DURATION_HINT.search(v)))
+    )
+    memory_column = max(range(width), key=lambda c: rate(c, lambda v: bool(_MEMORY_HINT.search(v))))
+
+    # 内容特征必须真的命中，否则不算识别成功
+    if rate(duration_column, lambda v: bool(_DURATION_HINT.search(v))) < 0.5:
+        return {**DEFAULT_COLUMNS, **mapping}, "position"
+    if rate(memory_column, lambda v: bool(_MEMORY_HINT.search(v))) < 0.5:
+        return {**DEFAULT_COLUMNS, **mapping}, "position"
+    if rate(status_column, lambda v: any(w in v for w in _STATUS_WORDS)) < 0.5:
+        return {**DEFAULT_COLUMNS, **mapping}, "position"
+
+    inferred = {
+        "index": index_column if index_column is not None else DEFAULT_COLUMNS["index"],
+        "status": status_column,
+        "duration": duration_column,
+        "memory": memory_column,
+    }
+    used = set(inferred.values())
+    score_column = next((c for c in range(width) if c not in used), DEFAULT_COLUMNS["score"])
+    inferred["score"] = score_column
+    return {**inferred, **mapping}, "content_signals"
+
+
+def _compiler_output(body: _Node) -> tuple[str | None, bool]:
+    """「编译器输出」块里的 pre 原文；内容为「无」时视为没有输出。"""
+    pre = _pre_after_label(body, "编译器输出")
+    if pre is None:
+        return None, False
+    text = _raw_text(pre).strip()
+    if not text or text == "无":
+        return None, False
+    if len(text) > MAX_COMPILER_OUTPUT_CHARS:
+        return text[:MAX_COMPILER_OUTPUT_CHARS], True
+    return text, False
+
+
 def _column_indexes(table: _Node) -> dict[str, int]:
-    """读 thead 的列名；没有表头时返回空字典，调用方用默认顺序兜底。"""
+    """读 thead 的列名；没有表头时返回空字典。"""
     head = next(_nodes(table, tag="thead"), None)
     if head is None:
         return {}
@@ -527,17 +824,6 @@ def _column_indexes(table: _Node) -> dict[str, int]:
         if name:
             indexes.setdefault(name, index)
     return indexes
-
-
-def _compiler_output(body: _Node) -> str | None:
-    """「编译器输出」块里的 pre 原文；内容为「无」时视为没有输出。"""
-    pre = _pre_after_label(body, "编译器输出")
-    if pre is None:
-        return None
-    text = _raw_text(pre).strip()
-    if not text or text == "无":
-        return None
-    return text[:MAX_COMPILER_OUTPUT_CHARS]
 
 
 def _pre_after_label(root: _Node, label: str) -> _Node | None:

@@ -599,7 +599,7 @@ def _insert_problems(
                 problem_id,
                 assessment_id,
                 problem.label,
-                problem.ordinal,
+                problem.display_ordinal,
                 None if problem.total_score is None else problem.total_score * _SCORE_SCALE,
             ),
         )
@@ -632,7 +632,7 @@ def _insert_submissions(
                 student_pk,
                 problem_id,
                 submission.language,
-                submission.code,
+                submission.code or "",
                 submission.verdict,
                 None if submission.score is None else submission.score * _SCORE_SCALE,
                 None if submission.score_total is None else submission.score_total * _SCORE_SCALE,

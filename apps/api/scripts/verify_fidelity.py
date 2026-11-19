@@ -76,12 +76,18 @@ def main() -> int:
             for index, submission in enumerate(submissions):
                 checked += 1
                 raw_code, raw_output = blocks[index]
-                if raw_code != submission.code.strip():
+                parsed_code = submission.code or ""
+                # 未作答/缺失的题块，原始一侧允许是占位符或空；有代码时必须逐字一致。
+                if submission.code_state == "PRESENT":
+                    code_ok = raw_code == parsed_code.strip()
+                else:
+                    code_ok = raw_code in ("", "无", "-", "—", "/")
+                if not code_ok:
                     code_mismatch += 1
                     if len(samples) < 5:
                         samples.append(
-                            f"[代码不一致] {submission.problem_label}: "
-                            f"原始 {raw_code[:60]!r} / 解析 {submission.code.strip()[:60]!r}"
+                            f"[代码不一致] {submission.problem_label} ({submission.code_state}): "
+                            f"原始 {raw_code[:60]!r} / 解析 {parsed_code.strip()[:60]!r}"
                         )
                 if raw_output != submission.compiler_output:
                     compiler_mismatch += 1

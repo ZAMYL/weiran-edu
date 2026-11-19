@@ -156,3 +156,22 @@ def build_package(
 def make_answersheet() -> Callable[..., bytes]:
     """按人数/题号生成合成答题卡包，供结构验证使用。"""
     return build_package
+
+
+@pytest.fixture
+def make_zip_package() -> Callable[[dict[str, str]], bytes]:
+    """把「路径 → HTML」打包成 ZIP，供结构变化测试使用。"""
+
+    def build(entries: dict[str, str]) -> bytes:
+        stream = BytesIO()
+        with ZipFile(stream, "w") as archive:
+            for name, payload in entries.items():
+                archive.writestr(name, payload)
+        return stream.getvalue()
+
+    return build
+
+
+@pytest.fixture
+def make_student_html() -> Callable[..., str]:
+    return student_html
