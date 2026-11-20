@@ -47,6 +47,51 @@ _STATUS_WORDS = (
     "未作答",
 )
 
+# 状态归类：只有明确结论才进入通过/失败统计，未知绝不当作失败。
+# 这是统计口径的唯一真源；入库时冻结为 status_class / verdict_class，
+# 读取侧只读类别，不再对文本猜一次。
+STATUS_PASS = "PASS"
+STATUS_FAIL = "FAIL"
+STATUS_PARTIAL = "PARTIAL"
+STATUS_NOT_ATTEMPTED = "NOT_ATTEMPTED"
+STATUS_UNKNOWN = "UNKNOWN"
+
+_PASS_STATUS = "答案正确"
+_PARTIAL_STATUSES = ("部分正确",)
+_NOT_ATTEMPTED_STATUSES = ("未作答",)
+_FAIL_STATUSES = (
+    "答案错误",
+    "运行时错误",
+    "运行超时",
+    "运行错误",
+    "内存超限",
+    "段错误",
+    "非零返回",
+    "编译错误",
+    "格式错误",
+)
+
+
+def classify_status(status: str | None, *, known: bool = True) -> str:
+    """把原始状态文本归为稳定类别。
+
+    - 明确通过才是 PASS，明确失败才是 FAIL；
+    - 部分正确单列，既不计通过也不计失败；
+    - 未作答、空文本、不在已知集合的文本都不是失败。
+    """
+    text = (status or "").strip()
+    if not text or not known:
+        return STATUS_UNKNOWN
+    if _PASS_STATUS in text:
+        return STATUS_PASS
+    if any(word in text for word in _PARTIAL_STATUSES):
+        return STATUS_PARTIAL
+    if any(word in text for word in _NOT_ATTEMPTED_STATUSES):
+        return STATUS_NOT_ATTEMPTED
+    if any(word in text for word in _FAIL_STATUSES):
+        return STATUS_FAIL
+    return STATUS_UNKNOWN
+
 
 @dataclass(frozen=True)
 class StudentRecord:
