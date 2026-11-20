@@ -654,7 +654,7 @@ def test_three_migration_database_upgrade_keeps_existing_facts(runtime, stage):
             "DELETE FROM schema_migrations WHERE version IN "
             "('004_reviewed_analysis.sql','005_teacher_batch_archive.sql',"
             "'006_source_assets.sql','007_evidence_model.sql','008_problem_dimensions.sql',"
-            "'009_evidence_provenance.sql','012_original_artifacts.sql')"
+            "'009_evidence_provenance.sql','012_original_artifacts.sql','013_material_package_scope.sql')"
         )
         previous = [
             tuple(row)

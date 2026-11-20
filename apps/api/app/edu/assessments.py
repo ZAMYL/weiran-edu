@@ -155,19 +155,38 @@ def _score_total_conflicts(evidence: AnswerSheetEvidence) -> set[str]:
 
 
 class _AssetBinder:
-    """把解析出的 entry 绑回上传包；无法唯一确定时保持 None，不猜。"""
+    """把解析出的记录绑回上传包，不靠同名路径猜来源。
+
+    首选"包号 + 包内路径"：包号来自上传顺序，路径还必须命中这个包自己的成员清单，
+    因此两个 ZIP 含同一内部路径时各自绑自己的包，不会串证据。
+    记录没有包号（直接调用解析器的旧调用方）时才退回"全批次路径唯一"的旧判定；
+    仍无法唯一确定就保持未绑定并登记诊断，绝不静默绑错包。
+    """
 
     def __init__(self) -> None:
-        self.asset_ids: dict[str, str] = {}
         self.sha256: dict[str, str] = {}
         self._by_entry: dict[str, list[str]] = {}
+        self._by_package: dict[int, tuple[str, frozenset[str]]] = {}
         self.ambiguous: set[str] = set()
+        self.unresolved: set[str] = set()
 
     def add(self, asset: AssetInput, asset_id: str) -> None:
-        self.asset_ids[asset.entry] = asset_id
         self.sha256[asset_id] = asset.sha256
+        self._by_package[asset.source_index] = (asset_id, frozenset(asset.entries))
         for entry in asset.entries:
             self._by_entry.setdefault(entry, []).append(asset_id)
+
+    def for_package_entry(self, package_index: int | None, entry: str | None) -> str | None:
+        if entry is None:
+            return None
+        if package_index is not None:
+            package = self._by_package.get(package_index)
+            if package is not None and entry in package[1]:
+                return package[0]
+            # 包号已知但路径不在该包：宁可判为来源不明，也不拿同名路径顶替
+            self.unresolved.add(entry)
+            return None
+        return self.for_entry(entry)
 
     def for_entry(self, entry: str | None) -> str | None:
         if entry is None:
@@ -296,7 +315,27 @@ class AssessmentService:
                             storage_state,
                         ),
                     )
+                material_keys: set[tuple[str, str]] = set()
                 for material in evidence.materials:
+                    # 材料身份 = 来源包 + 包内路径。多个包含同一内部路径时，
+                    # 各自绑自己的包，不再共用一条批次级记录。
+                    material_asset = binder.for_package_entry(
+                        material.package_index, material.entry
+                    )
+                    if material_asset is None and len(assets) > 1:
+                        raise APIError(
+                            409,
+                            "SOURCE_AMBIGUOUS",
+                            f"材料 {material.entry} 无法确定来自哪个上传包，拒绝静默绑定",
+                        )
+                    key = (material_asset or "", material.entry)
+                    if key in material_keys:
+                        raise APIError(
+                            409,
+                            "SOURCE_BINDING_CONFLICT",
+                            f"同一来源包内重复登记材料 {material.entry}",
+                        )
+                    material_keys.add(key)
                     connection.execute(
                         "INSERT INTO assessment_materials (material_id,assessment_id,entry,"
                         "category,"
@@ -309,7 +348,7 @@ class AssessmentService:
                             material.basis,
                             json.dumps(list(material.signals), ensure_ascii=False),
                             int(material.needs_confirmation),
-                            binder.for_entry(material.entry),
+                            material_asset,
                         ),
                     )
                 for diagnostic in evidence.diagnostics:
@@ -348,7 +387,7 @@ class AssessmentService:
                             record.started_at,
                             record.finished_at,
                             record.duration_minutes,
-                            binder.for_entry(record.source_entry),
+                            binder.for_package_entry(record.package_index, record.source_entry),
                         ),
                     )
 
@@ -366,6 +405,18 @@ class AssessmentService:
                             "SOURCE_ENTRY_AMBIGUOUS",
                             entry,
                             "该路径出现在多个上传包中，无法唯一绑定资产，来源标记为未绑定",
+                            stamp,
+                        ),
+                    )
+                for entry in sorted(binder.unresolved):
+                    connection.execute(
+                        "INSERT INTO assessment_diagnostics VALUES (?,?,?,?,?,?)",
+                        (
+                            str(uuid4()),
+                            assessment_id,
+                            "SOURCE_ENTRY_UNRESOLVED",
+                            entry,
+                            "该路径不在其所属上传包的成员清单里，来源标记为未绑定",
                             stamp,
                         ),
                     )
@@ -1105,7 +1156,7 @@ def _insert_submissions(
                 submission.compiler_output,
                 int(submission.compiler_output_truncated),
                 classify_status(submission.verdict),
-                binder.for_entry(submission.source_entry),
+                binder.for_package_entry(submission.package_index, submission.source_entry),
                 submission.source_entry,
                 submission.source_index,
             ),

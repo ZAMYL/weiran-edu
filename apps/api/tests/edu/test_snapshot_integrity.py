@@ -200,7 +200,7 @@ def test_existing_two_migration_database_upgrades_without_changing_facts(runtime
             )
         ]
     assert current[:2] == prior
-    assert len(current) == 10
+    assert len(current) == 11
     assert runtime.reader.students(runtime.p, created.batch_id) == before
     with pytest.raises(APIError):
         with runtime.db.transaction(write=True) as connection:
