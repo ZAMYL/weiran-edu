@@ -132,11 +132,16 @@ def run_offline(source, directory):
         budget.close()
 
 
-def test_real_multizip_upload_investigation_and_restarted_witness_replay(client, runtime, tmp_path):
-    left, right = package(1, 10), package(11, 20)
-    assessment = upload(client, left, right)
+@pytest.mark.parametrize("split", [False, True], ids=["single-zip", "multi-zip"])
+def test_real_zip_upload_investigation_and_restarted_witness_replay(
+    client_factory, runtime, tmp_path, split
+):
+    payloads = (package(1, 10), package(11, 20)) if split else (package(1, 20),)
+    with client_factory(runtime.token) as app:
+        assessment = upload(app, *payloads)
     provider = binding(runtime, assessment)
     source = ProgrammingSource(provider.scope, provider)
+    assert source.material.problems == (LABEL,)
     assert len(source.material.participants) == 20
     assert sum(item.verdict == "partial" for item in source.material.submissions) == 5
     assert (
@@ -154,6 +159,10 @@ def test_real_multizip_upload_investigation_and_restarted_witness_replay(client,
     assert card["direction"]["affected"] == 10
     assert {"feature": "indexing", "checked": 10, "present": 5} in card["features"]
 
+    with client_factory(runtime.token) as restarted_app:
+        response = restarted_app.get(f"{URL}/{assessment}")
+        assert response.status_code == 200
+        assert response.json()["source_snapshot_id"] == source.scope.snapshot
     reopened = binding(runtime, assessment)
     fresh = ProgrammingSource(reopened.scope, reopened)
     assert fresh.material == source.material
@@ -165,14 +174,25 @@ def test_real_multizip_upload_investigation_and_restarted_witness_replay(client,
     assert replay.resolve(detail, "D1.coverage") == executor.resolve(detail, "D1.coverage")
     coverage = replay.resolve(detail, "D1.coverage")
     assert {item.source_sha256 for item in coverage} == {
-        sha256(left).hexdigest(),
-        sha256(right).hexdigest(),
+        sha256(payload).hexdigest() for payload in payloads
     }
-    (proof, *_) = replay.resolve(detail, "code.available")
+    assert len(replay.resolve(detail, "D1.affected")) == 10
+    checked = replay.resolve(detail, "indexing.checked")
+    present = replay.resolve(detail, "indexing.present")
+    assert len(checked) == 10 and {item.kind for item in checked} == {"code"}
+    assert len(present) == 5 and {item.kind for item in present} == {"feature"}
+    assert {item.participant_id for item in present} <= {item.participant_id for item in checked}
+    assert {item.reference_id for item in replay.resolve(detail, "code.available")} == {
+        item.reference_id for item in checked
+    }
+    feature = present[0]
+    proof = next(item for item in checked if item.participant_id == feature.participant_id)
+    assert feature.source_id == proof.source_id
+    assert feature.locator == f"{proof.locator}/feature/indexing"
     original = reopened.reader.original(
         runtime.p, assessment, proof.source_id, expected_sha256=proof.source_sha256
     )
-    assert original.payload == left
+    assert original.payload == payloads[0]
     entry, _, anchor = proof.locator.partition("#")
     assert anchor.startswith("block/") and anchor.endswith("/code")
     with ZipFile(BytesIO(original.payload)) as archive:
@@ -180,10 +200,11 @@ def test_real_multizip_upload_investigation_and_restarted_witness_replay(client,
     assert PRIVATE_CODE.encode() in original_entry
     assert proof.value == PRIVATE_CODE
     assert proof.entry_sha256 == sha256(original_entry).hexdigest()
+    assert proof.content_sha256 == sha256(PRIVATE_CODE.encode()).hexdigest()
 
 
 @pytest.mark.parametrize(
-    "fault", ["tampered", "deleted", "snapshot", "asset_manifest", "code", "test"]
+    "fault", ["tampered", "deleted", "snapshot", "asset_manifest", "code", "test", "missing_test"]
 )
 def test_capture_rejects_changed_zip_snapshots_and_database_witnesses(client, runtime, fault):
     payload = simple_zip()
@@ -205,6 +226,8 @@ def test_capture_rejects_changed_zip_snapshots_and_database_witnesses(client, ru
             "code": "UPDATE submissions SET code_text='forged' WHERE assessment_id=?",
             "test": "UPDATE test_observations SET status='答案错误' WHERE submission_id IN "
             "(SELECT submission_id FROM submissions WHERE assessment_id=?)",
+            "missing_test": "DELETE FROM test_observations WHERE submission_id IN "
+            "(SELECT submission_id FROM submissions WHERE assessment_id=?)",
         }
         params = ("0" * 64, assessment) if fault == "snapshot" else (assessment,)
         with runtime.db.transaction(write=True) as connection:
@@ -214,7 +237,8 @@ def test_capture_rejects_changed_zip_snapshots_and_database_witnesses(client, ru
         source.validate()
 
 
-def test_provider_rechecks_owner_task_and_teacher_credential(client, runtime):
+@pytest.mark.parametrize("revoke", ["credential", "scope"])
+def test_provider_rechecks_owner_task_and_teacher_authorization(client, runtime, revoke):
     provider = binding(runtime, upload(client, simple_zip()))
     source = ProgrammingSource(provider.scope, provider)
     other = replace(provider.scope, actor=runtime.q.teacher_id)
@@ -222,9 +246,14 @@ def test_provider_rechecks_owner_task_and_teacher_credential(client, runtime):
         AssessmentEvidenceProvider(provider.reader, runtime.q, other).capture(other)
     with pytest.raises(AgentError, match="access_denied"):
         provider.capture(replace(provider.scope, task="another-task"))
-    runtime.admin.revoke_tokens(runtime.p.teacher_id)
+    if revoke == "credential":
+        runtime.admin.revoke_tokens(runtime.p.teacher_id)
+    else:
+        runtime.admin.remove_member(runtime.p.teacher_id, runtime.scope)
     with pytest.raises(AgentError, match="access_denied"):
         source.validate()
+    with pytest.raises(AgentError, match="access_denied"):
+        provider.require_details(source.scope)
 
 
 def test_package_binding_cannot_be_swapped_in_same_assessment(client, runtime):
