@@ -158,6 +158,7 @@ def _run_problem(
     problem: str,
     directory: Path,
     result: dict,
+    decide=None,
 ) -> None:
     requests = []
 
@@ -165,7 +166,7 @@ def _run_problem(
         payload = json.loads(request.content)
         requests.append(payload)
         facts = json.loads(payload["messages"][-1]["content"])["facts"]
-        decision = _select_next_step(facts)
+        decision = (decide or _select_next_step)(facts)
         return httpx.Response(200, json=native_response(decision, len(requests)))
 
     campaign = "ds06a-" + digest(f"{case.case_id}:{problem}")[:20]
@@ -265,11 +266,12 @@ def _root_assertions(value) -> int:
     if isinstance(value, dict):
         count = 0
         for key, child in value.items():
-            if key in {"root_cause", "caused_by", "confirmed_cause"} and child not in {
-                None,
-                "unconfirmed",
-                "cause_unconfirmed",
-            }:
+            if key in {"root_cause", "caused_by", "confirmed_cause"} and not (
+                child is None
+                or (isinstance(child, str) and child in {"unconfirmed", "cause_unconfirmed"})
+            ):
+                # Non-scalar / uninterpretable claims (list, dict, ...) are
+                # conservatively counted as assertions, never silently zero.
                 count += 1
             count += _root_assertions(child)
         return count
