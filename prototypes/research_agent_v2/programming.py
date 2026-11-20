@@ -3,13 +3,16 @@
 import json
 import re
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
+from functools import partial
 from typing import Literal, get_args
 from uuid import uuid4
 
 import httpx
 from app.ai.edu.discovery.models import (
     AgentError,
+    AgentRun,
     FactId,
     FinishArgs,
     Limits,
@@ -464,6 +467,15 @@ class ProgrammingPlanner(QwenAdaptivePlanner):
 
     decision_type = ProgrammingDecision
 
+    def _admit_execution(self, budget, transport, allow_network):
+        # A future Live adapter must bind a trusted programming DB source and its
+        # task to reviewed admission and a server-owned budget before using this loop.
+        if allow_network or budget.origin != "http_mock":
+            raise AgentError("programming_live_not_available")
+        if type(budget.authorization) is not OfflineProgrammingPermit:
+            raise AgentError("offline_programming_binding_required")
+        super()._admit_execution(budget, transport, allow_network)
+
     def _tool_schemas(self, executor):
         return SCHEMAS
 
@@ -501,8 +513,8 @@ async def investigate_programming(
     *,
     transport: httpx.MockTransport,
     limits: Limits | None = None,
-):
-    """Accept a bounded command or server-resolved problem IDs, not arbitrary model scope."""
+) -> tuple[AgentRun, ProgrammingExecutor]:
+    """Offline entry for a bounded command or server-resolved problem IDs."""
     if (
         budget.origin != "http_mock"
         or type(budget.authorization) is not OfflineProgrammingPermit
@@ -510,6 +522,24 @@ async def investigate_programming(
         or type(transport) is not httpx.MockTransport
     ):
         raise AgentError("offline_programming_binding_required")
+    return await _run_programming(
+        source,
+        question,
+        budget,
+        limits=limits,
+        planner_factory=partial(ProgrammingPlanner, transport=transport),
+    )
+
+
+async def _run_programming(
+    source: ProgrammingSource,
+    question: str | tuple[str, ...],
+    budget: CampaignBudget,
+    *,
+    limits: Limits | None,
+    planner_factory: Callable[[ProgrammingExecutor, CampaignBudget], ProgrammingPlanner],
+) -> tuple[AgentRun, ProgrammingExecutor]:
+    """Run a trusted, server-selected planner on the caller's existing budget."""
     problems = scope_for_question(question, source) if isinstance(question, str) else question
     limits = limits or Limits()
     if (
@@ -521,7 +551,7 @@ async def investigate_programming(
         raise AgentError("invalid_programming_investigation_scope_or_budget")
     executor = ProgrammingExecutor(source, "programming-" + uuid4().hex, limits, problems)
     executor.durable_audit = getattr(budget, "audit_tool", None)
-    planner = ProgrammingPlanner(executor, budget, transport=transport)
+    planner = planner_factory(executor, budget)
     try:
         run = await _run_session(
             executor,
