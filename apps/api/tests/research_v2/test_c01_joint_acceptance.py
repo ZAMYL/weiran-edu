@@ -29,6 +29,14 @@ from prototypes.research_agent_v2.programming_evidence import (
 )
 
 from app.ai.edu.discovery.models import AgentError, Limits
+from app.analysis.code import (
+    Language,
+    SourceRef,
+    SubmissionRecord,
+    Verdict,
+    analyze,
+    b01_test_point_result,
+)
 from app.analysis.code.features import FeatureId, is_present
 from app.analysis.code.interop import (
     c01_feature_associations,
@@ -38,6 +46,7 @@ from app.analysis.code.interop import (
 from app.importing.edu.answersheet import MAX_CODE_CHARS
 from scripts.c01_joint_acceptance import (
     LocalAcceptanceProvider,
+    _without_test_points,
     digest,
     materialize,
 )
@@ -113,6 +122,43 @@ def package(*, changed: bool = False, empty_coverage: bool = False) -> bytes:
                 + block(other, compile_code, compile_verdict)
                 + "</div></body></html>",
             )
+    return out.getvalue()
+
+
+def mixed_package() -> bytes:
+    """One problem mixing a no-test-point and a test-point wrong-answer submission."""
+    problem = "算法A-2"
+    code = "items = [2, 3]\nprint(items[0])\n"
+    heads = "".join(f"<th>{k}</th>" for k in ("测试点", "结果", "测试点得分", "耗时", "内存"))
+    table = (
+        f"<table><thead><tr>{heads}</tr></thead><tbody><tr>"
+        + "".join(f"<td>{v}</td>" for v in ("900", "答案错误", "0", "12.50 ms", "304 KB"))
+        + "</tr></tbody></table>"
+    )
+    body = f"<div>编译器: PYTHON3</div><pre>{escape(code)}</pre>"
+
+    def block(label: str, inner: str, outcome: str) -> str:
+        return (
+            "<div class='flex space-x-2'>"
+            f"<div class='flex-none font-medium'>{label}</div>"
+            f"<div class='flex-1 space-y-4'>{inner}</div>"
+            f"<div class='flex-none min-w-[5rem]'><div>{outcome}</div>"
+            "<span>0 / 5</span></div></div>"
+        )
+
+    def document(key: str, with_test: bool) -> str:
+        return (
+            "<html><body><div class='box'>"
+            f"<div><span>考生</span><span>{key} 合成测试</span></div></div>"
+            "<div class='space-y-8'>"
+            + block(problem, body + (table if with_test else ""), "答案错误")
+            + "</div></body></html>"
+        )
+
+    out = BytesIO()
+    with ZipFile(out, "w") as zip_file:
+        zip_file.writestr("合成包/正式答卷/mixed-A.html", document("STU-A", with_test=False))
+        zip_file.writestr("合成包/正式答卷/mixed-B.html", document("STU-B", with_test=True))
     return out.getvalue()
 
 
@@ -320,6 +366,64 @@ def make_source(blob: bytes):
     scope = EvidenceScope("local-teacher", "local-task", "local-batch", accepted.snapshot.snapshot)
     provider = LocalAcceptanceProvider(scope, accepted.snapshot, lambda: blob)
     return accepted, ProgrammingSource(scope, provider), provider
+
+
+def test_point_none_fallback_excludes_test_point_submissions() -> None:
+    loop = "for i in range(3):\n    print(i)\n"
+
+    def record(sid: str, tests=()) -> SubmissionRecord:
+        return SubmissionRecord(
+            "b",
+            "p",
+            sid,
+            f"student-{sid}",
+            Language.PYTHON,
+            loop,
+            Verdict.WRONG_ANSWER,
+            tuple(tests),
+            SourceRef("src", sid),
+        )
+
+    rows = [
+        record("A"),  # no test points -> the C-01 fallback participant
+        record("B", (b01_test_point_result("900", "答案错误"),)),
+        record("C", (b01_test_point_result("900", "答案错误"),)),
+    ]
+    analysis = analyze("b", "p", rows)
+
+    fallback = c01_feature_associations(_without_test_points(analysis), status="wrong_answer")
+    loop_feature = next(f for f in fallback if f.code == "loop")
+    assert loop_feature.checked == ("student-A",)
+    assert loop_feature.present == (("student-A", "A"),)
+
+    whole = c01_feature_associations(analysis, status="wrong_answer")
+    whole_loop = next(f for f in whole if f.code == "loop")
+    assert set(whole_loop.checked) == {"student-A", "student-B", "student-C"}
+
+
+def test_materialize_no_testpoint_fallback_excludes_testpoint_submissions() -> None:
+    """The joint-acceptance no-test-point fallback queue must pre-filter test points."""
+    accepted = materialize(mixed_package(), "local-batch")
+    fallback = [
+        feature
+        for feature in accepted.snapshot.features
+        if feature.problem == "算法A-2"
+        and feature.point is None
+        and feature.status == "wrong_answer"
+    ]
+    point900 = [
+        feature
+        for feature in accepted.snapshot.features
+        if feature.problem == "算法A-2"
+        and feature.point == "900"
+        and feature.status == "wrong_answer"
+    ]
+    assert fallback and point900
+    # The no-test-point fallback must only project the participant without test
+    # points, even though the with-test-point submission is also whole-problem wrong.
+    assert {p for feature in fallback for p in feature.checked} == {"STU-A"}
+    assert {p for feature in fallback for p, _ in feature.present} == {"STU-A"}
+    assert {p for feature in point900 for p in feature.checked} == {"STU-B"}
 
 
 def test_zip_distribution_changes_investigation_and_sources(tmp_path: Path):

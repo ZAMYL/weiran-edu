@@ -1,0 +1,51 @@
+{
+  "case_id": "same_structure_different_points",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "十份提交使用同一循环和下标结构，但前五人仅在 empty-input 失败，后五人仅在 last-element 失败。",
+      "相同代码结构不能覆盖或合并两个不同的测试失败现象。"
+    ],
+    "verification": "按测试点逐行核对通过/失败状态，并分别列出两个失败群体。"
+  },
+  "statistics": {
+    "indexed-sum": {
+      "verdict_counts": {"wrong_answer": 10},
+      "test_points": {
+        "empty-input": {"passed": 5, "failed": 5, "unknown": 0},
+        "last-element": {"passed": 5, "failed": 5, "unknown": 0}
+      }
+    }
+  },
+  "phenomena": {
+    "A": [
+      {"problem": "indexed-sum", "point": "empty-input", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]},
+      {"problem": "indexed-sum", "point": "last-element", "status": "wrong_answer", "affected": ["anon-06", "anon-07", "anon-08", "anon-09", "anon-10"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}
+    ],
+    "B": [
+      {"problem": "indexed-sum", "point": "empty-input", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]},
+      {"problem": "indexed-sum", "point": "last-element", "status": "wrong_answer", "affected": ["anon-06", "anon-07", "anon-08", "anon-09", "anon-10"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}
+    ],
+    "C": [
+      {"problem": "indexed-sum", "point": "empty-input", "status": "wrong_answer", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]},
+      {"problem": "indexed-sum", "point": "last-element", "status": "wrong_answer", "affected": ["anon-06", "anon-07", "anon-08", "anon-09", "anon-10"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}
+    ]
+  },
+  "feature_values": {
+    "same_structure_different_points-indexed-sum-01": {"loops": 1, "index_accesses": 2},
+    "same_structure_different_points-indexed-sum-06": {"loops": 1, "index_accesses": 2}
+  },
+  "feature_cohorts": [
+    {"problem": "indexed-sum", "point": "empty-input", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "present": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"]},
+    {"problem": "indexed-sum", "point": "last-element", "status": "wrong_answer", "feature": "indexing", "checked": ["anon-06", "anon-07", "anon-08", "anon-09", "anon-10"], "present": ["anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}
+  ],
+  "card_features": [
+    {"problem": "indexed-sum", "point": "empty-input", "status": "wrong_answer", "features": {"boundary_check": {"checked": 5, "present": 0}, "indexing": {"checked": 5, "present": 5}, "input_parsing": {"checked": 5, "present": 5}, "loop": {"checked": 5, "present": 5}, "recursion": {"checked": 5, "present": 0}}},
+    {"problem": "indexed-sum", "point": "last-element", "status": "wrong_answer", "features": {"boundary_check": {"checked": 5, "present": 0}, "indexing": {"checked": 5, "present": 5}, "input_parsing": {"checked": 5, "present": 5}, "loop": {"checked": 5, "present": 5}, "recursion": {"checked": 5, "present": 0}}}
+  ],
+  "abstentions": [
+    {"systems": ["A", "B", "C"], "kind": "no_root_assertion"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "indexed-sum", "point": "empty-input", "status": "wrong_answer", "limit": "cause_unconfirmed"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "indexed-sum", "point": "last-element", "status": "wrong_answer", "limit": "cause_unconfirmed"}
+  ]
+}

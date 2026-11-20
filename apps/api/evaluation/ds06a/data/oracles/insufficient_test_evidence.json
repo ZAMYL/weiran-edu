@@ -1,0 +1,35 @@
+{
+  "case_id": "insufficient_test_evidence",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "五条编译错误没有任何测试点或源码，能够确认的只有判题结论，不能虚构失败测试点或编译根因。",
+      "五条通过同样没有测试点，因此测试点统计必须为空，而不是把通过结论拆成虚构测试。"
+    ],
+    "verification": "核对原始 tests 为空、编译代码状态为 missing，并检查卡片包含测试证据缺失限制。"
+  },
+  "statistics": {
+    "compile-check": {
+      "verdict_counts": {"accepted": 5, "compile_error": 5},
+      "test_points": {}
+    }
+  },
+  "phenomena": {
+    "A": [{"problem": "compile-check", "point": null, "status": "compile_error", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "B": [{"problem": "compile-check", "point": null, "status": "compile_error", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}],
+    "C": [{"problem": "compile-check", "point": null, "status": "compile_error", "affected": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05"], "covered": ["anon-01", "anon-02", "anon-03", "anon-04", "anon-05", "anon-06", "anon-07", "anon-08", "anon-09", "anon-10"]}]
+  },
+  "feature_values": {
+    "insufficient_test_evidence-compile-check-06": {"loops": 0, "index_accesses": 0}
+  },
+  "card_features": [
+    {"problem": "compile-check", "point": null, "status": "compile_error", "features": {}}
+  ],
+  "abstentions": [
+    {"systems": ["A", "B", "C"], "kind": "no_root_assertion"},
+    {"systems": ["C"], "kind": "no_features", "problem": "compile-check", "point": null, "status": "compile_error"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "compile-check", "point": null, "status": "compile_error", "limit": "cause_unconfirmed"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "compile-check", "point": null, "status": "compile_error", "limit": "test_evidence_missing"},
+    {"systems": ["C"], "kind": "card_limit", "problem": "compile-check", "point": null, "status": "compile_error", "limit": "code_unavailable_or_withheld"}
+  ]
+}
