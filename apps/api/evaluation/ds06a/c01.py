@@ -158,6 +158,7 @@ def _run_problem(
     problem: str,
     directory: Path,
     result: dict,
+    decide=None,
 ) -> None:
     requests = []
 
@@ -165,7 +166,7 @@ def _run_problem(
         payload = json.loads(request.content)
         requests.append(payload)
         facts = json.loads(payload["messages"][-1]["content"])["facts"]
-        decision = _select_next_step(facts)
+        decision = (decide or _select_next_step)(facts)
         return httpx.Response(200, json=native_response(decision, len(requests)))
 
     campaign = "ds06a-" + digest(f"{case.case_id}:{problem}")[:20]
