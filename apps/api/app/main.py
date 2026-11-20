@@ -31,6 +31,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if application.state.settings.database_path is not None:
         from app.edu.assessments import AssessmentReader, AssessmentService
         from app.edu.discovery_disconnect import DiscoveryDisconnectMiddleware
+        from app.edu.originals import OriginalStore
         from app.edu.service import EduService
         from app.importing.edu.worker import parse_isolated
         from app.routers.edu import router as edu_router
@@ -44,10 +45,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             parser=parse_isolated,
         )
         application.state.assessment_service = AssessmentService(
-            application.state.edu_service.database
+            application.state.edu_service.database,
+            originals=OriginalStore(application.state.settings.originals_root()),
         )
         application.state.assessment_reader = AssessmentReader(
-            application.state.edu_service.database
+            application.state.edu_service.database,
+            originals=application.state.assessment_service.originals,
         )
         application.include_router(edu_router)
         application.include_router(edu_discoveries_router)
