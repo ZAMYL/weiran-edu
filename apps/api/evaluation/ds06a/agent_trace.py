@@ -126,19 +126,85 @@ def run_model_agent(case: Case, trace: AgentTrace, data_dir: Path) -> dict:
 
 
 def _validate_trace(trace: AgentTrace) -> None:
+    """Strict structural validation: malformed traces get stable rejection
+    codes here, never unhandled TypeError/KeyError/IndexError downstream."""
     if trace.origin != "approved_qwen":
         raise AgentError("model_origin_required")
+    if not isinstance(trace.problem, str) or not trace.problem:
+        raise AgentError("invalid_trace_structure")
+    if not isinstance(trace.final_answer, (dict, str)):
+        raise AgentError("invalid_trace_structure")
+    if not isinstance(trace.steps, (tuple, list)):
+        raise AgentError("invalid_trace_structure")
     if not trace.steps:
         raise AgentError("trace_incomplete")
+    for step in trace.steps:
+        _validate_step(step)
     limits = Limits()
     if len(trace.steps) > limits.model_requests:
         raise AgentError("model_budget_exceeded")
-    if sum(step.decision.get("name") in _TOOL_NAMES for step in trace.steps) > limits.tool_attempts:
+    if sum(step.decision["name"] in _TOOL_NAMES for step in trace.steps) > limits.tool_attempts:
         raise AgentError("tool_budget_exceeded")
+    _validate_usage(trace)
     if _leaks_oracle(trace.final_answer, ("expected", "oracle", "human_")) or any(
         _leaks_oracle(step.decision) for step in trace.steps
     ):
         raise AgentError("oracle_leakage")
+
+
+def _validate_step(step) -> None:
+    if not isinstance(step, AgentStep) or not isinstance(step.decision, dict):
+        raise AgentError("invalid_trace_structure")
+    decision = step.decision
+    name = decision.get("name")
+    if not isinstance(name, str) or name not in {OVERVIEW, INSPECT, "finish"}:
+        raise AgentError("invalid_trace_structure")
+    arguments = decision.get("arguments", {})
+    if not isinstance(arguments, dict):
+        raise AgentError("invalid_trace_structure")
+    basis = decision.get("basis_fact_ids", [])
+    if not isinstance(basis, list) or any(not isinstance(item, str) for item in basis):
+        raise AgentError("invalid_trace_structure")
+    if name == INSPECT:
+        if "direction" in arguments:
+            if not isinstance(arguments["direction"], str):
+                raise AgentError("invalid_direction")
+        elif "direction_index" in arguments:
+            position = arguments["direction_index"]
+            if isinstance(position, bool) or not isinstance(position, int):
+                raise AgentError("invalid_direction")
+        else:
+            raise AgentError("invalid_direction")
+    if name == "finish":
+        reason = arguments.get("reason")
+        if not isinstance(reason, str) or reason not in {"completed", "insufficient_data"}:
+            raise AgentError("invalid_finish_reason")
+        if "selected_roles" in arguments:
+            roles = arguments["selected_roles"]
+            if not isinstance(roles, list):
+                raise AgentError("missing_evidence_selection")
+            if any(not isinstance(role, str) for role in roles):
+                raise AgentError("invalid_evidence_reference")
+
+
+def _is_count(value) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _is_measure(value) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0
+
+
+def _validate_usage(trace: AgentTrace) -> None:
+    """Self-reported usage must at least be well-formed; it is never treated as
+    independently verified billing."""
+    for step in trace.steps:
+        if not _is_count(step.input_tokens) or not _is_count(step.output_tokens):
+            raise AgentError("invalid_usage_metrics")
+        if not _is_measure(step.latency_ms):
+            raise AgentError("invalid_usage_metrics")
+    if trace.cost is not None and not _is_measure(trace.cost):
+        raise AgentError("invalid_usage_metrics")
 
 
 def _leaks_oracle(value, prefixes: tuple[str, ...] = _FORBIDDEN_KEY_PREFIXES) -> bool:
@@ -199,6 +265,8 @@ def _trace_decider(trace: AgentTrace, violations: list[str], progress: dict):
         if name == OVERVIEW:
             return {"name": OVERVIEW, "arguments": {}}
         if name == INSPECT:
+            if not facts:
+                fail("missing_overview_step")
             overview = facts[0]
             directions = overview.get("directions", [])
             arguments = decision.get("arguments", {})
@@ -208,7 +276,11 @@ def _trace_decider(trace: AgentTrace, violations: list[str], progress: dict):
                     fail("invalid_direction")
             else:
                 position = arguments.get("direction_index")
-                if not isinstance(position, int) or not 0 <= position < len(directions):
+                if (
+                    isinstance(position, bool)
+                    or not isinstance(position, int)
+                    or not 0 <= position < len(directions)
+                ):
                     fail("invalid_direction")
                 direction = directions[position]["direction"]
             return {
@@ -217,6 +289,8 @@ def _trace_decider(trace: AgentTrace, violations: list[str], progress: dict):
                 "basis_fact_ids": [overview["fact_id"]],
             }
         if name == "finish":
+            if not facts:
+                fail("missing_overview_step")
             arguments = decision.get("arguments", {})
             reason = arguments.get("reason")
             if reason not in {"completed", "insufficient_data"}:

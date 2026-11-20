@@ -11,6 +11,7 @@ from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
 from prototypes.research_agent_v2.programming import INSPECT, OVERVIEW
 
 from evaluation.ds06a import c01 as c01mod
@@ -312,3 +313,147 @@ def test_relabelled_origin_never_yields_verified_provenance() -> None:
     assert result["status"] == "ok", result["error"]
     assert result["model_origin_verified"] is False
     assert result["model_usage"]["origin_verified"] is False
+
+
+# --- DS-06B-FIX-02: malformed model traces must be stably rejected -----------
+
+
+def _base_trace() -> AgentTrace:
+    case = case_by_id("association_not_causation")
+    return _recorded_trace(case, case.problems[0])
+
+
+def _assert_rejected(trace: AgentTrace, expected: str) -> None:
+    case = case_by_id("association_not_causation")
+    result = run_model_agent(case, trace, DATA_DIR)
+    assert result["status"] == "rejected", result
+    assert result["error"] == expected, result
+
+
+@pytest.mark.parametrize("bad_role", [{}, [], None, 3, True])
+def test_malformed_selected_role_elements(bad_role) -> None:
+    trace = _with_finish(_base_trace(), {"reason": "completed", "selected_roles": [bad_role]})
+    _assert_rejected(trace, "invalid_evidence_reference")
+
+
+@pytest.mark.parametrize("bad_roles", ["inspect:0", None, 5, {}])
+def test_malformed_selected_roles_container(bad_roles) -> None:
+    trace = _with_finish(_base_trace(), {"reason": "completed", "selected_roles": bad_roles})
+    _assert_rejected(trace, "missing_evidence_selection")
+
+
+@pytest.mark.parametrize("bad_basis", ["overview", [{}], [[]], [None], [1], None])
+def test_malformed_basis_fact_ids(bad_basis) -> None:
+    trace = _base_trace()
+    first = replace(
+        trace.steps[0], decision={**trace.steps[0].decision, "basis_fact_ids": bad_basis}
+    )
+    _assert_rejected(replace(trace, steps=(first,) + trace.steps[1:]), "invalid_trace_structure")
+
+
+@pytest.mark.parametrize("bad_name", [None, 5, {}, [], "bogus_tool"])
+def test_malformed_tool_name(bad_name) -> None:
+    trace = _base_trace()
+    first = replace(trace.steps[0], decision={**trace.steps[0].decision, "name": bad_name})
+    _assert_rejected(replace(trace, steps=(first,) + trace.steps[1:]), "invalid_trace_structure")
+
+
+@pytest.mark.parametrize("bad_arguments", [None, [], "x", 5])
+def test_malformed_arguments_container(bad_arguments) -> None:
+    trace = _base_trace()
+    first = replace(
+        trace.steps[0], decision={**trace.steps[0].decision, "arguments": bad_arguments}
+    )
+    _assert_rejected(replace(trace, steps=(first,) + trace.steps[1:]), "invalid_trace_structure")
+
+
+@pytest.mark.parametrize("bad_direction", [{}, [], None, 5])
+def test_malformed_direction_value(bad_direction) -> None:
+    trace = _base_trace()
+    inspect = replace(
+        trace.steps[1],
+        decision={**trace.steps[1].decision, "arguments": {"direction": bad_direction}},
+    )
+    _assert_rejected(
+        replace(trace, steps=(trace.steps[0], inspect) + trace.steps[2:]), "invalid_direction"
+    )
+
+
+@pytest.mark.parametrize("bad_index", ["0", True, 1.5, None, {}])
+def test_malformed_direction_index(bad_index) -> None:
+    trace = _base_trace()
+    inspect = replace(
+        trace.steps[1],
+        decision={**trace.steps[1].decision, "arguments": {"direction_index": bad_index}},
+    )
+    _assert_rejected(
+        replace(trace, steps=(trace.steps[0], inspect) + trace.steps[2:]), "invalid_direction"
+    )
+
+
+@pytest.mark.parametrize("bad_reason", [None, 5, {}, []])
+def test_malformed_finish_reason(bad_reason) -> None:
+    trace = _with_finish(_base_trace(), {"reason": bad_reason, "selected_roles": ["inspect:0"]})
+    _assert_rejected(trace, "invalid_finish_reason")
+
+
+@pytest.mark.parametrize("bad_tokens", [-1, "12", None, True, 1.5])
+def test_malformed_token_counts(bad_tokens) -> None:
+    trace = _base_trace()
+    first = replace(trace.steps[0], input_tokens=bad_tokens)
+    _assert_rejected(replace(trace, steps=(first,) + trace.steps[1:]), "invalid_usage_metrics")
+
+
+@pytest.mark.parametrize("bad_latency", [-1.0, "x", None, True])
+def test_malformed_latency(bad_latency) -> None:
+    trace = _base_trace()
+    first = replace(trace.steps[0], latency_ms=bad_latency)
+    _assert_rejected(replace(trace, steps=(first,) + trace.steps[1:]), "invalid_usage_metrics")
+
+
+@pytest.mark.parametrize("bad_cost", [-0.5, "free", {}, True])
+def test_malformed_cost(bad_cost) -> None:
+    _assert_rejected(replace(_base_trace(), cost=bad_cost), "invalid_usage_metrics")
+
+
+@pytest.mark.parametrize(
+    "bad_steps",
+    [
+        {"a": 1},
+        "steps",
+        ({"name": OVERVIEW},),
+        (AgentStep("not-a-dict"),),
+    ],
+)
+def test_malformed_steps_container(bad_steps) -> None:
+    _assert_rejected(replace(_base_trace(), steps=bad_steps), "invalid_trace_structure")
+
+
+def test_empty_steps_rejected() -> None:
+    _assert_rejected(replace(_base_trace(), steps=()), "trace_incomplete")
+
+
+@pytest.mark.parametrize("bad_problem", [None, 5, {}])
+def test_malformed_problem_field(bad_problem) -> None:
+    _assert_rejected(replace(_base_trace(), problem=bad_problem), "invalid_trace_structure")
+
+
+@pytest.mark.parametrize("bad_answer", [5, None, []])
+def test_malformed_final_answer(bad_answer) -> None:
+    _assert_rejected(replace(_base_trace(), final_answer=bad_answer), "invalid_trace_structure")
+
+
+def test_inspect_without_overview_is_rejected() -> None:
+    case = case_by_id("association_not_causation")
+    steps = (AgentStep({"name": INSPECT, "arguments": {"direction_index": 0}}),)
+    _assert_rejected(AgentTrace("approved_qwen", case.problems[0], steps), "missing_overview_step")
+
+
+def test_finish_without_overview_is_rejected() -> None:
+    case = case_by_id("association_not_causation")
+    steps = (
+        AgentStep(
+            {"name": "finish", "arguments": {"reason": "insufficient_data", "selected_roles": []}}
+        ),
+    )
+    _assert_rejected(AgentTrace("approved_qwen", case.problems[0], steps), "missing_overview_step")
