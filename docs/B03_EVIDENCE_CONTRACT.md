@@ -78,9 +78,23 @@
 | 场景 | 状态码 | code |
 | --- | --- | --- |
 | 测评不存在 / 无权访问 | 404 | `RESOURCE_NOT_FOUND` |
-| 来源摘要与本批资产不一致 | 409 | `SOURCE_CHANGED` |
+| 来源摘要与该学生证据的实际来源包不一致 | 409 | `SOURCE_CHANGED` |
+| 来源快照与当前资产集合不一致 | 409 | `SOURCE_CHANGED` |
+| 原件缺失 / 已撤销 / 未配置原件存储 | 409 | `ORIGINAL_UNAVAILABLE` |
+| 原件内容与登记哈希不一致（被改动） | 409 | `SOURCE_CHANGED` |
+| 同一哈希下已存在不同内容（不覆盖） | 409 | `ORIGINAL_CONTENT_CONFLICT` |
+| 上传字节与声明摘要不一致 | 422 | `ORIGINAL_DIGEST_MISMATCH` |
 | 测试点找不到对应提交（整批回滚） | 422 | `ANSWERSHEET_INCONSISTENT` |
 
-## 9. 不在本契约内
+## 9. B-03B：原件、快照与可信回读（C-01 接入点）
+
+- `AssessmentOverview.source_snapshot_id`：64 位十六进制，绑定测评 ID 与"资产集合 + 各自 SHA-256"，与写入顺序无关；重启后不变，来源变化即变化。
+- `AssetInfo.storage_state`：`stored`（原件在受控目录可回读）/ `absent`（历史批次未存原件）/ `revoked`（来源已撤销）。
+- `AssessmentReader.original(principal, assessment_id, asset_id, *, expected_sha256=None) -> OriginalEvidence`：**服务端内部接口**，先校验测评归属与资产归属，再校验 `storage_state`，最后逐次回读并核对文件 SHA-256；返回 `payload / sha256 / entry / byte_size / asset_id / source_snapshot_id`。没有公开的原件下载 HTTP 接口。
+- `AssessmentReader.student(..., asset_sha256=..., source_snapshot_id=...)`：摘要必须命中"该学生提交实际绑定的那个包"，同批次里 A 包摘要不能证明 B 包证据；快照不符合同样 409。
+- 原件目录由 `Settings.originals_path`（环境变量 `WEIRAN_EDU_ORIGINALS`）指定，默认数据库同级 `originals/`，一律在仓库之外；目录 0700、文件 0600，按 `sha[:2]/sha[2:4]/sha.zip` 内容寻址，不静默覆盖。
+- C-01 的 EvidenceProvider 建议：先取 `overview.source_snapshot_id`，用 `original()` 拿原件，再按 `source.entry` + `source_index`（题块序）/ `source_row`（表行序）定位代码与测试点；把 `source_snapshot_id` 与 `asset_sha256` 一并写进结论，便于复算。
+
+## 10. 不在本契约内
 
 B-02 表格关联、DS-03 的特征提取与 `code_features` 表（预留 011）、C-01 的 Agent 调用与 `findings` 表（预留 010）都不在本次交付范围。

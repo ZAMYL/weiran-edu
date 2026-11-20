@@ -36,6 +36,7 @@ from app.edu.assessment_models import (
     VerdictCount,
 )
 from app.edu.auth import Principal, require_scope, require_teacher
+from app.edu.originals import OriginalStore
 from app.importing.edu.answersheet import (
     STATUS_FAIL,
     STATUS_NOT_ATTEMPTED,
@@ -81,7 +82,10 @@ _FAILED_OBSERVATION = (
 
 @dataclass(frozen=True)
 class AssetInput:
-    """一个上传包的资产信息；``entries`` 是它包内的材料路径，用于把证据绑回资产。"""
+    """一个上传包的资产信息；``entries`` 是它包内的材料路径，用于把证据绑回资产。
+
+    ``payload`` 是这个包的原始字节，交给受控原件仓库按内容哈希保存。
+    """
 
     entry: str
     kind: str
@@ -89,6 +93,44 @@ class AssetInput:
     byte_size: int
     source_index: int
     entries: frozenset[str] = frozenset()
+    payload: bytes = b""
+
+
+@dataclass(frozen=True)
+class OriginalEvidence:
+    """服务端回读到的原件：字节 + 已校验的摘要 + 它所属的来源快照。"""
+
+    assessment_id: str
+    asset_id: str
+    entry: str
+    kind: str
+    sha256: str
+    byte_size: int
+    source_index: int
+    source_snapshot_id: str | None
+    payload: bytes
+
+
+def _source_snapshot_id(assessment_id: str, assets: Sequence[AssetInput]) -> str:
+    """来源快照：绑定测评与资产集合（含每个包的哈希），与写入顺序无关。"""
+    payload = {
+        "assessment_id": assessment_id,
+        "assets": sorted(
+            [
+                {
+                    "entry": asset.entry,
+                    "kind": asset.kind,
+                    "sha256": asset.sha256,
+                    "byte_size": asset.byte_size,
+                    "source_index": asset.source_index,
+                }
+                for asset in assets
+            ],
+            key=lambda item: (item["source_index"], item["entry"]),
+        ),
+    }
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -139,9 +181,16 @@ class _AssetBinder:
 
 
 class AssessmentService:
-    def __init__(self, database: Database, clock: Callable[[], datetime] | None = None) -> None:
+    def __init__(
+        self,
+        database: Database,
+        clock: Callable[[], datetime] | None = None,
+        *,
+        originals: OriginalStore | None = None,
+    ) -> None:
         self.database = database
         self.clock = clock or (lambda: datetime.now(UTC))
+        self.originals = originals
 
     def create_answersheet(
         self,
@@ -162,147 +211,174 @@ class AssessmentService:
         stamp = _stamp(now)
         conflicts = _score_total_conflicts(evidence)
 
-        with self.database.transaction(write=True) as connection:
-            require_teacher(connection, principal, _stamp(now))
-            require_scope(connection, principal, data_scope_id, importing=True)
+        # 原件先落受控存储，再写数据库；任何一步失败都回滚本次新建的原件，
+        # 不发布"有结构化结果却没有有效原件"的测评。
+        created: list[str] = []
+        storage_state = "absent"
+        try:
+            if self.originals is not None and assets:
+                for asset in assets:
+                    if self.originals.put(asset.sha256, asset.payload):
+                        created.append(asset.sha256)
+                storage_state = "stored"
+            with self.database.transaction(write=True) as connection:
+                require_teacher(connection, principal, _stamp(now))
+                require_scope(connection, principal, data_scope_id, importing=True)
 
-            existing = connection.execute(
-                "SELECT * FROM assessments WHERE data_scope_id=? AND file_sha256=?",
-                (data_scope_id, digest),
-            ).fetchone()
-            if existing is not None:
-                # 同一份文件重复上传：返回原测评，不重复入库。
-                return _summary(existing, duplicate=True)
+                existing = connection.execute(
+                    "SELECT * FROM assessments WHERE data_scope_id=? AND file_sha256=?",
+                    (data_scope_id, digest),
+                ).fetchone()
+                if existing is not None:
+                    # 同一份文件重复上传：返回原测评，不重复入库，也不留下无引用的原件。
+                    if self.originals is not None:
+                        for sha256 in created:
+                            self.originals.discard(sha256)
+                    return _summary(existing, duplicate=True)
 
-            assessment_id = str(uuid4())
-            binder = _AssetBinder()
-            student_pks = _resolve_students(connection, data_scope_id, evidence, now)
+                assessment_id = str(uuid4())
+                binder = _AssetBinder()
+                student_pks = _resolve_students(connection, data_scope_id, evidence, now)
 
-            reasons = {
-                diagnostic.code
-                for diagnostic in evidence.diagnostics
-                if diagnostic.code in _REVIEW_DIAGNOSTIC_CODES
-            }
-            if any(material.needs_confirmation for material in evidence.materials):
-                reasons.add("MATERIAL_ROLE_UNCONFIRMED")
-            if conflicts:
-                reasons.add("PROBLEM_TOTAL_SCORE_CONFLICT")
-            review_state = "needs_review" if reasons else "confirmed"
+                reasons = {
+                    diagnostic.code
+                    for diagnostic in evidence.diagnostics
+                    if diagnostic.code in _REVIEW_DIAGNOSTIC_CODES
+                }
+                if any(material.needs_confirmation for material in evidence.materials):
+                    reasons.add("MATERIAL_ROLE_UNCONFIRMED")
+                if conflicts:
+                    reasons.add("PROBLEM_TOTAL_SCORE_CONFLICT")
+                review_state = "needs_review" if reasons else "confirmed"
 
-            connection.execute(
-                "INSERT INTO assessments (assessment_id,data_scope_id,owner_teacher_id,title,"
-                "course,assessment_date,file_sha256,parser_version,student_count,problem_count,"
-                "submission_count,observation_count,created_at,order_basis,review_state,"
-                "review_reasons) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (
-                    assessment_id,
-                    data_scope_id,
-                    principal.teacher_id,
-                    title,
-                    course,
-                    assessment_date,
-                    digest,
-                    ANSWERSHEET_PARSER_VERSION,
-                    len(evidence.students),
-                    len(evidence.problems),
-                    len(evidence.submissions),
-                    len(evidence.observations),
-                    stamp,
-                    evidence.order_basis,
-                    review_state,
-                    json.dumps(sorted(reasons), ensure_ascii=False),
-                ),
-            )
-
-            for asset in assets:
-                asset_id = str(uuid4())
-                binder.add(asset, asset_id)
                 connection.execute(
-                    "INSERT INTO assessment_assets VALUES (?,?,?,?,?,?,?,?)",
+                    "INSERT INTO assessments (assessment_id,data_scope_id,owner_teacher_id,title,"
+                    "course,assessment_date,file_sha256,parser_version,student_count,problem_count,"
+                    "submission_count,observation_count,created_at,order_basis,review_state,"
+                    "review_reasons,source_snapshot_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (
-                        asset_id,
                         assessment_id,
-                        asset.entry,
-                        asset.kind,
-                        asset.sha256,
-                        asset.byte_size,
-                        asset.source_index,
+                        data_scope_id,
+                        principal.teacher_id,
+                        title,
+                        course,
+                        assessment_date,
+                        digest,
+                        ANSWERSHEET_PARSER_VERSION,
+                        len(evidence.students),
+                        len(evidence.problems),
+                        len(evidence.submissions),
+                        len(evidence.observations),
                         stamp,
-                    ),
-                )
-            for material in evidence.materials:
-                connection.execute(
-                    "INSERT INTO assessment_materials (material_id,assessment_id,entry,category,"
-                    "basis,signals,needs_confirmation,asset_id) VALUES (?,?,?,?,?,?,?,?)",
-                    (
-                        str(uuid4()),
-                        assessment_id,
-                        material.entry,
-                        material.category,
-                        material.basis,
-                        json.dumps(list(material.signals), ensure_ascii=False),
-                        int(material.needs_confirmation),
-                        binder.for_entry(material.entry),
-                    ),
-                )
-            for diagnostic in evidence.diagnostics:
-                connection.execute(
-                    "INSERT INTO assessment_diagnostics VALUES (?,?,?,?,?,?)",
-                    (
-                        str(uuid4()),
-                        assessment_id,
-                        diagnostic.code,
-                        diagnostic.entry,
-                        diagnostic.detail,
-                        stamp,
-                    ),
-                )
-            for entry, reason in evidence.skipped:
-                connection.execute(
-                    "INSERT INTO assessment_diagnostics VALUES (?,?,?,?,?,?)",
-                    (str(uuid4()), assessment_id, "ENTRY_SKIPPED", entry, reason, stamp),
-                )
-
-            for record in evidence.students:
-                connection.execute(
-                    "INSERT INTO assessment_participants (assessment_id,student_pk,external_key,"
-                    "display_name,total_score_units,score_units,started_at,finished_at,"
-                    "duration_minutes,source_asset_id) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                    (
-                        assessment_id,
-                        student_pks[record.participant_key],
-                        record.participant_key,
-                        record.display_name,
-                        None if record.total_score is None else record.total_score * _SCORE_SCALE,
-                        None if record.score is None else record.score * _SCORE_SCALE,
-                        record.started_at,
-                        record.finished_at,
-                        record.duration_minutes,
-                        binder.for_entry(record.source_entry),
+                        evidence.order_basis,
+                        review_state,
+                        json.dumps(sorted(reasons), ensure_ascii=False),
+                        _source_snapshot_id(assessment_id, assets),
                     ),
                 )
 
-            problem_ids = _insert_problems(connection, assessment_id, evidence, conflicts)
-            submission_ids = _insert_submissions(
-                connection, assessment_id, evidence, student_pks, problem_ids, now, binder
-            )
-            _insert_observations(connection, evidence, submission_ids)
-            for entry in sorted(binder.ambiguous):
-                connection.execute(
-                    "INSERT INTO assessment_diagnostics VALUES (?,?,?,?,?,?)",
-                    (
-                        str(uuid4()),
-                        assessment_id,
-                        "SOURCE_ENTRY_AMBIGUOUS",
-                        entry,
-                        "该路径出现在多个上传包中，无法唯一绑定资产，来源标记为未绑定",
-                        stamp,
-                    ),
-                )
+                for asset in assets:
+                    asset_id = str(uuid4())
+                    binder.add(asset, asset_id)
+                    connection.execute(
+                        "INSERT INTO assessment_assets (asset_id,assessment_id,entry,kind,"
+                        "sha256,byte_size,source_index,created_at,storage_state) "
+                        "VALUES (?,?,?,?,?,?,?,?,?)",
+                        (
+                            asset_id,
+                            assessment_id,
+                            asset.entry,
+                            asset.kind,
+                            asset.sha256,
+                            asset.byte_size,
+                            asset.source_index,
+                            stamp,
+                            storage_state,
+                        ),
+                    )
+                for material in evidence.materials:
+                    connection.execute(
+                        "INSERT INTO assessment_materials (material_id,assessment_id,entry,"
+                        "category,"
+                        "basis,signals,needs_confirmation,asset_id) VALUES (?,?,?,?,?,?,?,?)",
+                        (
+                            str(uuid4()),
+                            assessment_id,
+                            material.entry,
+                            material.category,
+                            material.basis,
+                            json.dumps(list(material.signals), ensure_ascii=False),
+                            int(material.needs_confirmation),
+                            binder.for_entry(material.entry),
+                        ),
+                    )
+                for diagnostic in evidence.diagnostics:
+                    connection.execute(
+                        "INSERT INTO assessment_diagnostics VALUES (?,?,?,?,?,?)",
+                        (
+                            str(uuid4()),
+                            assessment_id,
+                            diagnostic.code,
+                            diagnostic.entry,
+                            diagnostic.detail,
+                            stamp,
+                        ),
+                    )
+                for entry, reason in evidence.skipped:
+                    connection.execute(
+                        "INSERT INTO assessment_diagnostics VALUES (?,?,?,?,?,?)",
+                        (str(uuid4()), assessment_id, "ENTRY_SKIPPED", entry, reason, stamp),
+                    )
 
-            row = connection.execute(
-                "SELECT * FROM assessments WHERE assessment_id=?", (assessment_id,)
-            ).fetchone()
+                for record in evidence.students:
+                    connection.execute(
+                        "INSERT INTO assessment_participants (assessment_id,student_pk,"
+                        "external_key,"
+                        "display_name,total_score_units,score_units,started_at,finished_at,"
+                        "duration_minutes,source_asset_id) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                        (
+                            assessment_id,
+                            student_pks[record.participant_key],
+                            record.participant_key,
+                            record.display_name,
+                            None
+                            if record.total_score is None
+                            else record.total_score * _SCORE_SCALE,
+                            None if record.score is None else record.score * _SCORE_SCALE,
+                            record.started_at,
+                            record.finished_at,
+                            record.duration_minutes,
+                            binder.for_entry(record.source_entry),
+                        ),
+                    )
+
+                problem_ids = _insert_problems(connection, assessment_id, evidence, conflicts)
+                submission_ids = _insert_submissions(
+                    connection, assessment_id, evidence, student_pks, problem_ids, now, binder
+                )
+                _insert_observations(connection, evidence, submission_ids)
+                for entry in sorted(binder.ambiguous):
+                    connection.execute(
+                        "INSERT INTO assessment_diagnostics VALUES (?,?,?,?,?,?)",
+                        (
+                            str(uuid4()),
+                            assessment_id,
+                            "SOURCE_ENTRY_AMBIGUOUS",
+                            entry,
+                            "该路径出现在多个上传包中，无法唯一绑定资产，来源标记为未绑定",
+                            stamp,
+                        ),
+                    )
+
+                row = connection.execute(
+                    "SELECT * FROM assessments WHERE assessment_id=?", (assessment_id,)
+                ).fetchone()
+
+        except BaseException:
+            if self.originals is not None:
+                for sha256 in created:
+                    self.originals.discard(sha256)
+            raise
 
         return _summary(row, duplicate=False)
 
@@ -371,8 +447,50 @@ def _stamp(moment: datetime) -> str:
 class AssessmentReader:
     """读取答题卡测评与个人证据。目前只允许测评拥有者访问。"""
 
-    def __init__(self, database: Database) -> None:
+    def __init__(self, database: Database, *, originals: OriginalStore | None = None) -> None:
         self.database = database
+        self.originals = originals
+
+    def original(
+        self,
+        principal: Principal,
+        assessment_id: str,
+        asset_id: str,
+        *,
+        expected_sha256: str | None = None,
+    ) -> OriginalEvidence:
+        """服务端回读原件：先验归属与资产引用，再校验实际文件哈希。
+
+        没有公开下载接口；原件缺失、被改动或来源撤销都明确拒绝。
+        """
+        with self.database.transaction() as connection:
+            row = self._owned(connection, principal, assessment_id)
+            asset = connection.execute(
+                "SELECT * FROM assessment_assets WHERE assessment_id=? AND asset_id=?",
+                (assessment_id, asset_id),
+            ).fetchone()
+            if asset is None:
+                raise APIError(404, "RESOURCE_NOT_FOUND", "该测评中没有此资产")
+            if asset["storage_state"] != "stored":
+                raise APIError(
+                    409, "ORIGINAL_UNAVAILABLE", "该资产没有可回读的受控原件或来源已撤销"
+                )
+            if expected_sha256 is not None and expected_sha256 != asset["sha256"]:
+                raise APIError(409, "SOURCE_CHANGED", "调用方持有的摘要与该资产不一致")
+            if self.originals is None:
+                raise APIError(409, "ORIGINAL_UNAVAILABLE", "服务未配置原件存储，无法回读原件")
+            payload = self.originals.read(asset["sha256"])
+        return OriginalEvidence(
+            assessment_id=assessment_id,
+            asset_id=asset["asset_id"],
+            entry=asset["entry"],
+            kind=asset["kind"],
+            sha256=asset["sha256"],
+            byte_size=len(payload),
+            source_index=asset["source_index"],
+            source_snapshot_id=row["source_snapshot_id"],
+            payload=payload,
+        )
 
     def overview(self, principal: Principal, assessment_id: str) -> AssessmentOverview:
         with self.database.transaction() as connection:
@@ -404,6 +522,7 @@ class AssessmentReader:
             review_state=row["review_state"],
             review_reasons=reasons,
             counts_provisional=row["review_state"] == "needs_review",
+            source_snapshot_id=row["source_snapshot_id"],
             assets=[
                 AssetInfo(
                     asset_id=asset["asset_id"],
@@ -412,6 +531,7 @@ class AssessmentReader:
                     sha256=asset["sha256"],
                     byte_size=asset["byte_size"],
                     source_index=asset["source_index"],
+                    storage_state=asset["storage_state"],
                 )
                 for asset in assets
             ],
@@ -469,17 +589,15 @@ class AssessmentReader:
         student_pk: str,
         *,
         asset_sha256: str | None = None,
+        source_snapshot_id: str | None = None,
     ) -> StudentCodeEvidence:
         with self.database.transaction() as connection:
-            self._owned(connection, principal, assessment_id)
-            if asset_sha256 is not None:
-                known = connection.execute(
-                    "SELECT 1 FROM assessment_assets WHERE assessment_id=? AND sha256=?",
-                    (assessment_id, asset_sha256),
-                ).fetchone()
-                if known is None:
-                    # 调用方持有的来源摘要与本批资产对不上：拒绝回读，不给出错来源的证据。
-                    raise APIError(409, "SOURCE_CHANGED", "来源摘要与本批资料不一致，请重新上传")
+            assessment = self._owned(connection, principal, assessment_id)
+            if (
+                source_snapshot_id is not None
+                and source_snapshot_id != assessment["source_snapshot_id"]
+            ):
+                raise APIError(409, "SOURCE_CHANGED", "来源快照与当前测评不一致，请重新获取快照")
             participant = connection.execute(
                 "SELECT * FROM assessment_participants WHERE assessment_id=? AND student_pk=?",
                 (assessment_id, student_pk),
@@ -493,6 +611,8 @@ class AssessmentReader:
                 "WHERE s.assessment_id=? AND s.student_pk=? ORDER BY p.ordinal",
                 (assessment_id, student_pk),
             ).fetchall()
+            if asset_sha256 is not None:
+                self._require_source_match(connection, assessment_id, rows, asset_sha256)
             submissions = [
                 SubmissionEvidence(
                     problem_label=row["label"],
@@ -545,8 +665,37 @@ class AssessmentReader:
             student_pk=participant["student_pk"],
             external_key=participant["external_key"],
             display_name=participant["display_name"],
+            source_snapshot_id=assessment["source_snapshot_id"],
             submissions=submissions,
         )
+
+    @staticmethod
+    def _require_source_match(
+        connection: sqlite3.Connection,
+        assessment_id: str,
+        rows: Sequence[sqlite3.Row],
+        asset_sha256: str,
+    ) -> None:
+        """摘要要证明的是"这个学生这些证据"的来源包，不是"属于同一批上传"。
+
+        A 包的摘要不能用来证明 B 包里的代码或测试点；证据跨多个包时，
+        单一摘要无法证明全部来源，同样拒绝。
+        """
+        bound = {row["asset_sha256"] for row in rows if row["asset_sha256"] is not None}
+        unbound = any(row["asset_sha256"] is None for row in rows)
+        if not bound:
+            # 历史批次没有资产绑定：退回批次级校验，保持旧数据可读。
+            known = connection.execute(
+                "SELECT 1 FROM assessment_assets WHERE assessment_id=? AND sha256=?",
+                (assessment_id, asset_sha256),
+            ).fetchone()
+            if known is None:
+                raise APIError(409, "SOURCE_CHANGED", "来源摘要与本批资料不一致，请重新上传")
+            return
+        if unbound or len(bound) != 1 or asset_sha256 not in bound:
+            raise APIError(
+                409, "SOURCE_CHANGED", "来源摘要与该学生证据的实际来源包不一致，拒绝回读"
+            )
 
     def problem_patterns(self, principal: Principal, assessment_id: str) -> PatternList:
         """按题目聚合确定性错误现象；不做任何推测性解释。"""

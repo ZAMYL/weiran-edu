@@ -21,6 +21,7 @@ class AssetInfo(Model):
     sha256: str
     byte_size: int
     source_index: int
+    storage_state: str = "absent"
 
 
 class MaterialInfo(Model):
@@ -62,6 +63,7 @@ class AssessmentOverview(Model):
     review_state: str = "confirmed"
     review_reasons: list[str] = []
     counts_provisional: bool = False
+    source_snapshot_id: str | None = None
     assets: list[AssetInfo] = []
     materials: list[MaterialInfo] = []
     diagnostics: list[DiagnosticInfo] = []
@@ -122,6 +124,7 @@ class StudentCodeEvidence(Model):
     student_pk: str
     external_key: str
     display_name: str
+    source_snapshot_id: str | None = None
     submissions: list[SubmissionEvidence]
 
 

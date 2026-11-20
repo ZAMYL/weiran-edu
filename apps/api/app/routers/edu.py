@@ -386,6 +386,7 @@ async def create_assessment(
                 source_index=index,
                 entries=frozenset(material.entry for material in document.materials)
                 | frozenset(item[0] for item in document.skipped),
+                payload=raw,
             )
         )
     # 多文件合并：跨包重复的学号或题目会被拒绝，不静默覆盖。
@@ -450,13 +451,21 @@ def get_assessment_student(
     actor: Actor,
     reader: Reader,
     asset_sha256: Annotated[str | None, Query(min_length=64, max_length=64)] = None,
+    source_snapshot_id: Annotated[str | None, Query(min_length=64, max_length=64)] = None,
 ) -> StudentCodeEvidence:
     """单个学生的全部题目证据：代码原文、结论、每个测试点的状态与耗时。
 
-    带 ``asset_sha256`` 时先核对来源：与本批资产摘要不一致返回 409，
-    避免拿着过期或被替换的资料去解读证据。
+    带 ``asset_sha256`` 时核对的是"该学生证据实际来源包"的摘要：
+    同批次里 A 包的摘要不能证明 B 包的证据，不一致返回 409。
+    带 ``source_snapshot_id`` 时还会核对来源快照，来源变了同样返回 409。
     """
-    return reader.student(actor, assessment_id, student_pk, asset_sha256=asset_sha256)
+    return reader.student(
+        actor,
+        assessment_id,
+        student_pk,
+        asset_sha256=asset_sha256,
+        source_snapshot_id=source_snapshot_id,
+    )
 
 
 @router.get("/assessments/{assessment_id}/patterns", response_model=PatternList)
