@@ -198,32 +198,35 @@ def c01_feature_associations(
 ) -> tuple[C01FeatureAssociation, ...]:
     """Project one failure cohort of ``analysis`` into C-01's feature shape.
 
-    A point direction requires a matching failure on that exact point. Whole-
-    submission verdicts apply only to C-01's fallback when no points were observed.
-    Unknown and unclassified point outcomes cannot establish a failure direction.
+    ``point=None`` is a whole-submission query: every submission whose C-01
+    verdict equals ``status``, with or without test points. C-01's
+    no-test-points fallback is the caller's responsibility (pre-filter
+    ``analysis.submissions`` before calling). A point direction requires the
+    exact failure at that point. Coarse FAILED observations still count in
+    DS-03 aggregates, but lack the evidence to join a specific C-01 cohort.
     """
 
     if point is None:
         cohort = [
-            row
-            for row in analysis.submissions
-            if not row.test_points
-            and (row.verdict.is_failure or row.verdict is Verdict.COMPILE_ERROR)
-            and c01_status(row.verdict) == status
+            submission
+            for submission in analysis.submissions
+            if c01_status(submission.verdict) == status
         ]
     else:
         cohort = [
-            row
-            for row in analysis.submissions
+            submission
+            for submission in analysis.submissions
             if any(
                 test.testpoint_id == point
                 and test.outcome is TestPointOutcome.FAILED
                 and test.failure_verdict is not None
                 and c01_test_point_status(test) == status
-                for test in row.test_points
+                for test in submission.test_points
             )
         ]
-    if len({row.reference.student_id for row in cohort}) != len(cohort):
+    # C-01 expects one judge record per participant per problem; a re-submitted
+    # participant would otherwise yield an ambiguous feature witness.
+    if len({submission.reference.student_id for submission in cohort}) != len(cohort):
         raise CodeAnalysisError("duplicate_feature_cohort_participant")
     associations = []
     for feature in FeatureId:

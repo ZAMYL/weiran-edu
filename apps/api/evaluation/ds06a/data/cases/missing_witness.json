@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "case_id": "missing_witness",
+  "distribution": "source_missing_rejection",
+  "batch_id": "ds06a-missing_witness",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10"
+  ],
+  "problems": [
+    "missing-source"
+  ],
+  "submissions": [
+    {
+      "submission_id": "missing_witness-missing-source-01",
+      "participant": "anon-01",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-01",
+      "location": "synthetic/missing_witness/missing-source/01.html",
+      "witness_fault": "missing_verdict"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-02",
+      "participant": "anon-02",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-02",
+      "location": "synthetic/missing_witness/missing-source/02.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-03",
+      "participant": "anon-03",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-03",
+      "location": "synthetic/missing_witness/missing-source/03.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-04",
+      "participant": "anon-04",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-04",
+      "location": "synthetic/missing_witness/missing-source/04.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-05",
+      "participant": "anon-05",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-05",
+      "location": "synthetic/missing_witness/missing-source/05.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-06",
+      "participant": "anon-06",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-06",
+      "location": "synthetic/missing_witness/missing-source/06.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-07",
+      "participant": "anon-07",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-07",
+      "location": "synthetic/missing_witness/missing-source/07.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-08",
+      "participant": "anon-08",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-08",
+      "location": "synthetic/missing_witness/missing-source/08.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-09",
+      "participant": "anon-09",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-09",
+      "location": "synthetic/missing_witness/missing-source/09.html"
+    },
+    {
+      "submission_id": "missing_witness-missing-source-10",
+      "participant": "anon-10",
+      "problem": "missing-source",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "one",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-missing_witness-10",
+      "location": "synthetic/missing_witness/missing-source/10.html"
+    }
+  ]
+}

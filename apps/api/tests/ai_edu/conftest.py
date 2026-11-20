@@ -3,8 +3,10 @@
 import asyncio
 import json
 from dataclasses import dataclass, field
+from datetime import date, datetime, tzinfo
 
 import pytest
+from prototypes.adaptive_assessment.live import budget as live_budget
 
 from app.ai.edu import (
     EvidenceDocument,
@@ -24,6 +26,19 @@ from app.analysis.edu import (
     ScorePolicy,
     prepare_dataset,
 )
+
+
+@pytest.fixture
+def reviewed_budget_clock(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> None:
+    day = getattr(request, "param", date(2026, 11, 19))
+
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> datetime:
+            return cls(day.year, day.month, day.day, tzinfo=tz)
+
+    # Keep the production authorization path intact and replace only its wall clock.
+    monkeypatch.setattr(live_budget, "datetime", FixedDateTime)
 
 
 def call(name="get_dimension_statistics", **arguments):

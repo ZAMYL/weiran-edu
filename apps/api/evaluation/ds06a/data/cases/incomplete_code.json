@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "case_id": "incomplete_code",
+  "distribution": "mixed_incomplete_evidence_10x1",
+  "batch_id": "ds06a-incomplete_code",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10"
+  ],
+  "problems": [
+    "boundary-sum"
+  ],
+  "submissions": [
+    {
+      "submission_id": "incomplete_code-boundary-sum-01",
+      "participant": "anon-01",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": null,
+      "code_state": "missing",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-01",
+      "location": "synthetic/incomplete_code/boundary-sum/01.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-02",
+      "participant": "anon-02",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": true,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-02",
+      "location": "synthetic/incomplete_code/boundary-sum/02.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-03",
+      "participant": "anon-03",
+      "problem": "boundary-sum",
+      "language": null,
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-03",
+      "location": "synthetic/incomplete_code/boundary-sum/03.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-04",
+      "participant": "anon-04",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "for i in range(:\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-04",
+      "location": "synthetic/incomplete_code/boundary-sum/04.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-05",
+      "participant": "anon-05",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-05",
+      "location": "synthetic/incomplete_code/boundary-sum/05.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-06",
+      "participant": "anon-06",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-06",
+      "location": "synthetic/incomplete_code/boundary-sum/06.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-07",
+      "participant": "anon-07",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-07",
+      "location": "synthetic/incomplete_code/boundary-sum/07.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-08",
+      "participant": "anon-08",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-08",
+      "location": "synthetic/incomplete_code/boundary-sum/08.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-09",
+      "participant": "anon-09",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-09",
+      "location": "synthetic/incomplete_code/boundary-sum/09.html"
+    },
+    {
+      "submission_id": "incomplete_code-boundary-sum-10",
+      "participant": "anon-10",
+      "problem": "boundary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "boundary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-incomplete_code-10",
+      "location": "synthetic/incomplete_code/boundary-sum/10.html"
+    }
+  ]
+}

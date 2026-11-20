@@ -17,6 +17,7 @@ from app.ai.edu.qwen_config import QwenSettings
 from .test_campaign_ledger_root import approval
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_reserved_live_budget_cannot_restart_by_directory_or_campaign(tmp_path, monkeypatch):
     monkeypatch.setattr(httpx, "AsyncClient", lambda **_: pytest.fail("no network in ledger test"))
     source = admit("profile-balanced-72")
