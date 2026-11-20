@@ -25,7 +25,7 @@ from app.edu.assessment_models import (
     ProblemStudentList,
     StudentCodeEvidence,
 )
-from app.edu.assessments import AssessmentReader, AssessmentService
+from app.edu.assessments import AssessmentReader, AssessmentService, AssetInput
 from app.edu.auth import Principal, authenticate, deny, require_teacher
 from app.edu.diagnostic_models import Action, BatchCapabilities, IntegrityReport, IntegrityRequest
 from app.edu.diagnostics import DiagnosticReader
@@ -56,7 +56,7 @@ from app.edu.service import EduService, stamp
 from app.edu.summary import BatchSummary
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
 from app.importing.edu.adapter import adapter_for
-from app.importing.edu.answersheet import merge_answersheets, parse_answersheet
+from app.importing.edu.answersheet import merge_answersheets, parse_answersheet, tag_package
 from app.importing.edu.detect import ZIP_HTML, detect_asset
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
@@ -359,7 +359,9 @@ async def create_assessment(
     )
     documents = []
     digests = []
-    for raw, _, asset_content_type in parts:
+    assets = []
+    seen_names: dict[str, int] = {}
+    for index, (raw, asset_name, asset_content_type) in enumerate(parts):
         asset = detect_asset(raw, content_type=asset_content_type)
         if asset.kind != ZIP_HTML:
             raise APIError(
@@ -367,8 +369,28 @@ async def create_assessment(
                 "NO_ADAPTER_FOR_ASSET",
                 f"已识别为 {asset.kind}，答题卡导入只接受含网页答卷的 ZIP",
             )
-        documents.append(await run_in_threadpool(parse_answersheet, raw))
+        document = await run_in_threadpool(parse_answersheet, raw)
+        # 给本包的记录打上包号：多包同内部路径时，只有包号能确定来源
+        document = tag_package(document, index)
+        documents.append(document)
         digests.append(hashlib.sha256(raw).hexdigest())
+        # 每个包单独登记资产：文件名重复时加序号，保证 (assessment_id, entry) 唯一。
+        base = asset_name or f"package-{index + 1}.zip"
+        suffix = seen_names.get(base, 0)
+        seen_names[base] = suffix + 1
+        entry = base if suffix == 0 else f"{base}#{suffix + 1}"
+        assets.append(
+            AssetInput(
+                entry=entry,
+                kind=asset.kind,
+                sha256=digests[-1],
+                byte_size=len(raw),
+                source_index=index,
+                entries=frozenset(material.entry for material in document.materials)
+                | frozenset(item[0] for item in document.skipped),
+                payload=raw,
+            )
+        )
     # 多文件合并：跨包重复的学号或题目会被拒绝，不静默覆盖。
     try:
         evidence = documents[0] if len(documents) == 1 else merge_answersheets(documents)
@@ -386,13 +408,15 @@ async def create_assessment(
         summary = await run_in_threadpool(
             assessments.create_answersheet,
             actor,
-            parts[0][0],
+            # 合并摘要已由 file_sha256 显式传入，这里不再拿"第一个包"冒充整批内容
+            b"",
             data_scope_id=metadata.data_scope_id,
             title=metadata.title,
             course=metadata.course,
             assessment_date=metadata.assessment_date,
             evidence=evidence,
             file_sha256=combined_sha256,
+            assets=assets,
         )
     except ImportFileError as exc:
         raise _answersheet_failure(exc) from None
@@ -424,10 +448,26 @@ def list_assessment_students(assessment_id: str, actor: Actor, reader: Reader) -
     response_model=StudentCodeEvidence,
 )
 def get_assessment_student(
-    assessment_id: str, student_pk: str, actor: Actor, reader: Reader
+    assessment_id: str,
+    student_pk: str,
+    actor: Actor,
+    reader: Reader,
+    asset_sha256: Annotated[str | None, Query(min_length=64, max_length=64)] = None,
+    source_snapshot_id: Annotated[str | None, Query(min_length=64, max_length=64)] = None,
 ) -> StudentCodeEvidence:
-    """单个学生的全部题目证据：代码原文、结论、每个测试点的状态与耗时。"""
-    return reader.student(actor, assessment_id, student_pk)
+    """单个学生的全部题目证据：代码原文、结论、每个测试点的状态与耗时。
+
+    带 ``asset_sha256`` 时核对的是"该学生证据实际来源包"的摘要：
+    同批次里 A 包的摘要不能证明 B 包的证据，不一致返回 409。
+    带 ``source_snapshot_id`` 时还会核对来源快照，来源变了同样返回 409。
+    """
+    return reader.student(
+        actor,
+        assessment_id,
+        student_pk,
+        asset_sha256=asset_sha256,
+        source_snapshot_id=source_snapshot_id,
+    )
 
 
 @router.get("/assessments/{assessment_id}/patterns", response_model=PatternList)

@@ -145,6 +145,13 @@ def test_student_detail_returns_code_and_observations(client):
             "score": 5.0,
             "duration_ms": 2,
             "memory_kb": 304,
+            # B-03：状态类别、精确耗时与原始文本随证据一起回读
+            "status_known": True,
+            "status_class": "PASS",
+            "duration_us": 2000,
+            "duration_text": "2.00 ms",
+            "memory_text": "304 KB",
+            "source_row": 0,
         }
     ]
 

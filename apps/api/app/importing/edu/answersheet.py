@@ -7,7 +7,7 @@
 
 import io
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from html.parser import HTMLParser
 from zipfile import BadZipFile, ZipFile
 
@@ -47,6 +47,51 @@ _STATUS_WORDS = (
     "未作答",
 )
 
+# 状态归类：只有明确结论才进入通过/失败统计，未知绝不当作失败。
+# 这是统计口径的唯一真源；入库时冻结为 status_class / verdict_class，
+# 读取侧只读类别，不再对文本猜一次。
+STATUS_PASS = "PASS"
+STATUS_FAIL = "FAIL"
+STATUS_PARTIAL = "PARTIAL"
+STATUS_NOT_ATTEMPTED = "NOT_ATTEMPTED"
+STATUS_UNKNOWN = "UNKNOWN"
+
+_PASS_STATUS = "答案正确"
+_PARTIAL_STATUSES = ("部分正确",)
+_NOT_ATTEMPTED_STATUSES = ("未作答",)
+_FAIL_STATUSES = (
+    "答案错误",
+    "运行时错误",
+    "运行超时",
+    "运行错误",
+    "内存超限",
+    "段错误",
+    "非零返回",
+    "编译错误",
+    "格式错误",
+)
+
+
+def classify_status(status: str | None, *, known: bool = True) -> str:
+    """把原始状态文本归为稳定类别。
+
+    - 明确通过才是 PASS，明确失败才是 FAIL；
+    - 部分正确单列，既不计通过也不计失败；
+    - 未作答、空文本、不在已知集合的文本都不是失败。
+    """
+    text = (status or "").strip()
+    if not text or not known:
+        return STATUS_UNKNOWN
+    if _PASS_STATUS in text:
+        return STATUS_PASS
+    if any(word in text for word in _PARTIAL_STATUSES):
+        return STATUS_PARTIAL
+    if any(word in text for word in _NOT_ATTEMPTED_STATUSES):
+        return STATUS_NOT_ATTEMPTED
+    if any(word in text for word in _FAIL_STATUSES):
+        return STATUS_FAIL
+    return STATUS_UNKNOWN
+
 
 @dataclass(frozen=True)
 class StudentRecord:
@@ -58,6 +103,9 @@ class StudentRecord:
     finished_at: str | None
     duration_minutes: int | None
     source_entry: str
+    # 该记录来自第几个上传包（0 起）。多包同路径时，只有包号能确定来源；
+    # 直接调用解析器时保持 None，由上层按"路径唯一"兜底判断。
+    package_index: int | None = None
 
 
 @dataclass(frozen=True)
@@ -96,6 +144,7 @@ class SubmissionRecord:
     score_total: int | None
     source_index: int
     source_entry: str
+    package_index: int | None = None
 
 
 # B-01 要求区分的资料类别；未识别的给 UNKNOWN，不猜。
@@ -120,6 +169,7 @@ class MaterialRecord:
     basis: str
     signals: tuple[str, ...] = ()
     needs_confirmation: bool = False
+    package_index: int | None = None
 
 
 @dataclass(frozen=True)
@@ -476,6 +526,26 @@ def _order_problems(
             for index, label in enumerate(order)
         ),
         basis,
+    )
+
+
+def tag_package(document: AnswerSheetEvidence, package_index: int) -> AnswerSheetEvidence:
+    """标记这份证据来自第几个上传包（0 起）。
+
+    多个 ZIP 含相同内部路径时，包内路径本身不足以区分来源，包号才是身份；
+    只在合并/入库前由上传层打标，纯解析结果与直接调用解析器的旧行为不变。
+    """
+    return AnswerSheetEvidence(
+        students=tuple(replace(item, package_index=package_index) for item in document.students),
+        problems=document.problems,
+        submissions=tuple(
+            replace(item, package_index=package_index) for item in document.submissions
+        ),
+        observations=document.observations,
+        materials=tuple(replace(item, package_index=package_index) for item in document.materials),
+        skipped=document.skipped,
+        diagnostics=document.diagnostics,
+        order_basis=document.order_basis,
     )
 
 
