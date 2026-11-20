@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 from prototypes.research_agent_v2.programming import INSPECT, OVERVIEW
 
 from evaluation.ds06a import c01 as c01mod
-from evaluation.ds06a.agent_trace import AgentStep, AgentTrace, run_model_agent
+from evaluation.ds06a.agent_trace import AgentStep, AgentTrace, _trace_decider, run_model_agent
 from evaluation.ds06a.common import result_shell
 from evaluation.ds06a.model import load_cases
 from evaluation.ds06a.pipelines import build_ds03
@@ -42,9 +42,18 @@ def _recorded_trace(case, problem: str) -> AgentTrace:
                 "basis_fact_ids": ["overview"],
             }
         else:
+            role_by_id = {
+                fact["fact_id"]: ("overview" if i == 0 else f"inspect:{i - 1}")
+                for i, fact in enumerate(facts)
+            }
             mapped = {
                 "name": "finish",
-                "arguments": {"reason": decision["arguments"]["reason"]},
+                "arguments": {
+                    "reason": decision["arguments"]["reason"],
+                    "selected_roles": [
+                        role_by_id[fid] for fid in decision["arguments"]["selected_fact_ids"]
+                    ],
+                },
                 "basis_fact_ids": disclosed or ["overview"],
             }
         steps.append(AgentStep(mapped, input_tokens=12, output_tokens=6, latency_ms=2.0))
@@ -73,8 +82,11 @@ def test_valid_trace_scores_against_c_standard_with_usage() -> None:
     assert result["metrics"]["phenomenon_accuracy"] == 1.0
     assert result["metrics"]["unsupported_root_assertions"] == 0
     assert result["source_verified"] is True
+    assert result["model_origin_claim"] == "approved_qwen"
+    assert result["model_origin_verified"] is False
     usage = result["model_usage"]
-    assert usage["origin"] == "approved_qwen"
+    assert usage["origin_claim"] == "approved_qwen"
+    assert usage["origin_verified"] is False
     assert usage["model_requests"] <= 6
     assert usage["tool_attempts"] <= 5
     assert usage["input_tokens"] > 0 and usage["output_tokens"] > 0
@@ -179,7 +191,7 @@ def test_correct_abstention_on_small_sample() -> None:
         AgentStep(
             {
                 "name": "finish",
-                "arguments": {"reason": "insufficient_data"},
+                "arguments": {"reason": "insufficient_data", "selected_roles": []},
                 "basis_fact_ids": ["overview"],
             }
         ),
@@ -202,3 +214,101 @@ def test_unsupported_causal_claim_is_counted() -> None:
     result = run_model_agent(case, trace, DATA_DIR)
     assert result["status"] == "ok", result["error"]
     assert result["metrics"]["unsupported_root_assertions"] >= 1
+
+
+def _with_finish(trace: AgentTrace, arguments: dict) -> AgentTrace:
+    finish = AgentStep(
+        {
+            "name": "finish",
+            "arguments": arguments,
+            "basis_fact_ids": ["overview"] + [f"inspect:{i}" for i in range(len(trace.steps) - 2)],
+        }
+    )
+    return replace(trace, steps=trace.steps[:-1] + (finish,))
+
+
+def test_empty_evidence_selection_is_not_autofilled() -> None:
+    """Model selects no evidence: the adapter must not auto-fill and inflate."""
+    case = case_by_id("association_not_causation")
+    trace = _with_finish(
+        _recorded_trace(case, case.problems[0]),
+        {"reason": "completed", "selected_roles": []},
+    )
+    result = run_model_agent(case, trace, DATA_DIR)
+    assert result["status"] == "rejected"
+    assert result["error"] == "missing_evidence_selection"
+
+
+def test_missing_evidence_selection_field_is_rejected() -> None:
+    case = case_by_id("association_not_causation")
+    trace = _with_finish(_recorded_trace(case, case.problems[0]), {"reason": "completed"})
+    result = run_model_agent(case, trace, DATA_DIR)
+    assert result["status"] == "rejected"
+    assert result["error"] == "missing_evidence_selection"
+
+
+def test_undisclosed_or_invalid_evidence_reference_is_rejected() -> None:
+    case = case_by_id("association_not_causation")
+    base = _recorded_trace(case, case.problems[0])
+    for roles in (["inspect:9"], ["overview"], ["inspect:0", "inspect:0"]):
+        trace = _with_finish(base, {"reason": "completed", "selected_roles": roles})
+        result = run_model_agent(case, trace, DATA_DIR)
+        assert result["status"] == "rejected", roles
+        assert result["error"] == "invalid_evidence_reference", roles
+
+
+def test_unqualified_evidence_reference_is_rejected() -> None:
+    """Unit-level: the programming executor always discloses qualified inspect
+    facts, so the unqualified guard is exercised by driving the decider directly
+    with a synthetic unqualified fact."""
+    steps = (
+        AgentStep({"name": OVERVIEW, "arguments": {}}),
+        AgentStep(
+            {
+                "name": INSPECT,
+                "arguments": {"direction": "d0"},
+                "basis_fact_ids": ["overview"],
+            }
+        ),
+        AgentStep(
+            {
+                "name": "finish",
+                "arguments": {"reason": "completed", "selected_roles": ["inspect:0"]},
+                "basis_fact_ids": ["overview", "inspect:0"],
+            }
+        ),
+    )
+    trace = AgentTrace("approved_qwen", "p1", steps)
+    violations: list[str] = []
+    decide = _trace_decider(trace, violations, {"consumed": 0})
+    facts = [
+        {"fact_id": "f0", "directions": [{"direction": "d0"}]},
+        {"fact_id": "f1", "qualified": False},
+    ]
+    decide([])
+    decide(facts[:1])
+    try:
+        decide(facts)
+    except Exception:
+        pass
+    assert violations == ["invalid_evidence_reference"]
+
+
+def test_unconsumed_extra_steps_are_rejected() -> None:
+    case = case_by_id("association_not_causation")
+    trace = _recorded_trace(case, case.problems[0])
+    trace = replace(trace, steps=trace.steps + (AgentStep({"name": OVERVIEW, "arguments": {}}),))
+    result = run_model_agent(case, trace, DATA_DIR)
+    assert result["status"] == "rejected"
+    assert result["error"] == "unconsumed_trace_steps"
+
+
+def test_relabelled_origin_never_yields_verified_provenance() -> None:
+    """An offline-recorded trace relabelled approved_qwen may replay, but the
+    result must never claim verified real-model origin."""
+    case = case_by_id("association_not_causation")
+    trace = _recorded_trace(case, case.problems[0])
+    result = run_model_agent(case, trace, DATA_DIR)
+    assert result["status"] == "ok", result["error"]
+    assert result["model_origin_verified"] is False
+    assert result["model_usage"]["origin_verified"] is False

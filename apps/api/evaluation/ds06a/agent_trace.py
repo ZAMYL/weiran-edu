@@ -13,6 +13,14 @@ only relabels a shallow copy for ``score_result``.
 Trace grounding uses stable *roles* (``overview``, ``inspect:<n>``) rather than
 random per-run Fact IDs, so a recorded trace can be replayed deterministically.
 A real-model recorder maps its live Fact IDs to these roles at capture time.
+
+Trust boundary: ``origin`` is a caller *claim*, not proof of provenance. A
+passing replay only means "trace replay passed"; it never means "real Qwen
+origin verified". Until a trusted live recorder exists, results carry
+``model_origin_verified=False`` and no verified-origin conclusion may be drawn.
+
+Evidence selection is the model's own decision: the finish step must explicitly
+list disclosed, qualified evidence roles. The adapter never auto-fills evidence.
 """
 
 from __future__ import annotations
@@ -49,8 +57,9 @@ class AgentStep:
 class AgentTrace:
     """A recorded autonomous investigation for one problem.
 
-    ``origin`` must be ``approved_qwen``; an offline selector trace is rejected
-    so fixed offline actions cannot masquerade as model reasoning.
+    ``origin`` must be declared ``approved_qwen`` for replay, but this is only a
+    caller claim: it filters obviously offline traces and never certifies real
+    model provenance (see ``model_origin_verified`` in the result).
     """
 
     origin: str
@@ -85,6 +94,7 @@ def run_model_agent(case: Case, trace: AgentTrace, data_dir: Path) -> dict:
     result["model_usage"] = _usage(trace)
 
     violations: list[str] = []
+    progress = {"consumed": 0}
     try:
         source = _source(case, ds03["feature_cohorts"])
         with TemporaryDirectory(prefix="ds06b-trace-") as directory:
@@ -94,13 +104,18 @@ def run_model_agent(case: Case, trace: AgentTrace, data_dir: Path) -> dict:
                 trace.problem,
                 Path(directory),
                 result,
-                decide=_trace_decider(trace, violations),
+                decide=_trace_decider(trace, violations, progress),
             )
     except (AgentError, ValueError) as error:
         return rejection(case.case_id, "D", violations[0] if violations else str(error))
     if violations:
         return rejection(case.case_id, "D", violations[0])
+    if progress["consumed"] != len(trace.steps):
+        return rejection(case.case_id, "D", "unconsumed_trace_steps")
     result["source_verified"] = True
+    # Origin is a caller claim; replay success is not provenance verification.
+    result["model_origin_claim"] = trace.origin
+    result["model_origin_verified"] = False
 
     # Reuse the unchanged scorer against C's human standard; no oracle edits.
     scored = dict(result)
@@ -139,7 +154,8 @@ def _leaks_oracle(value, prefixes: tuple[str, ...] = _FORBIDDEN_KEY_PREFIXES) ->
 
 def _usage(trace: AgentTrace) -> dict:
     return {
-        "origin": trace.origin,
+        "origin_claim": trace.origin,
+        "origin_verified": False,
         "model_requests": len(trace.steps),
         "tool_attempts": sum(step.decision.get("name") in _TOOL_NAMES for step in trace.steps),
         "input_tokens": sum(step.input_tokens for step in trace.steps),
@@ -149,11 +165,13 @@ def _usage(trace: AgentTrace) -> dict:
     }
 
 
-def _trace_decider(trace: AgentTrace, violations: list[str]):
+def _trace_decider(trace: AgentTrace, violations: list[str], progress: dict):
     """Drive the real executor from the recorded trace, checking grounding.
 
     Decisions are matched by tool semantics (direction key / index), never by
     random Fact IDs. A step may only cite roles already disclosed by the tools.
+    Evidence at finish must be explicitly selected by the model via disclosed,
+    qualified ``inspect:<n>`` roles; nothing is auto-filled.
     Violations are recorded because the executor converts transport-handler
     exceptions into a generic model_request_failed reason.
     """
@@ -172,6 +190,7 @@ def _trace_decider(trace: AgentTrace, violations: list[str]):
             fail("trace_incomplete")
         step = trace.steps[index]
         index += 1
+        progress["consumed"] = index
         decision = step.decision
         name = decision.get("name")
         basis = decision.get("basis_fact_ids", [])
@@ -198,10 +217,31 @@ def _trace_decider(trace: AgentTrace, violations: list[str]):
                 "basis_fact_ids": [overview["fact_id"]],
             }
         if name == "finish":
-            selected = [fact["fact_id"] for fact in facts[1:] if fact.get("qualified")]
-            reason = decision.get("arguments", {}).get("reason")
+            arguments = decision.get("arguments", {})
+            reason = arguments.get("reason")
             if reason not in {"completed", "insufficient_data"}:
                 fail("invalid_finish_reason")
+            if "overview" not in disclosed:
+                fail("missing_overview_step")
+            if "selected_roles" not in arguments:
+                fail("missing_evidence_selection")
+            roles = arguments["selected_roles"]
+            if not isinstance(roles, list):
+                fail("missing_evidence_selection")
+            if reason == "completed" and not roles:
+                fail("missing_evidence_selection")
+            if reason == "insufficient_data" and roles:
+                fail("abstention_with_selected_evidence")
+            if len(set(roles)) != len(roles):
+                fail("invalid_evidence_reference")
+            selected = []
+            for role in roles:
+                if role not in disclosed or not str(role).startswith("inspect:"):
+                    fail("invalid_evidence_reference")
+                fact = facts[disclosed.index(role)]
+                if not fact.get("qualified"):
+                    fail("invalid_evidence_reference")
+                selected.append(fact["fact_id"])
             return {
                 "name": "finish",
                 "arguments": {"selected_fact_ids": selected, "reason": reason},
