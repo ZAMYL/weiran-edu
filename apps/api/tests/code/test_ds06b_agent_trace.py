@@ -457,3 +457,52 @@ def test_finish_without_overview_is_rejected() -> None:
         ),
     )
     _assert_rejected(AgentTrace("approved_qwen", case.problems[0], steps), "missing_overview_step")
+
+
+# --- DS-06B-FIX-03: non-finite measures and nested causal claims -------------
+
+
+@pytest.mark.parametrize("bad_value", [float("inf"), float("-inf"), float("nan")])
+def test_non_finite_latency_rejected(bad_value) -> None:
+    trace = _base_trace()
+    first = replace(trace.steps[0], latency_ms=bad_value)
+    _assert_rejected(replace(trace, steps=(first,) + trace.steps[1:]), "invalid_usage_metrics")
+
+
+@pytest.mark.parametrize("bad_value", [float("inf"), float("-inf"), float("nan")])
+def test_non_finite_cost_rejected(bad_value) -> None:
+    _assert_rejected(replace(_base_trace(), cost=bad_value), "invalid_usage_metrics")
+
+
+@pytest.mark.parametrize("bad_value", [float("inf"), float("nan")])
+def test_non_finite_tokens_rejected(bad_value) -> None:
+    trace = _base_trace()
+    first = replace(trace.steps[0], input_tokens=bad_value)
+    _assert_rejected(replace(trace, steps=(first,) + trace.steps[1:]), "invalid_usage_metrics")
+
+
+@pytest.mark.parametrize(
+    ("answer", "expected"),
+    [
+        ({"root_cause": "boundary bug"}, 1),
+        ({"root_cause": None}, 0),
+        ({"root_cause": "unconfirmed"}, 0),
+        ({"confirmed_cause": "cause_unconfirmed"}, 0),
+        ({"root_cause": ["a", "b"]}, 1),
+        ({"root_cause": {}}, 1),
+        ({"caused_by": {"detail": "x"}}, 1),
+        ({"root_cause": {"caused_by": "y"}}, 2),
+    ],
+)
+def test_root_assertion_counting(answer, expected) -> None:
+    assert c01mod._root_assertions(answer) == expected
+
+
+@pytest.mark.parametrize("nested", [["a", "b"], {}, {"detail": "x"}])
+def test_nested_root_cause_is_conservatively_counted(nested) -> None:
+    trace = replace(_base_trace(), final_answer={"root_cause": nested})
+    case = case_by_id("association_not_causation")
+    result = run_model_agent(case, trace, DATA_DIR)
+    assert result["status"] == "ok", result["error"]
+    assert result["metrics"]["unsupported_root_assertions"] >= 1
+    assert result["model_origin_verified"] is False

@@ -25,6 +25,7 @@ list disclosed, qualified evidence roles. The adapter never auto-fills evidence.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -192,7 +193,12 @@ def _is_count(value) -> bool:
 
 
 def _is_measure(value) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+        and value >= 0
+    )
 
 
 def _validate_usage(trace: AgentTrace) -> None:
