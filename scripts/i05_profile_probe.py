@@ -20,6 +20,7 @@ def pytest_collection_modifyitems(items):
     host, start = module.variable_host, module.start
     measurements = {}
     seed = os.environ.get("I05_UUID_SEED")
+    layout = os.environ.get("I05_UUID_LAYOUT")
 
     def observed_host(directory, cases):
         if seed:
@@ -27,7 +28,37 @@ def pytest_collection_modifyitems(items):
             rng = Random(int(seed))
             edu_service.uuid4 = lambda: UUID(int=rng.getrandbits(128), version=4)
         measurements.update(cases)
-        return host(directory, cases)
+        fixture, service = host(directory, cases)
+        if layout:
+            students = module.parse_excel(fixture.books["unbalanced-medium"]).students
+            order = list(range(len(students)))
+            if layout == "clustered":
+                # Place the entire low group in the same deletion fold. Fill that
+                # fold with four higher rows outside the retained 3.25 score stratum.
+                clustered = [*range(9), 10, 11, 13, 14]
+                first = iter(clustered)
+                remaining = iter(index for index in order if index not in clustered)
+                order = [
+                    next(first) if position % 3 == 0 else next(remaining)
+                    for position in order
+                ]
+            with service.store.database.transaction(write=True) as connection:
+                scope = connection.execute(
+                    "SELECT data_scope_id FROM scope_members WHERE teacher_id=?",
+                    (fixture.teacher_id,),
+                ).fetchone()[0]
+                for rank, index in enumerate(order):
+                    student = students[index]
+                    pk = str(UUID(int=(2 << 120) + index + 1, version=4))
+                    public_id = str(UUID(int=(1 << 120) + rank + 1, version=4))
+                    connection.execute(
+                        "INSERT INTO students VALUES (?,?,?,?)", (pk, public_id, scope, "test")
+                    )
+                    connection.execute(
+                        "INSERT INTO student_identities VALUES (?,?,?,?,?)",
+                        (pk, scope, student.student_number, student.name, "test"),
+                    )
+        return fixture, service
 
     def observed_start(client, fixture, service, case, *args, **kwargs):
         output = start(client, fixture, service, case, *args, **kwargs)
@@ -53,7 +84,8 @@ def pytest_collection_modifyitems(items):
         projection = (view["result"] or {}).get("profile_projection") or {}
         audit = projection.get("search_audit") or {}
         print("I05_PROFILE_PROBE=" + json.dumps({
-            "seed": seed, "case": case, "sql_cells": len(stored), "mismatches": mismatches,
+            "seed": seed, "layout": layout, "case": case,
+            "sql_cells": len(stored), "mismatches": mismatches,
             "minority_retained_by_fold": [support - fold_sizes[fold] for fold in range(3)],
             "profiles": len(projection.get("profiles", [])), "stop": projection.get("stop_reason"),
             "audit": {key: audit.get(key) for key in AUDIT_KEYS},

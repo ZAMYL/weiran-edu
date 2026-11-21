@@ -43,17 +43,17 @@ jobs:
           export PYTHONPATH="$GITHUB_WORKSPACE/scripts:$PWD/../..:$PWD"
           file=tests/durable_teacher_agent/test_validation_performance.py
           target="$file::test_varied_formal_workbooks_are_isolated_and_match_database_scores"
-          for seed in random random random 0 1 2 3 4 5 6 7; do
-            if [ "$seed" = random ]; then unset I05_UUID_SEED; else export I05_UUID_SEED="$seed"; fi
+          for layout in spread clustered; do
+            export I05_UUID_LAYOUT="$layout"
             rc=0
             uv run --locked --no-sync pytest -q -s --tb=short -p i05_profile_probe "$target" || rc=$?
-            echo "PROBE_RESULT isolated seed=$seed rc=$rc"
+            echo "PROBE_RESULT isolated layout=$layout rc=$rc"
             if [ "$rc" -gt 1 ]; then exit "$rc"; fi
           done
-          for seed in 0 1 2 3 4 5 6 7; do
-            export I05_UUID_SEED="$seed"
+          for layout in spread clustered; do
+            export I05_UUID_LAYOUT="$layout"
             rc=0
             uv run --locked --no-sync pytest -q -s --tb=short -p i05_profile_probe "$file::test_fact_ledger_reuse_invalidates_on_new_fact_and_mutation" "$target" || rc=$?
-            echo "PROBE_RESULT adjacent seed=$seed rc=$rc"
+            echo "PROBE_RESULT adjacent layout=$layout rc=$rc"
             if [ "$rc" -gt 1 ]; then exit "$rc"; fi
           done
