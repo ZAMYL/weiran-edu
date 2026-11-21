@@ -30,6 +30,7 @@ from edu.answersheet_samples import paper_html, simple_zip, zip_of
 URL = "/api/v1/edu/assessments"
 NAME = "Synthetic Personal Name"
 PRIVATE_CODE = "values = [61302]; print(values[0])"
+OTHER_PACKAGE_CODE = "print(sum([82490]))"
 LABEL = "synthetic-private-problem"
 
 
@@ -51,18 +52,22 @@ def binding(runtime, assessment: str) -> AssessmentEvidenceProvider:
     return AssessmentEvidenceProvider(reader, runtime.p, scope)
 
 
-def package(first: int, last: int) -> bytes:
+def package(first: int, last: int, *, shared_paths: bool = False) -> bytes:
     entries = {}
     for i in range(first, last + 1):
-        verdict = "部分正确" if i <= 5 else "答案错误" if i <= 10 else "答案正确"
-        point_status = "答案错误" if i <= 10 else "答案正确"
+        member = i - first + 1 if shared_paths else i
+        failed = member <= (5 if shared_paths else 10)
+        verdict = "部分正确" if i <= 5 else "答案错误" if failed else "答案正确"
+        point_status = "答案错误" if failed else "答案正确"
+        second_package = shared_paths and i > 10
+        code = PRIVATE_CODE if i <= 5 else "print(sum([61302]))"
         html = paper_html(
             key=f"S{i:03}",
             name=f"{NAME} {i}",
             label=LABEL,
             verdict=verdict,
-            rows=[("9", point_status, "0", "0.5 ms", "304 KB")],
-            code=PRIVATE_CODE if i <= 5 else "print(sum([61302]))",
+            rows=[("9", point_status, "0", "0.75 ms" if second_package else "0.5 ms", "304 KB")],
+            code=OTHER_PACKAGE_CODE if second_package else code,
         ).replace("编译器: GXX", "编译器: Python")
         header = (
             "<thead><tr>"
@@ -72,7 +77,7 @@ def package(first: int, last: int) -> bytes:
             + "</tr></thead>"
         )
         html = html.replace("<tbody>", header + "<tbody>")
-        entries[f"包/正式答卷/restricted-S{i:03}.html"] = html
+        entries[f"包/正式答卷/restricted-S{member:03}.html"] = html
     return zip_of(entries)
 
 
@@ -87,6 +92,7 @@ def run_offline(source, directory):
                 NAME,
                 PRIVATE_CODE,
                 "61302",
+                "82490",
                 "restricted-S",
                 "S001",
                 LABEL,
@@ -132,11 +138,18 @@ def run_offline(source, directory):
         budget.close()
 
 
-@pytest.mark.parametrize("split", [False, True], ids=["single-zip", "multi-zip"])
+@pytest.mark.parametrize("mode", ["single-zip", "multi-zip", "shared-paths"])
 def test_real_zip_upload_investigation_and_restarted_witness_replay(
-    client_factory, runtime, tmp_path, split
+    client_factory, runtime, tmp_path, mode
 ):
-    payloads = (package(1, 10), package(11, 20)) if split else (package(1, 20),)
+    shared_paths = mode == "shared-paths"
+    if mode == "single-zip":
+        payloads = (package(1, 20),)
+    else:
+        payloads = (
+            package(1, 10, shared_paths=shared_paths),
+            package(11, 20, shared_paths=shared_paths),
+        )
     with client_factory(runtime.token) as app:
         assessment = upload(app, *payloads)
     provider = binding(runtime, assessment)
@@ -176,7 +189,8 @@ def test_real_zip_upload_investigation_and_restarted_witness_replay(
     assert {item.source_sha256 for item in coverage} == {
         sha256(payload).hexdigest() for payload in payloads
     }
-    assert len(replay.resolve(detail, "D1.affected")) == 10
+    affected = replay.resolve(detail, "D1.affected")
+    assert len(affected) == 10
     checked = replay.resolve(detail, "indexing.checked")
     present = replay.resolve(detail, "indexing.present")
     assert len(checked) == 10 and {item.kind for item in checked} == {"code"}
@@ -201,6 +215,51 @@ def test_real_zip_upload_investigation_and_restarted_witness_replay(
     assert proof.value == PRIVATE_CODE
     assert proof.entry_sha256 == sha256(original_entry).hexdigest()
     assert proof.content_sha256 == sha256(PRIVATE_CODE.encode()).hexdigest()
+    if shared_paths:
+        people = {
+            person.student_pk: person.external_key
+            for person in reopened.reader.participants(runtime.p, assessment).items
+        }
+        test_entries = []
+        for index, payload in enumerate(payloads):
+            digest = sha256(payload).hexdigest()
+            tests = [item for item in coverage if item.source_sha256 == digest]
+            failures = [item for item in affected if item.source_sha256 == digest]
+            codes = [item for item in checked if item.source_sha256 == digest]
+            features = [item for item in present if item.source_sha256 == digest]
+            first = index * 10 + 1
+            assert {people[item.participant_id] for item in tests} == {
+                f"S{i:03}" for i in range(first, first + 10)
+            }
+            assert {people[item.participant_id] for item in failures} == {
+                f"S{i:03}" for i in range(first, first + 5)
+            }
+            assert {item.participant_id for item in codes} == {
+                item.participant_id for item in failures
+            }
+            assert len(features) == (0 if index else 5)
+            asset = reopened.reader.original(
+                runtime.p, assessment, tests[0].source_id, expected_sha256=digest
+            )
+            assert asset.payload == payload
+            test_entries.append({item.locator for item in tests})
+            with ZipFile(BytesIO(asset.payload)) as archive:
+                for item in (*tests, *codes, *features):
+                    entry = item.locator.partition("#")[0]
+                    member_bytes = archive.read(entry)
+                    assert people[item.participant_id].encode() in member_bytes
+                    assert item.source_id == asset.asset_id
+                    assert item.entry_sha256 == sha256(member_bytes).hexdigest()
+                for item in tests:
+                    assert item.kind == "test" and "/result/" in item.locator
+                    expected_status = "wrong_answer" if item in failures else "accepted"
+                    assert json.loads(item.value) == ["9", expected_status]
+                    raw_status = "答案错误" if item in failures else "答案正确"
+                    assert raw_status.encode() in archive.read(item.locator.partition("#")[0])
+                for item in codes:
+                    assert item.value == (OTHER_PACKAGE_CODE if index else PRIVATE_CODE)
+                    assert item.value.encode() in archive.read(item.locator.partition("#")[0])
+        assert len(test_entries[0]) == 10 and test_entries[0] == test_entries[1]
 
 
 @pytest.mark.parametrize(
@@ -256,8 +315,14 @@ def test_provider_rechecks_owner_task_and_teacher_authorization(client, runtime,
         provider.require_details(source.scope)
 
 
-def test_package_binding_cannot_be_swapped_in_same_assessment(client, runtime):
-    assessment = upload(client, package(1, 1), package(2, 2))
+@pytest.mark.parametrize("shared_paths", [False, True], ids=["distinct-paths", "shared-paths"])
+def test_package_binding_cannot_be_swapped_in_same_assessment(client, runtime, shared_paths):
+    other = 11 if shared_paths else 2
+    assessment = upload(
+        client,
+        package(1, 1, shared_paths=shared_paths),
+        package(other, other, shared_paths=shared_paths),
+    )
     provider = binding(runtime, assessment)
     source = ProgrammingSource(provider.scope, provider)
     asset = source.material.witnesses[0].source_id

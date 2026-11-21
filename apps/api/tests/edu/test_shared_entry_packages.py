@@ -269,9 +269,14 @@ def _build_database_before(path: Path, last: str) -> None:
     connection.close()
 
 
-def test_upgrade_from_012_keeps_material_rows_and_relaxes_scope(tmp_path):
+@pytest.mark.parametrize(
+    "last_migration",
+    ["009_evidence_provenance.sql", "012_original_artifacts.sql"],
+    ids=["pre-012", "pre-013"],
+)
+def test_upgrade_keeps_material_rows_and_relaxes_scope(tmp_path, last_migration):
     path = tmp_path / "legacy.sqlite3"
-    _build_database_before(path, "012_original_artifacts.sql")
+    _build_database_before(path, last_migration)
 
     connection = sqlite3.connect(path)
     connection.execute("PRAGMA foreign_keys=ON")
@@ -303,8 +308,8 @@ def test_upgrade_from_012_keeps_material_rows_and_relaxes_scope(tmp_path):
     )
     connection.execute(
         "INSERT INTO assessment_assets (asset_id,assessment_id,entry,kind,sha256,byte_size,"
-        "source_index,created_at,storage_state) VALUES (?,?,?,?,?,?,?,?,?)",
-        ("a-legacy-asset", "a-legacy", "历史包.zip", "zip-html", "b" * 64, 10, 0, "x", "absent"),
+        "source_index,created_at) VALUES (?,?,?,?,?,?,?,?)",
+        ("a-legacy-asset", "a-legacy", "历史包.zip", "zip-html", "b" * 64, 10, 0, "x"),
     )
     connection.execute(
         "INSERT INTO assessment_materials (material_id,assessment_id,entry,category,basis,"
@@ -331,6 +336,22 @@ def test_upgrade_from_012_keeps_material_rows_and_relaxes_scope(tmp_path):
     Database(path).migrate()
 
     connection = sqlite3.connect(path)
+    assert connection.execute(
+        "SELECT storage_state FROM assessment_assets WHERE asset_id='a-legacy-asset'"
+    ).fetchone() == ("absent",)
+    assert connection.execute(
+        "SELECT source_snapshot_id FROM assessments WHERE assessment_id='a-legacy'"
+    ).fetchone() == (None,)
+    assert {
+        row[0]
+        for row in connection.execute(
+            "SELECT version FROM schema_migrations WHERE version >= '009' ORDER BY version"
+        )
+    } == {
+        "009_evidence_provenance.sql",
+        "012_original_artifacts.sql",
+        "013_material_package_scope.sql",
+    }
     rows = connection.execute(
         "SELECT material_id,entry,asset_id FROM assessment_materials ORDER BY material_id"
     ).fetchall()
