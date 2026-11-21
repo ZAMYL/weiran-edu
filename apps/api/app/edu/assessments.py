@@ -677,8 +677,7 @@ class AssessmentReader:
                     code_truncated=bool(row["code_truncated"]),
                     compiler_output=row["compiler_output"],
                     compiler_output_truncated=bool(row["compiler_output_truncated"]),
-                    verdict_class=row["verdict_class"]
-                    or classify_status(row["verdict"]),
+                    verdict_class=row["verdict_class"] or classify_status(row["verdict"]),
                     source=SourceLocator(
                         asset_id=row["source_asset_id"],
                         asset_sha256=row["asset_sha256"],
@@ -694,9 +693,7 @@ class AssessmentReader:
                             memory_kb=item["memory_kb"],
                             status_known=bool(item["status_known"]),
                             status_class=item["status_class"]
-                            or classify_status(
-                                item["status"], known=bool(item["status_known"])
-                            ),
+                            or classify_status(item["status"], known=bool(item["status_known"])),
                             duration_us=item["duration_us"],
                             duration_text=item["duration_text"],
                             memory_text=item["memory_text"],

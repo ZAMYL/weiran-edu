@@ -90,11 +90,14 @@ def test_shared_internal_path_across_packages_imports_201(client, runtime):
             "WHERE assessment_id=? ORDER BY code_text",
             (assessment_id,),
         ).fetchall()
-        assert connection.execute(
-            "SELECT COUNT(*) FROM assessment_diagnostics WHERE assessment_id=? "
-            "AND code IN ('SOURCE_ENTRY_AMBIGUOUS','SOURCE_ENTRY_UNRESOLVED')",
-            (assessment_id,),
-        ).fetchone()[0] == 0
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM assessment_diagnostics WHERE assessment_id=? "
+                "AND code IN ('SOURCE_ENTRY_AMBIGUOUS','SOURCE_ENTRY_UNRESOLVED')",
+                (assessment_id,),
+            ).fetchone()[0]
+            == 0
+        )
     assert [row["source_asset_id"] for row in participants] == [
         asset["asset_id"] for asset in assets
     ]
@@ -186,22 +189,21 @@ def test_shared_path_digest_from_other_package_is_rejected(client, runtime):
 def test_shared_path_duplicate_reupload_is_idempotent(client, runtime):
     # 复用同一份字节：zip 内时间戳会随构造时刻变化，重建出的包不算同一份文件
     left, right = shared_path_packages()
-    first = client.post(
-        URL, files=[("file", ("甲班.zip", left)), ("file", ("乙班.zip", right))]
-    )
+    first = client.post(URL, files=[("file", ("甲班.zip", left)), ("file", ("乙班.zip", right))])
     assert first.status_code == 201, first.text
     assessment_id = first.json()["assessment_id"]
-    again = client.post(
-        URL, files=[("file", ("甲班.zip", left)), ("file", ("乙班.zip", right))]
-    )
+    again = client.post(URL, files=[("file", ("甲班.zip", left)), ("file", ("乙班.zip", right))])
     assert again.status_code in (200, 201), again.text
     assert again.json()["duplicate"] is True
     assert again.json()["assessment_id"] == assessment_id
     with runtime.db.transaction() as connection:
-        assert connection.execute(
-            "SELECT COUNT(*) FROM assessment_materials WHERE assessment_id=?",
-            (assessment_id,),
-        ).fetchone()[0] == 2
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM assessment_materials WHERE assessment_id=?",
+                (assessment_id,),
+            ).fetchone()[0]
+            == 2
+        )
 
 
 def test_material_rows_are_package_scoped_after_migration(client, runtime):
@@ -228,10 +230,13 @@ def test_material_rows_are_package_scoped_after_migration(client, runtime):
                     first["asset_id"],
                 ),
             )
-        assert connection.execute(
-            "SELECT COUNT(*) FROM assessment_materials WHERE assessment_id=?",
-            (assessment_id,),
-        ).fetchone()[0] == 2
+        assert (
+            connection.execute(
+                "SELECT COUNT(*) FROM assessment_materials WHERE assessment_id=?",
+                (assessment_id,),
+            ).fetchone()[0]
+            == 2
+        )
 
 
 MIGRATIONS = Path(__file__).resolve().parents[2] / "app" / "storage" / "migrations"
@@ -343,15 +348,31 @@ def test_upgrade_from_012_keeps_material_rows_and_relaxes_scope(tmp_path):
     connection.execute(
         "INSERT INTO assessment_materials (material_id,assessment_id,entry,category,basis,"
         "signals,needs_confirmation,asset_id) VALUES (?,?,?,?,?,?,?,?)",
-        ("a-legacy-mat-2", "a-legacy", SHARED_ENTRY, "STUDENT_PAPER", "path", "[]", 0,
-         "a-legacy-asset-2"),
+        (
+            "a-legacy-mat-2",
+            "a-legacy",
+            SHARED_ENTRY,
+            "STUDENT_PAPER",
+            "path",
+            "[]",
+            0,
+            "a-legacy-asset-2",
+        ),
     )
     with pytest.raises(sqlite3.IntegrityError):
         connection.execute(
             "INSERT INTO assessment_materials (material_id,assessment_id,entry,category,basis,"
             "signals,needs_confirmation,asset_id) VALUES (?,?,?,?,?,?,?,?)",
-            ("a-legacy-mat-3", "a-legacy", SHARED_ENTRY, "STUDENT_PAPER", "path", "[]", 0,
-             "a-legacy-asset-2"),
+            (
+                "a-legacy-mat-3",
+                "a-legacy",
+                SHARED_ENTRY,
+                "STUDENT_PAPER",
+                "path",
+                "[]",
+                0,
+                "a-legacy-asset-2",
+            ),
         )
     connection.commit()
     connection.close()
