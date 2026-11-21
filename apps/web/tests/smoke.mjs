@@ -52,8 +52,12 @@ try {
   assert.match(html, /<title>未然 EDU｜AI 时代的编程能力与学习成效诊断平台<\/title>/);
   assert.doesNotMatch(html, /诊断平台。/);
   assert.match(html, /让每一份测评数据，/);
-  assert.match(html, /都成为有依据的教学洞察/);
+  assert.match(html, /都成为<span>有依据<\/span>的教学洞察/);
   assert.match(html, /进入教师工作台/);
+  assert.match(html, /教师诊断工作台示例/);
+  assert.match(html, /从原始测评资料到可核验的教学行动/);
+  assert.match(html, /开启数据驱动的编程教学诊断/);
+  assert.doesNotMatch(html, /cdn\.tailwindcss\.com|127\.0\.0\.1:3288\/insights/);
 
   for (const [route, title] of [
     ['insights', '连接账户，查看测评'],
