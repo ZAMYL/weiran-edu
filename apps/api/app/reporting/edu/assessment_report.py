@@ -25,9 +25,7 @@ def render_markdown(overview: AssessmentOverview, patterns: PatternList) -> str:
     if overview.review_state == "needs_review":
         # 有疑义的批次不能把人数当作已确认结论发布
         lines.append(
-            "- **待人工确认**：以下统计为暂定值（原因："
-            + "、".join(overview.review_reasons)
-            + "）"
+            "- **待人工确认**：以下统计为暂定值（原因：" + "、".join(overview.review_reasons) + "）"
         )
     lines += [
         "",

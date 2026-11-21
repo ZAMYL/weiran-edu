@@ -39,7 +39,7 @@ def student_pk(client, assessment_id: str, index: int = 0) -> str:
 
 
 def test_single_zip_original_survives_restart_and_matches_evidence(client, client_factory, runtime):
-    payload = simple_zip(code="int main(){ puts(\"ok\"); }")
+    payload = simple_zip(code='int main(){ puts("ok"); }')
     assessment_id = upload(client, ("竞赛.zip", payload))
 
     overview = client.get(f"{URL}/{assessment_id}").json()
@@ -181,9 +181,7 @@ def test_tampered_deleted_and_revoked_originals_are_refused(client, runtime):
     assert revoked.value.code == "ORIGINAL_UNAVAILABLE"
 
 
-def test_cross_user_and_cross_assessment_original_access_is_denied(
-    client, client_factory, runtime
-):
+def test_cross_user_and_cross_assessment_original_access_is_denied(client, client_factory, runtime):
     first = upload(client, ("甲.zip", simple_zip()))
     second = upload(
         client, ("乙.zip", zip_of({"包/正式答卷/S009.html": paper_html(key="S009", name="丙同学")}))

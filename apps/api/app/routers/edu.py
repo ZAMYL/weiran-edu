@@ -56,7 +56,7 @@ from app.edu.service import EduService, stamp
 from app.edu.summary import BatchSummary
 from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_upload_metadata
 from app.importing.edu.adapter import adapter_for
-from app.importing.edu.answersheet import merge_answersheets, parse_answersheet
+from app.importing.edu.answersheet import merge_answersheets, parse_answersheet, tag_package
 from app.importing.edu.detect import ZIP_HTML, detect_asset
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
@@ -370,6 +370,8 @@ async def create_assessment(
                 f"已识别为 {asset.kind}，答题卡导入只接受含网页答卷的 ZIP",
             )
         document = await run_in_threadpool(parse_answersheet, raw)
+        # 给本包的记录打上包号：多包同内部路径时，只有包号能确定来源
+        document = tag_package(document, index)
         documents.append(document)
         digests.append(hashlib.sha256(raw).hexdigest())
         # 每个包单独登记资产：文件名重复时加序号，保证 (assessment_id, entry) 唯一。

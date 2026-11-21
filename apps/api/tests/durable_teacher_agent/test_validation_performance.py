@@ -5,7 +5,9 @@ from collections import Counter
 from decimal import Decimal
 from fractions import Fraction
 from io import BytesIO
+from itertools import count
 from time import perf_counter
+from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
@@ -20,6 +22,7 @@ from prototypes.teacher_agent_bridge.provider import DatabaseProvider
 from scripts.edu_demo_fixtures import make_fixture
 
 from app.ai.edu.discovery.models import AgentError, Limits
+from app.edu import service as edu_service
 from app.importing.edu import parse_excel
 from app.importing.edu.types import DIMENSIONS
 
@@ -189,7 +192,11 @@ def test_profile_pipeline_call_counts(tmp_path, monkeypatch):
     assert counts["witness_replay_calls"] == 2
 
 
-def test_varied_formal_workbooks_are_isolated_and_match_database_scores(tmp_path):
+def test_varied_formal_workbooks_are_isolated_and_match_database_scores(tmp_path, monkeypatch):
+    # The stability folds use public-ID order. Keep that order fixed for the workbooks
+    # whose exact profile expectations assume stable support across all three deletions.
+    ids = count(1)
+    monkeypatch.setattr(edu_service, "uuid4", lambda: UUID(int=next(ids), version=4))
     small = tuple(
         (Decimal("1.25"), Decimal("4.50"), Decimal("1") + index % 2, Decimal("4"), Decimal("2"))
         for index in range(6)

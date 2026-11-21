@@ -28,9 +28,7 @@ def test_upload_records_assets_materials_and_diagnostics(client):
     payload = zip_of(
         {
             "包/正式答卷/S001.html": paper_html(),
-            "包/标准答案/A001.html": paper_html(
-                key="A001", name="参考答案", paper_type="标准答案"
-            ),
+            "包/标准答案/A001.html": paper_html(key="A001", name="参考答案", paper_type="标准答案"),
         }
     )
     assessment_id = upload(client, payload)
@@ -112,9 +110,7 @@ def test_other_teacher_and_changed_source_are_rejected(client, client_factory, r
     assert mismatched.status_code == 409
     assert mismatched.json()["error"]["code"] == "SOURCE_CHANGED"
 
-    matched = client.get(
-        detail_url, params={"asset_sha256": hashlib.sha256(payload).hexdigest()}
-    )
+    matched = client.get(detail_url, params={"asset_sha256": hashlib.sha256(payload).hexdigest()})
     assert matched.status_code == 200
 
 

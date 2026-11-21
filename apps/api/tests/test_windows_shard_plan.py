@@ -36,12 +36,10 @@ def test_code_directory_is_assigned_to_core_exactly_once(planner):
             assert code_nodes == []
 
 
-def test_every_known_directory_is_covered_exactly_once(planner):
-    nodes = [
-        f"tests/{directory}/test_probe.py::test_probe"
-        for dirs in planner.GROUPS.values()
-        for directory in sorted(dirs)
-    ]
+def test_every_test_directory_is_covered_exactly_once(planner):
+    root = Path(__file__).parent
+    directories = {file.relative_to(root).parts[0] for file in root.glob("*/**/test_*.py")}
+    nodes = [f"tests/{directory}/test_probe.py::test_probe" for directory in sorted(directories)]
     plan = _plan(planner, nodes)
     assert sorted(_assigned(plan)) == sorted(nodes)
 
