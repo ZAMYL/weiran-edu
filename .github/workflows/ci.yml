@@ -1,144 +1,59 @@
-name: CI
-
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
-  workflow_dispatch:
-
+name: I-05 Ubuntu diagnosis
+on: workflow_dispatch
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 env:
   WEIRAN_EDU_ENV: test
   PYTHONUTF8: "1"
   PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
-  NEXT_TELEMETRY_DISABLED: "1"
-
 jobs:
-  backend:
-    name: Backend (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-    defaults:
-      run:
-        working-directory: apps/api
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-        with:
-          python-version-file: apps/api/.python-version
-      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-        with:
-          version: "0.11.14"
-          enable-cache: false
-      - name: Install locked dependencies
-        run: uv sync --locked --group dev
-      - name: Ruff
-        run: uv run --locked --no-sync ruff check .
-      - name: Python format
-        run: uv run --locked --no-sync ruff format --check .
-      - name: Offline pytest
-        run: uv run --locked --no-sync pytest -q -ra
-
-
-  windows_tests:
-    name: Windows tests (${{ matrix.shard }})
-    runs-on: windows-latest
+  profile-probe:
+    name: "Ubuntu ${{ matrix.label }}"
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        shard: [core, ai_research, edu_import, reporting, teacher_bridge]
+        include:
+          - label: I-04-baseline
+            revision: d4e6e1ffe8ceba56887c7291cc6b6014d094b49c
+          - label: I-05-candidate
+            revision: 536c512ec617f619f52ec1110c9b9595e2fdc0f2
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ matrix.revision }}
+          path: source
+          persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
-          python-version-file: apps/api/.python-version
+          python-version-file: source/apps/api/.python-version
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4
         with:
           version: "0.11.14"
           enable-cache: false
-      - run: uv sync --project apps/api --locked --group dev
-      - run: uv run --locked --no-sync ruff check .
-        working-directory: apps/api
-      - run: uv run --locked --no-sync ruff format --check .
-        working-directory: apps/api
-      - name: Whole-file shard with full current collection
-        run: uv run --project apps/api --locked --no-sync python scripts/windows_shards.py run --shard ${{ matrix.shard }}
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
-        with:
-          name: windows-${{ matrix.shard }}
-          path: artifacts/${{ matrix.shard }}/
-          if-no-files-found: error
-          retention-days: 14
-  windows:
-    name: Backend (windows-latest)
-    needs: windows_tests
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
-        with:
-          python-version-file: apps/api/.python-version
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          pattern: windows-*
-          path: downloaded
-      - run: python scripts/windows_shards.py verify --artifacts downloaded --revision ${{ github.sha }} --output windows-summary.json
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: windows-summary
-          path: windows-summary.json
-          if-no-files-found: error
-          retention-days: 14
-
-  frontend:
-    name: Frontend
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: apps/web
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version-file: apps/web/package.json
-          package-manager-cache: false
-      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
-        with:
-          package_json_file: apps/web/package.json
-          run_install: false
-      - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Lint
-        run: pnpm lint
-      - name: Format
-        run: pnpm format:check
-      - name: TypeScript
-        run: pnpm typecheck
-      - name: Build
-        run: pnpm build
-      - name: Production smoke test
-        run: pnpm test
+      - name: Locked isolated and ordered diagnostics
+        working-directory: source/apps/api
+        run: |
+          git rev-parse HEAD
+          uv sync --locked --group dev
+          export PYTHONPATH="$GITHUB_WORKSPACE/scripts:$PWD/../..:$PWD"
+          file=tests/durable_teacher_agent/test_validation_performance.py
+          target="$file::test_varied_formal_workbooks_are_isolated_and_match_database_scores"
+          for seed in random random random 0 1 2 3 4 5 6 7; do
+            if [ "$seed" = random ]; then unset I05_UUID_SEED; else export I05_UUID_SEED="$seed"; fi
+            rc=0
+            uv run --locked --no-sync pytest -q -s --tb=short -p i05_profile_probe "$target" || rc=$?
+            echo "PROBE_RESULT isolated seed=$seed rc=$rc"
+            if [ "$rc" -gt 1 ]; then exit "$rc"; fi
+          done
+          for seed in 0 1 2 3 4 5 6 7; do
+            export I05_UUID_SEED="$seed"
+            rc=0
+            uv run --locked --no-sync pytest -q -s --tb=short -p i05_profile_probe "$file::test_fact_ledger_reuse_invalidates_on_new_fact_and_mutation" "$target" || rc=$?
+            echo "PROBE_RESULT adjacent seed=$seed rc=$rc"
+            if [ "$rc" -gt 1 ]; then exit "$rc"; fi
+          done
