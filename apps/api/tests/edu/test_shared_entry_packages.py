@@ -51,8 +51,8 @@ def shared_path_packages() -> tuple[bytes, bytes]:
     return left, right
 
 
-def upload_shared(client) -> str:
-    left, right = shared_path_packages()
+def upload_shared(client, payloads: tuple[bytes, bytes] | None = None) -> str:
+    left, right = shared_path_packages() if payloads is None else payloads
     response = client.post(
         "".join([URL]),
         files=[("file", ("甲班.zip", left)), ("file", ("乙班.zip", right))],
@@ -108,12 +108,13 @@ def test_shared_internal_path_across_packages_imports_201(client, runtime):
 
 
 def test_shared_path_evidence_and_originals_survive_restart(client, client_factory, runtime):
-    assessment_id = upload_shared(client)
+    # ZIP member timestamps can change between calls. Compare the uploaded bytes.
+    left, right = shared_path_packages()
+    assessment_id = upload_shared(client, (left, right))
     overview = client.get(f"{URL}/{assessment_id}").json()
     snapshot = overview["source_snapshot_id"]
     assets = {asset["source_index"]: asset for asset in overview["assets"]}
 
-    left, right = shared_path_packages()
     assert assets[0]["sha256"] == hashlib.sha256(left).hexdigest()
     assert assets[1]["sha256"] == hashlib.sha256(right).hexdigest()
 
