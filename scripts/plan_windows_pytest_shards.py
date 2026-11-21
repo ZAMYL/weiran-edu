@@ -12,7 +12,7 @@ from collections import Counter
 from pathlib import Path, PurePosixPath
 
 GROUPS = {
-    "core": {"analysis", "code", "comments", "discovery", "insights"},
+    "core": {"analysis", "code", "comments", "discovery", "insights", "storage"},
     "ai_research": {"adaptive_assessment", "ai_edu", "research_v2", "research_v22"},
     "edu_import": {"edu", "importing"},
     "reporting": {"reporting"},
