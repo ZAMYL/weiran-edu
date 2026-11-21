@@ -7,7 +7,7 @@
 
 import io
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from html.parser import HTMLParser
 from zipfile import BadZipFile, ZipFile
 
@@ -103,6 +103,9 @@ class StudentRecord:
     finished_at: str | None
     duration_minutes: int | None
     source_entry: str
+    # 该记录来自第几个上传包（0 起）。多包同路径时，只有包号能确定来源；
+    # 直接调用解析器时保持 None，由上层按"路径唯一"兜底判断。
+    package_index: int | None = None
 
 
 @dataclass(frozen=True)
@@ -141,6 +144,7 @@ class SubmissionRecord:
     score_total: int | None
     source_index: int
     source_entry: str
+    package_index: int | None = None
 
 
 # B-01 要求区分的资料类别；未识别的给 UNKNOWN，不猜。
@@ -165,6 +169,7 @@ class MaterialRecord:
     basis: str
     signals: tuple[str, ...] = ()
     needs_confirmation: bool = False
+    package_index: int | None = None
 
 
 @dataclass(frozen=True)
@@ -521,6 +526,26 @@ def _order_problems(
             for index, label in enumerate(order)
         ),
         basis,
+    )
+
+
+def tag_package(document: AnswerSheetEvidence, package_index: int) -> AnswerSheetEvidence:
+    """标记这份证据来自第几个上传包（0 起）。
+
+    多个 ZIP 含相同内部路径时，包内路径本身不足以区分来源，包号才是身份；
+    只在合并/入库前由上传层打标，纯解析结果与直接调用解析器的旧行为不变。
+    """
+    return AnswerSheetEvidence(
+        students=tuple(replace(item, package_index=package_index) for item in document.students),
+        problems=document.problems,
+        submissions=tuple(
+            replace(item, package_index=package_index) for item in document.submissions
+        ),
+        observations=document.observations,
+        materials=tuple(replace(item, package_index=package_index) for item in document.materials),
+        skipped=document.skipped,
+        diagnostics=document.diagnostics,
+        order_basis=document.order_basis,
     )
 
 

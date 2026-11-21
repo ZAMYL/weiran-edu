@@ -95,6 +95,14 @@
 - 原件目录由 `Settings.originals_path`（环境变量 `WEIRAN_EDU_ORIGINALS`）指定，默认数据库同级 `originals/`，一律在仓库之外；目录 0700、文件 0600，按 `sha[:2]/sha[2:4]/sha.zip` 内容寻址，不静默覆盖。
 - C-01 的 EvidenceProvider 建议：先取 `overview.source_snapshot_id`，用 `original()` 拿原件，再按 `source.entry` + `source_index`（题块序）/ `source_row`（表行序）定位代码与测试点；把 `source_snapshot_id` 与 `asset_sha256` 一并写进结论，便于复算。
 
+## 9.1 B-03C：材料身份改为「来源包 + 包内路径」
+
+- 材料不再按批次唯一定位：`assessment_materials` 的唯一键从 `(assessment_id, entry)` 改为 `(assessment_id, asset_id, entry)`。两个 ZIP 合法包含同一内部路径（例如两班各自的 `正式答卷/答卷.html`）时，各存一条，各自带自己的 `asset_id`。
+- **对消费方的影响**：`AssessmentOverview.materials` 可能出现 `entry` 相同、`asset_id` 不同的多行。按包内路径去重或建索引时必须用 `(asset_id, entry)`；只按 `entry` 去重会把两个包的同类材料合并成一条。
+- 证据绑定顺序：上传层给每条解析记录打「第几个包」，绑定器按 `包号 + 包内路径` 命中该包自己的成员清单；记录没有包号（直接调用解析器的旧调用方）时才退回「全批次路径唯一」判定，仍不唯一则保持未绑定并写诊断 `SOURCE_ENTRY_AMBIGUOUS` / `SOURCE_ENTRY_UNRESOLVED`。
+- 新增业务错误（不再用 503 掩盖）：多包上传时材料无法确定来源 → 409 `SOURCE_AMBIGUOUS`；同一来源包内重复登记同一路径 → 409 `SOURCE_BINDING_CONFLICT`。
+- 迁移 013 只重建 `assessment_materials`，历史行整体搬运；`source_snapshot_id`、`asset_sha256`、`OriginalStore` 与读取权限校验均未改动。
+
 ## 10. 不在本契约内
 
 B-02 表格关联、DS-03 的特征提取与 `code_features` 表（预留 011）、C-01 的 Agent 调用与 `findings` 表（预留 010）都不在本次交付范围。
