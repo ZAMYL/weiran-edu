@@ -15,6 +15,7 @@ from app.core.exact_json import ExactJSONResponse
 from app.edu.analysis import AnalysisReader
 from app.edu.analysis_models import DimensionCode, GroupResult, Statistics
 from app.edu.assessment_models import (
+    AssessmentList,
     AssessmentOverview,
     AssessmentResult,
     DimensionList,
@@ -431,6 +432,13 @@ async def create_assessment(
         observation_count=summary.observation_count,
         duplicate=summary.duplicate,
     )
+
+
+@router.get("/assessments", response_model=AssessmentList)
+def list_assessments(
+    actor: Actor, reader: Reader, limit: Limit = 20, offset: Offset = 0
+) -> AssessmentList:
+    return reader.assessments(actor, limit=limit, offset=offset)
 
 
 @router.get("/assessments/{assessment_id}", response_model=AssessmentOverview)

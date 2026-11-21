@@ -235,3 +235,26 @@ class DimensionList(Model):
     mapping_configured: bool
     items: list[DimensionView]
     review_state: str = "confirmed"
+
+
+class AssessmentHistoryItem(Model):
+    """教师本人测评的历史入口；不含原始代码、不含学生姓名明细。"""
+
+    assessment_id: str
+    title: str
+    course: str | None = None
+    assessment_date: str | None = None
+    created_at: str
+    student_count: int
+    problem_count: int
+    submission_count: int
+    source_snapshot_id: str | None = None
+    review_state: str = "confirmed"
+    storage_state: str = "absent"
+
+
+class AssessmentList(Model):
+    items: list[AssessmentHistoryItem]
+    total: int
+    limit: int
+    offset: int
