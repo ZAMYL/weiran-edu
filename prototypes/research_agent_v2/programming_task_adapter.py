@@ -3,6 +3,7 @@
 import asyncio
 import json
 from collections.abc import Callable
+from contextlib import suppress
 from dataclasses import dataclass
 
 import httpx
@@ -21,7 +22,10 @@ from app.edu.programming_tasks import (
 )
 
 from prototypes.adaptive_assessment.data import Witness
-from prototypes.adaptive_assessment.live.budget import CampaignBudget, OfflineProgrammingPermit
+from prototypes.adaptive_assessment.live.budget import (
+    CampaignBudget,
+    OfflineProgrammingPermit,
+)
 from prototypes.adaptive_assessment.live.demo import MOCK_DATE
 from prototypes.adaptive_assessment.live.pricing import PRICE
 
@@ -67,9 +71,51 @@ class _TaskCampaign(CampaignBudget):
         self.mirror(self.tool_attempts)
         return ticket
 
-    def audit_tool(self, phase: str, executor: ProgrammingExecutor, _entry: dict) -> None:
+    def audit_tool(
+        self, phase: str, executor: ProgrammingExecutor, _entry: dict
+    ) -> None:
+        # Durable tool audit straight from the real executor entry. Only opaque
+        # tool/decision identifiers are stored: never code, names, paths or prompts.
+        # Persist before the budget mirror so a revoked/cancelled task still keeps
+        # the attempt record that explains why execution stopped.
+        self.record(
+            "tool_audit",
+            {
+                "tool": _entry["tool"],
+                "attempt": len(executor.attempt_ledger),
+                "phase": phase,
+                "status": _entry["status"],
+                "arguments": {
+                    key: _entry["arguments"][key]
+                    for key in ("overview_id", "direction")
+                    if key in _entry["arguments"]
+                },
+                "fact_ids": _entry.get("fact_ids", []),
+                "error": _entry.get("error"),
+            },
+        )
         if phase == "attempt":
             self.mirror(len(executor.attempt_ledger))
+
+    def record(self, phase: str, payload: dict) -> None:
+        """Reuse the task service's existing public event writer, unchanged."""
+        with self.service.database.transaction(write=True) as connection:
+            self.service.event(connection, self.task_id, phase, payload)
+
+    def reconcile(self, run: AgentRun) -> None:
+        """Server task row, campaign journal and executor session must agree."""
+        with self.service.database.transaction() as connection:
+            row = connection.execute(
+                "SELECT budget_json,tool_attempts FROM ai_programming_tasks WHERE task_id=?",
+                (self.task_id,),
+            ).fetchone()
+        budget = json.loads(row["budget_json"])
+        snapshot = self.snapshot()
+        if not (
+            budget["request_count"] == run.model_requests == snapshot["request_count"]
+            and budget["tool_attempts"] == row["tool_attempts"] == run.tool_attempts
+        ):
+            raise AgentError("programming_budget_audit_mismatch")
 
     def mirror(self, attempts: int) -> None:
         self.service.budget(
@@ -80,7 +126,9 @@ class _TaskCampaign(CampaignBudget):
         self.tool_attempts = attempts
 
 
-def install_offline_runner(service: ProgrammingTaskService, transport: httpx.MockTransport) -> None:
+def install_offline_runner(
+    service: ProgrammingTaskService, transport: httpx.MockTransport
+) -> None:
     """Bind a server-owned transport on a test host before accepting tasks."""
     if service.environment != "test" or type(transport) is not httpx.MockTransport:
         raise ValueError("offline_programming_test_host_required")
@@ -109,9 +157,12 @@ async def _investigate(
     guard: Callable[[], bool],
     transport: httpx.MockTransport,
 ) -> ProgrammingResult:
-    scope = EvidenceScope(row["teacher_id"], task_id, row["assessment_id"], row["snapshot_id"])
+    scope = EvidenceScope(
+        row["teacher_id"], task_id, row["assessment_id"], row["snapshot_id"]
+    )
     reader = AssessmentReader(service.database, originals=service.originals)
     provider = _TaskEvidenceProvider(reader, actor, scope, guard)
+    campaign = None
     try:
         source = ProgrammingSource(scope, provider)
 
@@ -120,7 +171,10 @@ async def _investigate(
             return await transport.handle_async_request(request)
 
         permit = OfflineProgrammingPermit(
-            source, row["campaign_id"], PRICE.fingerprint, max_requests=CAP_MODEL_REQUESTS
+            source,
+            row["campaign_id"],
+            PRICE.fingerprint,
+            max_requests=CAP_MODEL_REQUESTS,
         )
         campaign = _TaskCampaign(service, scope, permit)
         try:
@@ -136,13 +190,29 @@ async def _investigate(
                     run_seconds=min(90, row["deadline"] - service.clock()),
                 ),
             )
+            # Persist the real session outcome before any further budget call can
+            # raise: completed, insufficient-evidence and failed runs all stay auditable.
+            campaign.record(
+                "run_summary",
+                {
+                    "status": run.status,
+                    "reason": run.reason,
+                    "model_requests": run.model_requests,
+                    "tool_attempts": run.tool_attempts,
+                    "selected_fact_ids": list(run.selected_ids),
+                    "finding_count": len(run.cards),
+                },
+            )
             # The session also counts malformed tool attempts rejected before executor entry.
             campaign.mirror(run.tool_attempts)
+            campaign.reconcile(run)
             if run.status != "completed":
                 if run.reason in {"model_timeout", "run_timeout"}:
                     raise APIError(410, "AI_TASK_TIMEOUT", "编程调查已超时")
                 if run.reason == "tool_budget_exhausted":
-                    raise APIError(409, "AI_TOOL_BUDGET_EXHAUSTED", "工具读取预算已用尽")
+                    raise APIError(
+                        409, "AI_TOOL_BUDGET_EXHAUSTED", "工具读取预算已用尽"
+                    )
                 if run.reason in {"model_budget_exhausted", "authorized_request_limit"}:
                     raise APIError(409, "AI_BUDGET_EXHAUSTED", "模型请求预算已用尽")
                 raise AgentError("programming_investigation_failed")
@@ -151,7 +221,11 @@ async def _investigate(
             return result
         finally:
             campaign.close()
-    except AgentError:
+    except AgentError as error:
+        if campaign is not None:
+            # 审计回写失败不得掩盖原始拒绝语义。
+            with suppress(Exception):
+                campaign.record("run_aborted", {"code": str(error)})
         raise APIError(
             409, "AI_PROGRAMMING_EVIDENCE_UNAVAILABLE", "编程调查未取得可核验证据"
         ) from None
@@ -220,6 +294,8 @@ def _project(
         assessment_id=scope.batch,
         source_snapshot_id=scope.snapshot,
         asset_sha256=[asset.sha256 for asset in overview.assets],
-        statement="编程调查已完成。" if findings else "当前证据未支持可披露的编程发现。",
+        statement="编程调查已完成。"
+        if findings
+        else "当前证据未支持可披露的编程发现。",
         findings=findings,
     )
