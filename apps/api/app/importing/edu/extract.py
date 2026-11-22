@@ -27,6 +27,8 @@ MAX_CELL_CHARS = 2000
 MAX_TEXT_LINES = 20000
 MAX_HTML_ENTRIES = 200
 MAX_PDF_PAGES = 100
+# 只在前几行内识别“说明行窄于主体”的结构异常，不做全表智能分析。
+MAX_PREAMBLE_SCAN = 8
 
 
 @dataclass(frozen=True)
@@ -47,21 +49,40 @@ class ExtractedDocument:
 def extract_document(kind: str, data: bytes) -> ExtractedDocument:
     """按类型抽取；不认识的类型明确报错，不返回空结果冒充成功。"""
     if kind == detect.XLSX:
-        return _document(kind, _tables_from_xlsx(data))
+        tables, lines, warnings = _tables_from_xlsx(data)
+        return _document(kind, tables, lines, warnings)
     if kind == detect.CSV:
-        return _document(kind, _tables_from_csv(data))
+        tables, lines, warnings = _tables_from_csv(data)
+        return _document(kind, tables, lines, warnings)
     if kind == detect.TXT:
         return _document(kind, (), _lines_from_text(data))
     if kind == detect.HTML:
-        return _document(kind, _tables_from_html(data, "html"))
+        tables, lines, warnings = _tables_from_html(data, "html")
+        return _document(kind, tables, lines, warnings)
     if kind == detect.ZIP_HTML:
-        return _document(kind, _tables_from_zip_html(data))
+        tables, lines, warnings = _tables_from_zip_html(data)
+        return _document(kind, tables, lines, warnings)
     if kind == detect.DOCX:
-        tables, lines = _from_docx(data)
-        return _document(kind, tables, lines)
+        tables, lines, warnings = _from_docx(data)
+        return _document(kind, tables, lines, warnings)
     if kind == detect.PDF:
         return _document(kind, (), _lines_from_pdf(data))
     raise ImportFileError("EXTRACTION_UNSUPPORTED_KIND")
+
+
+def _build_tables(
+    raw: list[tuple[str, list[tuple[str, ...]]]],
+) -> tuple[list[ExtractedTable], list[str], list[str]]:
+    """统一走结构感知表头定位，汇集说明行与诊断。"""
+    tables: list[ExtractedTable] = []
+    lines: list[str] = []
+    warnings: list[str] = []
+    for name, rows in raw:
+        table, preamble, table_warnings = _table(name, rows)
+        tables.append(table)
+        lines.extend(preamble)
+        warnings.extend(f"{name}: {code}" for code in table_warnings)
+    return tables, lines, warnings
 
 
 def _document(
@@ -73,12 +94,57 @@ def _document(
     return ExtractedDocument(kind=kind, tables=tables, text_lines=lines, warnings=warnings)
 
 
-def _table(name: str, rows: list[tuple[str, ...]]) -> ExtractedTable:
-    """第一行当表头；行长度补齐，避免下游按列索引时越界。"""
-    header = rows[0]
-    width = len(header)
-    body = tuple(tuple(row[:width]) + ("",) * (width - len(row)) for row in rows[1:])
-    return ExtractedTable(name=name, header=header, rows=body)
+def _numeric_cell(value: str) -> bool:
+    try:
+        float(value.strip())
+    except ValueError:
+        return False
+    return True
+
+
+def _table(name: str, rows: list[tuple[str, ...]]) -> tuple[ExtractedTable, list[str], list[str]]:
+    """按行结构定位表头，不再默认“第一行就是表头”。
+
+    - 宽度取全表最大行宽，所有行补齐；**绝不按表头宽度截断数据列**。
+    - 前导行若明显窄于主体行（标题/说明行），移入文本行保留并给出诊断，
+      而不是让它们占据表头位、吞掉后续字段。
+    - 结构无法可靠判断时保留首行但显式标记 HEADER_UNCERTAIN，
+      由下游按“待确认”处理，不冒充可信字段。
+    """
+    width = max(len(row) for row in rows)
+    padded = [tuple(row) + ("",) * (width - len(row)) for row in rows]
+    nonempty = [sum(bool(cell.strip()) for cell in row) for row in padded]
+    dominant = max(nonempty)
+    warnings: list[str] = []
+    preamble: list[str] = []
+    header_index = 0
+    if dominant > 1 and nonempty[0] < dominant:
+        first_full = next((index for index, count in enumerate(nonempty) if count == dominant), 0)
+        if 0 < first_full < MAX_PREAMBLE_SCAN:
+            # 说明行特征：显著窄于主体（不超过一半），且候选表头全是文本字段名。
+            # 只是尾部略窄（如多一个逗号）不算说明行，避免误伤真实表头。
+            narrow = all(nonempty[i] * 2 <= dominant for i in range(first_full))
+            candidate_numeric = any(
+                _numeric_cell(cell) for cell in padded[first_full] if cell.strip()
+            )
+            if narrow and not candidate_numeric:
+                header_index = first_full
+                warnings.append(f"HEADER_PREAMBLE_SKIPPED:{header_index}")
+            elif narrow:
+                # 显著窄行但候选表头含数值：证据不足，保留首行与全部数据并显式存疑。
+                warnings.append("HEADER_UNCERTAIN")
+            # 只是略窄（如尾部多一个逗号）：视为正常表头，不改认、不告警。
+    header = padded[header_index]
+    if dominant > 1 and any(_numeric_cell(cell) for cell in header if cell.strip()):
+        # 表头位出现纯数值单元：可能是无表头数据，明确存疑而不是自信标注。
+        warnings.append("HEADER_UNCERTAIN")
+    for index in range(header_index):
+        line = ", ".join(cell for cell in padded[index] if cell.strip())
+        if line:
+            preamble.append(f"{name}: {line}")
+    body = tuple(padded[header_index + 1 :])
+    warnings = list(dict.fromkeys(warnings))
+    return ExtractedTable(name=name, header=header, rows=body), preamble, warnings
 
 
 def _cell(value: object) -> str:
@@ -102,7 +168,7 @@ def _lines_from_text(data: bytes) -> tuple[str, ...]:
     return tuple(lines[:MAX_TEXT_LINES])
 
 
-def _tables_from_csv(data: bytes) -> tuple[ExtractedTable, ...]:
+def _tables_from_csv(data: bytes) -> tuple[list[ExtractedTable], list[str], list[str]]:
     text = _decode_text(data)
     rows = [
         tuple(cell[:MAX_CELL_CHARS] for cell in row[:MAX_CELLS_PER_ROW])
@@ -110,32 +176,32 @@ def _tables_from_csv(data: bytes) -> tuple[ExtractedTable, ...]:
         if any(cell.strip() for cell in row)
     ]
     if not rows:
-        return ()
-    return (_table("csv", rows[:MAX_ROWS_PER_TABLE]),)
+        return [], [], []
+    return _build_tables([("csv", rows[:MAX_ROWS_PER_TABLE])])
 
 
-def _tables_from_xlsx(data: bytes) -> tuple[ExtractedTable, ...]:
+def _tables_from_xlsx(data: bytes) -> tuple[list[ExtractedTable], list[str], list[str]]:
     try:
         book = load_workbook(io.BytesIO(data), read_only=True, data_only=True)
     except Exception:
         raise ImportFileError("EXTRACTION_WORKBOOK_UNREADABLE") from None
-    tables: list[ExtractedTable] = []
+    raw: list[tuple[str, list[tuple[str, ...]]]] = []
     try:
         for sheet in book.worksheets:
             rows: list[tuple[str, ...]] = []
-            for raw in sheet.iter_rows(values_only=True):
-                cells = tuple(_cell(value) for value in (raw or ())[:MAX_CELLS_PER_ROW])
+            for raw_row in sheet.iter_rows(values_only=True):
+                cells = tuple(_cell(value) for value in (raw_row or ())[:MAX_CELLS_PER_ROW])
                 if any(cells):
                     rows.append(cells)
                 if len(rows) > MAX_ROWS_PER_TABLE:
                     raise ImportFileError("EXTRACTION_TOO_MANY_ROWS")
             if rows:
-                tables.append(_table(sheet.title, rows))
-            if len(tables) >= MAX_TABLES:
+                raw.append((sheet.title, rows))
+            if len(raw) >= MAX_TABLES:
                 break
     finally:
         book.close()
-    return tuple(tables)
+    return _build_tables(raw)
 
 
 class _HtmlTableParser(HTMLParser):
@@ -171,7 +237,7 @@ class _HtmlTableParser(HTMLParser):
             self._cell.append(data)
 
 
-def _tables_from_html(data: bytes, name: str) -> tuple[ExtractedTable, ...]:
+def _raw_html_rows(data: bytes, name: str) -> list[tuple[str, list[tuple[str, ...]]]]:
     parser = _HtmlTableParser()
     try:
         parser.feed(_decode_text(data))
@@ -179,14 +245,18 @@ def _tables_from_html(data: bytes, name: str) -> tuple[ExtractedTable, ...]:
         raise
     except Exception:
         raise ImportFileError("EXTRACTION_HTML_UNREADABLE") from None
-    tables: list[ExtractedTable] = []
-    for index, rows in enumerate(parser.tables[:MAX_TABLES]):
-        if rows:
-            tables.append(_table(f"{name}#{index}", rows[:MAX_ROWS_PER_TABLE]))
-    return tuple(tables)
+    return [
+        (f"{name}#{index}", rows[:MAX_ROWS_PER_TABLE])
+        for index, rows in enumerate(parser.tables[:MAX_TABLES])
+        if rows
+    ]
 
 
-def _tables_from_zip_html(data: bytes) -> tuple[ExtractedTable, ...]:
+def _tables_from_html(data: bytes, name: str) -> tuple[list[ExtractedTable], list[str], list[str]]:
+    return _build_tables(_raw_html_rows(data, name))
+
+
+def _tables_from_zip_html(data: bytes) -> tuple[list[ExtractedTable], list[str], list[str]]:
     try:
         with ZipFile(io.BytesIO(data)) as archive:
             entries = [
@@ -194,14 +264,14 @@ def _tables_from_zip_html(data: bytes) -> tuple[ExtractedTable, ...]:
                 for name in archive.namelist()
                 if name.lower().endswith((".html", ".htm")) and not name.endswith("/")
             ][:MAX_HTML_ENTRIES]
-            tables: list[ExtractedTable] = []
+            raw: list[tuple[str, list[tuple[str, ...]]]] = []
             for entry in entries:
-                tables.extend(_tables_from_html(archive.read(entry), entry))
-                if len(tables) >= MAX_TABLES:
+                raw.extend(_raw_html_rows(archive.read(entry), entry))
+                if len(raw) >= MAX_TABLES:
                     break
     except (BadZipFile, KeyError, OSError):
         raise ImportFileError("EXTRACTION_ZIP_UNREADABLE") from None
-    return tuple(tables[:MAX_TABLES])
+    return _build_tables(raw[:MAX_TABLES])
 
 
 def _lines_from_pdf(data: bytes) -> tuple[str, ...]:
@@ -229,7 +299,7 @@ def _lines_from_pdf(data: bytes) -> tuple[str, ...]:
 
 def _from_docx(
     data: bytes,
-) -> tuple[tuple[ExtractedTable, ...], tuple[str, ...]]:
+) -> tuple[tuple[ExtractedTable, ...], tuple[str, ...], list[str]]:
     try:
         with ZipFile(io.BytesIO(data)) as archive:
             xml = archive.read("word/document.xml")
@@ -240,7 +310,7 @@ def _from_docx(
     except Exception:
         raise ImportFileError("EXTRACTION_DOCX_UNREADABLE") from None
 
-    tables: list[ExtractedTable] = []
+    raw: list[tuple[str, list[tuple[str, ...]]]] = []
     for index, block in enumerate(root.iter(WORD_NAMESPACE + "tbl")):
         rows: list[tuple[str, ...]] = []
         for row in block.iter(WORD_NAMESPACE + "tr"):
@@ -253,13 +323,14 @@ def _from_docx(
             if any(cells):
                 rows.append(tuple(cells[:MAX_CELLS_PER_ROW]))
         if rows:
-            tables.append(_table(f"table{index}", rows[:MAX_ROWS_PER_TABLE]))
-        if len(tables) >= MAX_TABLES:
+            raw.append((f"table{index}", rows[:MAX_ROWS_PER_TABLE]))
+        if len(raw) >= MAX_TABLES:
             break
 
+    tables, preamble, warnings = _build_tables(raw)
     paragraphs = [
         "".join(node.text or "" for node in paragraph.iter(WORD_NAMESPACE + "t")).strip()
         for paragraph in root.iter(WORD_NAMESPACE + "p")
     ]
-    lines = tuple(text for text in paragraphs if text)[:MAX_TEXT_LINES]
-    return tuple(tables), lines
+    lines = tuple(preamble + [text for text in paragraphs if text])[:MAX_TEXT_LINES]
+    return tuple(tables), lines, warnings
