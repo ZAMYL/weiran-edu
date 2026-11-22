@@ -199,7 +199,12 @@ class MaterialProfile:
 
 
 def build_profile(inputs: tuple[MaterialInput, ...]) -> MaterialProfile:
-    if not inputs or len(inputs) > 24 or len({i.source_id for i in inputs}) != len(inputs):
+    if (
+        not inputs
+        or len(inputs) > 24
+        or any(not isinstance(i.source_id, str) or not i.source_id.strip() for i in inputs)
+        or len({i.source_id for i in inputs}) != len(inputs)
+    ):
         raise ValueError("invalid_material_sources")
     files, tables, columns, locators = [], {}, {}, {}
     cell_count = 0

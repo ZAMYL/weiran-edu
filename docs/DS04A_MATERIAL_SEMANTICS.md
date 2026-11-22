@@ -36,3 +36,26 @@ uv run --locked pytest -q tests/ai_edu/test_material_semantics.py tests/ai_edu/t
 | DS-03 / C-01 | DS-03 仅从可复核且受支持的代码证据产生特征/错误模式。C-01 仍从其正式 EvidenceProvider 获取判题、测试、Witness 和可选特征，不读取此处模型文本；须由 B-04 正式准入后传入 `c01_admitted`，不可因计划可用而绕过权限。 |
 
 参考对象：B-01 [#105](https://github.com/ZAMYL/weiran-edu/pull/105) `ec0e1e3`、DS-03 [#108](https://github.com/ZAMYL/weiran-edu/pull/108) `b929787`、C-01 [#107](https://github.com/ZAMYL/weiran-edu/pull/107) `ce8fb6a`。本 PR 基于 main，未合并这些参考实现。正式适配、审批、数据库回读和模型质量留待联调。
+
+## DS-04-S1 调用
+
+```python
+from app.ai.edu.material_contract import MaterialInput
+from app.ai.edu.material_semantics import extract_material_input, understand_materials
+
+# 二选一。source_id 由服务端生成并绑定原件版本。
+material = extract_material_input(data, source_id=asset_version)
+material = MaterialInput(extracted_document, source_id=asset_version)
+plan = await understand_materials((material,))
+```
+
+可以一次传入多个 `MaterialInput`。默认使用 DS-04B 的本地规则。已有独立外发授权和预算时，
+服务端可以传入 `send=` 回调，候选仍走同一引用、类型和关联校验。回调只接收安全概要。
+
+B-02 消费 `assessment.roles / fields / links` 的状态、原因和证据；
+`needs_confirmation` 列出仍待核查的位置，包含规则或模型弃答的有数据列。
+使用 `locators` 将引用指回当前抽取结构的来源版本、工作表和列，索引从 0 开始。
+`capabilities` 的 `available` 及 `missing` 反映实际字段和准入证据。
+从文件构造的输入默认覆盖度为 `unknown`，且没有 `TableAuthority`。
+仅上游已验证的映射、覆盖、身份域和权限可以通过可信服务端输入提交。
+本轮定向验证 XLSX 与 CSV，正式上传、人工确认写入和 SQLite 入库仍由后续接线提供。

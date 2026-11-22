@@ -172,3 +172,4 @@ class MaterialPlan:
     capabilities: tuple[Capability, ...]
     locators: dict[str, Locator] = field(repr=False)
     overview: dict = field(repr=False)
+    needs_confirmation: tuple[str, ...] = ()
