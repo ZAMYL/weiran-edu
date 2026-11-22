@@ -23,11 +23,6 @@ from pathlib import Path
 from typing import Literal
 
 import httpx
-from app.ai.edu.discovery.models import AgentError, AgentRun, Limits, Strict
-from app.ai.edu.qwen_config import QwenSettings
-from app.core.errors import APIError
-from pydantic import Field, field_validator
-
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.pricing import reviewed_price
 from prototypes.qwen_execution.runtime import code_fingerprint
@@ -41,10 +36,14 @@ from prototypes.research_agent_v2.programming_evidence import (
     ProgrammingSource,
 )
 from prototypes.research_agent_v2.programming_task_adapter import (
-    _TaskEvidenceProvider,
     _project,
+    _TaskEvidenceProvider,
 )
+from pydantic import Field, field_validator
 
+from app.ai.edu.discovery.models import AgentError, AgentRun, Limits, Strict
+from app.ai.edu.qwen_config import QwenSettings
+from app.core.errors import APIError
 from app.edu.assessments import AssessmentReader
 from app.edu.auth import Principal
 from app.edu.programming_tasks import (
@@ -157,9 +156,7 @@ class ProgrammingLiveAdmission:
         except ValueError:
             raise AgentError("programming_live_approval_invalid") from None
         approval.check(today or date.today())
-        root = _outside_repository(
-            env.get(LEDGER_ROOT_ENV, ""), "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT"
-        )
+        root = _outside_repository(env.get(LEDGER_ROOT_ENV, ""), "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT")
         return cls(approval=approval, ledger_root=root)
 
     def require_source(self, assessment_id: str, snapshot_id: str) -> None:
@@ -233,7 +230,13 @@ class ProgrammingLiveBudget(CampaignBudget):
         bound = admission.approval.model_copy(
             update={"source_fingerprints": {source.recipe: source.fingerprint}}
         )
-        self._initialize(bound, None, origin="qwen_live")
+        origin = "qwen_live" if transport is None else "http_mock"
+        # Test hosts never write a real Live journal; their synthetic run is
+        # visible as http_mock and cannot be mistaken for the network origin.
+        state_dir = (
+            None if transport is None else service.database.path.parent / "programming-live-tests"
+        )
+        self._initialize(bound, state_dir, origin=origin)
 
     def _check_authorization(self) -> None:
         # A revocation, credential expiry or deadline must stop the next model
@@ -267,11 +270,6 @@ class ProgrammingLiveBudget(CampaignBudget):
             tool_attempts=attempts,
         )
         self.tool_attempts = attempts
-
-    def reserve(self) -> int:
-        ticket = super().reserve()
-        self.mirror(self.tool_attempts)
-        return ticket
 
     def audit_tool(self, phase: str, executor: ProgrammingExecutor, entry: dict) -> None:
         payload = {
@@ -366,6 +364,8 @@ async def _investigate_live(
     reader = AssessmentReader(service.database, originals=service.originals)
     provider = _TaskEvidenceProvider(reader, actor, scope, guard)
     budget = None
+    live_network = transport is None
+    origin = "qwen_live" if live_network else "http_mock"
     try:
         source = ProgrammingSource(scope, provider)
         admission.require_source(scope.batch, source.fingerprint)
@@ -374,13 +374,12 @@ async def _investigate_live(
         service.record_provenance(
             task_id,
             {
-                "execution_origin": "qwen_live",
+                "execution_origin": origin,
+                "execution_mode": "live_network" if live_network else "test_mock",
                 "real_qwen": "not_run",
-                "production_enabled": True,
+                "production_enabled": live_network,
                 "model": settings.model,
-                "endpoint_sha256": sha256(
-                    settings.base_url.rstrip("/").encode()
-                ).hexdigest(),
+                "endpoint_sha256": sha256(settings.base_url.rstrip("/").encode()).hexdigest(),
                 "approval_reference": admission.approval.human_approval_reference,
                 "independent_review_reference": admission.approval.independent_review_reference,
                 "approval_campaign_id": admission.approval.campaign_id,
@@ -447,7 +446,8 @@ async def _investigate_live(
         service.record_provenance(
             task_id,
             {
-                "real_qwen": "completed",
+                "real_qwen": "completed" if live_network else "not_run",
+                "production_enabled": live_network,
                 "model_requests": run.model_requests,
                 "tool_attempts": run.tool_attempts,
                 "result_summary": {

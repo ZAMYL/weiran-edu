@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import sys
 
-from app.production import build_programming_worker
 from app.edu.programming_worker import ProgrammingWorker
+from app.production import build_programming_worker
 
 
 def main() -> int:

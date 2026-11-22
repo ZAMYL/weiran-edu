@@ -158,14 +158,14 @@ class ProgrammingTaskService:
         The old five-dimension admission is deliberately not reused: this path
         requires its own programming approval, source binding and code review.
         """
-        if self.environment != "production":
-            blocked("AI_LIVE_NOT_ENABLED", 503, "编程调查的真实模型执行仅在生产环境启用")
         if self.runner is None:
             blocked(
                 "AI_LIVE_ADMISSION_REQUIRED",
                 409,
                 "编程调查尚未安装受控执行器，未发起任何请求",
             )
+        if self.environment != "production":
+            blocked("AI_LIVE_NOT_ENABLED", 503, "编程调查的真实模型执行仅在生产环境启用")
         try:
             from app.edu.programming_live import ProgrammingLiveAdmission
 
@@ -563,15 +563,36 @@ class ProgrammingTaskService:
             self.check(connection, current, actor, running=True)
             provenance = json.loads(current["provenance_json"] or "{}")
             budget = json.loads(current["budget_json"])
-            if current["purpose"] == PURPOSE_LIVE and (
-                provenance.get("execution_origin") != "qwen_live"
-                or budget.get("request_count", 0) <= 0
-            ):
-                blocked(
-                    "AI_LIVE_PROVENANCE_REQUIRED",
-                    409,
-                    "真实任务缺少执行来源或模型请求记录，拒绝发布结果",
-                )
+            if current["purpose"] == PURPOSE_LIVE:
+                mode = provenance.get("execution_mode")
+                if mode == "live_network":
+                    if (
+                        provenance.get("execution_origin") != "qwen_live"
+                        or not provenance.get("production_enabled")
+                        or budget.get("request_count", 0) <= 0
+                    ):
+                        blocked(
+                            "AI_LIVE_PROVENANCE_REQUIRED",
+                            409,
+                            "真实任务缺少执行来源或模型请求记录，拒绝发布结果",
+                        )
+                elif mode == "test_mock":
+                    if (
+                        provenance.get("execution_origin") != "http_mock"
+                        or provenance.get("production_enabled")
+                        or budget.get("request_count", 0) <= 0
+                    ):
+                        blocked(
+                            "AI_LIVE_PROVENANCE_REQUIRED",
+                            409,
+                            "测试执行来源记录不一致，拒绝发布结果",
+                        )
+                else:
+                    blocked(
+                        "AI_LIVE_PROVENANCE_REQUIRED",
+                        409,
+                        "真实任务缺少执行模式，拒绝发布结果",
+                    )
             self.verify_originals(connection, current)
             self.verify_result(connection, current, result)
             raw = result.model_dump(mode="json")
@@ -588,9 +609,12 @@ class ProgrammingTaskService:
                 }
             )
             if current["purpose"] == PURPOSE_LIVE:
-                provenance["production_enabled"] = True
-                if provenance.get("execution_origin") == "qwen_live":
+                if provenance.get("execution_mode") == "live_network":
+                    provenance["production_enabled"] = True
                     provenance["real_qwen"] = "completed"
+                elif provenance.get("execution_mode") == "test_mock":
+                    provenance["production_enabled"] = False
+                    provenance["real_qwen"] = "not_run"
             connection.execute(
                 "UPDATE ai_programming_tasks SET state='completed',result_json=?,result_sha=?,"
                 "error_code=NULL,provenance_json=? WHERE task_id=?",
@@ -697,19 +721,21 @@ class ProgrammingTaskService:
         )
         with self.database.transaction(write=True) as connection:
             current = connection.execute(
-                "SELECT purpose,budget_json,provenance_json FROM ai_programming_tasks "
-                "WHERE task_id=?",
+                "SELECT g.purpose,t.budget_json,t.provenance_json "
+                "FROM ai_programming_tasks t JOIN ai_programming_grants g USING(grant_id) "
+                "WHERE t.task_id=?",
                 (task_id,),
             ).fetchone()
             if current is None:
                 return
             provenance = json.loads(current["provenance_json"] or "{}")
-            if current["purpose"] == PURPOSE_LIVE and provenance.get("execution_origin") == "qwen_live":
+            if (
+                current["purpose"] == PURPOSE_LIVE
+                and provenance.get("execution_origin") == "qwen_live"
+            ):
                 budget = json.loads(current["budget_json"])
                 provenance["production_enabled"] = True
-                provenance["real_qwen"] = (
-                    "failed" if budget.get("request_count", 0) else "not_run"
-                )
+                provenance["real_qwen"] = "failed" if budget.get("request_count", 0) else "not_run"
             connection.execute(
                 "UPDATE ai_programming_tasks SET state=?,error_code=?,result_json=NULL,"
                 "result_sha=NULL,provenance_json=? WHERE task_id=? "
@@ -737,7 +763,7 @@ class ProgrammingTaskService:
             origin, real_qwen, production_enabled = "http_mock", "not_run", False
         else:
             origin = provenance.get("execution_origin", "none")
-            if origin not in ("qwen_live", "none"):
+            if origin not in ("qwen_live", "http_mock", "none"):
                 origin = "none"
             real_qwen = provenance.get("real_qwen", "not_run")
             if real_qwen not in ("not_run", "completed", "failed"):
@@ -745,7 +771,11 @@ class ProgrammingTaskService:
             production_enabled = bool(provenance.get("production_enabled", False))
             # A revoked/cancelled/timed-out row must never expose a successful
             # execution badge, even when some model calls had already completed.
-            if row["state"] != "completed" and origin == "qwen_live" and budget.get("request_count", 0):
+            if (
+                row["state"] != "completed"
+                and origin == "qwen_live"
+                and budget.get("request_count", 0)
+            ):
                 real_qwen = "failed"
         return ProgrammingTaskView(
             task_id=task_id,

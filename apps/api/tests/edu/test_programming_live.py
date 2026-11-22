@@ -8,18 +8,16 @@ from hashlib import sha256
 
 import pytest
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
-
 from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261119
 from prototypes.qwen_execution.runtime import code_fingerprint
 from prototypes.research_agent_v2.programming import INSPECT, OVERVIEW
 from prototypes.research_agent_v2.programming_task_adapter import install_offline_runner
+from pydantic import SecretStr
 
 from app.core.config import Settings
 from app.edu.programming_live import install_live_runner
 from app.edu.programming_worker import ProgrammingWorker
 from app.main import create_app
-
 from edu.test_c01_database_evidence import upload
 from edu.test_programming_task_agent import archive, transport
 from edu.test_programming_tasks import URL, bindings
@@ -76,9 +74,7 @@ def test_live_task_runs_through_worker_and_is_readable_after_restart(
         client.headers["Authorization"] = "Bearer " + runtime.token
         assessment = upload(client, archive(0))
         snapshot = bindings(runtime, assessment)["snapshot"]
-        approval = _write_approval(
-            approval_path, assessment, snapshot, "live02-synthetic-001"
-        )
+        approval = _write_approval(approval_path, assessment, snapshot, "live02-synthetic-001")
         service = app.state.programming_tasks
         mock, decisions = transport()
         install_live_runner(service, settings=_settings(), transport=mock)
@@ -96,9 +92,9 @@ def test_live_task_runs_through_worker_and_is_readable_after_restart(
         view = client.get(f"{URL}/{assessment}/ai-tasks/{task_id}").json()
         assert view["state"] == "completed", view
         assert (view["execution_origin"], view["real_qwen"], view["production_enabled"]) == (
-            "qwen_live",
-            "completed",
-            True,
+            "http_mock",
+            "not_run",
+            False,
         )
         assert [decision["name"] for decision in decisions] == [OVERVIEW, INSPECT, "finish"]
         assert (view["model_requests"], view["tool_attempts"]) == (3, 2)
@@ -115,7 +111,8 @@ def test_live_task_runs_through_worker_and_is_readable_after_restart(
         assert provenance["approval_reference"] == approval["human_approval_reference"]
         assert provenance["budget"]["request_count"] == 3
         assert provenance["budget"]["tool_attempts"] == 2
-        assert provenance["real_qwen"] == "completed"
+        assert provenance["execution_mode"] == "test_mock"
+        assert provenance["real_qwen"] == "not_run"
         phases = [event["phase"] for event in events]
         assert {"queued", "running", "model_budget", "tool_audit", "run_summary"} <= set(phases)
         wire = json.dumps([dict(event) for event in events])
@@ -139,9 +136,7 @@ def test_live_without_approval_is_rejected_before_a_task_row(runtime):
     with TestClient(app) as client:
         client.headers["Authorization"] = "Bearer " + runtime.token
         assessment = upload(client, archive(0))
-        response = client.post(
-            f"{URL}/{assessment}/ai-tasks", json={"idempotency_key": "no-live"}
-        )
+        response = client.post(f"{URL}/{assessment}/ai-tasks", json={"idempotency_key": "no-live"})
         assert response.status_code == 409
         assert response.json()["error"]["code"] == "AI_LIVE_ADMISSION_REQUIRED"
         with runtime.db.transaction() as connection:
