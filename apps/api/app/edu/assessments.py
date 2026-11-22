@@ -14,6 +14,8 @@ from uuid import uuid4
 
 from app.core.errors import APIError
 from app.edu.assessment_models import (
+    AssessmentHistoryItem,
+    AssessmentList,
     AssessmentOverview,
     AssetInfo,
     DiagnosticInfo,
@@ -542,6 +544,45 @@ class AssessmentReader:
             source_snapshot_id=row["source_snapshot_id"],
             payload=payload,
         )
+
+    def assessments(self, principal: Principal, *, limit: int, offset: int) -> AssessmentList:
+        """教师本人的测评历史入口：只给标识、快照与复核状态，不含代码与学生明细。"""
+        with self.database.transaction() as connection:
+            total = connection.execute(
+                "SELECT COUNT(*) FROM assessments WHERE owner_teacher_id=?",
+                (principal.teacher_id,),
+            ).fetchone()[0]
+            rows = connection.execute(
+                "SELECT a.assessment_id,a.title,a.course,a.assessment_date,a.created_at,"
+                "a.student_count,a.problem_count,a.submission_count,a.source_snapshot_id,"
+                "a.review_state,COUNT(s.asset_id) AS assets,"
+                "COUNT(s.asset_id) FILTER (WHERE s.storage_state='stored') AS stored "
+                "FROM assessments a LEFT JOIN assessment_assets s USING(assessment_id) "
+                "WHERE a.owner_teacher_id=? GROUP BY a.assessment_id "
+                "ORDER BY a.created_at DESC, a.assessment_id DESC LIMIT ? OFFSET ?",
+                (principal.teacher_id, limit, offset),
+            ).fetchall()
+        items = []
+        for row in rows:
+            state = "stored" if row["stored"] else "absent"
+            if row["assets"] and row["stored"] and row["stored"] != row["assets"]:
+                state = "partial"
+            items.append(
+                AssessmentHistoryItem(
+                    assessment_id=row["assessment_id"],
+                    title=row["title"],
+                    course=row["course"],
+                    assessment_date=row["assessment_date"],
+                    created_at=row["created_at"],
+                    student_count=row["student_count"],
+                    problem_count=row["problem_count"],
+                    submission_count=row["submission_count"],
+                    source_snapshot_id=row["source_snapshot_id"],
+                    review_state=row["review_state"],
+                    storage_state=state,
+                )
+            )
+        return AssessmentList(items=items, total=total, limit=limit, offset=offset)
 
     def overview(self, principal: Principal, assessment_id: str) -> AssessmentOverview:
         with self.database.transaction() as connection:

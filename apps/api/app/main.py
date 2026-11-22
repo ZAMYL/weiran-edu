@@ -32,12 +32,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         from app.edu.assessments import AssessmentReader, AssessmentService
         from app.edu.discovery_disconnect import DiscoveryDisconnectMiddleware
         from app.edu.originals import OriginalStore
+        from app.edu.programming_tasks import ProgrammingTaskService
         from app.edu.service import EduService
         from app.importing.edu.worker import parse_isolated
         from app.routers.edu import router as edu_router
         from app.routers.edu_discoveries import router as edu_discoveries_router
         from app.routers.edu_reviews import router as edu_reviews_router
         from app.routers.edu_support import router as edu_support_router
+        from app.routers.programming import router as programming_router
         from app.storage.database import Database
 
         application.state.edu_service = EduService(
@@ -52,11 +54,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             application.state.edu_service.database,
             originals=application.state.assessment_service.originals,
         )
+        application.state.programming_tasks = ProgrammingTaskService(
+            application.state.edu_service.database,
+            originals=application.state.assessment_service.originals,
+            environment=application.state.settings.environment,
+        )
         application.include_router(edu_router)
         application.include_router(edu_discoveries_router)
         application.include_router(edu_reviews_router)
         application.include_router(edu_support_router)
         application.include_router(ai_capability_router)
+        application.include_router(programming_router)
         live_requested = application.state.settings.environment == "production" and os.environ.get(
             "WEIRAN_EDU_REAL_DATA_APPROVAL"
         )
