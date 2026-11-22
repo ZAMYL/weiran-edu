@@ -4,6 +4,40 @@ import { GET, POST, PATCH } from './[...path]/route';
 const bearer = 'Bearer synthetic-test-credential-not-real';
 const context = (path: string) => ({ params: Promise.resolve({ path: path.split('/') }) });
 
+it('scopes answer-sheet upload limits, evidence queries, and routes', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => Response.json({}));
+  vi.stubGlobal('fetch', fetcher);
+  const url = 'http://localhost/api/edu/';
+  const headers = { authorization: bearer };
+  const student = 'assessments/a/students/s';
+  const snapshot = '?source_snapshot_id=' + 'a'.repeat(64);
+  expect(
+    (await GET(new Request(url + student + snapshot, { headers }), context(student))).status,
+  ).toBe(200);
+  expect(String(fetcher.mock.calls[0]?.[0])).toContain(snapshot);
+  const overview = 'assessments/a';
+  expect(
+    (await GET(new Request(url + overview + snapshot, { headers }), context(overview))).status,
+  ).toBe(403);
+  const report = 'assessments/a/report';
+  expect((await GET(new Request(url + report, { headers }), context(report))).status).toBe(404);
+  const large = { ...headers, 'content-length': '100000' };
+  expect(
+    (
+      await POST(
+        new Request(url + 'assessments', { method: 'POST', headers: large }),
+        context('assessments'),
+      )
+    ).status,
+  ).toBe(200);
+  const commit = 'imports/i/commit';
+  expect(
+    (await POST(new Request(url + commit, { method: 'POST', headers: large }), context(commit)))
+      .status,
+  ).toBe(413);
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+
 it('relays live AI only with an explicit server switch and a teacher credential', async () => {
   vi.stubEnv('EDU_AI_LIVE_MODE', '1');
   const fetcher = vi

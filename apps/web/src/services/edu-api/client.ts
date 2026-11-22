@@ -1,6 +1,14 @@
 import { ContractError, flag, object, type Decoder } from './schema';
 import { teacherAiError } from './teacher-ai-guidance';
 import {
+  answerSheetDto,
+  answerSheetEvidenceDto,
+  answerSheetImportDto,
+  answerSheetListDto,
+  answerSheetPatternsDto,
+  answerSheetStudentsDto,
+} from './answer-sheets';
+import {
   discoveriesDto,
   discoveryDetailDto,
   discoveryChartDto,
@@ -766,6 +774,38 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
         signal,
         (response) => readReportFile(response, { resultId, version, format }),
       ),
+    uploadAnswerSheets: (form: FormData, signal?: AbortSignal) =>
+      request('/assessments', answerSheetImportDto, { method: 'POST', body: form }, signal),
+    answerSheets: (offset: number, signal?: AbortSignal) =>
+      get(`/assessments?offset=${offset}&limit=20`, answerSheetListDto, signal),
+    answerSheet: async (assessmentId: string, signal?: AbortSignal) => {
+      const path = `/assessments/${id(assessmentId)}`;
+      const [overview, patterns, students] = await Promise.all([
+        get(path, answerSheetDto, signal),
+        get(`${path}/patterns`, answerSheetPatternsDto, signal),
+        get(`${path}/students`, answerSheetStudentsDto, signal),
+      ]);
+      if ([overview, patterns, students].some((item) => item.assessment_id !== assessmentId))
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return { overview, patterns: patterns.items, students: students.items };
+    },
+    answerSheetEvidence: async (
+      assessmentId: string,
+      studentPk: string,
+      sourceSnapshot: string | null,
+      signal?: AbortSignal,
+    ) => {
+      const query = sourceSnapshot ? `?source_snapshot_id=${id(sourceSnapshot)}` : '';
+      const evidence = await get(
+        `/assessments/${id(assessmentId)}/students/${id(studentPk)}${query}`,
+        answerSheetEvidenceDto,
+        signal,
+      );
+      if (evidence.assessment_id !== assessmentId || evidence.student_pk !== studentPk)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      if (evidence.source_snapshot_id !== sourceSnapshot) throw new ApiError(409, 'SOURCE_CHANGED');
+      return evidence;
+    },
     preview: (form: FormData, signal?: AbortSignal) =>
       request<ApiImport | QuestionPreview>(
         '/imports/preview',

@@ -31,6 +31,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [help, setHelp] = useState(false);
   const { message } = App.useApp();
   const page = pages.find((p) => pathname.startsWith(p.to)) ?? pages[0]!;
+  const answerSheets = pathname.startsWith('/data/answer-sheets');
   const uploadWorkspace =
     pathname === '/insights' &&
     (dataMode.assessmentPanel === 'upload' ||
@@ -46,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     (dataMode.testMode &&
       dataMode.syntheticAi &&
       dataMode.scopes.some((scope) => scope.label === '合成AI集成验收'));
-  const pageTitle = uploadWorkspace ? '上传测评资料' : page.label;
+  const pageTitle = answerSheets ? '编程答题卡' : uploadWorkspace ? '上传测评资料' : page.label;
   useEffect(() => {
     document.title = '未然 EDU｜AI 时代的编程能力与学习成效诊断平台';
   }, [page]);
@@ -99,7 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <>
             <div className="fullscreen-title">{pageTitle}</div>
             <div className="topbar-actions">
-              {!uploadWorkspace && !emptyWorkspace && batchSelect}
+              {!answerSheets && !uploadWorkspace && !emptyWorkspace && batchSelect}
               {fullButton}
             </div>
           </>
@@ -152,7 +153,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <h1>{pageTitle}</h1>
               </div>
             )}
-            {!fullscreen && !emptyWorkspace && (
+            {!fullscreen && !answerSheets && !emptyWorkspace && (
               <section className="assessment-toolbar" aria-label="当前测评工作台">
                 {!uploadWorkspace && batchSelect}
                 {!uploadWorkspace && (
@@ -203,6 +204,25 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="workspace-summary" ref={setSummaryHost} />
         </div>
+        {(answerSheets || uploadWorkspace || pathname === '/data') && (
+          <nav className="main-nav assessment-kind-nav" aria-label="测评资料类型">
+            <Link
+              href="/insights"
+              aria-current={!answerSheets ? 'page' : undefined}
+              className={!answerSheets ? 'active' : undefined}
+              onClick={() => dataMode.openAssessments('upload')}
+            >
+              评分与评价
+            </Link>
+            <Link
+              href="/data/answer-sheets"
+              aria-current={answerSheets ? 'page' : undefined}
+              className={answerSheets ? 'active' : undefined}
+            >
+              编程答题卡
+            </Link>
+          </nav>
+        )}
         <WorkspaceLayoutContext.Provider value={{ fullscreen, summaryHost }}>
           {children}
         </WorkspaceLayoutContext.Provider>
