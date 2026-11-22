@@ -272,8 +272,12 @@ def _build_database_before(path: Path, last: str) -> None:
 
 @pytest.mark.parametrize(
     "last_migration",
-    ["009_evidence_provenance.sql", "012_original_artifacts.sql"],
-    ids=["pre-012", "pre-013"],
+    [
+        "009_evidence_provenance.sql",
+        "012_original_artifacts.sql",
+        "013_material_package_scope.sql",
+    ],
+    ids=["pre-012", "pre-013", "pre-014"],
 )
 def test_upgrade_keeps_material_rows_and_relaxes_scope(tmp_path, last_migration):
     path = tmp_path / "legacy.sqlite3"
@@ -352,7 +356,14 @@ def test_upgrade_keeps_material_rows_and_relaxes_scope(tmp_path, last_migration)
         "009_evidence_provenance.sql",
         "012_original_artifacts.sql",
         "013_material_package_scope.sql",
+        "014_programming_tasks.sql",
     }
+    assert {
+        row[0]
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'ai_programming_%'"
+        )
+    } == {"ai_programming_grants", "ai_programming_tasks", "ai_programming_events"}
     rows = connection.execute(
         "SELECT material_id,entry,asset_id FROM assessment_materials ORDER BY material_id"
     ).fetchall()
