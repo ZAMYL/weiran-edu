@@ -14,14 +14,14 @@ from datetime import date
 from decimal import Decimal
 from hashlib import sha256
 from pathlib import Path
-from typing import Literal
+from typing import ClassVar, Literal, Self
+
+from app.ai.edu.discovery.models import AgentError, Strict
+from pydantic import Field
 
 from prototypes.adaptive_assessment.live.budget import CampaignBudget
 from prototypes.adaptive_assessment.live.pricing import reviewed_price
 from prototypes.qwen_execution.runtime import code_fingerprint
-from pydantic import Field
-
-from app.ai.edu.discovery.models import AgentError, Strict
 
 APPROVAL_ENV = "WEIRAN_EDU_QWEN_LIVE_APPROVAL"
 LEDGER_ROOT_ENV = "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT"
@@ -86,15 +86,16 @@ class ExternalizationScope:
 
 @dataclass(frozen=True)
 class LiveAdmission:
+    approval_environment: ClassVar[str] = APPROVAL_ENV
+    approval_type: ClassVar[type[DatabaseLiveApproval]] = DatabaseLiveApproval
+
     approval: DatabaseLiveApproval = field(repr=False)
     ledger_root: Path
 
     @classmethod
-    def load(
-        cls, environ: Mapping[str, str] | None = None, *, today: date | None = None
-    ) -> LiveAdmission:
+    def load(cls, environ: Mapping[str, str] | None = None, *, today: date | None = None) -> Self:
         env = os.environ if environ is None else environ
-        raw_path = env.get(APPROVAL_ENV)
+        raw_path = env.get(cls.approval_environment)
         if not raw_path:
             raise AgentError("live_admission_not_configured")
         path = Path(raw_path).expanduser()
@@ -106,7 +107,7 @@ class LiveAdmission:
             raise AgentError("live_approval_unreadable") from None
         if len(payload) > MAX_APPROVAL_BYTES:
             raise AgentError("live_approval_too_large")
-        approval = DatabaseLiveApproval.model_validate_json(payload)
+        approval = cls.approval_type.model_validate_json(payload)
         approval.check(today or date.today())
         raw_root = env.get(LEDGER_ROOT_ENV)
         if not raw_root:
