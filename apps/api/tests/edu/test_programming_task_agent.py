@@ -190,6 +190,32 @@ def test_formal_programming_task_persists_verified_c01_result(client_factory, ru
     assert len(decisions) == len(expected)
 
 
+@pytest.mark.parametrize("damage", ["tampered", "missing"])
+def test_completed_task_get_rejects_invalid_original_after_restart(client_factory, runtime, damage):
+    mock, decisions = transport()
+    with client_factory(runtime.token) as client:
+        assessment = upload(client, archive(0))
+        service = client.app.state.programming_tasks
+        install_offline_runner(service, mock)
+        response, view = submit(client, assessment, "c01-completed-original")
+        assert response.status_code == 202
+        assert view["state"] == "completed" and view["result"]["findings"]
+        original = service.originals.path_for(view["result"]["asset_sha256"][0])
+
+    path = f"{URL}/{assessment}/ai-tasks/{view['task_id']}"
+    with client_factory(runtime.token) as restarted:
+        assert restarted.get(path).json() == view
+        if damage == "tampered":
+            original.write_bytes(b"changed synthetic ZIP")
+        else:
+            original.unlink()
+        invalid = restarted.get(path)
+        assert invalid.status_code == 409
+        assert invalid.json()["error"]["code"] == "ORIGINAL_UNAVAILABLE"
+        assert invalid.json().get("result") is None
+    assert len(decisions) == 3
+
+
 def test_formal_programming_task_keeps_unknown_evidence_unknown(client):
     assessment = upload(client, archive(0, unknown=True))
     mock, decisions = transport()
