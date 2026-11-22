@@ -19,7 +19,7 @@ from typing import Literal
 from uuid import uuid4
 
 from app.core.errors import APIError
-from app.edu.auth import Principal, require_teacher
+from app.edu.auth import Principal, require_scope, require_teacher
 from app.edu.models import Identifier, Model
 from app.edu.originals import OriginalStore
 from app.storage.database import Database
@@ -189,6 +189,13 @@ class ProgrammingTaskService:
         if row["teacher_id"] != actor.teacher_id:
             blocked("RESOURCE_NOT_FOUND", 404, "任务不存在")
         assessment = self._owned(connection, actor, row["assessment_id"])
+        # 任务执行期一律用创建时绑定的凭证重验：当前请求是谁并不重要。
+        principal = Principal(row["teacher_id"], row["credential_sha"])
+        require_teacher(connection, principal, stamp(datetime.now(UTC)))
+        try:
+            require_scope(connection, principal, assessment["data_scope_id"])
+        except APIError:
+            raise APIError(403, "AI_SCOPE_REVOKED", "教师已失去该数据范围的访问权") from None
         if not assessment["source_snapshot_id"] or (
             assessment["source_snapshot_id"] != row["snapshot_id"]
         ):
@@ -408,7 +415,9 @@ class ProgrammingTaskService:
     def execute(self, task_id: str) -> None:
         try:
             row = self.start(task_id)
-        except APIError:
+        except APIError as error:
+            # 认领被拒时也要落终态，绝不把任务静默留在 queued。
+            self.fail(task_id, error.code)
             return
         try:
             actor = Principal(row["teacher_id"], row["credential_sha"])

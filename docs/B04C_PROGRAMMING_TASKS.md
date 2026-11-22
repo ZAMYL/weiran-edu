@@ -63,6 +63,12 @@ REFERENCES batches`，`check()` 走 `BatchReader`，`source()` 走 `DatabaseProv
 执行期三道闸：模型请求前、工具读取前（`guard()`）、结果发布前（`finish()` 内 `check` +
 逐字节回读原件 + 证据归属校验）都会重新校验。
 
+每次 `check()` 都用创建时绑定的 `credential_sha` 调 `require_teacher()` 重验凭证与教师在职状态
+（不是只信当前请求里的 teacher_id），并重查 `scope_members` 里该测评 `data_scope_id` 的访问权；
+凭证撤销/教师停用返回 401 `UNAUTHORIZED`，数据范围被移除返回 403 `AI_SCOPE_REVOKED`。
+认领阶段被拒同样落终态（`failed` + 对应 `error_code`），不会把任务静默留在 `queued`；
+已完成的旧任务在凭证撤销后也无法再读取。
+
 ## 4. Live 准入
 
 - `environment == "test"` 且注入了受控执行器 → `purpose=assessment_mock`，`execution_origin=http_mock`，
@@ -75,6 +81,8 @@ REFERENCES batches`，`check()` 走 `BatchReader`，`source()` 走 `DatabaseProv
 | 场景 | 状态 | 码 |
 | --- | --- | --- |
 | 越权/不存在 | 404 | `RESOURCE_NOT_FOUND` |
+| 凭证撤销/教师停用 | 401 | `UNAUTHORIZED` |
+| 数据范围访问权被移除 | 403 | `AI_SCOPE_REVOKED` |
 | 授权撤销/过期 | 403 / 410 | `AI_PURPOSE_REVOKED` / `AI_TASK_EXPIRED` |
 | 来源快照或资产变化 | 409 | `AI_SOURCE_CONFLICT` |
 | 无不可变快照 | 409 | `AI_SOURCE_UNVERIFIED` |
