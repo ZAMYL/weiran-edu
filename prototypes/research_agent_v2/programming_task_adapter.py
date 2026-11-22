@@ -71,9 +71,7 @@ class _TaskCampaign(CampaignBudget):
         self.mirror(self.tool_attempts)
         return ticket
 
-    def audit_tool(
-        self, phase: str, executor: ProgrammingExecutor, _entry: dict
-    ) -> None:
+    def audit_tool(self, phase: str, executor: ProgrammingExecutor, _entry: dict) -> None:
         # Durable tool audit straight from the real executor entry. Only opaque
         # tool/decision identifiers are stored: never code, names, paths or prompts.
         # Persist before the budget mirror so a revoked/cancelled task still keeps
@@ -126,9 +124,7 @@ class _TaskCampaign(CampaignBudget):
         self.tool_attempts = attempts
 
 
-def install_offline_runner(
-    service: ProgrammingTaskService, transport: httpx.MockTransport
-) -> None:
+def install_offline_runner(service: ProgrammingTaskService, transport: httpx.MockTransport) -> None:
     """Bind a server-owned transport on a test host before accepting tasks."""
     if service.environment != "test" or type(transport) is not httpx.MockTransport:
         raise ValueError("offline_programming_test_host_required")
@@ -157,9 +153,7 @@ async def _investigate(
     guard: Callable[[], bool],
     transport: httpx.MockTransport,
 ) -> ProgrammingResult:
-    scope = EvidenceScope(
-        row["teacher_id"], task_id, row["assessment_id"], row["snapshot_id"]
-    )
+    scope = EvidenceScope(row["teacher_id"], task_id, row["assessment_id"], row["snapshot_id"])
     reader = AssessmentReader(service.database, originals=service.originals)
     provider = _TaskEvidenceProvider(reader, actor, scope, guard)
     campaign = None
@@ -210,9 +204,7 @@ async def _investigate(
                 if run.reason in {"model_timeout", "run_timeout"}:
                     raise APIError(410, "AI_TASK_TIMEOUT", "编程调查已超时")
                 if run.reason == "tool_budget_exhausted":
-                    raise APIError(
-                        409, "AI_TOOL_BUDGET_EXHAUSTED", "工具读取预算已用尽"
-                    )
+                    raise APIError(409, "AI_TOOL_BUDGET_EXHAUSTED", "工具读取预算已用尽")
                 if run.reason in {"model_budget_exhausted", "authorized_request_limit"}:
                     raise APIError(409, "AI_BUDGET_EXHAUSTED", "模型请求预算已用尽")
                 raise AgentError("programming_investigation_failed")
@@ -294,8 +286,6 @@ def _project(
         assessment_id=scope.batch,
         source_snapshot_id=scope.snapshot,
         asset_sha256=[asset.sha256 for asset in overview.assets],
-        statement="编程调查已完成。"
-        if findings
-        else "当前证据未支持可披露的编程发现。",
+        statement="编程调查已完成。" if findings else "当前证据未支持可披露的编程发现。",
         findings=findings,
     )
