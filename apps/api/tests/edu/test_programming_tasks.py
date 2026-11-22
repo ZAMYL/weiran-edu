@@ -211,9 +211,12 @@ def test_revocation_erases_unpublished_result(client, runtime, assessment):
         assessment["assessment_id"],
         ProgrammerTaskCreate(idempotency_key="k-revoke"),
     )[0]
-    assert client.get(
-        f"{URL}/{assessment['assessment_id']}/ai-tasks/{created['task_id']}"
-    ).json()["state"] == "queued"
+    assert (
+        client.get(f"{URL}/{assessment['assessment_id']}/ai-tasks/{created['task_id']}").json()[
+            "state"
+        ]
+        == "queued"
+    )
     service.revoke(assessment["assessment_id"])
     revoked = client.get(f"{URL}/{assessment['assessment_id']}/ai-tasks/{created['task_id']}")
     assert revoked.status_code == 403

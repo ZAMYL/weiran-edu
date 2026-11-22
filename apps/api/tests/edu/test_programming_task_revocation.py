@@ -113,15 +113,11 @@ def make_task(client, runtime, assessment_id: str, key: str) -> str:
     service = client.app.state.programming_tasks
     if service.runner is None:
         service.runner = unused
-    row, _ = service.create(
-        runtime.p, assessment_id, ProgrammerTaskCreate(idempotency_key=key)
-    )
+    row, _ = service.create(runtime.p, assessment_id, ProgrammerTaskCreate(idempotency_key=key))
     return row["task_id"]
 
 
-def test_revoked_credentials_cannot_claim_and_leave_terminal_state(
-    client, runtime
-):
+def test_revoked_credentials_cannot_claim_and_leave_terminal_state(client, runtime):
     assessment_id = upload(client)
     service = client.app.state.programming_tasks
     task_id = make_task(client, runtime, assessment_id, "fix-claim")
