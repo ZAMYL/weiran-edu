@@ -1,6 +1,8 @@
 'use client';
+import { Disclosure } from '../../components/Disclosure';
 import { Alert, Button, Empty, Spin } from 'antd';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { scoreHistory, scoreUpload } from '../../app/workspace-routes';
 import { ApiError } from '../../services/edu-api/client';
 import { Panel } from '../../components/ui';
 import { useDataMode } from '../../app/data-mode';
@@ -22,11 +24,10 @@ export function RequestError({ error, retry }: { error: ApiError; retry?: () => 
       type="error"
       title={error.message}
       description={
-        <details>
-          <summary>错误详情</summary>
+        <Disclosure label={<>错误详情</>}>
           <span>错误码：{error.code}</span>
           {error.requestId && <span> · 请求编号：{error.requestId}</span>}
-        </details>
+        </Disclosure>
       }
       action={
         error.code === 'SNAPSHOT_MISMATCH' ? (
@@ -47,20 +48,12 @@ export function LoadingPanel() {
   );
 }
 export function NoBatch() {
-  const router = useRouter();
-  const { openAssessments } = useDataMode();
   return (
     <Panel>
       <Empty description="暂无可查看的测评">
-        <Button
-          type="primary"
-          onClick={() => {
-            openAssessments(null);
-            router.push('/insights');
-          }}
-        >
-          上传测评资料
-        </Button>
+        <Link href={scoreUpload}>上传测评资料</Link>
+        <span aria-hidden="true"> · </span>
+        <Link href={scoreHistory}>历史测评</Link>
       </Empty>
     </Panel>
   );

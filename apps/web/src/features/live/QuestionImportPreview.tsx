@@ -1,7 +1,9 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Checkbox, Input, Table } from 'antd';
+import { Alert, Button, Card, Checkbox, Col, Input, Row, Statistic, Table } from 'antd';
 import { useDataMode } from '../../app/data-mode';
 import { ApiError } from '../../services/edu-api/client';
 import { itemScaleLabel } from '../../services/edu-api/assessment-items';
@@ -25,7 +27,16 @@ export default function QuestionImportPreview({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const pending = useRef<AbortController | null>(null);
-  useEffect(() => () => pending.current?.abort(), []);
+  useEffect(
+    () => () => {
+      if (pending.current) {
+        pending.current.abort();
+        pending.current = null;
+        setBusy(false);
+      }
+    },
+    [],
+  );
   const load = useCallback(
     (signal: AbortSignal) => client.questionImport(initial.import_id, signal),
     [client, initial.import_id],
@@ -162,26 +173,43 @@ export default function QuestionImportPreview({
               </Button>
             </div>
           )}
-          <dl className="workflow-summary" aria-label="文件识别数量">
-            <div>
-              <dt>参评人数</dt>
-              <dd>
-                <strong>{view.participant_count}</strong> 人
-              </dd>
-            </div>
-            <div>
-              <dt>评分记录</dt>
-              <dd>
-                <strong>{view.observation_count}</strong> 条
-              </dd>
-            </div>
-            <div>
-              <dt>题目</dt>
-              <dd>
-                <strong>{view.recognized_items.length}</strong> 道
-              </dd>
-            </div>
-          </dl>
+          <Row
+            gutter={[tokens.size, tokens.size]}
+            className="workflow-summary"
+            role="group"
+            aria-label="文件识别数量"
+          >
+            <Col span={8}>
+              <Card size="small">
+                <Statistic
+                  title="参评人数"
+                  value={view.participant_count}
+                  suffix="人"
+                  valueRender={(node) => <strong>{node}</strong>}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card size="small">
+                <Statistic
+                  title="评分记录"
+                  value={view.observation_count}
+                  suffix="条"
+                  valueRender={(node) => <strong>{node}</strong>}
+                />
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card size="small">
+                <Statistic
+                  title="题目"
+                  value={view.recognized_items.length}
+                  suffix="道"
+                  valueRender={(node) => <strong>{node}</strong>}
+                />
+              </Card>
+            </Col>
+          </Row>
           <p aria-label="评分质量分类">
             {Object.entries(qualityLabels)
               .map(
@@ -203,11 +231,13 @@ export default function QuestionImportPreview({
                   description="这些记录会保留来源，并排除在有效分数统计之外。"
                 />
               )}
-              <details className="panel original-records-section" open>
-                <summary>题目与量表</summary>
+              <Disclosure
+                className="panel original-records-section"
+                defaultExpanded
+                label={<>题目与量表</>}
+              >
                 <Table
                   rowKey="item_id"
-                  size="small"
                   pagination={false}
                   dataSource={view.recognized_items}
                   columns={[
@@ -215,13 +245,14 @@ export default function QuestionImportPreview({
                     { title: '量表', render: (_, item) => itemScaleLabel(item.scale) },
                   ]}
                 />
-              </details>
+              </Disclosure>
               {!!view.quality_issues.length && (
-                <details className="panel original-records-section">
-                  <summary>查看评分问题与位置</summary>
+                <Disclosure
+                  className="panel original-records-section"
+                  label={<>查看评分问题与位置</>}
+                >
                   <Table
                     rowKey={(issue) => issue.sheet + issue.cell}
-                    size="small"
                     dataSource={view.quality_issues}
                     pagination={{ pageSize: 10, showSizeChanger: false }}
                     columns={[
@@ -235,7 +266,7 @@ export default function QuestionImportPreview({
                       { title: '位置', render: (_, issue) => issue.sheet + '!' + issue.cell },
                     ]}
                   />
-                </details>
+                </Disclosure>
               )}
             </>
           )}

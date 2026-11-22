@@ -1,6 +1,27 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Button, Drawer, Input, Pagination, Segmented, Select, Table } from 'antd';
+import {
+  Alert,
+  Button,
+  Card,
+  Col,
+  Descriptions,
+  Drawer,
+  Flex,
+  Form,
+  Input,
+  Pagination,
+  Row,
+  Segmented,
+  Select,
+  Space,
+  Spin,
+  Statistic,
+  Table,
+  Typography,
+} from 'antd';
 import { useRouter } from 'next/navigation';
 import { useDataMode } from '../../app/data-mode';
 import type { ApiBatch, ApiCondition } from '../../services/edu-api/types';
@@ -169,7 +190,11 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
     })();
     return () => {
       controller.abort();
-      pending.current?.abort();
+      if (pending.current) {
+        pending.current.abort();
+        pending.current = null;
+        setBusy(false);
+      }
     };
   }, [client, batch, storageKey, checkExecution]);
   useEffect(() => {
@@ -299,25 +324,20 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
       }
     >
       {canStart && !restoring && (
-        <form
-          className="ai-question-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            start();
-          }}
-        >
+        <Form className="ai-question-form" onFinish={start}>
           <TeacherQuestionSuggestions
             questions={questions}
             disabled={busy}
             selected={question}
             onChoose={setQuestion}
           />
-          <div className="ai-question-compose">
+          <Flex align="flex-start" gap={tokens.sizeXS} className="ai-question-compose">
             <label className="visually-hidden" htmlFor="ai-question">
               想了解什么？
             </label>
             <Input.TextArea
               id="ai-question"
+              style={{ flex: 1, minWidth: 0 }}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               maxLength={300}
@@ -333,15 +353,23 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
             >
               开始分析
             </Button>
-          </div>
-        </form>
+          </Flex>
+        </Form>
       )}
       {status && !task?.error_code && (
-        <div className={`ai-task-actions${analyzing ? ' ai-task-running' : ''}`}>
-          <span className="ai-task-status" role="status">
-            {analyzing && <span className="ai-analysis-indicator" aria-hidden="true" />}
-            {status}
-          </span>
+        <Flex
+          align="center"
+          justify="space-between"
+          wrap
+          gap={tokens.sizeSM}
+          className={`ai-task-actions${analyzing ? ' ai-task-running' : ''}`}
+        >
+          <Space className="ai-task-status" role="status" size="small">
+            {analyzing && (
+              <Spin size="small" className="ai-analysis-indicator" aria-hidden="true" />
+            )}
+            <span>{status}</span>
+          </Space>
           {running && task && (
             <Button
               disabled={busy}
@@ -357,7 +385,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
               停止分析
             </Button>
           )}
-        </div>
+        </Flex>
       )}
       {error && (
         <RequestError
@@ -394,10 +422,9 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
               <h3>重点发现</h3>
               <div className="ai-fact-grid">{facts.slice(0, 2).map(renderFact)}</div>
               {facts.length > 2 && (
-                <details className="ai-foldout">
-                  <summary>其他发现（{facts.length - 2} 条）</summary>
+                <Disclosure className="ai-foldout" label={<>其他发现（{facts.length - 2} 条）</>}>
                   <div className="ai-fact-grid">{facts.slice(2).map(renderFact)}</div>
-                </details>
+                </Disclosure>
               )}
             </section>
           )}
@@ -428,85 +455,115 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
                         Math.abs(exactToNumber(left.difference)),
                     )[0];
                   return (
-                    <section
+                    <Card
+                      size="small"
+                      type="inner"
                       className="discovery-card ai-profile-card"
                       data-testid="ai-profile-card"
                       key={profile.profile_id}
                     >
-                      <h3>{profile.title}</h3>
-                      {focus && (
-                        <div className="ai-profile-focus">
-                          <button
-                            type="button"
-                            className="ai-profile-dimension-action"
-                            onClick={() => setProfileEvidence({ profile, dimension: focus })}
-                          >
-                            查看{focus.label}评分依据
-                          </button>
-                          <strong>均分差 {exactScore(focus.difference)} 分</strong>
-                          <span>
-                            本组 {exactScore(focus.target.mean)} 分 · 对照组{' '}
-                            {exactScore(focus.remainder.mean)} 分
-                          </span>
-                        </div>
-                      )}
-                      <p>{profile.suggested_next_action}</p>
-                      <details className="ai-foldout">
-                        <summary>查看完整五维评分</summary>
-                        <table
-                          className="ai-profile-dimensions"
-                          aria-label={`${profile.title}评分对照（分）`}
-                        >
-                          <thead>
-                            <tr>
-                              <th scope="col">评分维度</th>
-                              <th scope="col">本组</th>
-                              <th scope="col">对照组</th>
-                              <th scope="col">均分差</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {profile.dimensions.map((dimension) => (
-                              <tr key={dimension.dimension_code}>
-                                <th scope="row">
-                                  <button
-                                    type="button"
+                      <Flex vertical gap={tokens.sizeSM}>
+                        <Typography.Title level={5} style={{ margin: 0 }}>
+                          {profile.title}
+                        </Typography.Title>
+                        {focus && (
+                          <Alert
+                            type="info"
+                            title={
+                              <Flex justify="space-between" align="center" wrap gap={tokens.sizeXS}>
+                                <Button
+                                  type="link"
+                                  htmlType="button"
+                                  className="ai-profile-dimension-action"
+                                  onClick={() => setProfileEvidence({ profile, dimension: focus })}
+                                >
+                                  查看{focus.label}评分依据
+                                </Button>
+                                <Typography.Text strong>
+                                  均分差 {exactScore(focus.difference)} 分
+                                </Typography.Text>
+                              </Flex>
+                            }
+                            description={`本组 ${exactScore(focus.target.mean)} 分 · 对照组 ${exactScore(focus.remainder.mean)} 分`}
+                          />
+                        )}
+                        <Typography.Paragraph style={{ margin: 0 }}>
+                          {profile.suggested_next_action}
+                        </Typography.Paragraph>
+                        <Disclosure className="ai-foldout" label={<>查看完整五维评分</>}>
+                          <Table
+                            className="ai-profile-dimensions"
+                            aria-label={profile.title + '评分对照（分）'}
+                            rowKey="dimension_code"
+                            pagination={false}
+                            dataSource={profile.dimensions}
+                            columns={[
+                              {
+                                title: '评分维度',
+                                rowScope: 'row',
+                                render: (_, dimension) => (
+                                  <Button
+                                    type="link"
                                     className="ai-profile-dimension-action"
                                     onClick={() => setProfileEvidence({ profile, dimension })}
-                                    aria-label={`查看${dimension.label}评分依据${dimension.condition_defined ? '（分组条件）' : ''}`}
+                                    aria-label={
+                                      '查看' +
+                                      dimension.label +
+                                      '评分依据' +
+                                      (dimension.condition_defined ? '（分组条件）' : '')
+                                    }
                                   >
-                                    <span>{dimension.label}</span>
-                                    <span aria-hidden="true">›</span>
-                                  </button>
-                                </th>
-                                <td>{exactScore(dimension.target.mean)}</td>
-                                <td>{exactScore(dimension.remainder.mean)}</td>
-                                <td>{exactScore(dimension.difference)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </details>
-                      <div className="ai-fact-actions">
-                        <Button
-                          onClick={() => {
-                            setConditions(profileConditions(profile));
-                            router.push('/explorer');
-                          }}
+                                    {dimension.label}
+                                  </Button>
+                                ),
+                              },
+                              {
+                                title: '本组',
+                                render: (_, dimension) => exactScore(dimension.target.mean),
+                              },
+                              {
+                                title: '对照组',
+                                render: (_, dimension) => exactScore(dimension.remainder.mean),
+                              },
+                              {
+                                title: '均分差',
+                                render: (_, dimension) => exactScore(dimension.difference),
+                              },
+                            ]}
+                          />
+                        </Disclosure>
+                        <Flex
+                          align="center"
+                          justify="space-between"
+                          wrap
+                          gap={tokens.sizeXS}
+                          className="ai-fact-actions"
                         >
-                          继续探索该群体
-                        </Button>
-                        <details className="ai-profile-note">
-                          <summary>分组与使用说明</summary>
-                          <p>{profile.common_pattern}</p>
-                          <p>{profile.why_show}</p>
-                          <p>
-                            报告仅收录教师确认的发现。评分明细须满足至少 {projection.minimum_cell}{' '}
-                            人的隐私要求。
-                          </p>
-                        </details>
-                      </div>
-                    </section>
+                          <Button
+                            onClick={() => {
+                              setConditions(profileConditions(profile));
+                              router.push('/explorer');
+                            }}
+                          >
+                            继续探索该群体
+                          </Button>
+                          <Disclosure className="ai-profile-note" label={<>分组与使用说明</>}>
+                            <Flex vertical gap={tokens.sizeXS}>
+                              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                                {profile.common_pattern}
+                              </Typography.Text>
+                              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                                {profile.why_show}
+                              </Typography.Text>
+                              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                                报告仅收录教师确认的发现。评分明细须满足至少{' '}
+                                {projection.minimum_cell} 人的隐私要求。
+                              </Typography.Text>
+                            </Flex>
+                          </Disclosure>
+                        </Flex>
+                      </Flex>
+                    </Card>
                   );
                 })}
               </div>
@@ -524,8 +581,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
               前往报告核查
             </Button>
           )}
-          <details className="ai-foldout ai-technical">
-            <summary>技术详情</summary>
+          <Disclosure className="ai-foldout ai-technical" label={<>技术详情</>}>
             <dl>
               <dt>执行来源</dt>
               <dd>
@@ -540,7 +596,7 @@ export default function AiInvestigationPanel({ batch }: { batch: ApiBatch }) {
               <dt>核查工具</dt>
               <dd>{task.tool_attempts} 次</dd>
             </dl>
-          </details>
+          </Disclosure>
         </>
       )}
       {task && sources && (
@@ -579,42 +635,72 @@ function FactCard({
     (metric) => metricLabels[metric.key] && !primary.includes(metric),
   );
   return (
-    <section className="discovery-card ai-compact-fact" data-testid="ai-fact-card">
-      <h4>{factTitle(fact)}</h4>
-      {conclusion && <p className="ai-fact-conclusion">{conclusion}</p>}
-      {!!fact.conditions.length && <p>{conditionText(fact.conditions)}</p>}
-      <dl className="focus-metrics" aria-label="发现指标">
-        {primary.map((metric) => (
-          <div key={metric.key}>
-            <dt>{metricLabels[metric.key]}</dt>
-            <dd>
-              <strong>{factMetricValue(metric)}</strong>
-            </dd>
-          </div>
-        ))}
-      </dl>
-      {secondary.length > 0 && (
-        <details className="ai-foldout">
-          <summary>查看统计明细</summary>
-          <dl>
-            {secondary.map((metric) => (
-              <div key={metric.key}>
-                <dt>{metricLabels[metric.key]}</dt>
-                <dd>{factMetricValue(metric)}</dd>
-              </div>
-            ))}
-          </dl>
-        </details>
-      )}
-      <div className="ai-fact-actions">
-        {!!fact.source_refs.length && fact.source_verified && (
-          <Button onClick={onEvidence}>查看评分依据</Button>
+    <Card
+      size="small"
+      type="inner"
+      className="discovery-card ai-compact-fact"
+      data-testid="ai-fact-card"
+    >
+      <Flex vertical gap={tokens.sizeSM}>
+        <div>
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {factTitle(fact)}
+          </Typography.Title>
+          {conclusion && (
+            <Typography.Text
+              strong
+              style={{
+                color: 'var(--ant-color-primary)',
+                display: 'block',
+                marginTop: tokens.sizeXXS,
+              }}
+            >
+              {conclusion}
+            </Typography.Text>
+          )}
+          {!!fact.conditions.length && (
+            <Typography.Text
+              type="secondary"
+              style={{ display: 'block', marginTop: tokens.sizeXXS, fontSize: 13 }}
+            >
+              {conditionText(fact.conditions)}
+            </Typography.Text>
+          )}
+        </div>
+        <div className="focus-metrics" role="group" aria-label="发现指标">
+          {primary.map((metric) => (
+            <Card size="small" key={metric.key}>
+              <Statistic
+                title={metricLabels[metric.key]}
+                value={factMetricValue(metric)}
+                valueRender={(node) => <strong>{node}</strong>}
+              />
+            </Card>
+          ))}
+        </div>
+        {secondary.length > 0 && (
+          <Disclosure className="ai-foldout" label={<>查看统计明细</>}>
+            <Descriptions
+              size="small"
+              column={1}
+              items={secondary.map((metric) => ({
+                key: metric.key,
+                label: metricLabels[metric.key],
+                children: factMetricValue(metric),
+              }))}
+            />
+          </Disclosure>
         )}
-        {fact.exploration_query && fact.source_verified && (
-          <Button onClick={onExplore}>继续探索</Button>
-        )}
-      </div>
-    </section>
+        <Space wrap size="small" className="ai-fact-actions">
+          {!!fact.source_refs.length && fact.source_verified && (
+            <Button onClick={onEvidence}>查看评分依据</Button>
+          )}
+          {fact.exploration_query && fact.source_verified && (
+            <Button onClick={onExplore}>继续探索</Button>
+          )}
+        </Space>
+      </Flex>
+    </Card>
   );
 }
 
@@ -683,25 +769,25 @@ function ProfileScoreDrawer({
         <Alert showIcon type="warning" title="受隐私保护，无法查看这组评分明细" />
       )}
       {resource.data?.detail_status === 'available' && (
-        <>
-          <dl className="focus-metrics ai-profile-evidence-summary">
-            <div>
-              <dt>均分</dt>
-              <dd>
-                <strong>{exactScore(resource.data.mean)}</strong> 分
-              </dd>
-            </div>
-            <div>
-              <dt>有效评分</dt>
-              <dd>
-                <strong>{resource.data.valid_count}</strong> 条
-              </dd>
-            </div>
-          </dl>
+        <Flex vertical gap={tokens.size} style={{ marginTop: tokens.size }}>
+          <Row
+            gutter={[tokens.sizeSM, tokens.sizeSM]}
+            className="focus-metrics ai-profile-evidence-summary"
+          >
+            <Col span={12}>
+              <Card size="small">
+                <Statistic title="均分" value={exactScore(resource.data.mean)} suffix="分" />
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card size="small">
+                <Statistic title="有效评分" value={resource.data.valid_count} suffix="条" />
+              </Card>
+            </Col>
+          </Row>
           <Table
             rowKey="evidence_id"
             dataSource={resource.data.items}
-            size="small"
             pagination={false}
             columns={[
               { title: '记录', render: (_, _row, index) => offset + index + 1 },
@@ -709,7 +795,9 @@ function ProfileScoreDrawer({
               {
                 title: '操作',
                 render: (_, row) => (
-                  <Button onClick={() => setEvidenceId(row.evidence_id)}>查看原评分依据</Button>
+                  <Button type="link" size="small" onClick={() => setEvidenceId(row.evidence_id)}>
+                    查看原评分依据
+                  </Button>
                 ),
               },
             ]}
@@ -721,7 +809,7 @@ function ProfileScoreDrawer({
             total={resource.data.total_count ?? 0}
             onChange={(page) => setOffset((page - 1) * 10)}
           />
-        </>
+        </Flex>
       )}
       {evidenceId && (
         <LiveScoreDrawer
@@ -779,7 +867,6 @@ function AiSourcesDrawer({
           <Table
             rowKey="evidence_id"
             dataSource={resource.data.items}
-            size="small"
             pagination={false}
             columns={[
               { title: '记录', render: (_, row, index) => offset + index + 1 },

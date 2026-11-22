@@ -257,6 +257,20 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     request(path, decoder, { method: 'POST', body: JSON.stringify(body) }, signal);
   const base = (b: ApiBatch) => `/batches/${id(b.batch_id)}`;
   const snapshot = (b: ApiBatch) => `snapshot_id=${id(b.snapshot_id)}`;
+  const withDiscoveryCapacity = async <T>(load: () => Promise<T>, signal?: AbortSignal) => {
+    // Navigating can abort a browser request while the authorized server read is still finishing.
+    const waits = [400, 800, 1600, 2400];
+    for (const wait of waits) {
+      try {
+        return await load();
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY') throw error;
+        await new Promise((resolve) => setTimeout(resolve, wait));
+        signal?.throwIfAborted();
+      }
+    }
+    return load();
+  };
   const discovery = async <
     T extends {
       scope: { batch_id: string; snapshot_id: string; scope_conditions: ApiCondition[] };
@@ -282,20 +296,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
         },
         signal,
       );
-    const result = await (async () => {
-      // Navigating can abort a browser request while the authorized server read is still finishing.
-      const waits = [400, 800, 1600, 2400];
-      for (const wait of waits) {
-        try {
-          return await load();
-        } catch (error) {
-          if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY') throw error;
-          await new Promise((resolve) => setTimeout(resolve, wait));
-          signal?.throwIfAborted();
-        }
-      }
-      return load();
-    })();
+    const result = await withDiscoveryCapacity(load, signal);
     assertSnapshot(result.scope, batch);
     const canonical = (conditions: ApiCondition[]) =>
       JSON.stringify(
@@ -742,10 +743,14 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       signal?: AbortSignal,
     ) => {
       const value = assertSnapshot(
-        await post(
-          `${base(batch)}/analysis-results/${id(resultId)}/export-check`,
-          exportCheckDto,
-          { snapshot_id: batch.snapshot_id, expected_version: version, format },
+        await withDiscoveryCapacity(
+          () =>
+            post(
+              `${base(batch)}/analysis-results/${id(resultId)}/export-check`,
+              exportCheckDto,
+              { snapshot_id: batch.snapshot_id, expected_version: version, format },
+              signal,
+            ),
           signal,
         ),
         batch,
@@ -765,14 +770,18 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       format: ReportFormat,
       signal?: AbortSignal,
     ) =>
-      request<ReportFile>(
-        `${base(batch)}/analysis-results/${id(resultId)}/export?${snapshot(batch)}&expected_version=${version}&format=${format}`,
-        () => {
-          throw new ContractError();
-        },
-        {},
+      withDiscoveryCapacity(
+        () =>
+          request<ReportFile>(
+            `${base(batch)}/analysis-results/${id(resultId)}/export?${snapshot(batch)}&expected_version=${version}&format=${format}`,
+            () => {
+              throw new ContractError();
+            },
+            {},
+            signal,
+            (response) => readReportFile(response, { resultId, version, format }),
+          ),
         signal,
-        (response) => readReportFile(response, { resultId, version, format }),
       ),
     uploadAnswerSheets: (form: FormData, signal?: AbortSignal) =>
       request('/assessments', answerSheetImportDto, { method: 'POST', body: form }, signal),

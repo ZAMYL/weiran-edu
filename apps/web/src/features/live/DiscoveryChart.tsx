@@ -9,6 +9,7 @@ import {
   TooltipComponent,
 } from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
+import { useDarkMode } from '../../app/theme-preference';
 import type {
   DiscoveryChart as ChartData,
   DiscoveryExact,
@@ -31,13 +32,15 @@ export const scoreText = (value: DiscoveryExact | null) =>
 
 export function DiscoveryChart({ data }: { data: ChartData }) {
   const element = useRef<HTMLDivElement>(null);
+  const dark = useDarkMode();
   useEffect(() => {
     if (!element.current) return;
-    const chart = init(element.current, undefined, { renderer: 'svg' });
+    const chart = init(element.current, dark ? 'dark' : undefined, { renderer: 'svg' });
     const common = {
       aria: { enabled: true },
       tooltip: {
         trigger: 'axis',
+        confine: true,
         valueFormatter: (v: unknown) => (typeof v === 'number' ? scoreDisplay(v) : String(v)),
       },
       grid: { left: 55, right: 30, top: 45, bottom: 85 },
@@ -48,7 +51,7 @@ export function DiscoveryChart({ data }: { data: ChartData }) {
       case 'dimension_relation':
         option = {
           ...common,
-          tooltip: { trigger: 'item' },
+          tooltip: { trigger: 'item', confine: true },
           xAxis: {
             type: 'value',
             min: 1,
@@ -129,14 +132,14 @@ export function DiscoveryChart({ data }: { data: ChartData }) {
           series: [{ type: 'bar', name: '符合条件的学生', data: data.chart.map((p) => p.count) }],
         };
     }
-    chart.setOption(option);
+    chart.setOption({ ...option, backgroundColor: 'transparent' });
     const observer = new ResizeObserver(() => chart.resize());
     observer.observe(element.current);
     return () => {
       observer.disconnect();
       chart.dispose();
     };
-  }, [data]);
+  }, [data, dark]);
   return (
     <div
       ref={element}

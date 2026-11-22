@@ -60,9 +60,15 @@ try {
   assert.doesNotMatch(html, /cdn\.tailwindcss\.com|127\.0\.0\.1:3288\/insights/);
 
   for (const [route, title] of [
+    ['dashboard', '仪表盘'],
+    ['upload', '上传'],
+    ['upload/scores', '上传'],
+    ['upload/answer-sheets', '上传'],
+    ['data/answer-sheets', '历史答题卡'],
+    ['students', '学生管理'],
     ['insights', '连接账户，查看测评'],
     ['explorer', '画像探索'],
-    ['data', '学情诊断'],
+    ['data', '历史测评'],
     ['reports', '分析报告'],
   ]) {
     const response = await fetch(`${url}/${route}`, { signal: AbortSignal.timeout(5000) });

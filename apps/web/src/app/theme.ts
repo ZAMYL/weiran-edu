@@ -1,34 +1,72 @@
-import type { ThemeConfig } from 'antd';
+import { theme as antTheme, type ThemeConfig } from 'antd';
 
-export const theme: ThemeConfig = {
-  token: {
-    colorPrimary: '#2463F5',
-    colorInfo: '#2463F5',
-    colorSuccess: '#08a56b',
-    colorWarning: '#d68b12',
-    colorError: '#db3f52',
-    colorText: '#142448',
-    colorTextSecondary: '#71809f',
-    colorBgLayout: '#f2f6fe',
-    colorBorder: '#dce5f4',
-    borderRadius: 9,
-    borderRadiusLG: 9,
-    borderRadiusSM: 9,
-    borderRadiusXS: 9,
-    controlHeight: 40,
-    fontSize: 14,
-    fontFamily: 'Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
-  },
-  components: {
-    Button: { primaryShadow: '0 3px 8px rgba(36,99,245,.16)', fontWeight: 600 },
-    Table: {
-      headerBg: '#f0f5fd',
-      headerColor: '#637394',
-      borderColor: '#edf1f8',
-      cellPaddingBlock: 12,
+export const tokens = antTheme.getDesignToken();
+
+// Business layouts, SVG and stylesheet surfaces share the Ant palette, including portals.
+function themeStyles(tokens: ReturnType<typeof antTheme.getDesignToken>, colorScheme: string) {
+  const properties = {
+    primary: tokens.colorPrimary,
+    'primary-active': tokens.colorPrimaryActive,
+    'primary-text': tokens.colorPrimaryText,
+    'primary-bg': tokens.colorPrimaryBg,
+    'primary-border': tokens.colorPrimaryBorder,
+    canvas: tokens.colorBgLayout,
+    surface: tokens.colorBgContainer,
+    'surface-alter': tokens.colorFillAlter,
+    border: tokens.colorBorderSecondary,
+    'border-strong': tokens.colorBorder,
+    text: tokens.colorText,
+    muted: tokens.colorTextSecondary,
+    subtle: tokens.colorTextTertiary,
+    'fill-quaternary': tokens.colorFillQuaternary,
+    'focus-ring': tokens.colorPrimaryBorder,
+    success: tokens.colorSuccess,
+    'success-bg': tokens.colorSuccessBg,
+    warning: tokens.colorWarning,
+    error: tokens.colorError,
+    'error-bg': tokens.colorErrorBg,
+    'accent-purple': tokens.purple6,
+    'accent-purple-bg': tokens.purple1,
+    radius: tokens.borderRadius + 'px',
+    'heading-size': tokens.fontSizeHeading3 + 'px',
+    'scrollbar-color': tokens.colorFill,
+    'scrollbar-hover': tokens.colorTextQuaternary,
+    gap: tokens.size + 'px',
+    'space-xxs': tokens.sizeXXS + 'px',
+    'space-xs': tokens.sizeXS + 'px',
+    'space-sm': tokens.sizeSM + 'px',
+    'space-md': tokens.size + 'px',
+    'space-md-plus': tokens.sizeMD + 'px',
+    'space-lg': tokens.sizeLG + 'px',
+    'space-xl': tokens.sizeXL + 'px',
+    'space-xxl': tokens.sizeXXL + 'px',
+    'font-family': tokens.fontFamily,
+  };
+  return (
+    `:root{color-scheme:${colorScheme};` +
+    Object.entries(properties)
+      .map(([name, value]) => '--' + name + ':' + value)
+      .join(';') +
+    '}'
+  );
+}
+
+function createTheme(colorScheme: 'light' | 'dark') {
+  const algorithm = colorScheme === 'dark' ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm;
+  const palette = antTheme.getDesignToken({ algorithm });
+  const config: ThemeConfig = {
+    algorithm,
+    cssVar: { key: 'weiran' },
+    components: {
+      Layout: { headerBg: palette.colorBgContainer },
+      Tabs: { colorBgContainer: palette.colorBgLayout, horizontalMargin: '0' },
+      Segmented: {
+        itemSelectedBg: palette.colorPrimary,
+        itemSelectedColor: palette.colorTextLightSolid,
+      },
     },
-    Drawer: { paddingLG: 24 },
-    Segmented: { trackBg: '#eef4ff', itemSelectedColor: '#2463f5' },
-    Select: { optionSelectedBg: '#eaf1ff' },
-  },
-};
+  };
+  return { config, styles: themeStyles(palette, colorScheme) };
+}
+
+export const themes = { light: createTheme('light'), dark: createTheme('dark') };

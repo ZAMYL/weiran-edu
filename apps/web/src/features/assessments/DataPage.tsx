@@ -1,5 +1,6 @@
 'use client';
 
+import { Disclosure } from '../../components/Disclosure';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
@@ -22,7 +23,6 @@ import {
   DownloadOutlined,
   FileExcelOutlined,
   InfoCircleOutlined,
-  SearchOutlined,
 } from '@ant-design/icons';
 import { useBatch, useWorkspace } from '../../app/store';
 import { DEMO_STANDARD } from '../../demo/demo';
@@ -192,8 +192,7 @@ export default function DataPage() {
           </div>
         </Panel>
         <Panel title="上传说明" className="preparation-panel">
-          <details>
-            <summary>文件要求与处理方式</summary>
+          <Disclosure label={<>文件要求与处理方式</>}>
             <div className="preparation-list">
               {[
                 ['学生标识、五项评分与原始评语', '每名学生每个维度一条记录，表头请参照模板。'],
@@ -209,7 +208,7 @@ export default function DataPage() {
                 </div>
               ))}
             </div>
-          </details>
+          </Disclosure>
           <Alert
             type="info"
             showIcon
@@ -225,11 +224,11 @@ export default function DataPage() {
         title="已导入测评"
         subtitle={`当前会话共 ${batches.length} 个批次；当前批次 ${batch.students.length} 名学生、${batch.students.length * batch.standard.dimensions.length} 条评分。`}
         action={
-          <Input
+          <Input.Search
             allowClear
-            prefix={<SearchOutlined />}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onSearch={setSearch}
             placeholder="搜索测评名称或来源文件"
             aria-label="搜索已导入测评"
             className="batch-search"
@@ -240,7 +239,7 @@ export default function DataPage() {
         <Table<Batch>
           rowKey="id"
           pagination={false}
-          scroll={{ x: 1050 }}
+          scroll={{ x: 'max-content' }}
           dataSource={batches.filter((b) =>
             `${b.name} ${b.filename}`.toLowerCase().includes(search.toLowerCase()),
           )}
@@ -249,7 +248,6 @@ export default function DataPage() {
             {
               title: '测评名称',
               key: 'name',
-              width: 275,
               render: (_, b) => (
                 <div className="batch-title">
                   <strong>{b.name}</strong>
@@ -266,14 +264,12 @@ export default function DataPage() {
             { title: '评价维度', render: (_, b) => `${b.standard.dimensions.length} 个` },
             {
               title: '数据状态',
-              width: 110,
               render: (_, b) => (
                 <Tag color={b.demo ? 'blue' : 'success'}>{b.demo ? '演示批次' : '本地已导入'}</Tag>
               ),
             },
             {
               title: '操作',
-              width: 230,
               render: (_, b) => (
                 <div className="batch-actions">
                   <Button onClick={() => setQualityBatch(b)}>查看质量报告</Button>

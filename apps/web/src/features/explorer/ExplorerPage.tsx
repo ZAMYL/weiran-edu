@@ -1,8 +1,9 @@
 'use client';
+import { tokens } from '../../app/theme';
 
 import { useState } from 'react';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
-import { App, Button, Empty, InputNumber, Modal, Select, Tag } from 'antd';
+import { Card, App, Button, Empty, InputNumber, Modal, Select, Tag } from 'antd';
 import { ArrowRightOutlined, TeamOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useBatch, useWorkspace } from '../../app/store';
 import {
@@ -219,20 +220,22 @@ function ExplorerContent({
                                 : v === c.value;
                       });
                     return (
-                      <button
+                      <Button
+                        type="text"
                         key={x}
                         className={`heat-cell ${isSelected ? 'selected' : ''}`}
                         style={{
                           background: count
-                            ? `rgba(36, 99, 245, ${0.12 + (0.83 * count) / maxCount})`
-                            : '#f7faff',
-                          color: count / maxCount > 0.55 ? '#fff' : '#21365f',
+                            ? `color-mix(in srgb, var(--primary) ${12 + (83 * count) / maxCount}%, transparent)`
+                            : tokens.colorPrimaryBg,
+                          color:
+                            count / maxCount > 0.55 ? tokens.colorTextLightSolid : tokens.colorText,
                         }}
                         onClick={() => selectCell(x, y)}
                         aria-label={`${xName}${x}分，${yName}${y}分，${count}人，点击筛选`}
                       >
                         {count}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -269,11 +272,10 @@ function ExplorerContent({
               students={students}
               onSelect={setSelectedId}
               selectedId={selectedId ?? undefined}
-              compact
             />
           </Panel>
         ) : (
-          <section className="finding-card group-summary-card">
+          <Card size="small" className="finding-card group-summary-card">
             <div className="finding-top">
               <span>
                 <TeamOutlined /> <Tag>当前群体</Tag>
@@ -308,7 +310,13 @@ function ExplorerContent({
                   <span key={n}>
                     <i
                       style={{
-                        background: ['#e6efff', '#bcd5ff', '#87b3ff', '#4e8cff', '#2463f5'][i],
+                        background: [
+                          tokens.colorPrimaryBg,
+                          tokens.colorPrimaryBorder,
+                          tokens.colorPrimaryBorderHover,
+                          tokens.colorPrimaryHover,
+                          tokens.colorPrimary,
+                        ][i],
                       }}
                     />
                     {n}
@@ -326,7 +334,13 @@ function ExplorerContent({
                           title={`${i + d.min} 分：${count} 人`}
                           style={{
                             width: percentage(count, students.length),
-                            background: ['#e6efff', '#bcd5ff', '#87b3ff', '#4e8cff', '#2463f5'][i],
+                            background: [
+                              tokens.colorPrimaryBg,
+                              tokens.colorPrimaryBorder,
+                              tokens.colorPrimaryBorderHover,
+                              tokens.colorPrimaryHover,
+                              tokens.colorPrimary,
+                            ][i],
                           }}
                         />
                       ),
@@ -338,7 +352,7 @@ function ExplorerContent({
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无匹配记录" />
               )}
             </div>
-          </section>
+          </Card>
         )}
       </div>
       {!fullscreen && (
@@ -358,7 +372,7 @@ function ExplorerContent({
           />
         </Panel>
       )}
-      <section className="panel teaching-strip">
+      <Panel className="teaching-strip">
         <div>
           <h2>
             当前分析对象：<span className="blue-text">{students.length}</span> 人群体
@@ -373,7 +387,7 @@ function ExplorerContent({
         >
           分析这组学生
         </Button>
-      </section>
+      </Panel>
       <StudentDrawer
         batch={batch}
         students={students}

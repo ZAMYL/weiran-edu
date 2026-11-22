@@ -1,6 +1,24 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Button, Empty, Input, Pagination, Segmented, Select } from 'antd';
+import {
+  Alert,
+  Button,
+  Card,
+  Empty,
+  Flex,
+  InputNumber,
+  Menu,
+  Pagination,
+  Segmented,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Typography,
+} from 'antd';
+import { CloseOutlined } from '@ant-design/icons';
 import { createPortal } from 'react-dom';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
 import { useDataMode } from '../../app/data-mode';
@@ -66,6 +84,11 @@ function Explorer({ batch }: { batch: ApiBatch }) {
   const [draft, setDraft] = useState<Draft[]>(() =>
     conditions.map((c) => ({ ...c, value: String(c.value) })),
   );
+  const [previousConditions, setPreviousConditions] = useState(conditions);
+  if (previousConditions !== conditions) {
+    setPreviousConditions(conditions);
+    setDraft(conditions.map((condition) => ({ ...condition, value: String(condition.value) })));
+  }
   const [validation, setValidation] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [axes, setAxes] = useState<{ x: DimensionCode; y: DimensionCode }>({
@@ -143,6 +166,11 @@ function Explorer({ batch }: { batch: ApiBatch }) {
     !origin && conditions.length ? `explorer-rubric:${batch.batch_id}:${batch.snapshot_id}` : null,
     loadRubric,
   );
+  // Validate the typed text before any numeric normalization can change the threshold.
+  const updateThreshold = (index: number, value: string) =>
+    setDraft((current) =>
+      current.map((condition, i) => (i === index ? { ...condition, value } : condition)),
+    );
   function apply() {
     const next: ApiCondition[] = [];
     for (const condition of draft) {
@@ -200,10 +228,10 @@ function Explorer({ batch }: { batch: ApiBatch }) {
         parseThreshold(condition.value) !== conditions[index]?.value,
     );
   const viewControls = (
-    <div className="explorer-view-controls">
-      <span className="explorer-assessment-count">
+    <Flex align="center" gap={tokens.sizeSM} wrap className="explorer-view-controls">
+      <Typography.Text type="secondary" className="explorer-assessment-count">
         参评 <strong>{batch.student_count}</strong> 人
-      </span>
+      </Typography.Text>
       <Segmented
         aria-label="画像观察对象"
         value={view}
@@ -216,7 +244,7 @@ function Explorer({ batch }: { batch: ApiBatch }) {
           setView(value === 'student' ? 'student' : 'group');
         }}
       />
-    </div>
+    </Flex>
   );
   const openPortrait = (selected: ApiStudent) => {
     setPageSpace(null);
@@ -237,16 +265,17 @@ function Explorer({ batch }: { batch: ApiBatch }) {
           description={`${group.data?.detail?.title ?? '正在核查发现'}。应用手动筛选将退出此原群体。`}
         />
       )}
-      <div
+      <Card
+        size="small"
         className="explorer-query-panel"
         ref={queryPanel}
         style={view === 'student' && pageSpace ? { minHeight: pageSpace.queryHeight } : undefined}
       >
-        <Panel className="filter-panel">
-          <div className="filter-builder">
+        <div className="filter-panel">
+          <Space wrap size={[8, 8]} className="filter-builder">
             {draft.map((condition, index) => (
               <div className="filter-condition" key={index}>
-                {index > 0 && <span className="and-token">且</span>}
+                {index > 0 && <Tag className="and-token">且</Tag>}
                 <Select
                   className="dimension-select"
                   aria-label={`筛选条件${index + 1}维度`}
@@ -270,26 +299,32 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                     setDraft(draft.map((c, i) => (i === index ? { ...c, operator } : c)))
                   }
                 />
-                <Input
+                <InputNumber<string>
                   className="live-threshold"
                   inputMode="decimal"
                   aria-label={`筛选条件${index + 1}评分`}
+                  stringMode
+                  min="1"
+                  max="5"
+                  step="0.01"
+                  controls={false}
+                  changeOnBlur={false}
                   value={condition.value}
                   maxLength={32}
-                  onChange={(e) =>
-                    setDraft(
-                      draft.map((c, i) => (i === index ? { ...c, value: e.target.value } : c)),
-                    )
+                  status={
+                    validation && parseThreshold(condition.value) === null ? 'error' : undefined
                   }
+                  formatter={(_, { userTyping, input }) => (userTyping ? input : condition.value)}
+                  onInput={(value) => updateThreshold(index, value)}
+                  onStep={(value) => updateThreshold(index, value)}
                   onPressEnter={apply}
                 />
                 <Button
                   type="text"
+                  icon={<CloseOutlined />}
                   aria-label={`移除筛选条件${index + 1}`}
                   onClick={() => setDraft(draft.filter((_, i) => i !== index))}
-                >
-                  ×
-                </Button>
+                />
               </div>
             ))}
             {draft.length < 2 && (
@@ -326,27 +361,29 @@ function Explorer({ batch }: { batch: ApiBatch }) {
               重置
             </Button>
             {unapplied && (
-              <span className="pending-filter-status" role="status">
+              <Tag color="warning" className="pending-filter-status" role="status">
                 条件尚未应用
-              </span>
+              </Tag>
             )}
-          </div>
+          </Space>
           {validation && (
             <Alert className="session-notice" type="error" showIcon title={validation} />
           )}
-        </Panel>
-        <div className="match-summary">
-          <span>
-            当前匹配 <strong>{group.data?.matched ?? '—'}</strong> / {group.data?.total ?? '—'} 人 ·
-            占参评人数 <b>{ratioDisplay(group.data?.ratio ?? null)}</b>
-          </span>
-          <p>
-            {origin
-              ? `原发现条件：${originalConditions || '由受控指标参与记录确定'}；分析范围：${conditionText(conditions)}`
-              : conditionText(conditions)}
-          </p>
         </div>
-      </div>
+        <Flex vertical gap={tokens.sizeXXS / 2} className="match-summary">
+          <Typography.Text>
+            当前匹配 <strong>{group.data?.matched ?? '—'}</strong> / {group.data?.total ?? '—'} 人 ·
+            占参评人数 <b className="blue-text">{ratioDisplay(group.data?.ratio ?? null)}</b>
+          </Typography.Text>
+          {(origin || conditions.length > 0) && (
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              {origin
+                ? `原发现条件：${originalConditions || '由受控指标参与记录确定'}；分析范围：${conditionText(conditions)}`
+                : conditionText(conditions)}
+            </Typography.Text>
+          )}
+        </Flex>
+      </Card>
       {view === 'student' && (
         <div
           className="student-portrait-workspace"
@@ -380,20 +417,21 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                     )
                   }
                 />
-                <ul className="portrait-member-list" aria-label="选择学生画像">
-                  {group.data.items.map((item) => (
-                    <li key={item.student_id}>
-                      <button
-                        type="button"
-                        aria-label={`查看 ${item.display_label} 能力画像`}
-                        aria-pressed={portraitStudent?.student_id === item.student_id}
-                        onClick={() => setPortraitStudent(item)}
-                      >
-                        {item.display_label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <Menu
+                  className="portrait-member-list"
+                  aria-label="选择学生画像"
+                  mode="inline"
+                  selectedKeys={portraitStudent ? [portraitStudent.student_id] : []}
+                  items={group.data.items.map((item) => ({
+                    key: item.student_id,
+                    label: item.display_label,
+                  }))}
+                  onSelect={({ key }) =>
+                    setPortraitStudent(
+                      group.data!.items.find((item) => item.student_id === key) ?? null,
+                    )
+                  }
+                />
               </>
             )}
             {(group.data || (group.loading && pageSpace)) && (
@@ -487,28 +525,19 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                   {stats.loading && <LoadingPanel />}
                   {stats.error && <RequestError error={stats.error} retry={stats.retry} />}
                   {stats.data && (
-                    <>
-                      {stats.data.matrix && (
-                        <p className="teacher-reading">
-                          {stats.data.matrix.paired_count}{' '}
-                          人在这两项都有有效评分。点选图中的分数组合，可查看对应的学生。
-                        </p>
-                      )}
-                      <SparseMatrix
-                        statistics={stats.data}
-                        conditions={conditions}
-                        onCell={selectCell}
-                      />
-                    </>
+                    <SparseMatrix
+                      statistics={stats.data}
+                      conditions={conditions}
+                      onCell={selectCell}
+                    />
                   )}
                 </>
               )}
               {!origin && conditions.length > 0 && (
-                <details className="exploration-reference">
-                  <summary>从全部测评评分组合中重新选择条件</summary>
-                  <p className="muted small">
-                    下图以本次测评全部参评者为参考；点击组合后重新应用条件。上方分布与右侧人数均为当前筛选结果。
-                  </p>
+                <Disclosure
+                  className="exploration-reference"
+                  label={<>从全部测评评分组合中重新选择条件</>}
+                >
                   {
                     <div className="axis-controls">
                       <Select
@@ -540,37 +569,70 @@ function Explorer({ batch }: { batch: ApiBatch }) {
                       onCell={selectCell}
                     />
                   )}
-                </details>
+                </Disclosure>
               )}
             </Panel>
             <Panel title="群体评分概况" className="group-summary-card">
               {group.error && <RequestError error={group.error} retry={group.retry} />}
               <div className="group-distribution">
-                {targetStats ? (
-                  targetStats.map((d) => (
-                    <div className="server-mean-row" key={d.dimension_code}>
-                      <span>{dimensionName(d.dimension_code)}</span>
-                      <b>{scoreText(d.target.mean)}</b>
-                      <span className="muted small">有效 {d.target.valid_count} 人</span>
-                    </div>
-                  ))
-                ) : distribution ? (
-                  distribution.dimensions.map((d) => (
-                    <div className="server-mean-row" key={d.dimension_code}>
-                      <span>{dimensionName(d.dimension_code)}</span>
-                      <b>{scoreDisplay(d.mean.value)}</b>
-                      <span className="muted small">有效 {d.valid_count} 人</span>
-                    </div>
-                  ))
+                {targetStats || distribution ? (
+                  <Table
+                    rowKey="dimension_code"
+                    showHeader={false}
+                    pagination={false}
+                    dataSource={
+                      targetStats
+                        ? targetStats.map((d) => ({
+                            dimension_code: d.dimension_code,
+                            name: dimensionName(d.dimension_code),
+                            mean: scoreText(d.target.mean),
+                            validCount: d.target.valid_count,
+                          }))
+                        : distribution!.dimensions.map((d) => ({
+                            dimension_code: d.dimension_code,
+                            name: dimensionName(d.dimension_code),
+                            mean: scoreDisplay(d.mean.value),
+                            validCount: d.valid_count,
+                          }))
+                    }
+                    columns={[
+                      {
+                        title: '维度',
+                        dataIndex: 'name',
+                      },
+                      {
+                        title: '均分',
+                        dataIndex: 'mean',
+                        render: (value: string) => (
+                          <Typography.Text
+                            strong
+                            style={{ fontSize: 16, fontVariantNumeric: 'tabular-nums' }}
+                          >
+                            {value}
+                          </Typography.Text>
+                        ),
+                      },
+                      {
+                        title: '有效人数',
+                        dataIndex: 'validCount',
+                        render: (count: number) => (
+                          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                            有效 {count} 人
+                          </Typography.Text>
+                        ),
+                      },
+                    ]}
+                  />
                 ) : (
-                  <p className="muted">
+                  <Typography.Text type="secondary">
                     {group.loading ? '正在读取群体统计…' : '当前群体暂无可显示的统计。'}
-                  </p>
+                  </Typography.Text>
                 )}
-                <details className="exploration-reference">
-                  <summary>统计说明</summary>
-                  <p className="muted small">均值按全部匹配记录计算，缺失评分不记为 0。</p>
-                </details>
+                <Disclosure className="exploration-reference" label={<>统计说明</>}>
+                  <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                    均值按全部匹配记录计算，缺失评分不记为 0。
+                  </Typography.Text>
+                </Disclosure>
               </div>
             </Panel>
           </div>

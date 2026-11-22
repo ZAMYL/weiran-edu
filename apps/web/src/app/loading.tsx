@@ -1,3 +1,9 @@
+import { Spin } from 'antd';
+
 export default function Loading() {
-  return <p role="status">正在加载…</p>;
+  return (
+    <div role="status" className="live-loading">
+      <Spin /> 正在加载…
+    </div>
+  );
 }

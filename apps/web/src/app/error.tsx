@@ -1,13 +1,19 @@
 'use client';
 
+import { Button, Result } from 'antd';
+
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (
     <main>
-      <h1>页面暂时无法加载</h1>
-      <p role="alert">请重试。</p>
-      <button type="button" onClick={reset}>
-        重试
-      </button>
+      <Result
+        status="error"
+        title={<h1>页面暂时无法加载</h1>}
+        extra={
+          <Button type="primary" onClick={reset}>
+            重试
+          </Button>
+        }
+      />
     </main>
   );
 }

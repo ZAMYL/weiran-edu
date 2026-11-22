@@ -9,7 +9,7 @@ import {
   CommentOutlined,
   ThunderboltOutlined,
 } from '@ant-design/icons';
-import { Button, Empty, Segmented, Tag } from 'antd';
+import { Card, Button, Empty, Segmented, Tag } from 'antd';
 import { useBatch, useWorkspace } from '../../app/store';
 import { DEFAULT_CONDITIONS } from '../../domain/model';
 import { conditionLabel, filterStudents, percentage } from '../../domain/statistics';
@@ -99,7 +99,7 @@ export default function InsightsPage() {
           )}
         </div>
         <div className="insights-right">
-          <section className="finding-card">
+          <Card size="small" className="finding-card">
             <div className="finding-top">
               <span>
                 <BulbOutlined /> <Tag>重点发现</Tag>
@@ -129,7 +129,7 @@ export default function InsightsPage() {
                 进入画像探索 <ArrowRightOutlined />
               </Button>
             </div>
-          </section>
+          </Card>
           <Panel
             title="评语主题与原始依据"
             action={
@@ -139,13 +139,12 @@ export default function InsightsPage() {
             }
             className="comments-panel"
           >
-            <div className="topic-tabs" role="group" aria-label="评语主题">
-              {['算法选择', '边界处理', '调试方法'].map((t) => (
-                <button className={topic === t ? 'active' : ''} key={t} onClick={() => setTopic(t)}>
-                  {t}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              aria-label="评语主题"
+              options={['算法选择', '边界处理', '调试方法']}
+              value={topic}
+              onChange={setTopic}
+            />
             {example ? (
               <>
                 <CommentQuote
@@ -168,7 +167,7 @@ export default function InsightsPage() {
           </Panel>
         </div>
       </div>
-      <section className="panel teaching-strip">
+      <Panel className="teaching-strip">
         <div>
           <h2>
             下一步：核对群体差异 <PendingTag />
@@ -187,7 +186,7 @@ export default function InsightsPage() {
         >
           生成测评分析
         </Button>
-      </section>
+      </Panel>
       <GroupDrawers
         key={batch.id}
         batch={batch}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Button, Input, Steps, Table, Tag } from 'antd';
+import { Card, Alert, Button, Input, Steps, Table, Tag } from 'antd';
 import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
@@ -82,9 +82,8 @@ export function ImportPreview({
         >
           <Table<PreviewRow>
             rowKey="key"
-            size="small"
             dataSource={preview.rows}
-            scroll={{ x: 700 }}
+            scroll={{ x: 'max-content' }}
             rowClassName={(row) =>
               `${errors.has(row.key) ? 'error-row' : ''} ${located === row.key ? 'located-row' : ''}`
             }
@@ -96,14 +95,13 @@ export function ImportPreview({
               showTotal: (total) => `共 ${total} 条原始记录`,
             }}
             columns={[
-              { title: '匿名学生', dataIndex: 'anonymousId', width: 90 },
-              { title: '能力维度', dataIndex: 'dimension', width: 140 },
-              { title: '原始评分', dataIndex: 'raw', width: 90, render: rawText },
+              { title: '匿名学生', dataIndex: 'anonymousId' },
+              { title: '能力维度', dataIndex: 'dimension' },
+              { title: '原始评分', dataIndex: 'raw', render: rawText },
               { title: '原始评语', dataIndex: 'comment', render: (comment) => comment || '—' },
               {
                 title: '来源',
                 key: 'source',
-                width: 150,
                 render: (_, row) =>
                   `${row.source.sheet} · 第${row.source.row}行 · ${row.source.column}列`,
               },
@@ -123,7 +121,7 @@ export function ImportPreview({
             <>
               <div className="issue-list">
                 {preview.issues.map((issue) => (
-                  <article className="issue-card" key={issue.key}>
+                  <Card size="small" className="issue-card" key={issue.key}>
                     <div>
                       <h3>
                         <ExclamationCircleFilled /> {issue.title}
@@ -140,7 +138,7 @@ export function ImportPreview({
                       </p>
                     )}
                     <p>{issue.detail}</p>
-                  </article>
+                  </Card>
                 ))}
               </div>
               <Alert
@@ -170,7 +168,7 @@ export function ImportPreview({
           </div>
         </Panel>
       </div>
-      <section className="panel preview-footer">
+      <Panel className="preview-footer">
         <div>
           <Button icon={<ArrowLeftOutlined />} onClick={onCancel}>
             返回上传
@@ -190,7 +188,7 @@ export function ImportPreview({
             确认导入
           </Button>
         </div>
-      </section>
+      </Panel>
     </div>
   );
 }

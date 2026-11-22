@@ -1,5 +1,6 @@
 'use client';
-
+import { Disclosure } from '../components/Disclosure';
+import { Button, Segmented, theme } from 'antd';
 import { useState } from 'react';
 import {
   BarChartOutlined,
@@ -39,22 +40,71 @@ const radarValues = [
   [110, 86],
 ] as const;
 const scatter = [
-  { score: 1.5, efficiency: 1.5, count: 6, x: 67, y: 112, size: 10, color: '#93c5fd' },
-  { score: 2, efficiency: 2, count: 9, x: 101, y: 98, size: 12, color: '#60a5fa' },
-  { score: 2.5, efficiency: 2.5, count: 14, x: 135, y: 81, size: 14, color: '#3b82f6' },
-  { score: 3, efficiency: 2.5, count: 12, x: 171, y: 82, size: 13, color: '#3b82f6' },
-  { score: 3.5, efficiency: 3, count: 19, x: 206, y: 65, size: 16, color: '#2563eb' },
-  { score: 4, efficiency: 2.5, count: 15, x: 242, y: 81, size: 15, color: '#2563eb' },
-  { score: 4, efficiency: 3.5, count: 18, x: 241, y: 50, size: 16, color: '#2563eb' },
-  { score: 4.5, efficiency: 4, count: 21, x: 276, y: 35, size: 17, color: '#1d4ed8' },
-  { score: 5, efficiency: 4.5, count: 14, x: 313, y: 20, size: 14, color: '#3b82f6' },
-];
+  {
+    score: 1.5,
+    efficiency: 1.5,
+    count: 6,
+    x: 67,
+    y: 112,
+    size: 10,
+    color: 'colorPrimaryBorder',
+  },
+  {
+    score: 2,
+    efficiency: 2,
+    count: 9,
+    x: 101,
+    y: 98,
+    size: 12,
+    color: 'colorPrimaryBorderHover',
+  },
+  {
+    score: 2.5,
+    efficiency: 2.5,
+    count: 14,
+    x: 135,
+    y: 81,
+    size: 14,
+    color: 'colorPrimaryHover',
+  },
+  {
+    score: 3,
+    efficiency: 2.5,
+    count: 12,
+    x: 171,
+    y: 82,
+    size: 13,
+    color: 'colorPrimaryHover',
+  },
+  { score: 3.5, efficiency: 3, count: 19, x: 206, y: 65, size: 16, color: 'colorPrimary' },
+  { score: 4, efficiency: 2.5, count: 15, x: 242, y: 81, size: 15, color: 'colorPrimary' },
+  { score: 4, efficiency: 3.5, count: 18, x: 241, y: 50, size: 16, color: 'colorPrimary' },
+  {
+    score: 4.5,
+    efficiency: 4,
+    count: 21,
+    x: 276,
+    y: 35,
+    size: 17,
+    color: 'colorPrimaryActive',
+  },
+  {
+    score: 5,
+    efficiency: 4.5,
+    count: 14,
+    x: 313,
+    y: 20,
+    size: 14,
+    color: 'colorPrimaryHover',
+  },
+] as const;
 type ScatterPoint = (typeof scatter)[number];
 
 function Radar() {
+  const { token: tokens } = theme.useToken();
   return (
     <svg className={styles.radar} viewBox="0 0 320 200" role="img" aria-label="示例班级五维平均分">
-      <g stroke="#cbd5e1" strokeWidth=".8" fill="none">
+      <g stroke={tokens.colorBorder} strokeWidth=".8" fill="none">
         {[1, 0.75, 0.5, 0.25].map((scale) => (
           <polygon
             key={scale}
@@ -69,17 +119,24 @@ function Radar() {
       </g>
       <polygon
         points={radarValues.map((point) => point.join(',')).join(' ')}
-        fill="#2563eb29"
-        stroke="#2563eb"
+        fill={tokens.colorPrimaryBgHover}
+        stroke={tokens.colorPrimary}
         strokeWidth="2"
       />
       {radarValues.map(([x, y]) => (
-        <circle key={x} cx={x} cy={y} r="3" fill="#2563eb" />
+        <circle key={x} cx={x} cy={y} r="3" fill={tokens.colorPrimary} />
       ))}
       {ratings.map(({ label, value, axis: [x, y], anchor }) => (
-        <text key={label} x={x} y={y} textAnchor={anchor} fill="#475569" fontSize="10">
+        <text
+          key={label}
+          x={x}
+          y={y}
+          textAnchor={anchor}
+          fill={tokens.colorTextSecondary}
+          fontSize="10"
+        >
           {label}
-          <tspan x={x} dy="13" fill="#2563eb" fontWeight="600">
+          <tspan x={x} dy="13" fill={tokens.colorPrimary} fontWeight="600">
             {value}
           </tspan>
         </text>
@@ -95,6 +152,7 @@ function Scatter({
   selected: ScatterPoint | null;
   onSelect: (point: ScatterPoint) => void;
 }) {
+  const { token: tokens } = theme.useToken();
   return (
     <svg
       className={styles.scatter}
@@ -109,13 +167,13 @@ function Scatter({
           <g key={tick}>
             <path
               d={`M36 ${y}H320 M${x} 14V134`}
-              stroke={tick === 1 ? '#94a3b8' : '#e2e8f0'}
+              stroke={tick === 1 ? tokens.colorTextTertiary : tokens.colorBorderSecondary}
               strokeWidth=".8"
             />
-            <text x="29" y={y + 3} textAnchor="end" fontSize="9" fill="#64748b">
+            <text x="29" y={y + 3} textAnchor="end" fontSize="9" fill={tokens.colorTextSecondary}>
               {tick}
             </text>
-            <text x={x} y="148" textAnchor="middle" fontSize="9" fill="#64748b">
+            <text x={x} y="148" textAnchor="middle" fontSize="9" fill={tokens.colorTextSecondary}>
               {tick}
             </text>
           </g>
@@ -129,8 +187,8 @@ function Scatter({
           width={point.size}
           height={point.size}
           rx="2"
-          fill={point.color}
-          stroke={selected === point ? '#0f172a' : undefined}
+          fill={tokens[point.color]}
+          stroke={selected === point ? tokens.colorText : undefined}
           tabIndex={0}
           role="button"
           aria-pressed={selected === point}
@@ -185,13 +243,14 @@ export function LandingPreview({ onEnter, ready }: { onEnter: () => void; ready:
       <div className={styles.previewCanvas}>
         <div className={styles.previewNav}>
           <strong className={styles.brand}>未然 EDU</strong>
-          <div className={styles.segmented} role="group" aria-label="预览页面">
-            {tabs.map(([id, label]) => (
-              <button key={id} type="button" aria-pressed={id === tab} onClick={() => setTab(id)}>
-                {label}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            className={styles.previewSegmented}
+            size="small"
+            aria-label="预览页面"
+            value={tab}
+            onChange={setTab}
+            options={tabs.map(([value, label]) => ({ value, label }))}
+          />
           <span className={styles.previewLabel}>教师工作台</span>
         </div>
         <div
@@ -236,22 +295,17 @@ export function LandingPreview({ onEnter, ready }: { onEnter: () => void; ready:
                       <h3>班级能力画像</h3>
                       <p>全体参评学生 · 维度平均得分</p>
                     </div>
-                    <div className={styles.segmented} role="group" aria-label="预览评分图表">
-                      <button
-                        type="button"
-                        aria-pressed={chart === 'radar'}
-                        onClick={() => setChart('radar')}
-                      >
-                        能力图谱
-                      </button>
-                      <button
-                        type="button"
-                        aria-pressed={chart === 'bar'}
-                        onClick={() => setChart('bar')}
-                      >
-                        分项对比
-                      </button>
-                    </div>
+                    <Segmented
+                      className={styles.previewSegmented}
+                      size="small"
+                      aria-label="预览评分图表"
+                      value={chart}
+                      onChange={setChart}
+                      options={[
+                        { value: 'radar', label: '能力图谱' },
+                        { value: 'bar', label: '分项对比' },
+                      ]}
+                    />
                   </div>
                   {chart === 'radar' ? (
                     <Radar />
@@ -272,13 +326,14 @@ export function LandingPreview({ onEnter, ready }: { onEnter: () => void; ready:
                         ))}
                     </div>
                   )}
-                  <button
+                  <Button
+                    type="text"
                     className={styles.previewLink}
-                    type="button"
+                    htmlType="button"
                     onClick={() => setTab('portrait')}
                   >
                     进入画像探索 →
-                  </button>
+                  </Button>
                 </section>
                 <section className={styles.previewCard}>
                   <div className={styles.previewCardHeading}>
@@ -298,34 +353,36 @@ export function LandingPreview({ onEnter, ready }: { onEnter: () => void; ready:
                       ['待强化群体', '46 人'],
                     ]}
                   />
-                  <details
+                  <Disclosure
                     className={styles.previewEvidence}
-                    open={evidenceOpen}
-                    onToggle={(event) => setEvidenceOpen(event.currentTarget.open)}
+                    expanded={evidenceOpen}
+                    onExpandedChange={setEvidenceOpen}
+                    label={<>如何理解这条发现</>}
                   >
-                    <summary>如何理解这条发现</summary>
                     <p>
                       在代码实现得分 ≥ 4.0 的 54 名学生中，有 25 人效率意识低于
                       3.0，主要表现为嵌套循环冗余，建议结合复杂度分析开展针对性讲评。
                     </p>
-                  </details>
+                  </Disclosure>
                   <div className={styles.previewActions}>
-                    <button
+                    <Button
+                      type="primary"
                       className={styles.previewPrimary}
-                      type="button"
+                      htmlType="button"
                       onClick={() => setTab('report')}
                     >
                       查看具体评分
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      type="text"
+                      htmlType="button"
                       onClick={() => {
                         setFocused(true);
                         setTab('portrait');
                       }}
                     >
                       看看这组学生
-                    </button>
+                    </Button>
                   </div>
                 </section>
               </div>
@@ -348,25 +405,27 @@ export function LandingPreview({ onEnter, ready }: { onEnter: () => void; ready:
               </div>
               <div className={`${styles.previewCard} ${styles.previewOverview}`}>
                 <div className={styles.filters}>
-                  <button type="button" onClick={() => setFocused(false)}>
+                  <Button type="text" htmlType="button" onClick={() => setFocused(false)}>
                     筛选条件
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    type="primary"
                     className={styles.previewPrimary}
-                    type="button"
+                    htmlType="button"
                     onClick={() => setFocused(true)}
                   >
                     定位薄弱群
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    type="text"
+                    htmlType="button"
                     onClick={() => {
                       setFocused(false);
                       setSelected(null);
                     }}
                   >
                     重置
-                  </button>
+                  </Button>
                 </div>
                 <span aria-live="polite">
                   当前筛选 <strong>{focused ? '46' : '128'}</strong> / 128 人 · 占比{' '}
@@ -428,14 +487,15 @@ export function LandingPreview({ onEnter, ready }: { onEnter: () => void; ready:
                     <dd>{included ? 0 : 1}</dd>
                   </div>
                 </dl>
-                <button
+                <Button
+                  type="primary"
                   className={styles.previewPrimary}
-                  type="button"
+                  htmlType="button"
                   disabled={!ready}
                   onClick={onEnter}
                 >
                   导出诊断报告
-                </button>
+                </Button>
               </section>
               <section className={styles.previewCard}>
                 <h3>结论核验清单</h3>
@@ -449,16 +509,22 @@ export function LandingPreview({ onEnter, ready }: { onEnter: () => void; ready:
                     3.82，建议补充复杂度优化专题训练。
                   </p>
                   <div className={styles.previewActions} role="group" aria-label="示例结论纳入状态">
-                    <button type="button" aria-pressed={included} onClick={() => setIncluded(true)}>
+                    <Button
+                      type="text"
+                      htmlType="button"
+                      aria-pressed={included}
+                      onClick={() => setIncluded(true)}
+                    >
                       纳入报告
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      type="text"
+                      htmlType="button"
                       aria-pressed={!included}
                       onClick={() => setIncluded(false)}
                     >
                       暂不纳入
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 <div className={styles.reportFinding}>

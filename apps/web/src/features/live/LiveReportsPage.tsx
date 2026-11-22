@@ -7,7 +7,7 @@ import { NoBatch } from './LiveStatus';
 import { ReportWorkspace, reportContextKey } from './AnalysisActions';
 
 export default function LiveReportsPage() {
-  const { batch, conditions, openAssessments } = useDataMode();
+  const { batch, conditions, reportRequest } = useDataMode();
   const router = useRouter();
   if (!batch) return <NoBatch />;
   if (batch.recognized_items)
@@ -17,7 +17,6 @@ export default function LiveReportsPage() {
         <Button
           type="primary"
           onClick={() => {
-            openAssessments(null);
             router.push('/insights');
           }}
         >
@@ -28,7 +27,7 @@ export default function LiveReportsPage() {
   const key = reportContextKey(batch, conditions);
   return (
     <div className="page-stack reports-page">
-      <ReportWorkspace key={key} batch={batch} contextKey={key} />
+      <ReportWorkspace key={key + ':' + reportRequest} batch={batch} contextKey={key} />
     </div>
   );
 }

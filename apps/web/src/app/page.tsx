@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from 'antd';
 import {
   ArrowRightOutlined,
   BarChartOutlined,
@@ -9,6 +10,7 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { useDataMode } from './data-mode';
 import { LandingPreview } from './LandingPreview';
@@ -59,7 +61,7 @@ export default function Home() {
   useEffect(() => {
     if (connected && enterAfterLogin.current) {
       enterAfterLogin.current = false;
-      router.push('/insights');
+      router.push('/dashboard');
     }
   }, [connected, router]);
 
@@ -86,7 +88,7 @@ export default function Home() {
 
   function enterWorkspace() {
     if (connected || testMode) {
-      router.push('/insights');
+      router.push('/dashboard');
       return;
     }
     enterAfterLogin.current = true;
@@ -110,7 +112,10 @@ export default function Home() {
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
               <div className={styles.brandLine}>
-                <span className={styles.brand}>未然 EDU</span>
+                <span className={styles.brand}>
+                  <Image src="/weiran-logo.png" alt="" width={40} height={40} unoptimized />
+                  未然 EDU
+                </span>
                 <span className={styles.tagline}>{tagline}</span>
               </div>
               <h1>
@@ -121,14 +126,15 @@ export default function Home() {
               </h1>
               <p>上传编程测评资料，发现能力差异，获得可核验的群体画像和教学报告。</p>
               <div className={styles.actions}>
-                <button
+                <Button
+                  type="primary"
                   className={styles.action}
-                  type="button"
+                  htmlType="button"
                   disabled={!ready}
                   onClick={enterWorkspace}
                 >
                   进入教师工作台 <ArrowRightOutlined aria-hidden="true" />
-                </button>
+                </Button>
                 <a
                   className={styles.secondaryAction}
                   href={repository}
@@ -181,14 +187,15 @@ export default function Home() {
               </p>
             </div>
             <div className={styles.actions}>
-              <button
+              <Button
+                type="primary"
                 className={styles.action}
-                type="button"
+                htmlType="button"
                 disabled={!ready}
                 onClick={enterWorkspace}
               >
                 进入教师工作台 <ArrowRightOutlined aria-hidden="true" />
-              </button>
+              </Button>
               <a
                 className={styles.secondaryAction}
                 href={repository}

@@ -1,20 +1,26 @@
 'use client';
 import type { ReactNode } from 'react';
-import { Steps } from 'antd';
+import { Card, Steps } from 'antd';
+import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
 
 export default function UploadWorkflow({
   step,
   busy = false,
+  steps = ['选择文件', '检查结果', '确认导入'],
   children,
   actions,
 }: {
   step: 0 | 1 | 2;
   busy?: boolean;
+  steps?: string[];
   children: ReactNode;
   actions?: ReactNode;
 }) {
+  const { uploadTypeControl } = useWorkspaceLayout();
   return (
-    <section
+    <Card
+      title={uploadTypeControl}
+      classNames={{ body: 'upload-workflow-layout' }}
       className={`panel upload-workflow upload-step-${step}`}
       aria-label="上传测评流程"
       aria-busy={busy}
@@ -26,11 +32,7 @@ export default function UploadWorkflow({
           orientation="vertical"
           responsive={false}
           aria-label="导入进度"
-          classNames={{ itemWrapper: 'workflow-step-row' }}
-          items={['选择文件', '检查结果', '确认导入'].map((title, index) => ({
-            title,
-            className: index === step ? 'workflow-step-current' : undefined,
-          }))}
+          items={steps.map((title) => ({ title }))}
         />
       </aside>
       <div className="upload-workflow-main">
@@ -39,6 +41,6 @@ export default function UploadWorkflow({
           {actions}
         </footer>
       </div>
-    </section>
+    </Card>
   );
 }
