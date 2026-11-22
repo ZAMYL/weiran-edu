@@ -69,6 +69,13 @@ REFERENCES batches`，`check()` 走 `BatchReader`，`source()` 走 `DatabaseProv
 认领阶段被拒同样落终态（`failed` + 对应 `error_code`），不会把任务静默留在 `queued`；
 已完成的旧任务在凭证撤销后也无法再读取。
 
+**B-04C-FIX-02（已完成结果的可信回读）**：`view()` 对 `completed` 任务在同一读事务内依次核对
+权限/来源指纹、`result_json` 与 `result_sha` 摘要、以及 `OriginalStore` 逐字节哈希后才返回结论；
+校验通过后使用的是内存中的同一份结果，不会在校验后再读另一版本。原件缺失仍为 409
+`ORIGINAL_UNAVAILABLE`，内容被篡改为 409 `SOURCE_CHANGED`；多包中只坏一包也整体拒绝。
+数据库里的任务行与结果不做删除，拒绝只作用于对外读取（审计记录保留）。`queued/running`
+的状态轮询不读取 ZIP，避免每次轮询都解压原件。
+
 ## 4. Live 准入
 
 - `environment == "test"` 且注入了受控执行器 → `purpose=assessment_mock`，`execution_origin=http_mock`，
@@ -83,6 +90,8 @@ REFERENCES batches`，`check()` 走 `BatchReader`，`source()` 走 `DatabaseProv
 | 越权/不存在 | 404 | `RESOURCE_NOT_FOUND` |
 | 凭证撤销/教师停用 | 401 | `UNAUTHORIZED` |
 | 数据范围访问权被移除 | 403 | `AI_SCOPE_REVOKED` |
+| 已完成结果的原件被篡改 | 409 | `SOURCE_CHANGED` |
+| 已完成结果的原件缺失 | 409 | `ORIGINAL_UNAVAILABLE` |
 | 授权撤销/过期 | 403 / 410 | `AI_PURPOSE_REVOKED` / `AI_TASK_EXPIRED` |
 | 来源快照或资产变化 | 409 | `AI_SOURCE_CONFLICT` |
 | 无不可变快照 | 409 | `AI_SOURCE_UNVERIFIED` |

@@ -450,7 +450,10 @@ class ProgrammingTaskService:
             self.event(connection, task_id, "result_committed", {"result_sha": digest(raw)})
 
     def verify_originals(self, connection: sqlite3.Connection, row: dict) -> None:
-        """发布前逐字节回读：原件缺失、被改动或撤销都不允许产出结果。"""
+        """逐字节回读原件：发布前与历史结果回读前都不允许只信数据库里的 sha256。
+
+        原件缺失 → ORIGINAL_UNAVAILABLE；内容被改动 → SOURCE_CHANGED；两者都拒绝。
+        """
         if self.originals is None:
             blocked("ORIGINAL_UNAVAILABLE", 409, "服务未配置原件存储，无法核对来源")
         assets = connection.execute(
@@ -461,10 +464,7 @@ class ProgrammingTaskService:
         if not assets:
             blocked("ORIGINAL_UNAVAILABLE", 409, "该测评没有可核对的原件")
         for asset in assets:
-            try:
-                self.originals.read(asset["sha256"])
-            except APIError as error:
-                raise APIError(409, "ORIGINAL_UNAVAILABLE", error.message) from None
+            self.originals.read(asset["sha256"])
 
     def verify_result(
         self, connection: sqlite3.Connection, row: dict, result: ProgrammingResult
@@ -547,19 +547,18 @@ class ProgrammingTaskService:
             self.event(connection, task_id, "stopped_without_result", {"code": code})
 
     def view(self, actor: Principal, task_id: str) -> ProgrammingTaskView:
+        # 权限、来源指纹、原件与结果摘要必须在同一个读事务里核对完，再返回内存中的结果：
+        # 校验通过后不会再读到另一个版本，也不把「缓存结果」当证据。
         with self.database.transaction() as connection:
             row = self._row(connection, task_id)
             self.check(connection, row, actor)
-        result = None
-        if row["state"] == "completed":
-            with self.database.transaction() as connection:
-                current = self._row(connection, task_id)
-                if (
-                    current["result_json"] is None
-                    or digest(json.loads(current["result_json"])) != current["result_sha"]
-                ):
+            result = None
+            if row["state"] == "completed":
+                payload = row["result_json"]
+                if payload is None or digest(json.loads(payload)) != row["result_sha"]:
                     blocked("DATA_INTEGRITY_ERROR", 503, "已保存的结果与摘要不一致")
-                result = ProgrammingResult.model_validate(json.loads(current["result_json"]))
+                self.verify_originals(connection, row)
+                result = ProgrammingResult.model_validate(json.loads(payload))
         budget = json.loads(row["budget_json"])
         origin = "http_mock" if row["purpose"] == PURPOSE_MOCK else "none"
         return ProgrammingTaskView(
