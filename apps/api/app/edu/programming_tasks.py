@@ -4,8 +4,8 @@
 语义，但来源是 assessments：任务绑定测评、教师、数据范围、来源快照与受控任务 ID，
 不再伪造 batch_id，也不复用五维结果契约。
 
-本轮只开放「受控执行器」路径（测试注入）；真实 Qwen Live 由 Codex 接线后开放，
-未获批准时稳定拒绝，不产生账本消耗与成功结果。
+本轮开放两条互斥路径：测试环境的受控执行器，以及生产环境中独立审批、代价上限、
+凭证与代码指纹全部有效的真实 Qwen 执行。未获批准时稳定拒绝，不产生账本消耗与成功结果。
 """
 
 import json
@@ -147,23 +147,35 @@ class ProgrammingTaskService:
         return dict(row)
 
     def _purpose(self) -> str:
-        """受控执行器只在测试环境可用；其余情况一律视为真实执行，本轮未开放。"""
+        """受控执行器只在测试环境可用；其余环境一律按真实任务处理。"""
         if self.environment == "test" and self.runner is not None:
             return PURPOSE_MOCK
         return PURPOSE_LIVE
 
-    def _require_live(self) -> None:
-        try:
-            from prototypes.durable_teacher_agent.live_admission import LiveAdmission
+    def _require_live(self):
+        """Fail closed before creating or resuming any Live task.
 
-            LiveAdmission.load()
+        The old five-dimension admission is deliberately not reused: this path
+        requires its own programming approval, source binding and code review.
+        """
+        if self.environment != "production":
+            blocked("AI_LIVE_NOT_ENABLED", 503, "编程调查的真实模型执行仅在生产环境启用")
+        if self.runner is None:
+            blocked(
+                "AI_LIVE_ADMISSION_REQUIRED",
+                409,
+                "编程调查尚未安装受控执行器，未发起任何请求",
+            )
+        try:
+            from app.edu.programming_live import ProgrammingLiveAdmission
+
+            return ProgrammingLiveAdmission.load()
         except Exception:  # noqa: BLE001 - 任何读取失败都必须封闭拒绝
             blocked(
                 "AI_LIVE_ADMISSION_REQUIRED",
                 409,
                 "编程调查尚未获得独立审核授权与预算，未发起任何请求",
             )
-        blocked("AI_LIVE_NOT_ENABLED", 503, "编程调查的真实模型执行由后续 Agent 接线开放")
 
     # ---- 任务检查 ----------------------------------------------------------
 
@@ -241,8 +253,7 @@ class ProgrammingTaskService:
         if not MIN_TIMEOUT <= body.timeout_seconds <= MAX_TIMEOUT:
             raise ValueError("invalid_programming_task_timeout")
         purpose = self._purpose()
-        if purpose == PURPOSE_LIVE:
-            self._require_live()
+        admission = self._require_live() if purpose == PURPOSE_LIVE else None
         request = body.model_dump(mode="json")
         request_sha = digest(request)
         timeout = body.timeout_seconds
@@ -255,6 +266,15 @@ class ProgrammingTaskService:
             fingerprint = self.source_fingerprint(connection, assessment_id)
             if fingerprint is None:
                 blocked("ORIGINAL_UNAVAILABLE", 409, "来源原件不可用，拒绝建立调查任务")
+            if admission is not None:
+                try:
+                    admission.require_source(assessment_id, snapshot)
+                except Exception:
+                    blocked(
+                        "AI_LIVE_SOURCE_NOT_APPROVED",
+                        409,
+                        "该测评与来源快照不在独立审批范围内",
+                    )
 
             old = connection.execute(
                 "SELECT task_id,request_sha FROM ai_programming_tasks WHERE teacher_id=? "
@@ -374,11 +394,20 @@ class ProgrammingTaskService:
         with self.database.transaction(write=True) as connection:
             row = self._row(connection, task_id)
             self.check(connection, row, Principal(row["teacher_id"], row["credential_sha"]))
-            if row["state"] != "queued" or row["deadline"] <= self.clock():
+            if row["state"] != "queued":
                 blocked("AI_TASK_NOT_RUNNABLE", 409, "任务不可运行")
-            connection.execute(
-                "UPDATE ai_programming_tasks SET state='running' WHERE task_id=?", (task_id,)
-            )
+            now = self.clock()
+            if row["deadline"] <= now:
+                blocked("AI_TASK_TIMEOUT", 410, "任务已超过执行截止时间")
+            # Conditional claim: two workers can observe the same queued row, but
+            # only one UPDATE (and therefore one paid model run) can win.
+            claimed = connection.execute(
+                "UPDATE ai_programming_tasks SET state='running' "
+                "WHERE task_id=? AND state='queued' AND deadline>?",
+                (task_id, now),
+            ).rowcount
+            if claimed != 1:
+                blocked("AI_TASK_NOT_RUNNABLE", 409, "任务已被其他执行器认领")
             self.event(connection, task_id, "running", {})
             return self._row(connection, task_id)
 
@@ -412,6 +441,99 @@ class ProgrammingTaskService:
                 {"request_count": request_count, "tool_attempts": tool_attempts},
             )
 
+    def budget_state(self, task_id: str) -> dict:
+        """Read-only counter snapshot for budget reconciliation and delivery audits."""
+        with self.database.transaction() as connection:
+            row = connection.execute(
+                "SELECT budget_json,tool_attempts FROM ai_programming_tasks WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+        if row is None:
+            blocked("RESOURCE_NOT_FOUND", 404, "任务不存在")
+        return {
+            "budget": json.loads(row["budget_json"]),
+            "tool_attempts": row["tool_attempts"],
+        }
+
+    def record_provenance(self, task_id: str, payload: dict) -> None:
+        """Merge server-owned execution facts; never accepts a client payload."""
+        with self.database.transaction(write=True) as connection:
+            row = connection.execute(
+                "SELECT provenance_json FROM ai_programming_tasks WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+            if row is None:
+                blocked("RESOURCE_NOT_FOUND", 404, "任务不存在")
+            try:
+                provenance = json.loads(row["provenance_json"] or "{}")
+            except ValueError:
+                provenance = {}
+            provenance.update(payload)
+            connection.execute(
+                "UPDATE ai_programming_tasks SET provenance_json=? WHERE task_id=?",
+                (encode(provenance), task_id),
+            )
+
+    def audit_tool(self, task_id: str, payload: dict) -> None:
+        """Append one opaque tool trace entry even after cancellation/revocation."""
+        with self.database.transaction(write=True) as connection:
+            row = connection.execute(
+                "SELECT provenance_json FROM ai_programming_tasks WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+            if row is None:
+                blocked("RESOURCE_NOT_FOUND", 404, "任务不存在")
+            self.event(connection, task_id, "tool_audit", payload)
+            try:
+                provenance = json.loads(row["provenance_json"] or "{}")
+            except ValueError:
+                provenance = {}
+            trace = list(provenance.get("tool_trace", []))
+            trace.append(
+                {
+                    key: payload[key]
+                    for key in (
+                        "tool",
+                        "attempt",
+                        "phase",
+                        "status",
+                        "arguments",
+                        "fact_ids",
+                        "error",
+                    )
+                    if payload.get(key) is not None
+                }
+            )
+            provenance["tool_trace"] = trace[-40:]
+            connection.execute(
+                "UPDATE ai_programming_tasks SET provenance_json=? WHERE task_id=?",
+                (encode(provenance), task_id),
+            )
+
+    def queued(self, *, limit: int = 1) -> list[str]:
+        """Only rows still claimable; stale rows are swept by expire_stale()."""
+        now = self.clock()
+        with self.database.transaction() as connection:
+            rows = connection.execute(
+                "SELECT task_id FROM ai_programming_tasks WHERE state='queued' "
+                "AND deadline>? ORDER BY created LIMIT ?",
+                (now, limit),
+            ).fetchall()
+        return [row["task_id"] for row in rows]
+
+    def expire_stale(self) -> int:
+        """Fail closed on deadlines; an expired row never becomes successful on restart."""
+        now = self.clock()
+        with self.database.transaction() as connection:
+            rows = connection.execute(
+                "SELECT task_id FROM ai_programming_tasks "
+                "WHERE state IN ('queued','running') AND deadline<=?",
+                (now,),
+            ).fetchall()
+        for row in rows:
+            self.fail(row["task_id"], "AI_TASK_TIMEOUT")
+        return len(rows)
+
     def execute(self, task_id: str) -> None:
         try:
             row = self.start(task_id)
@@ -439,15 +561,50 @@ class ProgrammingTaskService:
         with self.database.transaction(write=True) as connection:
             current = self._row(connection, task_id)
             self.check(connection, current, actor, running=True)
+            provenance = json.loads(current["provenance_json"] or "{}")
+            budget = json.loads(current["budget_json"])
+            if current["purpose"] == PURPOSE_LIVE and (
+                provenance.get("execution_origin") != "qwen_live"
+                or budget.get("request_count", 0) <= 0
+            ):
+                blocked(
+                    "AI_LIVE_PROVENANCE_REQUIRED",
+                    409,
+                    "真实任务缺少执行来源或模型请求记录，拒绝发布结果",
+                )
             self.verify_originals(connection, current)
             self.verify_result(connection, current, result)
             raw = result.model_dump(mode="json")
+            provenance.update(
+                {
+                    "result_sha": digest(raw),
+                    "result_summary": {
+                        "finding_count": len(result.findings),
+                        "statement": result.statement,
+                    },
+                    "model_requests": budget.get("request_count", 0),
+                    "tool_attempts": current["tool_attempts"],
+                    "completed_at": stamp(datetime.now(UTC)),
+                }
+            )
+            if current["purpose"] == PURPOSE_LIVE:
+                provenance["production_enabled"] = True
+                if provenance.get("execution_origin") == "qwen_live":
+                    provenance["real_qwen"] = "completed"
             connection.execute(
                 "UPDATE ai_programming_tasks SET state='completed',result_json=?,result_sha=?,"
-                "error_code=NULL WHERE task_id=?",
-                (encode(raw), digest(raw), task_id),
+                "error_code=NULL,provenance_json=? WHERE task_id=?",
+                (encode(raw), digest(raw), encode(provenance), task_id),
             )
-            self.event(connection, task_id, "result_committed", {"result_sha": digest(raw)})
+            self.event(
+                connection,
+                task_id,
+                "result_committed",
+                {
+                    "result_sha": digest(raw),
+                    "execution_origin": provenance.get("execution_origin", "none"),
+                },
+            )
 
     def verify_originals(self, connection: sqlite3.Connection, row: dict) -> None:
         """逐字节回读原件：发布前与历史结果回读前都不允许只信数据库里的 sha256。
@@ -539,10 +696,25 @@ class ProgrammingTaskService:
             else "failed"
         )
         with self.database.transaction(write=True) as connection:
+            current = connection.execute(
+                "SELECT purpose,budget_json,provenance_json FROM ai_programming_tasks "
+                "WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+            if current is None:
+                return
+            provenance = json.loads(current["provenance_json"] or "{}")
+            if current["purpose"] == PURPOSE_LIVE and provenance.get("execution_origin") == "qwen_live":
+                budget = json.loads(current["budget_json"])
+                provenance["production_enabled"] = True
+                provenance["real_qwen"] = (
+                    "failed" if budget.get("request_count", 0) else "not_run"
+                )
             connection.execute(
                 "UPDATE ai_programming_tasks SET state=?,error_code=?,result_json=NULL,"
-                "result_sha=NULL WHERE task_id=? AND state IN ('queued','running')",
-                (state, code, task_id),
+                "result_sha=NULL,provenance_json=? WHERE task_id=? "
+                "AND state IN ('queued','running')",
+                (state, code, encode(provenance), task_id),
             )
             self.event(connection, task_id, "stopped_without_result", {"code": code})
 
@@ -560,7 +732,21 @@ class ProgrammingTaskService:
                 self.verify_originals(connection, row)
                 result = ProgrammingResult.model_validate(json.loads(payload))
         budget = json.loads(row["budget_json"])
-        origin = "http_mock" if row["purpose"] == PURPOSE_MOCK else "none"
+        provenance = json.loads(row["provenance_json"] or "{}")
+        if row["purpose"] == PURPOSE_MOCK:
+            origin, real_qwen, production_enabled = "http_mock", "not_run", False
+        else:
+            origin = provenance.get("execution_origin", "none")
+            if origin not in ("qwen_live", "none"):
+                origin = "none"
+            real_qwen = provenance.get("real_qwen", "not_run")
+            if real_qwen not in ("not_run", "completed", "failed"):
+                real_qwen = "not_run"
+            production_enabled = bool(provenance.get("production_enabled", False))
+            # A revoked/cancelled/timed-out row must never expose a successful
+            # execution badge, even when some model calls had already completed.
+            if row["state"] != "completed" and origin == "qwen_live" and budget.get("request_count", 0):
+                real_qwen = "failed"
         return ProgrammingTaskView(
             task_id=task_id,
             assessment_id=row["assessment_id"],
@@ -572,8 +758,8 @@ class ProgrammingTaskService:
             deadline_at=datetime.fromtimestamp(row["deadline"], UTC).isoformat(),
             expires_at=datetime.fromtimestamp(row["expires"], UTC).isoformat(),
             execution_origin=origin,
-            real_qwen="not_run",
-            production_enabled=False,
+            real_qwen=real_qwen,
+            production_enabled=production_enabled,
             tool_attempts=row["tool_attempts"],
             model_requests=budget.get("request_count", 0),
             result=result,
