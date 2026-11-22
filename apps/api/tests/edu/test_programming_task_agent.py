@@ -190,8 +190,14 @@ def test_formal_programming_task_persists_verified_c01_result(client_factory, ru
     assert len(decisions) == len(expected)
 
 
-@pytest.mark.parametrize("damage", ["tampered", "missing"])
-def test_completed_task_get_rejects_invalid_original_after_restart(client_factory, runtime, damage):
+@pytest.mark.parametrize(
+    ("damage", "expected_code"),
+    [("tampered", "SOURCE_CHANGED"), ("missing", "ORIGINAL_UNAVAILABLE")],
+    ids=["tampered", "missing"],
+)
+def test_completed_task_get_rejects_invalid_original_after_restart(
+    client_factory, runtime, damage, expected_code
+):
     mock, decisions = transport()
     with client_factory(runtime.token) as client:
         assessment = upload(client, archive(0))
@@ -211,7 +217,7 @@ def test_completed_task_get_rejects_invalid_original_after_restart(client_factor
             original.unlink()
         invalid = restarted.get(path)
         assert invalid.status_code == 409
-        assert invalid.json()["error"]["code"] == "ORIGINAL_UNAVAILABLE"
+        assert invalid.json()["error"]["code"] == expected_code
         assert invalid.json().get("result") is None
     assert len(decisions) == 3
 
