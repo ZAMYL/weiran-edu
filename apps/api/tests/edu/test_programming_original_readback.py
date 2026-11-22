@@ -100,9 +100,7 @@ def complete(client, runtime, assessment_id: str, key: str) -> str:
         return investigation(assessment_id, bound)
 
     service.runner = runner
-    row, _ = service.create(
-        runtime.p, assessment_id, ProgrammerTaskCreate(idempotency_key=key)
-    )
+    row, _ = service.create(runtime.p, assessment_id, ProgrammerTaskCreate(idempotency_key=key))
     service.execute(row["task_id"])
     view = client.get(f"{URL}/{assessment_id}/ai-tasks/{row['task_id']}").json()
     assert view["state"] == "completed", view
