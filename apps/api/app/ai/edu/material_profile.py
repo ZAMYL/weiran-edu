@@ -12,6 +12,7 @@ _NUMERIC = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]{1
 _TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}(?:[T ][0-9:]+(?:\.[0-9]+)?(?:Z|[+-][0-9:]+)?)?")
 _DURATION = re.compile(r"[0-9]+(?:\.[0-9]+)?\s*(?:ms|s|min|毫秒|秒|分钟)", re.I)
 _MEMORY = re.compile(r"[0-9]+(?:\.[0-9]+)?\s*(?:B|KB|MB|GB|KiB|MiB|GiB|字节)", re.I)
+_HEADER_LABEL = re.compile(r"[a-zA-Z\u3400-\u9fff][a-zA-Z\u3400-\u9fff _-]{1,47}")
 _TOKENS = {
     "student",
     "id",
@@ -179,8 +180,10 @@ class MaterialProfile:
     tables: dict[str, TableProfile]
     columns: dict[str, tuple[TableProfile, ColumnProfile]]
     locators: dict[str, Locator]
+    header_labels: dict[str, str] = field(default_factory=dict, repr=False)
 
-    def safe(self) -> dict:
+    def safe(self, *, include_reviewed_labels: bool = False) -> dict:
+        labels = self.header_labels if include_reviewed_labels else {}
         return {
             "files": self.files,
             "tables": [
@@ -190,7 +193,10 @@ class MaterialProfile:
                     "observed_rows": t.rows,
                     "complete_source_coverage": t.complete,
                     "blocked": t.blocked,
-                    "columns": [c.safe() for c in t.columns],
+                    "columns": [
+                        c.safe() | ({"header_label": labels[c.alias]} if c.alias in labels else {})
+                        for c in t.columns
+                    ],
                 }
                 for t in self.tables.values()
             ],
@@ -198,7 +204,11 @@ class MaterialProfile:
         }
 
 
-def build_profile(inputs: tuple[MaterialInput, ...]) -> MaterialProfile:
+def build_profile(
+    inputs: tuple[MaterialInput, ...],
+    *,
+    reviewed_header_labels: frozenset[Locator] = frozenset(),
+) -> MaterialProfile:
     if (
         not inputs
         or len(inputs) > 24
@@ -308,4 +318,32 @@ def build_profile(inputs: tuple[MaterialInput, ...]) -> MaterialProfile:
             )
             tables[alias] = profile
             columns.update((col.alias, (profile, col)) for col in profiled)
-    return MaterialProfile(tuple(files), tables, columns, locators)
+    labels = _reviewed_labels(columns, locators, reviewed_header_labels)
+    return MaterialProfile(tuple(files), tables, columns, locators, labels)
+
+
+def _reviewed_labels(
+    columns: dict[str, tuple[TableProfile, ColumnProfile]],
+    locators: dict[str, Locator],
+    reviewed: frozenset[Locator],
+) -> dict[str, str]:
+    # The exact, version-bound review is required even for text that looks like an ordinary label.
+    labels = {
+        ref: label
+        for ref, (table, column) in columns.items()
+        if not table.blocked
+        and not column.blocked
+        and not column.name_tokens
+        and locators[ref] in reviewed
+        and (label := (locators[ref].column_name or "").strip(" "))
+        and _HEADER_LABEL.fullmatch(label)
+    }
+    if not labels:
+        return labels
+    allowed = {label.casefold() for label in labels.values()}
+    for _, column in columns.values():
+        for value in column.values:
+            allowed.discard(value.strip().casefold())
+            if not allowed:
+                return {}
+    return {ref: label for ref, label in labels.items() if label.casefold() in allowed}

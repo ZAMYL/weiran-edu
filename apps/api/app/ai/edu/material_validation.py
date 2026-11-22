@@ -133,7 +133,10 @@ def validate_material(profile: MaterialProfile, suggestions: Suggestions) -> Ass
         elif ref in confirmed:
             result = Verdict("unsupported", ("conflicts_with_trusted_mapping",), tuple(evidence))
         elif (
-            uncertain or suggested_fields[ref] > 1 or column.blank_header or not column.name_tokens
+            uncertain
+            or suggested_fields[ref] > 1
+            or column.blank_header
+            or (not column.name_tokens and ref not in profile.header_labels)
         ):
             result = Verdict("needs_confirmation", ("ambiguous_field_semantics",), tuple(evidence))
         else:
