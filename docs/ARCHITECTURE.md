@@ -1,7 +1,7 @@
 # 未然 EDU — 架构与实现边界（V1.4）
 
-状态基准：2026-11-24，集成候选 **#136** `c2d4288a88be92b1d2ec9fb924dcfb3d7b46ccb9`
-（= #129 `33e39161b58c799200c0e690e4943220feabec79` + #132 `c0bb138f953ab908555bc69df78be1a686386852` + #133 `49b626f9846e5ae3535f3343af7dda5fd2370732`）。
+状态基准：2026-11-24，集成候选 **#136** `7921b0d0009c34c7a3738ce56a955669866fabf4`
+（= #129 `33e39161b58c799200c0e690e4943220feabec79` + #132 `c0bb138f953ab908555bc69df78be1a686386852` + #133 `49b626f9846e5ae3535f3343af7dda5fd2370732` + #138 `90f802dafedda8126a45603095bb4dbbaba9a7d5` 文档收敛 + #137 `39149bcf450d35a4716e9e7c7cb583ec09e6df8c` Qwen 资料理解适配；#137 与 #133 的 extract/detect 改动逐字一致，无重复引入）。
 并行参考线（**未并入本基准**，单独标注）：#134 `d628301b1f386308c9313d3f9b52424a8053720e`（LIVE-02 真实 Qwen 服务端接线）、#135 `37fc94583e5d634ea3d558aba4667bf2908494e5`（Ant Design 6.7.1 教师工作台）。
 本文只描述基准内真实 import/路由关系与已有运行证据；旧 2026-10-25 状态由本文取代，早期草案见 [archive/IMPLEMENTATION_STATUS.md](archive/IMPLEMENTATION_STATUS.md)。
 
@@ -15,7 +15,8 @@ AI 时代的编程能力与学习成效诊断平台：让教师看见编程表�
 ## 基准内正式运行链路（实际调用关系）
 
 - **装配** `apps/api/app/main.py`：`EduService`（`importing.edu.worker.parse_isolated`）+ `AssessmentService`/`AssessmentReader`（+`OriginalStore`）+ `ProgrammingTaskService`（离线）；路由 `edu` / `edu_discoveries` / `edu_reviews` / `edu_support` / `ai_capability` / `programming`。业务路由仅在配置 `WEIRAN_EDU_DATABASE` 后注册；HTTP 不自动建库、迁移或签发凭证。
-- **导入与证据** `app/importing/edu/`：`detect` → `extract`（#133 表头保真：结构感知表头定位、说明行移入 `text_lines` 并给 `HEADER_PREAMBLE_SKIPPED:<idx>` / `HEADER_UNCERTAIN` 诊断、全表宽补齐禁止静默截列）→ `adapter`/`answersheet`/`parser`/`archive` → `EduService.create_import/commit` → SQLite（迁移 001–014，校验和、fail-closed）→ `AssessmentService/Reader` 统计、群体、个人证据与原件受控回读（B-03，009/012/013）。
+- **导入与证据** `app/importing/edu/`：`detect` → `extract`（#133 表头保真：结构感知表头定位、说明行移入 `text_lines` 并给 `HEADER_PREAMBLE_SKIPPED:<idx>` / `HEADER_UNCERTAIN` 诊断、全表宽补齐禁止静默截列）→ `adapter`/`answersheet`/`parser`/`archive` → 两条入库路径：旧模板路径 `EduService.create_import/commit`（写旧 `evaluations` 表）与 **ZIP 答题卡路径 `AssessmentService.create_answersheet`**（写 009/012/013 证据表，B-03/B-02 正式路径）→ SQLite（迁移 001–014，校验和、fail-closed）→ `AssessmentService/Reader` 统计、群体、个人证据与原件受控回读。旧 `evaluations` 的 `CHECK(sheet_name='Sheet2')` **仅属历史兼容模板路径**；新通用上传走证据表，不需要修改该历史约束。
+- **AI 资料理解（DS-04，#132/#137）** `app/ai/edu/material_*`：三入口 `extract_material_input`（通用提取，coverage=unknown，来源标签不授予权威）→ `understand_materials`（本地规则/合成 sender + 审阅投影 + 待确认保留）→ `understand_materials_with_qwen`（#137：独立审批 `WEIRAN_EDU_MATERIAL_LIVE_APPROVAL`、purpose `material_semantics_remote_inference`，B-02 提供不可变来源版本与可撤权 `require_access`；缺审批 fail-closed，测试缝 MockTransport）。尚未接路由，待 B-02 承接；见 [DS04S2_MATERIAL_QWEN.md](DS04S2_MATERIAL_QWEN.md)。
 - **确定性统计与发现** `app/analysis/code/`（DS-03）：被 `edu/analysis`、`edu/discoveries`、`edu/insights`、`edu/results`、`edu/report_exports` 与 `ai/edu/tools` 消费；分数整数百分之一分，完整群体先计算再分页。
 - **五维 Live（生产受控）**：`environment=production` 且 `WEIRAN_EDU_REAL_DATA_APPROVAL` → `app/live_wiring.install_live_from_env` → `prototypes/durable_teacher_agent`（`api.install_production`/`TaskStore`/`TaskService`/`TaskWorker`/`live_admission`）+ `prototypes/teacher_agent_bridge.provider` + `prototypes/qwen_execution.code_fingerprint` + `prototypes/adaptive_assessment.live`（budget/pricing/planner）。非生产 `ai_task_router` 为合成 `http_mock` 边界，缺准入返回 503；合成主机不 import live_wiring。
 - **编程任务（离线）** `app/edu/programming_tasks.py` + `routers/programming.py`（B-04C，014 迁移）：任务/授权/审计/撤权与受控回读。真实 Qwen runner 在 **#134** `app/edu/programming_live.py`（`ProgrammingLiveApproval`/`ProgrammingLiveBudget`、独立 Worker 条件认领），**尚未并入本基准**。
@@ -30,16 +31,16 @@ AI 时代的编程能力与学习成效诊断平台：让教师看见编程表�
 | `prototypes/adaptive_assessment.live` | 正式运行依赖 | durable live_admission/service 消费 budget/pricing/planner |
 | `prototypes/capability_profiles` | 正式运行依赖 | durable profiles/service 消费；demo 入口除外 |
 | `prototypes/research_agent_v2`（C-01、database_evidence、programming_task_adapter） | 未接入实验 | 基准内仅 tests/evaluation/scripts 消费；正式接线见 #134 `programming_live.py` |
-| `app/ai/edu/material_*`（DS-04，#132） | 集成候选、未接路由 | routers/service 零引用；`extract_material_input`/`understand_materials`/`MaterialPlan.needs_confirmation` 待 B-02 承接 |
+| `app/ai/edu/material_*`（DS-04，#132/#137） | 集成候选、未接路由 | routers/service 零引用；三入口 `extract_material_input`/`understand_materials`/`understand_materials_with_qwen` 待 B-02 承接；#137 复用 `durable_teacher_agent.live_admission.load_live_approval` |
 | `apps/api/evaluation/ds06a`、`evals/material_semantics` | 离线评测 harness | 仅离线运行，no_model_call 规则/合成探针对照 |
 | `adaptive_assessment.agent`、capability_profiles/durable 的 demo/serve、`reporting/edu/demo.py` | 历史/演示入口 | 不在生产 import 链 |
 | `docs/archive/`、旧 OpenAPI/物理模型 | 历史设计 | 保留为记录，不覆盖运行时契约 |
 
 ## 已真实验证 vs 未完成
 
-**基准内已验证**：通用提取表头保真与诊断（#133，定向测试）；ZIP 答题卡 → 不可变批次 → 五维统计/证据/原件回读（B-03）；离线编程任务与受控回读（B-04C）；五维 Live 离线接线与合成边界（经 #129）；DS-04 陌生资料理解：候选 + 审阅投影 + 待确认保留、隐私墙与来源绑定（#132，#136 上 112 项定向测试通过）。
+**基准内已验证**：通用提取表头保真与诊断（#133，定向测试）；ZIP 答题卡 → 不可变批次 → 五维统计/证据/原件回读（B-03）；离线编程任务与受控回读（B-04C）；五维 Live 离线接线与合成边界（经 #129）；DS-04 陌生资料理解：候选 + 审阅投影 + 待确认保留、隐私墙与来源绑定（#132）；#137 Qwen 资料理解适配：独立审批 + 缺审批 fail-closed + MockTransport 测试缝（#136 新 SHA `7921b0d0` 上 120 项定向测试 + Ruff 通过）。
 **参考线证据（未并入）**：#134 已完成真实 Qwen **技术验证**（run 45364955318：3 次请求 HTTP 200、2 次工具 verified、预算审计落库），但其 `human_approval_reference`/`independent_review_reference` 为占位字符串，**不构成独立审批放行**，正式放行版重跑未做；价格指纹有效期至 2026-11-26。#135 工作台重构通过生产构建/ESLint/TypeScript/269 项 Vitest，**网页真实 AI 调查端到端未全部完成**。
-**未完成**：B-02 通用表格确认入库（审阅凭据服务端持久化、source_id 内容版本绑定、coverage/authority 证明、可信身份域证明）；`evaluations` 旧 schema `CHECK(sheet_name='Sheet2')` 需公共 schema 批准后才能灵活入库；C-01 正式接线（#134 待并入）；网页真实 AI 调查端到端验收；学校 SSO、部署 ACL、备份/加密与正式保留方案。单次测评不直接证明学生真实能力、AI 依赖或学习提升。
+**未完成**：B-02 通用表格确认入库（审阅凭据服务端持久化、source_id 内容版本绑定、coverage/authority 证明、可信身份域证明、可撤权 `require_access`）；C-01 正式接线（#134 待并入）；网页真实 AI 调查端到端验收；学校 SSO、部署 ACL、备份/加密与正式保留方案。旧 `evaluations` Sheet2 约束仅历史兼容，不是新通用上传的前置修改项。**代码指纹**随本次集成变为 `ad7dbc61d01095bf37332476e1c4e418eed94eea6a03632143ae1ea8c678093f`（旧 `a5e3f11c75841d26ab28078c76aa3764ffe2e3a2581c1054d0ce495fac7abbf0`）；绑定旧指纹的真实模型审批失效，须由验收负责人重新审阅，不复用失效审批。本轮不调用真实 Qwen、不修改审批配置。单次测评不直接证明学生真实能力、AI 依赖或学习提升。
 
 ## 运行与契约指针
 
