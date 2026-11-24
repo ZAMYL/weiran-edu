@@ -33,6 +33,7 @@ import type { answerSheetDto } from '../../services/edu-api/answer-sheets';
 import { LoadingPanel, RequestError } from './LiveStatus';
 import { useRemote } from './useRemote';
 import UploadWorkflow from './UploadWorkflow';
+import ProgrammingAiPanel from './ProgrammingAiPanel';
 
 const maxFiles = 20;
 const maxBytes = 10 * 1024 * 1024;
@@ -355,9 +356,33 @@ export function AnswerSheetDetails({
   onTitleChange: (title: string) => void;
 }) {
   const { client } = useDataMode();
-  const [studentId, setStudentId] = useState<string | null>(null);
+  const [selection, setSelection] = useState<{
+    assessmentId: string;
+    studentId: string | null;
+    focusProblem: string | null;
+  }>({
+    assessmentId,
+    studentId: null,
+    focusProblem: null,
+  });
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesTrigger = useRef<HTMLButtonElement>(null);
+  const focusedPanel = useRef<HTMLDivElement>(null);
+  const studentId = selection.assessmentId === assessmentId ? selection.studentId : null;
+  const focusProblem = selection.assessmentId === assessmentId ? selection.focusProblem : null;
+  const openStudentEvidence = useCallback(
+    (pk: string, problemLabel?: string) => {
+      setSelection({
+        assessmentId,
+        studentId: pk,
+        focusProblem: problemLabel ?? null,
+      });
+    },
+    [assessmentId],
+  );
+  const closeStudentEvidence = useCallback(() => {
+    setSelection({ assessmentId, studentId: null, focusProblem: null });
+  }, [assessmentId]);
   const load = useCallback(
     (signal: AbortSignal) => client.answerSheet(assessmentId, signal),
     [client, assessmentId],
@@ -376,6 +401,11 @@ export function AnswerSheetDetails({
   useEffect(() => {
     if (title) onTitleChange(title);
   }, [title, onTitleChange]);
+  useEffect(() => {
+    if (evidence.data && focusProblem) {
+      focusedPanel.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [evidence.data, focusProblem]);
   const selectedStudent = data?.students.find((item) => item.student_pk === studentId);
   const attemptTimes = [
     selectedStudent?.started_at && `开始 ${selectedStudent.started_at}`,
@@ -421,6 +451,14 @@ export function AnswerSheetDetails({
               </Button>
             </Flex>
           </Panel>
+          <ProgrammingAiPanel
+            key={`${assessmentId}:${snapshot ?? 'none'}`}
+            assessmentId={assessmentId}
+            sourceSnapshotId={snapshot}
+            students={data.students}
+            onInspectStudent={openStudentEvidence}
+            onRefreshAssessment={result.retry}
+          />
           <Panel title="群体错误统计">
             {data.patterns.length ? (
               <div className="answer-sheet-patterns">
@@ -481,7 +519,7 @@ export function AnswerSheetDetails({
                     <Button
                       type="link"
                       size="small"
-                      onClick={() => setStudentId(student.student_pk)}
+                      onClick={() => openStudentEvidence(student.student_pk)}
                     >
                       查看个人证据
                     </Button>
@@ -503,7 +541,7 @@ export function AnswerSheetDetails({
       <Drawer
         title="个人答题证据"
         open={studentId !== null}
-        onClose={() => setStudentId(null)}
+        onClose={closeStudentEvidence}
         size="min(650px, 100vw)"
         rootClassName="answer-sheet-evidence"
       >
@@ -516,7 +554,7 @@ export function AnswerSheetDetails({
               action={
                 <Button
                   onClick={() => {
-                    setStudentId(null);
+                    closeStudentEvidence();
                     result.retry();
                   }}
                 >
@@ -537,67 +575,75 @@ export function AnswerSheetDetails({
               {attemptTimes.length > 0 && <p>{attemptTimes.join(' · ')}</p>}
             </div>
             {!evidence.data.submissions.length && <Empty description="暂无提交证据" />}
-            {evidence.data.submissions.map((submission) => (
-              <Panel key={submission.ordinal} title={submission.problem_label}>
-                {submission.verdict && <p>判题结果：{submission.verdict}</p>}
-                {submission.source?.entry && (
-                  <p className="muted">
-                    {[
-                      data?.overview.assets.find(
-                        (asset) => asset.asset_id === submission.source?.asset_id,
-                      )?.entry,
-                      submission.source.entry,
-                      submission.source.source_index != null
-                        ? `题块 ${submission.source.source_index}`
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </p>
-                )}
-                {submission.code_state === 'PRESENT' && submission.code && (
-                  <Disclosure
-                    defaultExpanded
-                    label={
-                      <>
-                        代码{submission.language && ` · ${submission.language}`}
-                        {submission.code_truncated && '（部分）'}
-                      </>
-                    }
+            {evidence.data.submissions.map((submission) => {
+              const isFocused = focusProblem === submission.problem_label;
+              return (
+                <div key={submission.ordinal} ref={isFocused ? focusedPanel : undefined}>
+                  <Panel
+                    title={submission.problem_label}
+                    action={isFocused ? <Tag color="processing">调查关联题目</Tag> : undefined}
                   >
-                    <pre className="answer-sheet-code">
-                      <code>{submission.code}</code>
-                    </pre>
-                  </Disclosure>
-                )}
-                {submission.compiler_output && (
-                  <Disclosure
-                    label={<>编译输出{submission.compiler_output_truncated && '（部分）'}</>}
-                  >
-                    <pre className="answer-sheet-code">{submission.compiler_output}</pre>
-                  </Disclosure>
-                )}
-                {submission.observations.length > 0 && (
-                  <Disclosure defaultExpanded label={<>测试点</>}>
-                    <ul>
-                      {submission.observations.map((point, index) => (
-                        <li key={`${point.test_index}:${point.source_row ?? index}`}>
-                          {[
-                            point.test_index != null ? `第 ${point.test_index} 点` : null,
-                            point.status,
-                            point.duration_text,
-                            point.memory_text,
-                            point.source_row != null ? `原表第 ${point.source_row} 行` : null,
-                          ]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </li>
-                      ))}
-                    </ul>
-                  </Disclosure>
-                )}
-              </Panel>
-            ))}
+                    {submission.verdict && <p>判题结果：{submission.verdict}</p>}
+                    {submission.source?.entry && (
+                      <p className="muted">
+                        {[
+                          data?.overview.assets.find(
+                            (asset) => asset.asset_id === submission.source?.asset_id,
+                          )?.entry,
+                          submission.source.entry,
+                          submission.source.source_index != null
+                            ? `题块 ${submission.source.source_index}`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
+                    )}
+                    {submission.code_state === 'PRESENT' && submission.code && (
+                      <Disclosure
+                        defaultExpanded
+                        label={
+                          <>
+                            代码{submission.language && ` · ${submission.language}`}
+                            {submission.code_truncated && '（部分）'}
+                          </>
+                        }
+                      >
+                        <pre className="answer-sheet-code">
+                          <code>{submission.code}</code>
+                        </pre>
+                      </Disclosure>
+                    )}
+                    {submission.compiler_output && (
+                      <Disclosure
+                        label={<>编译输出{submission.compiler_output_truncated && '（部分）'}</>}
+                      >
+                        <pre className="answer-sheet-code">{submission.compiler_output}</pre>
+                      </Disclosure>
+                    )}
+                    {submission.observations.length > 0 && (
+                      <Disclosure defaultExpanded label={<>测试点</>}>
+                        <ul>
+                          {submission.observations.map((point, index) => (
+                            <li key={`${point.test_index}:${point.source_row ?? index}`}>
+                              {[
+                                point.test_index != null ? `第 ${point.test_index} 点` : null,
+                                point.status,
+                                point.duration_text,
+                                point.memory_text,
+                                point.source_row != null ? `原表第 ${point.source_row} 行` : null,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </li>
+                          ))}
+                        </ul>
+                      </Disclosure>
+                    )}
+                  </Panel>
+                </div>
+              );
+            })}
           </div>
         )}
       </Drawer>

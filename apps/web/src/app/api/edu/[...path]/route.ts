@@ -11,6 +11,7 @@ const routes: Record<string, RegExp[]> = {
   GET: [
     /^(me|scopes|batches|test-session|ai-capability)$/,
     /^assessments(?:\/[^/]+(?:\/patterns|\/students(?:\/[^/]+)?)?)?$/,
+    /^assessments\/[^/]+\/ai-tasks\/[^/]+$/,
     /^batches\/[^/]+$/,
     /^batches\/[^/]+\/(statistics|students|rubric)$/,
     /^batches\/[^/]+\/(capabilities|analysis-results)$/,
@@ -24,6 +25,8 @@ const routes: Record<string, RegExp[]> = {
   ],
   POST: [
     /^assessments$/,
+    /^assessments\/[^/]+\/ai-tasks$/,
+    /^assessments\/[^/]+\/ai-tasks\/[^/]+\/cancel$/,
     /^batches\/[^/]+\/discoveries\/query$/,
     /^batches\/[^/]+\/discoveries\/[^/]+\/query$/,
     /^batches\/[^/]+\/discoveries\/[^/]+\/(chart|records)\/query$/,

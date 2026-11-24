@@ -499,3 +499,94 @@ it('finishes bounded JSON before an immediate upstream auth rejection, retaining
   expect(response.headers.get('x-request-id')).toBe('req_auth');
   expect(response.headers.get('cache-control')).toBe('no-store');
 });
+
+it('relays formal programming AI task routes and rejects unallowed subpaths', async () => {
+  vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async (url, init) => {
+    const method = init?.method ?? 'GET';
+    if (method === 'POST' && String(url).endsWith('/assessments/a1/ai-tasks')) {
+      return Response.json(
+        { task_id: 't1', state: 'queued' },
+        { status: 202, headers: { 'x-request-id': 'req_prog-start' } },
+      );
+    }
+    if (method === 'GET' && String(url).endsWith('/assessments/a1/ai-tasks/t1')) {
+      return Response.json(
+        { task_id: 't1', state: 'completed' },
+        { status: 200, headers: { 'x-request-id': 'req_prog-get' } },
+      );
+    }
+    return Response.json(
+      { error: { code: 'AI_TASK_CANCELLED', request_id: 'req_prog-cancel' } },
+      { status: 409, headers: { 'x-request-id': 'req_prog-cancel' } },
+    );
+  });
+  vi.stubGlobal('fetch', fetcher);
+
+  const startRes = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks', {
+      method: 'POST',
+      headers: { authorization: bearer, 'content-type': 'application/json' },
+      body: JSON.stringify({ purpose: 'programming_error_investigation', idempotency_key: 'k1' }),
+    }),
+    context('assessments/a1/ai-tasks'),
+  );
+  expect(startRes.status).toBe(202);
+  expect(startRes.headers.get('x-request-id')).toBe('req_prog-start');
+
+  const getRes = await GET(
+    new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks/t1', {
+      headers: { authorization: bearer },
+    }),
+    context('assessments/a1/ai-tasks/t1'),
+  );
+  expect(getRes.status).toBe(200);
+  expect(getRes.headers.get('x-request-id')).toBe('req_prog-get');
+
+  const cancelRes = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks/t1/cancel', {
+      method: 'POST',
+      headers: { authorization: bearer, 'content-type': 'application/json' },
+      body: '{}',
+    }),
+    context('assessments/a1/ai-tasks/t1/cancel'),
+  );
+  expect(cancelRes.status).toBe(409);
+  expect(cancelRes.headers.get('x-request-id')).toBe('req_prog-cancel');
+
+  const callsBeforeReject = fetcher.mock.calls.length;
+  expect(
+    (
+      await POST(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks', {
+          method: 'POST',
+          body: '{}',
+        }),
+        context('assessments/a1/ai-tasks'),
+      )
+    ).status,
+  ).toBe(401);
+  expect(
+    (
+      await GET(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks', {
+          headers: { authorization: bearer },
+        }),
+        context('assessments/a1/ai-tasks'),
+      )
+    ).status,
+  ).toBe(404);
+  expect(
+    (
+      await POST(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks/t1/unknown', {
+          method: 'POST',
+          headers: { authorization: bearer },
+          body: '{}',
+        }),
+        context('assessments/a1/ai-tasks/t1/unknown'),
+      )
+    ).status,
+  ).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(callsBeforeReject);
+});
