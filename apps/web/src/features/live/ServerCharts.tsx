@@ -1,4 +1,6 @@
 'use client';
+import { theme } from 'antd';
+import { useDarkMode } from '../../app/theme-preference';
 import { useEffect, useRef } from 'react';
 import { init, use as register, type EChartsCoreOption } from 'echarts/core';
 import { RadarChart, BarChart, ScatterChart } from 'echarts/charts';
@@ -37,14 +39,32 @@ interface RadarAxis {
   maximum: number;
 }
 
-const radarRadius = (width: number) => (width < 450 ? '46%' : '64%');
+const radarRadius = (width: number) => (width < 420 ? '48%' : '64%');
 const radarDescription = (axes: RadarAxis[]) =>
   axes.map(({ label, value }) => `${label}均值${scoreDisplay(value)}`).join('，');
+const escapeHtml = (value: string) =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 
-function radarOption(axes: RadarAxis[], width: number): EChartsCoreOption {
+function radarOption(
+  axes: RadarAxis[],
+  width: number,
+  tokens: ReturnType<typeof theme.useToken>['token'],
+): EChartsCoreOption {
   return {
     aria: { enabled: true, label: { description: radarDescription(axes) } },
-    tooltip: { trigger: 'item' },
+    tooltip: {
+      trigger: 'item',
+      confine: true,
+      formatter: () =>
+        `<strong>测评平均分</strong><br/>${axes
+          .map(({ label, value }) => `${escapeHtml(label)}：${scoreDisplay(value)} 分`)
+          .join('<br/>')}`,
+    },
     radar: {
       center: ['50%', '53%'],
       radius: radarRadius(width),
@@ -53,18 +73,18 @@ function radarOption(axes: RadarAxis[], width: number): EChartsCoreOption {
         min: minimum,
         max: maximum,
       })),
-      axisName: { color: '#274570', fontSize: 12, lineHeight: 22 },
-      axisLine: { lineStyle: { color: '#dce4f1' } },
-      splitLine: { lineStyle: { color: '#dce4f1' } },
-      splitArea: { areaStyle: { color: ['#fff', '#fbfcff'] } },
+      axisName: { color: tokens.colorTextSecondary, fontSize: 12, lineHeight: 22 },
+      axisLine: { lineStyle: { color: tokens.colorBorderSecondary } },
+      splitLine: { lineStyle: { color: tokens.colorBorderSecondary } },
+      splitArea: { areaStyle: { color: [tokens.colorBgContainer, tokens.colorFillAlter] } },
     },
     series: [
       {
         type: 'radar',
         symbolSize: 7,
-        itemStyle: { color: '#2463f5' },
+        itemStyle: { color: tokens.colorPrimary },
         lineStyle: { width: 2.5 },
-        areaStyle: { color: 'rgba(36,99,245,.22)' },
+        areaStyle: { color: tokens.colorPrimaryBgHover },
         data: [{ value: axes.map(({ value }) => value), name: '测评平均分' }],
       },
     ],
@@ -73,11 +93,16 @@ function radarOption(axes: RadarAxis[], width: number): EChartsCoreOption {
 
 export function ProjectAbilityRadar({ axes }: { axes: RadarAxis[] }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { token: tokens } = theme.useToken();
+  const dark = useDarkMode();
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
-    const chart = init(element, undefined, { renderer: 'svg' });
-    chart.setOption(radarOption(axes, element.clientWidth));
+    const chart = init(element, dark ? 'dark' : undefined, { renderer: 'svg' });
+    chart.setOption({
+      ...radarOption(axes, element.clientWidth, tokens),
+      backgroundColor: 'transparent',
+    });
     const observer = new ResizeObserver(() => {
       chart.setOption({ radar: { radius: radarRadius(element.clientWidth) } });
       chart.resize();
@@ -87,7 +112,7 @@ export function ProjectAbilityRadar({ axes }: { axes: RadarAxis[] }) {
       observer.disconnect();
       chart.dispose();
     };
-  }, [axes]);
+  }, [axes, dark, tokens]);
   return (
     <div
       className="ability-chart server-chart"
@@ -108,10 +133,12 @@ export function ServerAbilityChart({
   mode: 'radar' | 'distribution';
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { token: tokens } = theme.useToken();
+  const dark = useDarkMode();
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
-    const chart = init(element, undefined, { renderer: 'svg' });
+    const chart = init(element, dark ? 'dark' : undefined, { renderer: 'svg' });
     const ordered = [DIMENSIONS[0], ...DIMENSIONS.slice(1).reverse()]
       .map((d) => statistics.dimensions.find((s) => s.dimension_code === d.code))
       .filter((s) => s !== undefined);
@@ -125,6 +152,7 @@ export function ServerAbilityChart({
               maximum: rubric.score_policy.maximum,
             })),
             element.clientWidth,
+            tokens,
           )
         : {
             aria: {
@@ -135,7 +163,7 @@ export function ServerAbilityChart({
                   .join('，'),
               },
             },
-            tooltip: { trigger: 'axis' },
+            tooltip: { trigger: 'axis', confine: true },
             grid: { left: 45, right: 25, top: 20, bottom: 65 },
             xAxis: {
               type: 'value',
@@ -160,7 +188,7 @@ export function ServerAbilityChart({
               orient: 'horizontal',
               bottom: 0,
               left: 'center',
-              inRange: { color: ['#dceaff', '#2463f5'] },
+              inRange: { color: [tokens.colorPrimaryBg, tokens.colorPrimary] },
               text: ['人数多', '少'],
             },
             series: [
@@ -184,7 +212,7 @@ export function ServerAbilityChart({
               },
             ],
           };
-    chart.setOption(option);
+    chart.setOption({ ...option, backgroundColor: 'transparent' });
     const observer = new ResizeObserver(() => {
       if (mode === 'radar')
         chart.setOption({ radar: { radius: radarRadius(element.clientWidth) } });
@@ -195,7 +223,7 @@ export function ServerAbilityChart({
       observer.disconnect();
       chart.dispose();
     };
-  }, [statistics, rubric, mode]);
+  }, [statistics, rubric, mode, dark, tokens]);
   return (
     <div
       className="ability-chart server-chart"
@@ -248,13 +276,16 @@ export function SparseMatrix({
   onCell: (x: number, y: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { token: tokens } = theme.useToken();
+  const dark = useDarkMode();
+  const matrix = statistics.matrix;
   useEffect(() => {
-    const element = ref.current,
-      matrix = statistics.matrix;
+    const element = ref.current;
     if (!element || !matrix) return;
-    const chart = init(element, undefined, { renderer: 'svg' });
+    const chart = init(element, dark ? 'dark' : undefined, { renderer: 'svg' });
     const max = Math.max(1, ...matrix.cells.map((c) => c.count));
     chart.setOption({
+      backgroundColor: 'transparent',
       aria: {
         enabled: true,
         label: {
@@ -263,6 +294,7 @@ export function SparseMatrix({
       },
       tooltip: {
         trigger: 'item',
+        confine: true,
         formatter: (p: { value: number[] }) =>
           `${dimensionName(matrix.x_dimension)} ${p.value[0]} 分<br/>${dimensionName(matrix.y_dimension)} ${p.value[1]} 分<br/>参评人数 ${p.value[2]} 人`,
       },
@@ -298,7 +330,7 @@ export function SparseMatrix({
         orient: 'horizontal',
         left: 'center',
         bottom: 8,
-        inRange: { color: ['#bed4ff', '#2463f5'] },
+        inRange: { color: [tokens.colorPrimaryBorder, tokens.colorPrimary] },
         text: ['人数多', '少'],
       },
       series: [
@@ -311,7 +343,7 @@ export function SparseMatrix({
             value: [cell.x, cell.y, cell.count],
             itemStyle: {
               borderWidth: selectedByAxes(cell.x, cell.y, statistics, conditions) ? 2 : 0,
-              borderColor: '#163fe3',
+              borderColor: tokens.colorPrimaryText,
             },
           })),
         },
@@ -329,18 +361,20 @@ export function SparseMatrix({
       observer.disconnect();
       chart.dispose();
     };
-  }, [statistics, conditions, onCell]);
+  }, [statistics, matrix, conditions, onCell, dark, tokens]);
   return (
     <>
+      {matrix && matrix.excluded_count > 0 && (
+        <p className="teacher-reading">
+          两项评分均有效 {matrix.paired_count} / {matrix.paired_count + matrix.excluded_count} 人
+        </p>
+      )}
       <div
         ref={ref}
         className="sparse-matrix"
         role="img"
-        aria-label={`实际评分组合，${statistics.matrix?.cells.length ?? 0} 个实际评分组合，配对人数 ${statistics.matrix?.paired_count ?? 0}`}
+        aria-label={`实际评分组合，${matrix?.cells.length ?? 0} 个实际评分组合，配对人数 ${matrix?.paired_count ?? 0}`}
       />
-      <p className="muted small">
-        每个色块为实际评分组合，保留小数；不扩展为完整网格。点击色块精确筛选。
-      </p>
     </>
   );
 }

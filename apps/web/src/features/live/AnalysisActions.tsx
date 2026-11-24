@@ -1,25 +1,32 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Alert,
+  Badge,
   Button,
+  Card,
   Checkbox,
+  Col,
+  Descriptions,
+  Divider,
   Empty,
+  Flex,
+  Form,
   Input,
   Modal,
-  Pagination,
   Radio,
+  Row,
   Segmented,
   Skeleton,
+  Space,
   Tag,
+  Table,
+  Typography,
 } from 'antd';
-import {
-  ArrowLeftOutlined,
-  CheckCircleOutlined,
-  DownOutlined,
-  EditOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, CheckCircleOutlined, EditOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
@@ -59,7 +66,16 @@ function useOperation() {
   const pending = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
-  useEffect(() => () => pending.current?.abort(), []);
+  useEffect(
+    () => () => {
+      if (pending.current) {
+        pending.current.abort();
+        pending.current = null;
+        setBusy(false);
+      }
+    },
+    [],
+  );
   async function run(work: (signal: AbortSignal) => Promise<void>) {
     if (pending.current) return;
     const controller = new AbortController();
@@ -105,24 +121,31 @@ export default function AnalysisActions({
   };
   const permissions = useReportPermissions(batch);
   return (
-    <section className="panel analysis-actions">
-      <h2>分析报告</h2>
-      <div className="batch-actions">
-        <Button
-          type="primary"
-          disabled={Boolean(blocked) || !allowed(permissions.data, 'save_analysis')}
-          onClick={() => prepare()}
-        >
-          准备分析报告
-        </Button>
-        <Button onClick={() => prepare(true)}>已保存分析</Button>
-      </div>
-      {blocked && <p className="muted small">{blocked}</p>}
-      {permissions.error && <RequestError error={permissions.error} retry={permissions.retry} />}
-      {permissions.data && !allowed(permissions.data, 'save_analysis') && (
-        <p className="muted small">当前权限可查看已保存分析；保存和核验需批次所有者权限。</p>
-      )}
-    </section>
+    <Panel className="analysis-actions" title="分析报告">
+      <Flex vertical gap={tokens.sizeXS}>
+        <Space wrap size="small" className="batch-actions">
+          <Button
+            type="primary"
+            disabled={Boolean(blocked) || !allowed(permissions.data, 'save_analysis')}
+            onClick={() => prepare()}
+          >
+            准备分析报告
+          </Button>
+          <Button onClick={() => prepare(true)}>已保存分析</Button>
+        </Space>
+        {blocked && (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            {blocked}
+          </Typography.Text>
+        )}
+        {permissions.error && <RequestError error={permissions.error} retry={permissions.retry} />}
+        {permissions.data && !allowed(permissions.data, 'save_analysis') && (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            当前权限可查看已保存分析；保存和核验需批次所有者权限。
+          </Typography.Text>
+        )}
+      </Flex>
+    </Panel>
   );
 }
 
@@ -143,14 +166,27 @@ type ReportView = { type: 'recent' | 'new' | 'history' } | { type: 'saved'; resu
 
 function ReportSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="report-loading-layout" role="status" aria-label="正在加载分析报告">
-      <Skeleton active title paragraph={{ rows: 4 }} />
-      <div>
-        {Array.from({ length: rows }, (_, index) => (
-          <Skeleton key={index} active title paragraph={{ rows: 2 }} />
-        ))}
-      </div>
-    </div>
+    <Row
+      gutter={[tokens.size, tokens.size]}
+      className="report-loading-layout"
+      role="status"
+      aria-label="正在加载分析报告"
+    >
+      <Col xs={24} md={7}>
+        <Card size="small">
+          <Skeleton active title paragraph={{ rows: 4 }} />
+        </Card>
+      </Col>
+      <Col xs={24} md={17}>
+        <Card size="small">
+          <Flex vertical gap={tokens.size}>
+            {Array.from({ length: rows }, (_, index) => (
+              <Skeleton key={index} active title paragraph={{ rows: 2 }} />
+            ))}
+          </Flex>
+        </Card>
+      </Col>
+    </Row>
   );
 }
 
@@ -283,42 +319,56 @@ function SavedAnalyses({
     <section className="report-surface" aria-label="已保存分析">
       <Panel
         title="已保存分析"
+        subtitle={`当前测评：${batch.title}`}
         action={
           <Button type="primary" onClick={onNew}>
             新建分析报告
           </Button>
         }
       >
-        <p className="muted">当前测评：{batch.title}</p>
         {list.loading && <ReportSkeleton />}
         {list.error && <RequestError error={list.error} retry={list.retry} />}
         {list.data && (
-          <>
-            {!list.data.items.length && (
-              <Empty description="本次测评还没有报告。选择「新建分析报告」开始整理。" />
-            )}
-            <div className="saved-analysis-list">
-              {list.data.items.map((item) => (
-                <Panel
-                  key={item.result_id}
-                  title={item.title}
-                  subtitle={`已保存 · ${new Date(item.updated_at).toLocaleString('zh-CN')}`}
-                  action={<Button onClick={() => onOpen(item.result_id)}>查看与核验</Button>}
-                >
-                  {null}
-                </Panel>
-              ))}
-            </div>
-            <Pagination
-              current={Math.floor(offset / 10) + 1}
-              total={list.data.total_count}
-              pageSize={10}
-              showSizeChanger={false}
-              hideOnSinglePage
-              onChange={(page) => setOffset((page - 1) * 10)}
-              showTotal={(total) => `共 ${total} 次分析`}
-            />
-          </>
+          <Table
+            className="saved-analysis-list"
+            rowKey="result_id"
+            dataSource={list.data.items}
+            locale={{
+              emptyText: (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="本次测评还没有报告" />
+              ),
+            }}
+            pagination={{
+              current: Math.floor(offset / 10) + 1,
+              total: list.data.total_count,
+              pageSize: 10,
+              showSizeChanger: false,
+              hideOnSinglePage: true,
+              onChange: (page) => setOffset((page - 1) * 10),
+              showTotal: (total) => `共 ${total} 次分析`,
+            }}
+            columns={[
+              {
+                title: '报告名称',
+                render: (_, item) => (
+                  <Flex vertical gap={tokens.marginXXS}>
+                    <Typography.Text strong>{item.title}</Typography.Text>
+                    <Typography.Text type="secondary">
+                      {new Date(item.updated_at).toLocaleString('zh-CN')}
+                    </Typography.Text>
+                  </Flex>
+                ),
+              },
+              {
+                title: '操作',
+                render: (_, item) => (
+                  <Button type="link" size="small" onClick={() => onOpen(item.result_id)}>
+                    查看与核验
+                  </Button>
+                ),
+              },
+            ]}
+          />
         )}
       </Panel>
     </section>
@@ -530,156 +580,200 @@ function AnalysisEditor({
 
   return (
     <section role="region" aria-label="分析核验" className="report-surface report-editor-surface">
-      <header className="report-top-toolbar">
-        <button
-          className="report-title-edit"
-          disabled={!editable || operation.busy}
-          onClick={openNotes}
-        >
-          {title}
-          <EditOutlined aria-hidden="true" />
-        </button>
-        <span
-          className={`report-save-state${!result || dirty ? ' is-dirty' : ''}`}
-          aria-live="polite"
-        >
-          {result && !dirty && <CheckCircleOutlined aria-hidden="true" />}
-          {!result ? '未保存' : dirty ? '未保存修改' : '已保存'}
-        </span>
-        <Button
-          type="link"
-          icon={<ArrowLeftOutlined aria-hidden="true" />}
-          disabled={operation.busy}
-          onClick={() => leave(onBack)}
-        >
-          {result ? '返回报告列表' : '已保存分析'}
-        </Button>
-      </header>
+      <Card size="small" className="report-top-toolbar">
+        <Flex align="center" justify="space-between" wrap gap={tokens.sizeSM}>
+          <Space size="small" wrap>
+            <Button
+              type="text"
+              className="report-title-edit"
+              disabled={!editable || operation.busy}
+              onClick={openNotes}
+            >
+              <Typography.Text strong style={{ fontSize: 15 }}>
+                {title}
+              </Typography.Text>
+              <EditOutlined aria-hidden="true" />
+            </Button>
+            <Tag
+              color={!result || dirty ? 'warning' : 'success'}
+              icon={result && !dirty ? <CheckCircleOutlined aria-hidden="true" /> : undefined}
+              className={`report-save-state${!result || dirty ? ' is-dirty' : ''}`}
+              aria-live="polite"
+            >
+              {!result ? '未保存' : dirty ? '未保存修改' : '已保存'}
+            </Tag>
+          </Space>
+          <Button
+            type="link"
+            icon={<ArrowLeftOutlined aria-hidden="true" />}
+            disabled={operation.busy}
+            onClick={() => leave(onBack)}
+          >
+            {result ? '返回报告列表' : '已保存分析'}
+          </Button>
+        </Flex>
+      </Card>
       {contextHolder}
       <div className="report-editor-grid">
-        <aside className="report-editor-info" aria-label="报告信息">
-          <h2>报告信息</h2>
-          <div className="analysis-fields">
-            <label htmlFor="review-analysis-title">报告名称</label>
-            <Input
-              id="review-analysis-title"
-              value={title}
-              maxLength={100}
-              disabled={!editable || operation.busy}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <label htmlFor="review-analysis-note">备注（可选）</label>
-            <Input.TextArea
-              id="review-analysis-note"
-              aria-label="分析备注"
-              classNames={{ root: 'report-note-input', count: 'report-note-count' }}
-              value={note}
-              autoSize={{ minRows: 2, maxRows: 5 }}
-              maxLength={2000}
-              showCount
-              disabled={!editable || operation.busy}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </div>
-          <dl className="report-metadata">
-            <div>
-              <dt>测评</dt>
-              <dd>{batch.title}</dd>
-            </div>
-            <div>
-              <dt>分析范围</dt>
-              <dd>{conditionText(conditions)}</dd>
-            </div>
-            <div>
-              <dt>群体人数</dt>
-              <dd>
-                {matched} / {total} 人
-              </dd>
-            </div>
-            <div>
-              <dt>占比</dt>
-              <dd>
-                {ratioDisplay(
-                  result ? result.analysis.ratio.value : total ? matched / total : null,
-                )}
-              </dd>
-            </div>
-          </dl>
-          {result && (
-            <details className="technical-details">
-              <summary className="saved-version">已保存版本 {result.version}</summary>
-              <div className="batch-actions">
-                <Button disabled={operation.busy} onClick={() => leave(reload)}>
-                  加载最新版本
-                </Button>
-                {onNew && (
-                  <Button disabled={operation.busy} onClick={() => leave(onNew)}>
-                    新建分析报告
-                  </Button>
-                )}
-              </div>
-            </details>
-          )}
-          {!editable && (
-            <Alert
-              type="info"
-              title={
-                result
-                  ? '当前为只读权限，可查看核验结果和导出测评报告。'
-                  : '当前权限可查看已保存分析。'
-              }
-              showIcon
-            />
-          )}
-          {items.length > 0 && (
-            <div className="review-progress" aria-label="报告发现数量">
-              {reportDecisions.map(({ value, label }) => (
-                <div key={value} className={`review-progress-count ${value}`}>
-                  <span>{label}</span>
-                  <strong>
-                    {decisions.filter((decision) => decision.status === value).length}
-                  </strong>
-                </div>
-              ))}
-            </div>
-          )}
-          <details className="report-limitations">
-            <summary>使用限制</summary>
-            <p>{result?.notice ?? '报告仅供授权教师核查。评分关系不能单独用于判断学习成因。'}</p>
-            {limitations.length > 0 && (
-              <ul>
-                {limitations.map((text) => (
-                  <li key={text}>{text}</li>
-                ))}
-              </ul>
-            )}
-          </details>
-          {operation.error && <RequestError error={operation.error} />}
-          <div className="report-action-bar">
-            {editable && (
-              <Button
-                loading={operation.busy}
-                disabled={(!!result && !dirty) || !title.trim()}
-                onClick={save}
+        <Card
+          size="small"
+          title="报告信息"
+          className="report-editor-info"
+          role="complementary"
+          aria-label="报告信息"
+        >
+          <Flex vertical gap={tokens.sizeSM} style={{ height: '100%' }}>
+            <Form layout="vertical" component="div" className="analysis-fields">
+              <Form.Item
+                label="报告名称"
+                htmlFor="review-analysis-title"
+                style={{ marginBottom: tokens.sizeSM }}
               >
-                {result ? '保存核验结果' : '保存报告'}
-              </Button>
+                <Input
+                  id="review-analysis-title"
+                  value={title}
+                  maxLength={100}
+                  disabled={!editable || operation.busy}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </Form.Item>
+              <Form.Item
+                label="备注（可选）"
+                htmlFor="review-analysis-note"
+                style={{ marginBottom: 0 }}
+              >
+                <Input.TextArea
+                  id="review-analysis-note"
+                  aria-label="分析备注"
+                  value={note}
+                  autoSize={{ minRows: 2, maxRows: 5 }}
+                  maxLength={2000}
+                  showCount
+                  disabled={!editable || operation.busy}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </Form.Item>
+            </Form>
+            <Divider style={{ marginBlock: tokens.sizeXXS }} />
+            <Descriptions
+              size="small"
+              column={1}
+              className="report-metadata"
+              items={[
+                { key: 'batch', label: '测评', children: batch.title },
+                { key: 'scope', label: '分析范围', children: conditionText(conditions) },
+                { key: 'count', label: '群体人数', children: `${matched} / ${total} 人` },
+                {
+                  key: 'ratio',
+                  label: '占比',
+                  children: ratioDisplay(
+                    result ? result.analysis.ratio.value : total ? matched / total : null,
+                  ),
+                },
+              ]}
+            />
+            {result && (
+              <Disclosure
+                className="technical-details"
+                headingClassName="saved-version"
+                label={<>已保存版本 {result.version}</>}
+              >
+                <Space wrap size="small" className="batch-actions">
+                  <Button disabled={operation.busy} onClick={() => leave(reload)}>
+                    加载最新版本
+                  </Button>
+                  {onNew && (
+                    <Button disabled={operation.busy} onClick={() => leave(onNew)}>
+                      新建分析报告
+                    </Button>
+                  )}
+                </Space>
+              </Disclosure>
             )}
-            <Button
-              type="primary"
-              disabled={
-                !result || dirty || operation.busy || !allowed(permissions, 'export_analysis')
-              }
-              onClick={() => setExporting(true)}
-            >
-              导出测评报告
-            </Button>
-          </div>
-        </aside>
-        <div className="report-editor-findings">
-          <div className="review-section-heading">
-            <h2 id="report-findings-heading">发现核验</h2>
-          </div>
+            {!editable && (
+              <Alert
+                type="info"
+                title={
+                  result
+                    ? '当前为只读权限，可查看核验结果和导出测评报告。'
+                    : '当前权限可查看已保存分析。'
+                }
+                showIcon
+              />
+            )}
+            {items.length > 0 && (
+              <Flex
+                vertical
+                gap={tokens.sizeXS}
+                className="review-progress"
+                aria-label="报告发现数量"
+              >
+                {reportDecisions.map(({ value, label }) => (
+                  <Flex
+                    key={value}
+                    justify="space-between"
+                    align="center"
+                    className={`review-progress-count ${value}`}
+                  >
+                    <Badge status={value === 'confirmed' ? 'processing' : 'default'} text={label} />
+                    <Typography.Text
+                      strong
+                      style={
+                        value === 'confirmed' ? { color: 'var(--ant-color-primary)' } : undefined
+                      }
+                    >
+                      {decisions.filter((decision) => decision.status === value).length}
+                    </Typography.Text>
+                  </Flex>
+                ))}
+              </Flex>
+            )}
+            <Disclosure className="report-limitations" label={<>使用限制</>}>
+              <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                {result?.notice ?? '报告仅供授权教师核查。评分关系不能单独用于判断学习成因。'}
+              </Typography.Text>
+              {limitations.length > 0 && (
+                <ul style={{ marginTop: tokens.sizeXS, paddingInlineStart: tokens.paddingMD }}>
+                  {limitations.map((text) => (
+                    <li key={text}>{text}</li>
+                  ))}
+                </ul>
+              )}
+            </Disclosure>
+            {operation.error && <RequestError error={operation.error} />}
+            <Flex vertical gap={tokens.sizeXS} className="report-action-bar">
+              {editable && (
+                <Button
+                  block
+                  loading={operation.busy}
+                  disabled={(!!result && !dirty) || !title.trim()}
+                  onClick={save}
+                >
+                  {result ? '保存核验结果' : '保存报告'}
+                </Button>
+              )}
+              <Button
+                block
+                type="primary"
+                disabled={
+                  !result || dirty || operation.busy || !allowed(permissions, 'export_analysis')
+                }
+                onClick={() => setExporting(true)}
+              >
+                导出测评报告
+              </Button>
+            </Flex>
+          </Flex>
+        </Card>
+        <Card
+          size="small"
+          title={
+            <Typography.Title level={4} id="report-findings-heading" style={{ margin: 0 }}>
+              发现核验
+            </Typography.Title>
+          }
+          className="report-editor-findings"
+        >
           <div
             className="report-finding-list"
             role="region"
@@ -695,91 +789,115 @@ function AnalysisEditor({
                 }
               />
             )}
-            {items.map((item, index) => {
-              const decision = byId.get(item.id) ?? item.decision;
-              return (
-                <details
-                  className="review-finding"
-                  key={item.id}
-                  data-finding-id={item.id}
-                  open={expanded === item.id}
-                >
-                  <summary
-                    className="review-finding-heading"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      setExpanded(expanded === item.id ? undefined : item.id);
-                    }}
+            <Flex vertical gap={tokens.sizeXS}>
+              {items.map((item, index) => {
+                const decision = byId.get(item.id) ?? item.decision;
+                return (
+                  <Disclosure
+                    className="review-finding"
+                    variant="outlined"
+                    key={item.id}
+                    data-finding-id={item.id}
+                    headingClassName="review-finding-heading"
+                    expanded={expanded === item.id}
+                    onExpandedChange={(open) => setExpanded(open ? item.id : undefined)}
+                    label={
+                      <Flex align="center" gap={tokens.sizeSM} style={{ width: '100%' }}>
+                        <Typography.Text type="secondary" strong className="review-finding-index">
+                          {String(index + 1).padStart(2, '0')}
+                        </Typography.Text>
+                        <Typography.Text strong style={{ flex: 1, minWidth: 0 }}>
+                          {item.title}
+                        </Typography.Text>
+                        <Tag color={decision.status === 'confirmed' ? 'success' : 'default'}>
+                          {reportDecisions.find(({ value }) => value === decision.status)?.label ??
+                            '未纳入导出'}
+                        </Tag>
+                      </Flex>
+                    }
                   >
-                    <span className="review-finding-index">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <h3>{item.title}</h3>
-                    <Tag color={decision.status === 'confirmed' ? 'green' : 'default'}>
-                      {reportDecisions.find(({ value }) => value === decision.status)?.label ??
-                        '未纳入导出'}
-                    </Tag>
-                    <DownOutlined className="review-chevron" aria-hidden="true" />
-                  </summary>
-                  <div className="review-finding-content">
-                    <p className="muted small">统计范围 {item.denominator} 人</p>
-                    <p>{discoverySummaryText(item.summary)}</p>
-                    <div className="batch-actions">
-                      {item.candidate?.metrics
-                        .filter((metric) => metric.key === 'mean' || metric.key === 'matched_count')
-                        .map((metric) => (
-                          <Button
-                            key={metric.key}
-                            onClick={() =>
-                              result &&
-                              setSelection({
-                                candidateId: item.id,
-                                metricKey: metric.key,
-                                title: item.title,
-                                spec: result.analysis.query,
-                              })
-                            }
-                          >
-                            查看评分依据 · {metricDisplay(metric)}
+                    <Flex vertical gap={tokens.sizeSM} className="review-finding-content">
+                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                        统计范围 {item.denominator} 人
+                      </Typography.Text>
+                      <Typography.Paragraph style={{ margin: 0 }}>
+                        {discoverySummaryText(item.summary)}
+                      </Typography.Paragraph>
+                      <Space wrap size="small" className="batch-actions">
+                        {item.candidate?.metrics
+                          .filter(
+                            (metric) => metric.key === 'mean' || metric.key === 'matched_count',
+                          )
+                          .map((metric) => (
+                            <Button
+                              key={metric.key}
+                              onClick={() =>
+                                result &&
+                                setSelection({
+                                  candidateId: item.id,
+                                  metricKey: metric.key,
+                                  title: item.title,
+                                  spec: result.analysis.query,
+                                })
+                              }
+                            >
+                              查看评分依据 · {metricDisplay(metric)}
+                            </Button>
+                          ))}
+                        {item.formal && detailSpec && (
+                          <Button onClick={() => setFormalDetail(item.id)}>
+                            查看完整发现与评分依据
                           </Button>
-                        ))}
-                      {item.formal && detailSpec && (
-                        <Button onClick={() => setFormalDetail(item.id)}>
-                          查看完整发现与评分依据
-                        </Button>
-                      )}
-                    </div>
-                    <label className="review-decision-label" id={`decision-${index}`}>
-                      报告内容<span className="visually-hidden"> · {item.title}</span>
-                    </label>
-                    <Radio.Group
-                      className="report-decision-options"
-                      aria-labelledby={`decision-${index}`}
-                      options={reportDecisions.map(({ value, label }) => ({ value, label }))}
-                      optionType="button"
-                      value={decision.status}
-                      disabled={!editable || operation.busy}
-                      onChange={(event) => update(item.id, { status: event.target.value })}
-                    />
-                    <label htmlFor={`finding-note-${index}`}>
-                      核验备注<span className="visually-hidden"> · {item.title}</span>
-                    </label>
-                    <Input.TextArea
-                      id={`finding-note-${index}`}
-                      classNames={{ root: 'report-note-input', count: 'report-note-count' }}
-                      value={decision.note}
-                      maxLength={2000}
-                      showCount
-                      autoSize={{ minRows: 2, maxRows: 5 }}
-                      disabled={!editable || operation.busy}
-                      onChange={(e) => update(item.id, { note: e.target.value })}
-                    />
-                  </div>
-                </details>
-              );
-            })}
+                        )}
+                      </Space>
+                      <div>
+                        <Typography.Text
+                          type="secondary"
+                          id={`decision-${index}`}
+                          style={{ display: 'block', marginBottom: tokens.marginXS, fontSize: 13 }}
+                        >
+                          报告内容<span className="visually-hidden"> · {item.title}</span>
+                        </Typography.Text>
+                        <Radio.Group
+                          block
+                          className="report-decision-options"
+                          aria-labelledby={`decision-${index}`}
+                          options={reportDecisions.map(({ value, label }) => ({ value, label }))}
+                          optionType="button"
+                          value={decision.status}
+                          disabled={!editable || operation.busy}
+                          onChange={(event) => update(item.id, { status: event.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`finding-note-${index}`}
+                          style={{
+                            display: 'block',
+                            marginBottom: tokens.marginXS,
+                            fontSize: 13,
+                            color: 'var(--muted)',
+                          }}
+                        >
+                          核验备注<span className="visually-hidden"> · {item.title}</span>
+                        </label>
+                        <Input.TextArea
+                          id={`finding-note-${index}`}
+                          value={decision.note}
+                          maxLength={2000}
+                          showCount
+                          autoSize={{ minRows: 2, maxRows: 5 }}
+                          disabled={!editable || operation.busy}
+                          onChange={(e) => update(item.id, { note: e.target.value })}
+                        />
+                      </div>
+                    </Flex>
+                  </Disclosure>
+                );
+              })}
+            </Flex>
           </div>
-        </div>
+        </Card>
       </div>
       {formalDetail && detailSpec && (
         <DiscoveryDetailDrawer

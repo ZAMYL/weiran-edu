@@ -135,7 +135,6 @@ export function GroupDrawers({
           <Panel title={`匹配学生记录${students.length > 3 ? '（部分）' : ''}`}>
             <Table<Student>
               rowKey="id"
-              size="small"
               pagination={false}
               dataSource={students.slice(0, 3)}
               columns={[
@@ -305,7 +304,6 @@ export function StudentDrawer({
                     <Progress
                       percent={(student.ratings[d.id].value / d.max) * 100}
                       showInfo={false}
-                      strokeColor="#347bff"
                     />
                     <b>
                       {student.ratings[d.id].value}

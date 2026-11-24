@@ -1,6 +1,14 @@
 import { ContractError, flag, object, type Decoder } from './schema';
 import { teacherAiError } from './teacher-ai-guidance';
 import {
+  answerSheetDto,
+  answerSheetEvidenceDto,
+  answerSheetImportDto,
+  answerSheetListDto,
+  answerSheetPatternsDto,
+  answerSheetStudentsDto,
+} from './answer-sheets';
+import {
   discoveriesDto,
   discoveryDetailDto,
   discoveryChartDto,
@@ -26,6 +34,7 @@ import {
   aiReviewDto,
   type AiTask,
 } from './ai-task-types';
+import { programmingTaskDto } from './programming-ai-types';
 import {
   isQuestionResponse,
   questionPreviewDto,
@@ -78,6 +87,21 @@ const FILE_MESSAGES: Record<string, string> = {
   AI_GOAL_UNSUPPORTED: `暂不支持这个问题。${teacherAiError('AI_GOAL_UNSUPPORTED')!.message} ${teacherAiError('AI_GOAL_UNSUPPORTED')!.action}`,
   AI_PURPOSE_REQUIRED: '这份测评尚未获得 AI 分析授权。',
   AI_PURPOSE_REVOKED: '本测评的 AI 分析授权已撤销。',
+  AI_LIVE_ADMISSION_REQUIRED: '编程 AI 调查尚未启用或未获得预算授权，未发起请求。',
+  AI_LIVE_NOT_ENABLED: '当前环境未启用真实模型调查。',
+  AI_LIVE_SOURCE_NOT_APPROVED: '该测评与来源快照不在独立审批范围内。',
+  AI_SOURCE_CONFLICT: '测评来源或快照已变化，请刷新测评后重试。',
+  AI_SOURCE_UNVERIFIED: '当前测评缺少不可变来源快照，无法绑定调查任务。',
+  AI_SCOPE_REVOKED: '当前教师已失去该数据范围的访问权。',
+  AI_TASK_EXPIRED: '调查任务或授权已过期。',
+  AI_TASK_TIMEOUT: '调查任务已超时，未保留分析结果。',
+  AI_TASK_CANCELLED: '调查任务已取消，未保留分析结果。',
+  AI_PROGRAMMING_EVIDENCE_UNAVAILABLE: '编程调查未取得可核验的原始证据。',
+  AI_BUDGET_EXHAUSTED: '模型调用预算已用尽，未发布部分结果。',
+  AI_TOOL_BUDGET_EXHAUSTED: '证据核查预算已用尽，未发布部分结果。',
+  AI_IDEMPOTENCY_CONFLICT: '同一请求标识对应了不同的调查参数，请刷新后重试。',
+  ORIGINAL_UNAVAILABLE: '原始测评文件当前不可用，拒绝使用缓存结果。',
+  SOURCE_CHANGED: '资料来源已变化，请刷新测评后查看。',
   IMPORT_FORMAT_UNSUPPORTED: '这份表格的结构暂不支持。请核对测评表格后重新选择。',
   IMPORT_SCOPE_REQUIRED: '请选择具有导入权限的数据来源后继续检查。',
   IMPORT_FILE_INVALID: '无法读取这份表格，请保留原文件，并检查表格格式和文件大小。',
@@ -249,6 +273,20 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
     request(path, decoder, { method: 'POST', body: JSON.stringify(body) }, signal);
   const base = (b: ApiBatch) => `/batches/${id(b.batch_id)}`;
   const snapshot = (b: ApiBatch) => `snapshot_id=${id(b.snapshot_id)}`;
+  const withDiscoveryCapacity = async <T>(load: () => Promise<T>, signal?: AbortSignal) => {
+    // Navigating can abort a browser request while the authorized server read is still finishing.
+    const waits = [400, 800, 1600, 2400];
+    for (const wait of waits) {
+      try {
+        return await load();
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY') throw error;
+        await new Promise((resolve) => setTimeout(resolve, wait));
+        signal?.throwIfAborted();
+      }
+    }
+    return load();
+  };
   const discovery = async <
     T extends {
       scope: { batch_id: string; snapshot_id: string; scope_conditions: ApiCondition[] };
@@ -274,20 +312,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
         },
         signal,
       );
-    const result = await (async () => {
-      // Navigating can abort a browser request while the authorized server read is still finishing.
-      const waits = [400, 800, 1600, 2400];
-      for (const wait of waits) {
-        try {
-          return await load();
-        } catch (error) {
-          if (!(error instanceof ApiError) || error.code !== 'DISCOVERY_BUSY') throw error;
-          await new Promise((resolve) => setTimeout(resolve, wait));
-          signal?.throwIfAborted();
-        }
-      }
-      return load();
-    })();
+    const result = await withDiscoveryCapacity(load, signal);
     assertSnapshot(result.scope, batch);
     const canonical = (conditions: ApiCondition[]) =>
       JSON.stringify(
@@ -734,10 +759,14 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       signal?: AbortSignal,
     ) => {
       const value = assertSnapshot(
-        await post(
-          `${base(batch)}/analysis-results/${id(resultId)}/export-check`,
-          exportCheckDto,
-          { snapshot_id: batch.snapshot_id, expected_version: version, format },
+        await withDiscoveryCapacity(
+          () =>
+            post(
+              `${base(batch)}/analysis-results/${id(resultId)}/export-check`,
+              exportCheckDto,
+              { snapshot_id: batch.snapshot_id, expected_version: version, format },
+              signal,
+            ),
           signal,
         ),
         batch,
@@ -757,15 +786,90 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       format: ReportFormat,
       signal?: AbortSignal,
     ) =>
-      request<ReportFile>(
-        `${base(batch)}/analysis-results/${id(resultId)}/export?${snapshot(batch)}&expected_version=${version}&format=${format}`,
-        () => {
-          throw new ContractError();
+      withDiscoveryCapacity(
+        () =>
+          request<ReportFile>(
+            `${base(batch)}/analysis-results/${id(resultId)}/export?${snapshot(batch)}&expected_version=${version}&format=${format}`,
+            () => {
+              throw new ContractError();
+            },
+            {},
+            signal,
+            (response) => readReportFile(response, { resultId, version, format }),
+          ),
+        signal,
+      ),
+    uploadAnswerSheets: (form: FormData, signal?: AbortSignal) =>
+      request('/assessments', answerSheetImportDto, { method: 'POST', body: form }, signal),
+    answerSheets: (offset: number, signal?: AbortSignal) =>
+      get(`/assessments?offset=${offset}&limit=20`, answerSheetListDto, signal),
+    answerSheet: async (assessmentId: string, signal?: AbortSignal) => {
+      const path = `/assessments/${id(assessmentId)}`;
+      const [overview, patterns, students] = await Promise.all([
+        get(path, answerSheetDto, signal),
+        get(`${path}/patterns`, answerSheetPatternsDto, signal),
+        get(`${path}/students`, answerSheetStudentsDto, signal),
+      ]);
+      if ([overview, patterns, students].some((item) => item.assessment_id !== assessmentId))
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return { overview, patterns: patterns.items, students: students.items };
+    },
+    answerSheetEvidence: async (
+      assessmentId: string,
+      studentPk: string,
+      sourceSnapshot: string | null,
+      signal?: AbortSignal,
+    ) => {
+      const query = sourceSnapshot ? `?source_snapshot_id=${id(sourceSnapshot)}` : '';
+      const evidence = await get(
+        `/assessments/${id(assessmentId)}/students/${id(studentPk)}${query}`,
+        answerSheetEvidenceDto,
+        signal,
+      );
+      if (evidence.assessment_id !== assessmentId || evidence.student_pk !== studentPk)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      if (evidence.source_snapshot_id !== sourceSnapshot) throw new ApiError(409, 'SOURCE_CHANGED');
+      return evidence;
+    },
+    startProgrammingAiTask: async (
+      assessmentId: string,
+      idempotencyKey: string,
+      signal?: AbortSignal,
+    ) => {
+      const task = await post(
+        `/assessments/${id(assessmentId)}/ai-tasks`,
+        programmingTaskDto,
+        {
+          purpose: 'programming_error_investigation',
+          idempotency_key: idempotencyKey,
+          timeout_seconds: 120,
         },
+        signal,
+      );
+      if (task.assessment_id !== assessmentId) throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return task;
+    },
+    programmingAiTask: async (assessmentId: string, taskId: string, signal?: AbortSignal) => {
+      const task = await get(
+        `/assessments/${id(assessmentId)}/ai-tasks/${id(taskId)}`,
+        programmingTaskDto,
+        signal,
+      );
+      if (task.assessment_id !== assessmentId || task.task_id !== taskId)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return task;
+    },
+    cancelProgrammingAiTask: async (assessmentId: string, taskId: string, signal?: AbortSignal) => {
+      const task = await post(
+        `/assessments/${id(assessmentId)}/ai-tasks/${id(taskId)}/cancel`,
+        programmingTaskDto,
         {},
         signal,
-        (response) => readReportFile(response, { resultId, version, format }),
-      ),
+      );
+      if (task.assessment_id !== assessmentId || task.task_id !== taskId)
+        throw new ApiError(502, 'INVALID_API_RESPONSE');
+      return task;
+    },
     preview: (form: FormData, signal?: AbortSignal) =>
       request<ApiImport | QuestionPreview>(
         '/imports/preview',

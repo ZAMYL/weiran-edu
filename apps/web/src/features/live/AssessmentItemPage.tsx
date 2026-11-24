@@ -146,10 +146,9 @@ export default function AssessmentItemPage({
         <Table
           aria-label={questions === items.length ? '逐题统计' : '评分项目统计'}
           rowKey="item_id"
-          size="small"
           pagination={false}
           dataSource={rows}
-          scroll={{ x: resource.data ? 880 : 360 }}
+          scroll={{ x: 'max-content' }}
           columns={[
             { title: questions === items.length ? '题目' : '项目', dataIndex: 'display_name' },
             ...(questions > 0 && questions < items.length
@@ -259,7 +258,6 @@ function ItemDistribution({
       <Table
         aria-label="得分分布"
         rowKey="score"
-        size="small"
         pagination={false}
         dataSource={stats.distribution}
         locale={{ emptyText: '暂无有效得分' }}

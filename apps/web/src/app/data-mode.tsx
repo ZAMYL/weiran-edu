@@ -46,12 +46,11 @@ export interface UploadDraft {
 interface SessionState {
   activeReport: { batchId: string; snapshotId: string; resultId: string } | null;
   uploadDraft: UploadDraft | null;
-  assessmentPanel: 'upload' | 'history' | null;
-  assessmentRevision: number;
   batchListRevision: number;
   hasArchivedBatches: boolean;
   ready: boolean;
   reportDraft: ReportDraft | null;
+  reportRequest: number;
   testMode: boolean;
   syntheticAi: boolean;
   liveAi: boolean;
@@ -69,12 +68,11 @@ interface SessionState {
 const initial: SessionState = {
   activeReport: null,
   uploadDraft: null,
-  assessmentPanel: null,
-  assessmentRevision: 0,
   batchListRevision: 0,
   hasArchivedBatches: false,
   ready: false,
   reportDraft: null,
+  reportRequest: 0,
   testMode: false,
   syntheticAi: false,
   liveAi: false,
@@ -95,7 +93,6 @@ interface DataMode extends SessionState {
   setUploadDraft: (draft: UploadDraft | null) => void;
   client: EduClient;
   setReportDraft: (draft: ReportDraft | null) => void;
-  openAssessments: (panel: 'upload' | 'history' | null) => void;
   connect: (token: string | null) => Promise<void>;
   disconnect: () => void;
   openLogin: (open: boolean) => void;
@@ -212,7 +209,6 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
           reportDraft: null,
           activeReport: null,
           uploadDraft: null,
-          assessmentPanel: null,
           teacherId: me.teacher_id,
           syntheticIdentity:
             me.identity_kind === undefined ? undefined : me.identity_kind !== 'teacher',
@@ -292,7 +288,6 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
     setState((s) => ({
       ...s,
       batch,
-      assessmentPanel: null,
       reportDraft: null,
       activeReport: null,
       discoveryOrigin: null,
@@ -313,16 +308,11 @@ export function DataModeProvider({ children }: { children: ReactNode }) {
             ? (demonstrationTitles.get(batch.title) ?? batch.title)
             : batch.title,
         client,
-        openAssessments: (assessmentPanel) =>
-          setState((s) => ({
-            ...s,
-            assessmentPanel,
-            assessmentRevision: s.assessmentRevision + 1,
-          })),
         setReportDraft: (reportDraft) =>
           setState((s) => ({
             ...s,
             reportDraft,
+            reportRequest: s.reportRequest + 1,
             activeReport: reportDraft ? null : s.activeReport,
           })),
         setActiveReport: (activeReport) => setState((s) => ({ ...s, activeReport })),
