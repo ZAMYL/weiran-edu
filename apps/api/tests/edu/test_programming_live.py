@@ -299,7 +299,7 @@ def test_stale_approval_keeps_api_up_and_programming_fails_closed(runtime, monke
     monkeypatch.setenv("DASHSCOPE_BASE_URL", BASE_URL)
     monkeypatch.setenv("WEIRAN_QWEN_MODEL", "qwen3.8-flash")
 
-    app = _production_app(runtime)  # 启动不再整站失败关闭
+    app = _production_app(runtime)  # 启动不再失败关闭整站
     assert str(app.state.programming_live).startswith("unavailable"), app.state.programming_live
 
     with TestClient(app) as client:
@@ -363,4 +363,3 @@ def test_operator_cli_revokes_programming_grant(runtime, monkeypatch, tmp_path):
         assert row["state"] == "revoked"
         assert row["result_json"] is None and row["result_sha"] is None
         assert grant["revoked"] == 1
-
