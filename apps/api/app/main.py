@@ -1,3 +1,4 @@
+import logging
 import os
 from collections.abc import Awaitable, Callable
 
@@ -62,11 +63,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if application.state.settings.environment == "production" and os.environ.get(
             "WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL"
         ):
-            # Startup is fail-closed: a bad approval, missing key or stale code
-            # fingerprint prevents the production app from claiming Live.
+            # Programming Live fails closed per task, not per process: a stale
+            # approval, changed code fingerprint or missing key must not take the
+            # whole API (uploads, reads, other AI paths) down with it.
             from app.edu.programming_live import install_live_runner
 
-            install_live_runner(application.state.programming_tasks)
+            try:
+                install_live_runner(application.state.programming_tasks)
+                application.state.programming_live = "installed"
+            except Exception as error:  # noqa: BLE001 - record, never crash startup
+                application.state.programming_live = f"unavailable: {error}"
+                logging.getLogger(__name__).warning("programming live unavailable: %s", error)
         application.include_router(edu_router)
         application.include_router(edu_discoveries_router)
         application.include_router(edu_reviews_router)

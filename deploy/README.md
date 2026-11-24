@@ -136,7 +136,7 @@ Token 通过容器环境传入。禁止将值写入命令历史或仓库。
   `programming_worker` 是同类任务的第二个进程，两者各只允许一个实例，不能再横向扩。
 - **真实数据只外发聚合视图**：不发送姓名、逐人评分、原始答卷、评语、Rubric 正文。
 - **审批文件在仓库外**；`data/`、`ledger/`、`secrets/` 不提交。
-- **API 启动是 fail-closed**：`WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL` 存在但过期、指纹不符或缺 Key 时，`api` 直接起不来。计划内换审批要同时改文件和环境变量；只想临时停用编程调查，就去掉这个变量（任务会稳定返回 409，其他功能不受影响）。
+- **审批坏了只关编程调查**：`WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL` 存在但过期、指纹不符或缺 Key 时，`api` 照常启动（状态记在 `app.state.programming_live`），只有编程任务返回 `AI_LIVE_ADMISSION_REQUIRED`；上传、查询不受影响。
 - **编程 worker 也必须是单实例**：两个进程同时写同一 SQLite 文件会争锁（`busy_timeout=3s`）。
 - **没有 Key 时** API/worker 启动不读 Key；任务失败关闭，不回退 Mock。
 - **没有服务器时** 本目录只是待部署包，不能宣称已上线。

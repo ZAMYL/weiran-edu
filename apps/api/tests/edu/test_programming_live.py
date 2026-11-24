@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from datetime import UTC, datetime
 from hashlib import sha256
 
@@ -16,6 +17,7 @@ from pydantic import SecretStr
 
 from app.core.config import Settings
 from app.core.errors import APIError
+from app.edu.__main__ import main as admin_main
 from app.edu.programming_live import install_live_runner
 from app.edu.programming_worker import ProgrammingWorker
 from app.main import create_app
@@ -282,3 +284,83 @@ def test_crashed_running_row_is_swept_and_never_reports_success(runtime, monkeyp
         assert view["result"] is None
         assert view["real_qwen"] in ("not_run", "failed")
         assert view["production_enabled"] is False
+
+
+def test_stale_approval_keeps_api_up_and_programming_fails_closed(runtime, monkeypatch, tmp_path):
+    """审批过期只关编程任务，不拖垮上传/查询：启动不抛异常，任务 409。"""
+    approval_path = tmp_path / "programming-approval.json"
+    ledger = tmp_path / "ledgers"
+    approval = _approval("0" * 64, "0" * 64, campaign="live02-stale")
+    approval["reviewed_code_sha256"] = "0" * 64
+    approval_path.write_text(json.dumps(approval), encoding="utf-8")
+    monkeypatch.setenv("WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL", str(approval_path))
+    monkeypatch.setenv("WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT", str(ledger))
+    monkeypatch.setenv("DASHSCOPE_API_KEY", "test-key")
+    monkeypatch.setenv("DASHSCOPE_BASE_URL", BASE_URL)
+    monkeypatch.setenv("WEIRAN_QWEN_MODEL", "qwen3.8-flash")
+
+    app = _production_app(runtime)  # 启动不再整站失败关闭
+    assert str(app.state.programming_live).startswith("unavailable"), app.state.programming_live
+
+    with TestClient(app) as client:
+        client.headers["Authorization"] = "Bearer " + runtime.token
+        assessment = upload(client, archive(0))
+        response = client.post(
+            f"{URL}/{assessment}/ai-tasks", json={"idempotency_key": "stale-approval"}
+        )
+        assert response.status_code == 409, response.text
+        assert response.json()["error"]["code"] == "AI_LIVE_ADMISSION_REQUIRED"
+        # 上传与查询仍然可用，说明只有编程调查被拒。
+        assert client.get(f"{URL}/{assessment}").status_code == 200
+
+
+def test_operator_cli_revokes_programming_grant(runtime, monkeypatch, tmp_path):
+    """撤权走 operator CLI：改库即撤销，任务转 revoked 且结果清空。"""
+    approval_path = tmp_path / "programming-approval.json"
+    ledger = tmp_path / "ledgers"
+    app = _production_app(runtime)
+    with TestClient(app) as client:
+        monkeypatch.setenv("WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL", str(approval_path))
+        monkeypatch.setenv("WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT", str(ledger))
+        client.headers["Authorization"] = "Bearer " + runtime.token
+        assessment = upload(client, archive(0))
+        snapshot = bindings(runtime, assessment)["snapshot"]
+        _write_approval(approval_path, assessment, snapshot, "live02-cli-revoke")
+        service = app.state.programming_tasks
+        install_live_runner(service, settings=_settings(), transport=transport()[0])
+        response = client.post(
+            f"{URL}/{assessment}/ai-tasks", json={"idempotency_key": "cli-revoke"}
+        )
+        assert response.status_code == 202, response.text
+        task_id = response.json()["task_id"]
+
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "edu",
+                "--database",
+                str(runtime.db.path),
+                "programming-revoke",
+                "--assessment-id",
+                assessment,
+            ],
+        )
+        assert admin_main() == 0
+
+        revoked = client.get(f"{URL}/{assessment}/ai-tasks/{task_id}")
+        assert revoked.status_code == 403
+        assert revoked.json()["error"]["code"] == "AI_PURPOSE_REVOKED"
+        with runtime.db.transaction() as connection:
+            row = connection.execute(
+                "SELECT state,result_json,result_sha FROM ai_programming_tasks WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+            grant = connection.execute(
+                "SELECT revoked FROM ai_programming_grants WHERE assessment_id=?",
+                (assessment,),
+            ).fetchone()
+        assert row["state"] == "revoked"
+        assert row["result_json"] is None and row["result_sha"] is None
+        assert grant["revoked"] == 1
+

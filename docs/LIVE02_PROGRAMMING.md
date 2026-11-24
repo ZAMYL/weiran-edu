@@ -82,10 +82,15 @@ uv run --locked python -m app.programming_worker_main
   `production_enabled=false`，不得冒充真实 Qwen。
 - 失败、取消、撤权、超时清空 `result_json/result_sha`；已完成结果重启后仍需逐字节
   回读原件并通过摘要校验。
-- 生产启动是 fail-closed：`WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL` 存在但审批过期、
-  指纹不符或缺 Key 时，`api` 会直接拒绝启动（不只是编程任务被拒）。计划内换审批要
-  同时更新文件与变量；只想临时停用编程调查，去掉该变量即可（任务稳定返回 409，
-  其他功能不受影响）。
+- 生产启动不再整站 fail-closed：`WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL` 存在但审批
+  过期、指纹不符或缺 Key 时，`api` 照常启动，状态记在 `app.state.programming_live`
+  （`unavailable: …`），只有编程调查被拒（`AI_LIVE_ADMISSION_REQUIRED`）；上传、查询和
+  其他 AI 路径不受影响。
+- 撤权没有 HTTP 入口，走 operator CLI：
+  `python -m app.edu --database <db> programming-revoke --assessment-id <id> [--snapshot-id <snap>]`。
+  撤销后授权标记 `revoked`，未发布结果清空。
+- 运行被取消、撤权或超时时，账本里仍在途的预留会写成 `closed_without_settlement`：
+  保留上限金额、标明“用量未知”，既不冒充 0 成本，也不长期挂着 `reserved`。
 
 ## 5. 验收命令
 

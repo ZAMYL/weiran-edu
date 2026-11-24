@@ -289,6 +289,25 @@ class ProgrammingLiveBudget(CampaignBudget):
         if phase == "attempt":
             self.mirror(len(executor.attempt_ledger))
 
+    def finalize(self, reason: str) -> None:
+        """End the journal without pretending an in-flight slot was settled.
+
+        Cancel, revoke or a deadline can end the run while one request is still
+        in flight. That reservation keeps its upper bound (the request really went
+        out) but stops looking like a live hold: it is marked
+        `closed_without_settlement` so audit reads "unknown usage", not "charged".
+        """
+        if self._closed:
+            return
+        changed = False
+        for entry in self._entries:
+            if entry["state"] == "reserved":
+                entry["state"] = "closed_without_settlement"
+                entry["error"] = reason
+                changed = True
+        if changed:
+            self._persist()
+
     def reconcile(self, run: AgentRun) -> None:
         with self.service.database.transaction() as connection:
             row = connection.execute(
@@ -469,6 +488,10 @@ async def _investigate_live(
         raise APIError(503, "AI_LIVE_MODEL_FAILED", "真实模型执行失败") from None
     finally:
         if budget is not None:
+            # The journal must never be left with a dangling `reserved` slot after
+            # cancellation, revocation or timeout.
+            with suppress(Exception):
+                budget.finalize("run_ended_without_settlement")
             budget.close()
 
 
