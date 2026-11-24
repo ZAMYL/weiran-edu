@@ -1,0 +1,18 @@
+{
+  "campaign_id": "live02-20261124-formal-01",
+  "human_approval_reference": "OWNER-LIVE02-20261124-01",
+  "purpose": "programming_live",
+  "model": "qwen3.8-flash",
+  "endpoint_sha256": "5891aed827c4e67b2d7c0c73ea819327ce3f2b6ef72213cd79669486a26b1ead",
+  "source_fingerprints": {
+    "<assessment_id>": "<source_snapshot_id>"
+  },
+  "price_fingerprint": "998d6bd3c3311f29f09b2a1328739e9f05b2847bb74da6a331e3e3ef01739bce",
+  "valid_until": "2026-11-26",
+  "max_requests": 3,
+  "max_output_tokens": 800,
+  "total_token_limit": 2977824,
+  "cost_cap_cny": "2.40",
+  "independent_review_reference": "REVIEW-LIVE02-20261124-01",
+  "reviewed_code_sha256": "<64-hex code_fingerprint of the frozen commit>"
+}

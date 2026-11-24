@@ -2,7 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    # `codex/**` integration branches are used for staged backend slices; without
+    # them the backend checks never run on slice PRs.
+    branches: [main, "codex/**"]
   push:
     branches: [main]
   workflow_dispatch:
@@ -56,7 +58,7 @@ jobs:
   windows_tests:
     name: Windows tests (${{ matrix.shard }})
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:

@@ -39,7 +39,10 @@ def create_task(
     if not fresh:
         response.status_code = 200
         return view
-    background.add_task(tasks.execute, row["task_id"])
+    if tasks.environment == "test":
+        # Test hosts keep the in-process responder. Production must let the
+        # durable worker claim the row, otherwise a restart strands the task.
+        background.add_task(tasks.execute, row["task_id"])
     return view
 
 

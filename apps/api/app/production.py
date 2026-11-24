@@ -44,3 +44,19 @@ def build_production() -> tuple[FastAPI, TaskService]:
 def create_production_app() -> FastAPI:
     application, _ = build_production()
     return application
+
+
+def build_programming_worker():
+    """Build the production programming service without requiring five-dim approval."""
+    settings = Settings(
+        environment="production",
+        database_path=_outside_repository(os.environ["WEIRAN_EDU_DATABASE"], "WEIRAN_EDU_DATABASE"),
+        ai_task_routes=False,
+    )
+    application = create_app(settings)
+    service = getattr(application.state, "programming_tasks", None)
+    if service is None:
+        raise RuntimeError("programming_service_not_configured")
+    if service.runner is None:
+        raise RuntimeError("programming_live_approval_not_configured")
+    return service

@@ -37,6 +37,9 @@ def main() -> int:
         if name == "member-set":
             command.add_argument("--can-import", action="store_true")
     commands.add_parser("cleanup-expired")
+    programming_revoke = commands.add_parser("programming-revoke")
+    programming_revoke.add_argument("--assessment-id", required=True)
+    programming_revoke.add_argument("--snapshot-id")
     args = parser.parse_args()
     try:
         if args.database is None:
@@ -68,6 +71,13 @@ def main() -> int:
             admin.revoke_read(args.teacher_id, args.batch_id)
         elif args.command == "cleanup-expired":
             result["expired_count"] = EduService(database).cleanup_expired()
+        elif args.command == "programming-revoke":
+            # Operator-only revocation for LIVE-02: no HTTP endpoint, so a public
+            # client can never withdraw a teacher's paid investigation.
+            from app.edu.programming_tasks import ProgrammingTaskService
+
+            service = ProgrammingTaskService(database, environment="production")
+            result["revoked_grants"] = service.revoke(args.assessment_id, args.snapshot_id)
         print(json.dumps(result))
         return 0
     except (APIError, ValueError, OSError):
