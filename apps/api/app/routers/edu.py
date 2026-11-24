@@ -37,6 +37,12 @@ from app.edu.insight_models import (
     InsightResult,
 )
 from app.edu.insights import InsightReader
+from app.edu.material_models import (
+    MaterialField,
+    MaterialPending,
+    MaterialRecognition,
+    MaterialTable,
+)
 from app.edu.models import (
     Batch,
     BatchArchive,
@@ -59,6 +65,7 @@ from app.edu.upload_metadata import UploadMetadata, filename_title, resolve_uplo
 from app.importing.edu.adapter import adapter_for
 from app.importing.edu.answersheet import merge_answersheets, parse_answersheet, tag_package
 from app.importing.edu.detect import ZIP_HTML, detect_asset
+from app.importing.edu.recognition import recognize
 from app.importing.edu.report import render_quality_report
 from app.importing.edu.types import ImportFileError, ParseLimits
 from app.reporting.edu.assessment_report import (
@@ -848,3 +855,81 @@ async def batch_integrity(
     body = await read_query(request, IntegrityRequest)
     reader = DiagnosticReader(backend.database, clock=backend.clock)
     return await run_in_threadpool(reader.integrity, actor, batch_id, body)
+
+
+async def _material_upload(request: Request) -> tuple[bytes, str | None, str | None]:
+    """只读取一个文件字段；不要求教师预设模板、评分表或资料类型。"""
+    if request.headers.get("content-type", "").split(";", 1)[0].lower() != "multipart/form-data":
+        raise APIError(415, "UNSUPPORTED_MEDIA_TYPE", "请使用文件上传表单")
+    maximum = ParseLimits().compressed_bytes + 64 * 1024
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > maximum:
+            raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
+        body.extend(chunk)
+    consumed = False
+
+    async def receive() -> dict:
+        nonlocal consumed
+        if consumed:
+            return {"type": "http.disconnect"}
+        consumed = True
+        return {"type": "http.request", "body": bytes(body), "more_body": False}
+
+    limited = Request(request.scope, receive)
+    try:
+        async with limited.form(max_files=1, max_fields=1, max_part_size=4096) as form:
+            items = list(form.multi_items())
+            keys = [key for key, _ in items]
+            if set(keys) != {"file"} or len(keys) != 1:
+                raise APIError(422, "VALIDATION_ERROR", "上传字段不符合要求")
+            upload = form.get("file")
+            if not isinstance(upload, UploadFile):
+                raise APIError(422, "VALIDATION_ERROR", "缺少上传文件")
+            data = await upload.read(ParseLimits().compressed_bytes + 1)
+            if len(data) > ParseLimits().compressed_bytes:
+                raise APIError(413, "IMPORT_FILE_TOO_LARGE", "上传文件超过限制")
+            return data, upload.filename, upload.content_type
+    except APIError:
+        raise
+    except Exception:
+        raise APIError(422, "IMPORT_FILE_INVALID", "上传表单无法读取") from None
+
+
+@router.post("/materials/inspect", response_model=MaterialRecognition)
+async def inspect_material(request: Request, actor: Actor) -> MaterialRecognition:
+    """统一上传入口的识别步骤：返回角色、字段、待确认事项与可用分析。
+
+    只识别、不确认、不落库；ZIP 仍指向既有正式导入路径。
+    """
+    data, file_name, content_type = await _material_upload(request)
+    recognition = await run_in_threadpool(
+        recognize, data, file_name=file_name, content_type=content_type
+    )
+    return MaterialRecognition(
+        source_id=recognition.source_id,
+        file_name=file_name,
+        kind=recognition.kind,
+        supported=recognition.supported,
+        role=recognition.role,
+        role_state=recognition.role_state,
+        route=recognition.route,
+        tables=tuple(
+            MaterialTable(
+                ref=table.ref,
+                rows=table.rows,
+                columns=table.columns,
+                complete=table.complete,
+                blocked=table.blocked,
+            )
+            for table in recognition.tables
+        ),
+        fields=tuple(
+            MaterialField(column=field.column, meaning=field.meaning, evidence=field.evidence)
+            for field in recognition.fields
+        ),
+        pending=tuple(
+            MaterialPending(code=item.code, detail=item.detail) for item in recognition.pending
+        ),
+        analyses=recognition.analyses,
+    )
