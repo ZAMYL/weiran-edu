@@ -15,6 +15,7 @@ from prototypes.research_agent_v2.programming_task_adapter import install_offlin
 from pydantic import SecretStr
 
 from app.core.config import Settings
+from app.core.errors import APIError
 from app.edu.programming_live import install_live_runner
 from app.edu.programming_worker import ProgrammingWorker
 from app.main import create_app
@@ -203,3 +204,81 @@ def test_offline_runner_is_not_installable_on_production(runtime):
         with pytest.raises(ValueError, match="offline_programming_test_host_required"):
             install_offline_runner(service, transport()[0])
         assert assessment
+
+
+def test_second_claim_of_one_row_can_never_run_twice(runtime, monkeypatch, tmp_path):
+    """条件 UPDATE 的语义：同一行只允许一个 worker 认领，第二个必须被拒。"""
+    approval_path = tmp_path / "programming-approval.json"
+    ledger = tmp_path / "ledgers"
+    app = _production_app(runtime)
+    with TestClient(app) as client:
+        monkeypatch.setenv("WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL", str(approval_path))
+        monkeypatch.setenv("WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT", str(ledger))
+        client.headers["Authorization"] = "Bearer " + runtime.token
+        assessment = upload(client, archive(0))
+        snapshot = bindings(runtime, assessment)["snapshot"]
+        _write_approval(approval_path, assessment, snapshot, "live02-double-claim")
+        service = app.state.programming_tasks
+        install_live_runner(service, settings=_settings(), transport=transport()[0])
+        response = client.post(
+            f"{URL}/{assessment}/ai-tasks", json={"idempotency_key": "double-claim"}
+        )
+        assert response.status_code == 202, response.text
+        task_id = response.json()["task_id"]
+
+        assert service.start(task_id)["state"] == "running"
+        with pytest.raises(APIError) as refused:
+            service.start(task_id)
+        assert refused.value.code == "AI_TASK_NOT_RUNNABLE"
+        with runtime.db.transaction() as connection:
+            row = connection.execute(
+                "SELECT state,budget_json FROM ai_programming_tasks WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+        assert row["state"] == "running"
+        # 第二个认领者被拒，因此预算仍是一次都没发生。
+        assert json.loads(row["budget_json"])["request_count"] == 0
+
+
+def test_crashed_running_row_is_swept_and_never_reports_success(runtime, monkeypatch, tmp_path):
+    """worker 崩溃后重启：过期 running 行被扫成 timed_out，不复活、不冒充成功。"""
+    approval_path = tmp_path / "programming-approval.json"
+    ledger = tmp_path / "ledgers"
+    app = _production_app(runtime)
+    with TestClient(app) as client:
+        monkeypatch.setenv("WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL", str(approval_path))
+        monkeypatch.setenv("WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT", str(ledger))
+        client.headers["Authorization"] = "Bearer " + runtime.token
+        assessment = upload(client, archive(0))
+        snapshot = bindings(runtime, assessment)["snapshot"]
+        _write_approval(approval_path, assessment, snapshot, "live02-crash")
+        service = app.state.programming_tasks
+        install_live_runner(service, settings=_settings(), transport=transport()[0])
+        response = client.post(
+            f"{URL}/{assessment}/ai-tasks",
+            json={"idempotency_key": "crash", "timeout_seconds": 1},
+        )
+        assert response.status_code == 202, response.text
+        task_id = response.json()["task_id"]
+        assert service.start(task_id)["state"] == "running"
+
+        # 模拟进程在 running 状态被杀：没有 finish，也没有 fail，只剩一行 running。
+        service.clock = lambda: datetime.now(UTC).timestamp() + 10
+        assert service.queued() == []
+        assert ProgrammingWorker(service).run_once() == 0
+
+        with runtime.db.transaction() as connection:
+            row = connection.execute(
+                "SELECT state,error_code,result_json,result_sha FROM ai_programming_tasks "
+                "WHERE task_id=?",
+                (task_id,),
+            ).fetchone()
+        assert row["state"] == "timed_out"
+        assert row["error_code"] == "AI_TASK_TIMEOUT"
+        assert row["result_json"] is None and row["result_sha"] is None
+
+        view = client.get(f"{URL}/{assessment}/ai-tasks/{task_id}").json()
+        assert view["state"] == "timed_out"
+        assert view["result"] is None
+        assert view["real_qwen"] in ("not_run", "failed")
+        assert view["production_enabled"] is False

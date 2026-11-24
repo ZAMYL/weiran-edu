@@ -27,6 +27,10 @@
 | `WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL` | 独立审批 JSON 的绝对路径，仓库外 |
 | `WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT` | 服务端独占账本根，绝对路径、仓库外 |
 
+部署时该文件要同时挂给 `api` 与 `programming_worker` 两个容器；接线、挂载与启动顺序见
+[`deploy/README.md`](../deploy/README.md)，可复制的审批样例见
+[`deploy/programming-live-approval.example.json`](../deploy/programming-live-approval.example.json)。
+
 启动服务端：
 
 ```bash
@@ -59,6 +63,8 @@ uv run --locked python -m app.programming_worker_main
 - `independent_review_reference`、`reviewed_code_sha256`：独立审查引用与代码指纹。
 - `reviewed_code_sha256` 必须在所有 AI/kernel 代码冻结后重新计算，任何 app/
   prototypes 改动都会改变它。
+- **一条 `human_approval_reference` 只能资助一个 campaign**：同一个测评重新调查也要
+  新审批文件，复用会报 `AI_CAMPAIGN_ALREADY_USED`。
 
 审批文件读取时校验：绝对路径、仓库外、≤8192 字节、价格有效期、代码指纹和来源格式。
 
@@ -76,6 +82,10 @@ uv run --locked python -m app.programming_worker_main
   `production_enabled=false`，不得冒充真实 Qwen。
 - 失败、取消、撤权、超时清空 `result_json/result_sha`；已完成结果重启后仍需逐字节
   回读原件并通过摘要校验。
+- 生产启动是 fail-closed：`WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL` 存在但审批过期、
+  指纹不符或缺 Key 时，`api` 会直接拒绝启动（不只是编程任务被拒）。计划内换审批要
+  同时更新文件与变量；只想临时停用编程调查，去掉该变量即可（任务稳定返回 409，
+  其他功能不受影响）。
 
 ## 5. 验收命令
 
@@ -87,10 +97,25 @@ PYTHONPATH=. apps/api/.venv/bin/python -m pytest apps/api/tests/storage apps/api
 cd apps/api && uv run ruff check . && uv run ruff format --check .
 ```
 
-## 6. 真实 Qwen 运行前提（当前阻塞）
+## 6. 真实运行状态与证据
 
-当前构建环境没有 `DASHSCOPE_API_KEY`、`DASHSCOPE_BASE_URL`、
-`WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL`、`WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT`。因此
-本机只能验证合成 Mock 接线和失败关闭，不能声称完成真实 Qwen 联网调查。补齐这些
-环境变量、生成审批 JSON 并在最终代码 SHA 上重算 `reviewed_code_sha256` 后，才可
-运行 `ProgrammingWorker`。
+2026-11-24 已在 GitHub Actions `ubuntu-latest` runner 上完成一次真实 Qwen 联网调查，
+并在同一环境完成四组失败场景。结论不是“待验证”，而是“链路已跑通，正式放行仍缺真实
+独立审批”。
+
+- 正向：任务 `completed`，`execution_origin=qwen_live`、`execution_mode=live_network`、
+  `real_qwen=completed`；3 次真实请求全部 HTTP 200，2 次工具调用均 verified，
+  `charged_tokens=3928`，重启后 `GET` 仍为 `completed` 且结果一致。
+  证据：`evidence/live02-evidence.json`（分支 `live02-evidence`）。
+- 负面：截止时间过期 `timed_out`/`AI_TASK_TIMEOUT`、预算不足 `failed`/
+  `AI_BUDGET_AUDIT_MISMATCH`、认领前取消 `cancelled`/`AI_TASK_CANCELLED`，三者
+  `request_count` 均为 0 且结果为空；运行中取消在已发出 1 次请求后停止，仍无结果。
+  证据：`evidence/live02-negative.json`（分支 `live02-evidence`）。
+
+证据边界：
+
+- 上述运行使用的 `human_approval_reference` 与 `independent_review_reference` 都是
+  占位字符串，只证明代码与链路可用，**不构成独立审批放行**。
+- 正式验收仍需两条真实、来源不同的审批引用，并在冻结后的代码指纹上重跑一次。
+- 价格快照 `REVIEWED_PRICE_20261119` 有效至 `2026-11-26`；过期必须重新做价格审查、
+  生成新 `price_fingerprint`，不能只改日期。
