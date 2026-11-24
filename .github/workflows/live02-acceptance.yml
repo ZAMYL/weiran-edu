@@ -8,10 +8,11 @@ on:
         required: true
         default: feat/live02-qwen-wiring
       mode:
-        description: "dry_run (tests only) or live (real Qwen)"
+        description: "dry_run (tests) | smoke (upload only) | live (real Qwen)"
         type: choice
         options:
           - dry_run
+          - smoke
           - live
         default: dry_run
       expected_fingerprint:
@@ -206,7 +207,7 @@ jobs:
           def wait_health(base: str, attempts: int = 60) -> None:
               for _ in range(attempts):
                   try:
-                      status, _payload = request(f"{base}/health", timeout=3)
+                      status, _payload = request(f"{base}/api/v1/health", timeout=3)
                       if status == 200:
                           return
                   except (urllib.error.URLError, OSError):
@@ -246,6 +247,98 @@ jobs:
                   fail("code_changed_requires_new_approval")
 
 
+          def mode_smoke(expected_fingerprint: str) -> None:
+              """只验证 API 启动、健康检查、合成上传与快照获取；不生成审批、不调用模型。"""
+              actual = code_fingerprint()
+              if actual != expected_fingerprint:
+                  fail("code_changed_requires_new_approval", code=2)
+              temp = Path(os.environ["RUNNER_TEMP"])
+              workspace = temp / "live02-smoke"
+              if workspace.exists():
+                  shutil.rmtree(workspace)
+              workspace.mkdir(parents=True)
+              db = workspace / "smoke.sqlite3"
+              originals = workspace / "originals"
+              ledger = workspace / "ledger"
+              originals.mkdir()
+              ledger.mkdir()
+              env = {
+                  **os.environ,
+                  "WEIRAN_EDU_ENV": "production",
+                  "WEIRAN_EDU_DATABASE": str(db),
+                  "WEIRAN_EDU_ORIGINALS": str(originals),
+                  "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT": str(ledger),
+                  "PYTHONPATH": f"{REPO}:{API}",
+              }
+              cli(db, "init")
+              teacher = cli(db, "teacher-create", "--subject", "live02-smoke-teacher")
+              scope = cli(db, "scope-create", "--label", "live02-smoke-scope")
+              cli(
+                  db,
+                  "member-set",
+                  "--teacher-id",
+                  teacher["teacher_id"],
+                  "--scope-id",
+                  scope["data_scope_id"],
+                  "--can-import",
+              )
+              token = cli(db, "token-issue", "--teacher-id", teacher["teacher_id"], "--hours", "2")[
+                  "access_token"
+              ]
+              port = "8098"
+              base = f"http://127.0.0.1:{port}"
+              api = start_process(
+                  [
+                      sys.executable,
+                      "-m",
+                      "uvicorn",
+                      "app.main:create_app",
+                      "--factory",
+                      "--host",
+                      "127.0.0.1",
+                      "--port",
+                      port,
+                      "--log-level",
+                      "warning",
+                  ],
+                  env,
+                  workspace / "api-smoke.log",
+              )
+              try:
+                  wait_health(base)
+                  body, content_type = multipart("file", "live02-synthetic.zip", synthetic_zip())
+                  status, payload = request(
+                      f"{base}/api/v1/edu/assessments",
+                      token=token,
+                      method="POST",
+                      body=body,
+                      content_type=content_type,
+                      timeout=180,
+                  )
+                  if status not in (200, 201):
+                      fail(f"upload_failed:{status}")
+                  assessment_id = payload.get("assessment_id") or ""
+              finally:
+                  stop(api)
+              rows = db_query(
+                  db, "SELECT source_snapshot_id FROM assessments WHERE assessment_id=?", (assessment_id,)
+              )
+              snapshot_id = (rows[0]["source_snapshot_id"] if rows else "") or ""
+              print(
+                  json.dumps(
+                      {
+                          "status": "smoke_ok",
+                          "upload_status": status,
+                          "assessment_id": assessment_id,
+                          "source_snapshot_id": snapshot_id,
+                      },
+                      ensure_ascii=False,
+                  )
+              )
+              if not snapshot_id:
+                  fail("snapshot_id_missing")
+
+
           def mode_live(expected_fingerprint: str) -> None:
               required = {
                   "DASHSCOPE_API_KEY": os.environ.get("DASHSCOPE_API_KEY", ""),
@@ -259,6 +352,23 @@ jobs:
               missing = [name for name, value in required.items() if not value]
               if missing:
                   fail(json.dumps({"missing": missing}, ensure_ascii=False), code=2)
+              placeholder_markers = (
+                  "pending",
+                  "placeholder",
+                  "changeme",
+                  "todo",
+                  "human_approval_reference",
+                  "independent_review_reference",
+              )
+              for name in ("LIVE02_HUMAN_APPROVAL_REFERENCE", "LIVE02_INDEPENDENT_REVIEW_REFERENCE"):
+                  value = required[name].lower()
+                  if any(marker in value for marker in placeholder_markers):
+                      fail(json.dumps({"placeholder_reference": name}, ensure_ascii=False), code=2)
+              if (
+                  required["LIVE02_HUMAN_APPROVAL_REFERENCE"]
+                  == required["LIVE02_INDEPENDENT_REVIEW_REFERENCE"]
+              ):
+                  fail("approval_and_review_references_must_differ", code=2)
               if required["DASHSCOPE_BASE_URL"].rstrip("/") != EXPECTED_ENDPOINT.rstrip("/"):
                   fail("unapproved_endpoint")
               if required["WEIRAN_QWEN_MODEL"] != "qwen3.8-flash":
@@ -483,9 +593,12 @@ jobs:
 
           def main() -> int:
               parser = argparse.ArgumentParser()
-              parser.add_argument("mode", choices=["check", "live"])
+              parser.add_argument("mode", choices=["check", "smoke", "live"])
               parser.add_argument("--expected-fingerprint", required=True)
               args = parser.parse_args()
+              if args.mode == "smoke":
+                  mode_smoke(args.expected_fingerprint)
+                  return 0
               if args.mode == "check":
                   mode_check(args.expected_fingerprint)
                   return 0
@@ -505,6 +618,11 @@ jobs:
           .venv/bin/python -m pytest tests/edu/test_programming_live.py -q
           .venv/bin/ruff check .
           .venv/bin/ruff format --check .
+      - name: Smoke upload (no model call)
+        if: inputs.mode == 'smoke'
+        env:
+          LIVE02_EVIDENCE: ${{ runner.temp }}/live02-evidence.json
+        run: apps/api/.venv/bin/python "$RUNNER_TEMP/live02_acceptance.py" smoke --expected-fingerprint "${{ inputs.expected_fingerprint }}"
       - name: Live acceptance (real Qwen)
         if: inputs.mode == 'live'
         env:
@@ -523,4 +641,5 @@ jobs:
           path: |
             ${{ runner.temp }}/live02-evidence.json
             ${{ runner.temp }}/live02/*.log
+            ${{ runner.temp }}/live02-smoke/*.log
           if-no-files-found: ignore
