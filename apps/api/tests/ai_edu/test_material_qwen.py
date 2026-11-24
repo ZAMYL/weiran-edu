@@ -17,6 +17,8 @@ from app.ai.edu import material_qwen as live
 from app.ai.edu.discovery.models import AgentError
 from app.ai.edu.material_contract import Locator
 from app.ai.edu.material_semantics import extract_material_input
+from app.ai.edu.models import InsightError
+from app.ai.edu.qwen_config import QwenSettings
 
 BASE = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
@@ -279,3 +281,30 @@ def test_unknown_usage_preserves_reservation_and_rejects_plan(files, approval):
     assert len(requests) == 1
     assert entry["state"] == "usage_unknown_reservation_held"
     assert entry["charged_cny_upper_bound"] == entry["reserved_cny"]
+
+
+def test_live_request_uses_configured_timeout_and_timeout_fails_closed(files, approval):
+    """DS-04-S3-FIX-01: the real client must carry settings.timeout_seconds, not the
+    HTTPX 5s default that killed the first live request; a read timeout must still
+    surface model_timeout, hold the reservation and never retry."""
+    approve, root = approval
+    approve()
+    seen = []
+
+    def slow(request):
+        seen.append(request.extensions["timeout"])
+        raise httpx.ReadTimeout("model read timeout", request=request)
+
+    configured = QwenSettings.from_env().timeout_seconds
+    with pytest.raises(InsightError, match="model_timeout"):
+        invoke(files, httpx.MockTransport(slow))
+    assert len(seen) == 1  # no automatic retry
+    assert seen[0]["connect"] == seen[0]["read"] == configured
+    (journal,) = (root / "material-offline-test").glob("*.jsonl")
+    last = json.loads(journal.read_text().splitlines()[-1])
+    entry = last["entries"][0]
+    assert last["request_count"] == 1
+    assert entry["state"] == "usage_unknown_reservation_held"
+    assert entry["transport_status"] == "model_timeout"
+    assert entry["charged_cny_upper_bound"] == entry["reserved_cny"]
+    assert last["blocked"] == "unverifiable_usage"

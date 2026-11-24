@@ -143,7 +143,10 @@ async def _understand(
             try:
                 check_access()
                 async with httpx.AsyncClient(
-                    trust_env=False, follow_redirects=False, transport=transport
+                    timeout=settings.timeout_seconds,
+                    trust_env=False,
+                    follow_redirects=False,
+                    transport=transport,
                 ) as client:
                     message = await post_chat(
                         settings,
