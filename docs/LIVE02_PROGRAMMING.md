@@ -124,3 +124,10 @@ cd apps/api && uv run ruff check . && uv run ruff format --check .
 - 正式验收仍需两条真实、来源不同的审批引用，并在冻结后的代码指纹上重跑一次。
 - 价格快照 `REVIEWED_PRICE_20261119` 有效至 `2026-11-26`；过期必须重新做价格审查、
   生成新 `price_fingerprint`，不能只改日期。
+
+## 7. 变更记录
+
+- 2026-11-24 第二批：启动降级（审批失效只拒编程任务，不拖垮上传/查询）、
+  operator `programming-revoke` CLI、预算账本 `closed_without_settlement` 收尾。
+  本提交改动了 `apps/api/app/**`，代码指纹随之变化，§6 的旧证据需要在新指纹上重跑
+  后才恢复有效。
