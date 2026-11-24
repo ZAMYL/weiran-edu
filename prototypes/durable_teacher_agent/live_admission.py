@@ -69,6 +69,41 @@ class DatabaseLiveApproval(Strict):
             raise AgentError("reviewed_code_changed")
 
 
+def load_live_approval[ApprovalT: DatabaseLiveApproval](
+    approval_env: str,
+    approval_type: type[ApprovalT],
+    environ: Mapping[str, str] | None = None,
+    *,
+    today: date | None = None,
+) -> tuple[ApprovalT, Path]:
+    """Load an operator-owned approval for one explicitly selected purpose."""
+    env = os.environ if environ is None else environ
+    raw_path = env.get(approval_env)
+    if not raw_path:
+        raise AgentError("live_admission_not_configured")
+    path = Path(raw_path).expanduser()
+    if not path.is_absolute() or path.resolve().is_relative_to(REPOSITORY):
+        raise AgentError("live_approval_must_stay_outside_repository")
+    try:
+        with path.open("rb") as handle:
+            payload = handle.read(MAX_APPROVAL_BYTES + 1)
+    except OSError:
+        raise AgentError("live_approval_unreadable") from None
+    if len(payload) > MAX_APPROVAL_BYTES:
+        raise AgentError("live_approval_too_large")
+    approval = approval_type.model_validate_json(payload)
+    approval.check(today or date.today())
+    raw_root = env.get(LEDGER_ROOT_ENV)
+    if not raw_root:
+        raise AgentError("campaign_ledger_root_not_configured")
+    root = Path(raw_root).expanduser()
+    if not root.is_absolute():
+        raise AgentError("campaign_ledger_root_must_be_absolute")
+    if root.resolve().is_relative_to(REPOSITORY):
+        raise AgentError("campaign_ledger_root_must_stay_outside_repository")
+    return approval, root
+
+
 @dataclass(frozen=True)
 class ExternalizationScope:
     """Server-generated binding; never built from a request body."""
@@ -93,29 +128,9 @@ class LiveAdmission:
     def load(
         cls, environ: Mapping[str, str] | None = None, *, today: date | None = None
     ) -> LiveAdmission:
-        env = os.environ if environ is None else environ
-        raw_path = env.get(APPROVAL_ENV)
-        if not raw_path:
-            raise AgentError("live_admission_not_configured")
-        path = Path(raw_path).expanduser()
-        if not path.is_absolute() or path.resolve().is_relative_to(REPOSITORY):
-            raise AgentError("live_approval_must_stay_outside_repository")
-        try:
-            payload = path.read_bytes()
-        except OSError:
-            raise AgentError("live_approval_unreadable") from None
-        if len(payload) > MAX_APPROVAL_BYTES:
-            raise AgentError("live_approval_too_large")
-        approval = DatabaseLiveApproval.model_validate_json(payload)
-        approval.check(today or date.today())
-        raw_root = env.get(LEDGER_ROOT_ENV)
-        if not raw_root:
-            raise AgentError("campaign_ledger_root_not_configured")
-        root = Path(raw_root).expanduser()
-        if not root.is_absolute():
-            raise AgentError("campaign_ledger_root_must_be_absolute")
-        if root.resolve().is_relative_to(REPOSITORY):
-            raise AgentError("campaign_ledger_root_must_stay_outside_repository")
+        approval, root = load_live_approval(
+            APPROVAL_ENV, DatabaseLiveApproval, environ, today=today
+        )
         return cls(approval=approval, ledger_root=root)
 
     def require(self, scope: ExternalizationScope) -> None:
