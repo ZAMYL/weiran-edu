@@ -38,10 +38,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e "./apps/api[dev]"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.5"
+      - name: Install locked dependencies
+        working-directory: apps/api
+        run: uv sync --locked --group dev
       - name: Write acceptance driver
         run: |
           cat > "$RUNNER_TEMP/live02_acceptance.py" <<'PY'
@@ -494,14 +497,14 @@ jobs:
               raise SystemExit(main())
           PY
       - name: Fingerprint gate
-        run: python "$RUNNER_TEMP/live02_acceptance.py" check --expected-fingerprint "${{ inputs.expected_fingerprint }}"
+        run: apps/api/.venv/bin/python "$RUNNER_TEMP/live02_acceptance.py" check --expected-fingerprint "${{ inputs.expected_fingerprint }}"
       - name: Dry run tests
         if: inputs.mode == 'dry_run'
         working-directory: apps/api
         run: |
-          python -m pytest tests/edu/test_programming_live.py -q
-          ruff check .
-          ruff format --check .
+          .venv/bin/python -m pytest tests/edu/test_programming_live.py -q
+          .venv/bin/ruff check .
+          .venv/bin/ruff format --check .
       - name: Live acceptance (real Qwen)
         if: inputs.mode == 'live'
         env:
@@ -511,7 +514,7 @@ jobs:
           LIVE02_HUMAN_APPROVAL_REFERENCE: ${{ vars.LIVE02_HUMAN_APPROVAL_REFERENCE }}
           LIVE02_INDEPENDENT_REVIEW_REFERENCE: ${{ vars.LIVE02_INDEPENDENT_REVIEW_REFERENCE }}
           LIVE02_EVIDENCE: ${{ runner.temp }}/live02-evidence.json
-        run: python "$RUNNER_TEMP/live02_acceptance.py" live --expected-fingerprint "${{ inputs.expected_fingerprint }}"
+        run: apps/api/.venv/bin/python "$RUNNER_TEMP/live02_acceptance.py" live --expected-fingerprint "${{ inputs.expected_fingerprint }}"
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@v4
