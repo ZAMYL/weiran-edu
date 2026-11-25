@@ -281,7 +281,7 @@ def test_export_current_publication_and_withdrawal_not_saved_raw_text(client, fl
     assert archive.headers["content-disposition"].startswith("attachment;")
     with ZipFile(io.BytesIO(archive.content)) as zipped:
         assert len(zipped.namelist()) == 6
-        rows = list(csv.DictReader(io.StringIO(zipped.read("evidence.csv").decode("utf-8-sig")))]
+        rows = list(csv.DictReader(io.StringIO(zipped.read("evidence.csv").decode("utf-8-sig"))))
         assert rows[0]["reviewed_comment"] == "'=SUM(1,2)"
         assert (
             len(list(csv.DictReader(io.StringIO(zipped.read("students.csv").decode("utf-8-sig")))))
