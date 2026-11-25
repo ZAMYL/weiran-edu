@@ -91,3 +91,32 @@ class MaterialRecognition(BaseModel):
     materials: list[MaterialFile] = Field(default_factory=list)
     archives: list[MaterialArchive] = Field(default_factory=list)
     pending: list[str] = Field(default_factory=list)
+
+
+class MaterialDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["role", "field"]
+    table: str
+    column: str | None = None
+    value: str
+
+
+class MaterialConfirmRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source_id: str = Field(min_length=8, max_length=96)
+    data_scope_id: str = Field(min_length=1, max_length=128)
+    decisions: list[MaterialDecision] = Field(min_length=1, max_length=240)
+
+
+class MaterialRecordView(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    material_id: str
+    source_id: str
+    status: Literal["active", "revoked"]
+    data_scope_id: str | None
+    created_at: str
+    file: MaterialFile
+    confirmed: list[MaterialDecision] = Field(default_factory=list)
