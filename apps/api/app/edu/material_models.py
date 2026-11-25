@@ -110,6 +110,19 @@ class MaterialConfirmRequest(BaseModel):
     decisions: list[MaterialDecision] = Field(min_length=1, max_length=240)
 
 
+class MaterialConfirmation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirmation_id: str
+    kind: Literal["role", "field"]
+    table: str
+    column: str | None = None
+    value: str
+    confirmed_by: str
+    confirmed_at: str
+    basis: str
+
+
 class MaterialRecordView(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -120,3 +133,11 @@ class MaterialRecordView(BaseModel):
     created_at: str
     file: MaterialFile
     confirmed: list[MaterialDecision] = Field(default_factory=list)
+    confirmations: list[MaterialConfirmation] = Field(default_factory=list)
+
+
+class MaterialRecordList(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[MaterialRecordView] = Field(default_factory=list)
+    total_count: int
