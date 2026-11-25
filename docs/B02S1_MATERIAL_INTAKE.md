@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | POST | `/api/v1/edu/materials` | 有界多文件上传，返回识别结果并写入结构快照 |
 | POST | `/api/v1/edu/materials/confirm` | 教师确认角色/字段含义，唯一的“已确认”来源 |
-| GET | `/api/v1/edu/materials` | 本人资料列表，`offset`/`limit`（上限 50）/`status`（`active`\|`revoked`） |
+| GET | `/api/v1/edu/materials` | 本人资料加同空间共享资料，`offset`/`limit`（上限 50）/`status`（`active`\|`revoked`） |
 | GET | `/api/v1/edu/materials/{source_id}` | 只回读库里已有的快照与确认，不重新解析 |
 
 `MaterialRecordView.confirmations` 逐条给出审计信息（`confirmation_id`、`confirmed_by`、
@@ -35,6 +35,18 @@
 `confirmed_role:` / `confirmed_field:` 类缺口从 `missing` 中移除后重算 `available`，
 `pending` 只保留尚未确认的位置。
 
+## 加固语义（016）
+
+- **快照指纹**：`material_records.plan_sha256` 记录结构快照摘要，回读时以
+  `MaterialRecordView.plan_sha256` 暴露。`confirm` 可回带同一指纹，不一致返回
+  `409 MATERIAL_PLAN_STALE`，避免按旧视图把决策落到新快照上。
+- **快照一变，旧确认整体失效**：同一份字节重传且识别结构不同时，`material_confirmations.stale`
+  置 1 —— 历史行一行不删（审计仍在），但读取、重放与冲突判断都不再把它们当作现行结论。
+- **重传即复活**：同一份字节重新上传会把 `revoked` 记录恢复为 `active`，教师不必另建资料。
+- **同空间共享读**：资料一旦绑定 `data_scope_id`，该教学空间的其他教师可读（`GET`/列表），
+  但确认仍只有上传者能做，非上传者返回 `403 MATERIAL_OWNER_REQUIRED`；空间外教师仍是
+  `404 MATERIAL_NOT_FOUND`。
+
 ## 代价（已明确接受）
 
 - 服务端不能再出示原件，也不能事后从字节重抽字段；
@@ -45,3 +57,6 @@
 
 `015_material_intake.sql`：`material_records`、`material_confirmations`、
 `assessment_assets.material_id` 可空桥列；不改动已发布的 001–014。
+
+`016_material_confirmation_epoch.sql`：加 `material_records.plan_sha256`、
+`material_confirmations.stale`，以及 `data_scope_id` 的部分索引；只做加法，不重建表。
