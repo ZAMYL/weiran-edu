@@ -6,6 +6,7 @@ No mocked admission or paid requests: use #98's actual gate with test-only permi
 import asyncio
 import json
 from dataclasses import replace
+from datetime import date
 from hashlib import sha256
 
 import pytest
@@ -18,10 +19,12 @@ from tests.durable_teacher_agent.test_qwen_database_offline import (
     profile_binding as profile_binding,
 )
 
-from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261112 as PRICE
+from prototypes.adaptive_assessment.live.pricing import current_price
 from prototypes.durable_teacher_agent import live_admission
 from prototypes.qwen_execution import code_fingerprint, run_database_profiles
 from prototypes.qwen_execution.testing import run_database_profiles_offline
+
+PRICE = current_price(date.today())  # Newest reviewed snapshot; no hand-edited pointer.
 
 pytest_plugins = ["tests.conftest"]  # Same socket prohibition and isolated test journal roots.
 

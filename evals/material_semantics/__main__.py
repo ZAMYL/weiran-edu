@@ -7,7 +7,7 @@ from decimal import Decimal
 from functools import partial
 from unittest.mock import patch
 
-from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261112
+from prototypes.adaptive_assessment.live.pricing import current_price
 
 from app.ai.edu.material_profile import _header_tokens
 
@@ -15,8 +15,8 @@ from .runner import cases, dataset_digest, reviewed_payloads, run_rules
 
 
 def estimate(selected: list[dict], output_limit: int, *, cap_cny: Decimal) -> dict:
-    price = REVIEWED_PRICE_20261112
     today = datetime.now(UTC).date()
+    price = current_price(today)
     price_current = price.checked_on <= today.isoformat() <= price.valid_until
     per_call = price.max_input_tokens + output_limit
     upper = price.cost(price.max_input_tokens, output_limit) * len(selected)
