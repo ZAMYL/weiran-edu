@@ -192,21 +192,35 @@ try {
     if (r.url().includes('/discoveries/')) responses.push(r);
   });
   const shot = (name) =>
-    page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage: true });
+    page.screenshot({
+      path: path.join(artifacts, `${name}.png`),
+      fullPage: true,
+      animations: 'disabled',
+    });
   const navigation = async (name) => {
-    if (name !== '测评数据') {
-      await page.getByRole('link', { name, exact: true }).click();
-      await page.getByRole('heading', { name, exact: true, level: 1 }).waitFor();
-      return;
+    const title = name === '学情诊断' ? '学情分析' : name === '测评数据' ? '上传' : name;
+    const menu = page.getByRole('menu', { name: '工作台导航' });
+    const item = (label) => menu.getByRole('menuitem', { name: label, exact: true });
+    if (name === '测评数据') {
+      await item('上传').click();
+      await page.getByRole('radio', { name: '评分与评价', exact: true }).locator('..').click();
+    } else if (name === '历史测评') {
+      const parent = item('测评管理');
+      if ((await parent.getAttribute('aria-expanded')) !== 'true') await parent.click();
+      await menu
+        .getByRole('menuitem', { name: '评分与评价', exact: true })
+        .and(page.locator('[data-menu-id$="/data"]'))
+        .click();
+    } else {
+      if (title === '学情分析' || title === '画像探索') {
+        const parent = item('分析');
+        if ((await parent.getAttribute('aria-expanded')) !== 'true') await parent.click();
+      }
+      await item(title).click();
     }
-    if (await page.locator('.upload-workspace-heading').count()) {
-      const reselect = page.getByRole('button', { name: '更换文件', exact: true });
-      if (await reselect.count()) await reselect.click();
-      return;
-    }
-    await page.getByRole('button', { name: '上传测评资料', exact: true }).click();
+    await page.getByRole('heading', { name: title, exact: true, level: 1 }).waitFor();
   };
-  const panel = () => page.locator('.all-discoveries-panel');
+  const panel = () => page.getByRole('tabpanel').locator('.all-discoveries-panel');
   const waitResponse = (predicate) => {
     const pending = page.waitForResponse(predicate);
     // Keep failure observed while an associated locator action is still waiting;
@@ -262,7 +276,10 @@ try {
     const previewReady = waitResponse(
       (r) => r.url().includes('/imports/preview') && r.status() === 201,
     );
-    await page.locator('input[type=file]').setInputFiles(path.join(temporary, `${kind}.xlsx`));
+    await page
+      .getByRole('tabpanel')
+      .locator('input[type=file][accept=".xlsx"]')
+      .setInputFiles(path.join(temporary, `${kind}.xlsx`));
     const preview = await (await previewReady).json();
     assert.equal(preview.summary.error_count, 0);
     await page.getByRole('heading', { name: '文件检查结果', exact: true }).waitFor();
@@ -382,8 +399,8 @@ try {
     return await (await pending).json();
   }
   async function openCard(index = 0) {
-    if ((await panel().getAttribute('open')) === null)
-      await panel().locator(':scope > summary').click();
+    if (!(await panel().getByTestId('discovery-card').first().isVisible()))
+      await panel().locator('.ant-collapse-header').first().click();
     const cards = panel().getByTestId('discovery-card');
     await cards.first().waitFor();
     while ((await cards.count()) <= index)
@@ -680,7 +697,7 @@ try {
     await page.waitForLoadState('networkidle');
     admin('token-revoke', '--teacher-id', reader);
     const expired = waitResponse((r) => r.url().includes('/api/edu/') && r.status() === 401);
-    await page.getByRole('link', { name: '学情诊断', exact: true }).click();
+    await navigation('学情诊断');
     await expired;
     await page.getByRole('heading', { name: '正在连接数据', exact: true }).waitFor();
     assert.equal(await page.locator('.live-workspace').count(), 0);

@@ -31,7 +31,11 @@ export async function portraitPaginationFlow(page) {
     await jump(1);
     for (const target of [2, pageCount, pageCount - 1]) {
       if (width > 760) {
-        await page.getByRole('list', { name: '选择学生画像' }).getByRole('button').first().click();
+        await page
+          .getByRole('menu', { name: '选择学生画像' })
+          .getByRole('menuitem')
+          .first()
+          .click();
       } else {
         await page.getByRole('combobox', { name: '选择当前页学生画像', exact: true }).click();
         await page.locator('.ant-select-dropdown:visible .ant-select-item-option').first().click();
@@ -100,7 +104,7 @@ export async function portraitPaginationFlow(page) {
         assert.equal(await portrait.getAttribute('data-student-id'), selectedId);
         assert.equal(await portrait.locator('.student-portrait-scores').innerText(), scores);
         assert.equal(
-          await page.locator('.portrait-member-list button[aria-pressed="true"]').count(),
+          await page.locator('.portrait-member-list .ant-menu-item-selected').count(),
           0,
           'a retained portrait is not highlighted as a student on another page',
         );

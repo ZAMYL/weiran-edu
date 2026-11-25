@@ -1,6 +1,21 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { Button, Drawer, Empty, Pagination, Select, Table } from 'antd';
+import {
+  Button,
+  Card,
+  Collapse,
+  Drawer,
+  Empty,
+  Flex,
+  Pagination,
+  Select,
+  Space,
+  Statistic,
+  Table,
+  Typography,
+} from 'antd';
 import { useRouter } from 'next/navigation';
 import { discoveryUrl, originForDiscovery } from '../../services/edu-api/discovery-navigation';
 import { useDataMode } from '../../app/data-mode';
@@ -58,21 +73,34 @@ function sourceName(key: string) {
 function FocusMetrics({ detail }: { detail: DiscoveryDetail }) {
   const presentation = discoveryPresentation(detail);
   return (
-    <dl className="focus-metrics" aria-label="发现关键指标">
+    <div className="focus-metrics" role="group" aria-label="发现关键指标">
       {presentation.metrics.map((metric, index) => (
-        <div
+        <Card
+          size="small"
           key={metric.label}
           className={index === presentation.primary ? 'focus-metric-primary' : undefined}
         >
-          <dt>{metric.label}</dt>
-          <dd>
-            <strong>{metric.value}</strong>
-            {metric.unit && <span>{metric.unit}</span>}
-          </dd>
-          {metric.note && <p>{metric.note}</p>}
-        </div>
+          <Statistic
+            title={metric.label}
+            value={metric.value}
+            suffix={metric.unit}
+            styles={
+              index === presentation.primary
+                ? { content: { color: 'var(--ant-color-primary)' } }
+                : undefined
+            }
+          />
+          {metric.note && (
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, display: 'block', marginTop: tokens.sizeXXS }}
+            >
+              {metric.note}
+            </Typography.Text>
+          )}
+        </Card>
       ))}
-    </dl>
+    </div>
   );
 }
 export default function LiveDiscoveries({
@@ -161,7 +189,7 @@ export default function LiveDiscoveries({
     return detail ? discoveryPresentation(detail).title : card.title;
   };
   const renderCards = (cards: typeof items) => (
-    <div className="discovery-grid">
+    <Flex vertical gap={tokens.sizeSM} className="discovery-grid">
       {cards.map((card) => {
         const detail = details.data?.[card.discovery_id];
         const copy = detail ? describeDiscovery(detail) : null;
@@ -169,86 +197,104 @@ export default function LiveDiscoveries({
         const affected = detail?.affected ?? card.affected;
         const origin = detail ? originForDiscovery(detail, spec) : null;
         return (
-          <section
+          <Card
+            size="small"
+            type="inner"
             className="discovery-card"
             key={card.discovery_id}
             data-testid="discovery-card"
             data-discovery-id={card.discovery_id}
           >
-            <div className="finding-top">
-              <h3>{titleFor(card)}</h3>
-            </div>
-            {detail ? (
-              <FocusMetrics detail={detail} />
-            ) : (
-              <p role="status" className="discovery-coverage">
-                {affected && card.type !== 'rare_combination'
-                  ? `涉及 ${affected.count} 人 · 分析范围 ${affected.total} 人`
-                  : details.error
-                    ? '涉及人数暂不可用，请重试核查'
-                    : '正在核查涉及人数…'}
-              </p>
-            )}
-            <details className="focus-explanation">
-              <summary>如何理解这条发现</summary>
-              {(copy || why) && (
-                <p className="teacher-reading">
-                  {why || copy?.numbers} {copy?.whyItMatters} {copy?.limitation}
-                </p>
+            <Flex vertical gap={tokens.sizeSM}>
+              <Typography.Title level={5} style={{ margin: 0 }}>
+                {titleFor(card)}
+              </Typography.Title>
+              {detail ? (
+                <FocusMetrics detail={detail} />
+              ) : (
+                <Typography.Text type="secondary" role="status" style={{ fontSize: 13 }}>
+                  {affected && card.type !== 'rare_combination'
+                    ? `涉及 ${affected.count} 人 · 分析范围 ${affected.total} 人`
+                    : details.error
+                      ? '涉及人数暂不可用，请重试核查'
+                      : '正在核查涉及人数…'}
+                </Typography.Text>
               )}
-            </details>
-            <div className="focus-card-actions">
-              <Button type="primary" onClick={() => setSelected(card.discovery_id)}>
-                查看具体评分
-              </Button>
-              <Button
-                disabled={!origin}
-                onClick={() => {
-                  if (origin) {
-                    exploreDiscovery(origin);
-                    router.push(discoveryUrl(origin));
-                  }
-                }}
-              >
-                看看这组学生
-              </Button>
-            </div>
-          </section>
+              <Disclosure className="focus-explanation" label={<>如何理解这条发现</>}>
+                {(copy || why) && (
+                  <Typography.Paragraph type="secondary" style={{ margin: 0, fontSize: 13 }}>
+                    {why || copy?.numbers} {copy?.whyItMatters} {copy?.limitation}
+                  </Typography.Paragraph>
+                )}
+              </Disclosure>
+              <Space wrap size="small">
+                <Button type="primary" onClick={() => setSelected(card.discovery_id)}>
+                  查看具体评分
+                </Button>
+                <Button
+                  disabled={!origin}
+                  onClick={() => {
+                    if (origin) {
+                      exploreDiscovery(origin);
+                      router.push(discoveryUrl(origin));
+                    }
+                  }}
+                >
+                  看看这组学生
+                </Button>
+              </Space>
+            </Flex>
+          </Card>
         );
       })}
-    </div>
+    </Flex>
   );
   const renderRows = (cards: typeof items) => (
-    <ul className="discovery-list">
-      {cards.map((card) => (
-        <li
-          className="discovery-row"
-          key={card.discovery_id}
-          data-testid="discovery-card"
-          data-discovery-id={card.discovery_id}
-        >
-          <div>
-            <h3>{titleFor(card)}</h3>
-            <p className="teacher-reading">
-              {details.data?.[card.discovery_id]
-                ? describeDiscovery(details.data[card.discovery_id]!).numbers
-                : discoverySummaryText(card.summary)
-                    .replace(/目标组(\d+)人，余组(\d+)人/g, '本组 $1 人，其他学生 $2 人')
-                    .replace('有效均值差为', '平均分相差 ')
-                    .replace('（目标减余组）', '（本组减其他学生）')}
-            </p>
-            {(card.status === 'insufficient_evidence' ||
-              (details.data?.[card.discovery_id] &&
-                !eligibleForFocus(details.data[card.discovery_id]!))) && (
-              <p className="muted small">样本或评分依据不足，仅供查看</p>
-            )}
-          </div>
-          <div className="batch-actions">
-            <Button onClick={() => setSelected(card.discovery_id)}>查看具体评分</Button>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <Table
+      rowKey="discovery_id"
+      showHeader={false}
+      pagination={false}
+      dataSource={cards}
+      columns={[
+        {
+          key: 'discovery',
+          render: (_, card) => (
+            <Flex
+              align="center"
+              justify="space-between"
+              wrap
+              gap="small"
+              data-testid="discovery-card"
+              data-discovery-id={card.discovery_id}
+            >
+              <Flex vertical gap={tokens.sizeXXS} style={{ flex: 1, minWidth: 0 }}>
+                <Typography.Title level={5} style={{ margin: 0 }}>
+                  {titleFor(card)}
+                </Typography.Title>
+                <Typography.Text style={{ fontSize: 14 }}>
+                  {details.data?.[card.discovery_id]
+                    ? describeDiscovery(details.data[card.discovery_id]!).numbers
+                    : discoverySummaryText(card.summary)
+                        .replace(/目标组(\d+)人，余组(\d+)人/g, '本组 $1 人，其他学生 $2 人')
+                        .replace('有效均值差为', '平均分相差 ')
+                        .replace('（目标减余组）', '（本组减其他学生）')}
+                </Typography.Text>
+                {(card.status === 'insufficient_evidence' ||
+                  (details.data?.[card.discovery_id] &&
+                    !eligibleForFocus(details.data[card.discovery_id]!))) && (
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    样本或评分依据不足，仅供查看
+                  </Typography.Text>
+                )}
+              </Flex>
+              <div className="batch-actions">
+                <Button onClick={() => setSelected(card.discovery_id)}>查看具体评分</Button>
+              </div>
+            </Flex>
+          ),
+        },
+      ]}
+    />
   );
   const status = (
     <>
@@ -293,37 +339,70 @@ export default function LiveDiscoveries({
   return (
     <>
       {children(focusPanel)}
-      <details className="panel all-discoveries-panel" open>
-        <summary>更多评分线索</summary>
-        <div className="discovery-toolbar">
-          <p>分析范围：{conditionText(spec.scope_conditions)}</p>
-          <Select
-            aria-label="查看发现类型"
-            value={view}
-            options={[
-              { value: 'all', label: '所有类型' },
-              ...Object.entries(typeNames).map(([value, label]) => ({ value, label })),
-            ]}
-            onChange={(next) => {
-              setView(next);
-              setVisibleCount(10);
-            }}
-          />
-        </div>
-        {resource.data && (
-          <>
-            {visible.length ? (
-              renderRows(visible.slice(0, visibleCount))
-            ) : (
-              <p>当前范围没有这类评分线索。</p>
-            )}
-            {resource.data.truncated && <p className="muted small">这里展示本次分析保留的线索。</p>}
-            {visible.length > visibleCount && (
-              <Button onClick={() => setVisibleCount((count) => count + 10)}>查看更多线索</Button>
-            )}
-          </>
-        )}
-      </details>
+      <Collapse
+        className="all-discoveries-panel"
+        defaultActiveKey={['all']}
+        items={[
+          {
+            key: 'all',
+            label: (
+              <Typography.Text strong style={{ fontSize: 16 }}>
+                更多评分线索
+              </Typography.Text>
+            ),
+            children: (
+              <Flex vertical gap={tokens.sizeSM}>
+                <Flex
+                  justify={conditions.length > 0 ? 'space-between' : 'end'}
+                  align="center"
+                  wrap
+                  gap={tokens.sizeSM}
+                >
+                  {conditions.length > 0 && (
+                    <Typography.Text type="secondary">
+                      分析范围：{conditionText(conditions)}
+                    </Typography.Text>
+                  )}
+                  <Select
+                    aria-label="查看发现类型"
+                    style={{ minWidth: 180 }}
+                    value={view}
+                    options={[
+                      { value: 'all', label: '所有类型' },
+                      ...Object.entries(typeNames).map(([value, label]) => ({ value, label })),
+                    ]}
+                    onChange={(next) => {
+                      setView(next);
+                      setVisibleCount(10);
+                    }}
+                  />
+                </Flex>
+                {resource.data && (
+                  <>
+                    {visible.length ? (
+                      renderRows(visible.slice(0, visibleCount))
+                    ) : (
+                      <Empty description="当前范围没有这类评分线索。" />
+                    )}
+                    {resource.data.truncated && (
+                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                        这里展示本次分析保留的线索。
+                      </Typography.Text>
+                    )}
+                    {visible.length > visibleCount && (
+                      <div>
+                        <Button onClick={() => setVisibleCount((count) => count + 10)}>
+                          查看更多线索
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </Flex>
+            ),
+          },
+        ]}
+      />
       {selected && resource.data && (
         <DiscoveryDetailDrawer
           key={selected}
@@ -395,14 +474,12 @@ export function DiscoveryDetailDrawer({
             </div>
             <DiscoveryChart data={d} />
             {d.type === 'group_difference' && (
-              <details className="discovery-evidence-notes">
-                <summary>详细对照数据</summary>
+              <Disclosure className="discovery-evidence-notes" label={<>详细对照数据</>}>
                 <Table
-                  size="small"
                   rowKey="dimension_code"
                   dataSource={d.chart}
                   pagination={false}
-                  scroll={{ x: 550 }}
+                  scroll={{ x: 'max-content' }}
                   columns={[
                     {
                       title: '维度',
@@ -417,14 +494,17 @@ export function DiscoveryDetailDrawer({
                     { title: '均值差', render: (_, row) => scoreText(row.difference) },
                   ]}
                 />
-              </details>
+              </Disclosure>
             )}
-            <details className="discovery-evidence-notes" aria-label="样本与使用限制">
-              <summary>样本与使用限制</summary>
+            <Disclosure
+              className="discovery-evidence-notes"
+              aria-label="样本与使用限制"
+              label={<>样本与使用限制</>}
+            >
               {discoveryEvidenceNotes(d).map((note) => (
                 <p key={note}>{note}</p>
               ))}
-            </details>
+            </Disclosure>
           </>
         )}
       </Drawer>
@@ -478,10 +558,9 @@ function DiscoveryRecordsDrawer({
             <p data-testid="discovery-record-count">找到 {result.total_count} 名学生</p>
             <Table<ApiStudent>
               rowKey="student_id"
-              size="small"
               dataSource={result.items}
               pagination={false}
-              scroll={{ x: 500 }}
+              scroll={{ x: 'max-content' }}
               columns={[
                 { title: '学生标识', dataIndex: 'display_label' },
                 ...result.source_dimensions.map((dimension) => ({

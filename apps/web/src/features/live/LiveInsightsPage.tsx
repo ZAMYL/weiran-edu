@@ -1,9 +1,27 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useWorkspaceLayout } from '../../app/WorkspaceLayoutContext';
 import { useRouter } from 'next/navigation';
-import { Button, Checkbox, Empty, Pagination, Segmented, Select, Tag } from 'antd';
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Col,
+  Divider,
+  Empty,
+  Flex,
+  Pagination,
+  Row,
+  Segmented,
+  Select,
+  Space,
+  Statistic,
+  Tag,
+  Typography,
+} from 'antd';
 import { TeamOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
@@ -23,23 +41,18 @@ import {
 } from '../../services/edu-api/view-model';
 import { discoverySummaryText } from '../../services/edu-api/discovery-view';
 import { useRemote } from './useRemote';
-import { LoadingPanel, RequestError } from './LiveStatus';
+import { LoadingPanel, NoBatch, RequestError } from './LiveStatus';
 import { ServerAbilityChart } from './ServerCharts';
 import { MetricEvidenceDrawer, type MetricSelection } from './LiveStudents';
-import LiveDataPage from './LiveDataPage';
 import LiveDiscoveries from './LiveDiscoveries';
 import AnalysisActions from './AnalysisActions';
 import AssessmentItemPage from './AssessmentItemPage';
 import AiInvestigationPanel from './AiInvestigationPanel';
 
 export default function LiveInsightsPage() {
-  const { batch, assessmentPanel, assessmentRevision } = useDataMode();
-  return assessmentPanel || !batch ? (
-    <LiveDataPage
-      key={`${assessmentPanel}:${assessmentRevision}`}
-      view={assessmentPanel ?? 'upload'}
-    />
-  ) : batch.recognized_items ? (
+  const { batch } = useDataMode();
+  if (!batch) return <NoBatch />;
+  return batch.recognized_items ? (
     <AssessmentItemPage key={batch.snapshot_id} batch={batch} view="diagnosis" />
   ) : (
     <Insights key={`${batch.batch_id}:${batch.snapshot_id}`} batch={batch} />
@@ -128,41 +141,38 @@ function Insights({ batch }: { batch: ApiBatch }) {
     <div className="page-stack live-insights">
       {summaryHost &&
         createPortal(
-          <dl className="stat-grid assessment-overview" aria-label="当前测评概况">
+          <div className="stat-grid assessment-overview" role="group" aria-label="当前测评概况">
             {[
               {
                 label: '参评人数',
-                value: stats.data?.statistics.scope.record_count ?? null,
+                value: stats.data?.statistics.scope.record_count ?? '—',
                 unit: '人',
-                icon: <TeamOutlined />,
+                icon: <TeamOutlined aria-hidden="true" />,
               },
               {
                 label: '评分记录',
                 value: batch.evaluation_count,
                 unit: '条',
-                icon: <FileTextOutlined />,
+                icon: <FileTextOutlined aria-hidden="true" />,
               },
               {
                 label: '能力维度',
-                value: stats.data?.statistics.dimensions.length ?? null,
+                value: stats.data?.statistics.dimensions.length ?? '—',
                 unit: '个',
-                icon: <BarChartOutlined />,
+                icon: <BarChartOutlined aria-hidden="true" />,
               },
             ].map(({ label, value, unit, icon }) => (
               <div className="live-stat" key={label}>
-                <dt>
-                  <span className="overview-icon" aria-hidden="true">
-                    {icon}
-                  </span>
-                  {label}
-                </dt>
-                <dd>
-                  <strong>{value ?? '—'}</strong>
-                  <span>{unit}</span>
-                </dd>
+                <Statistic
+                  title={label}
+                  value={value}
+                  prefix={icon}
+                  suffix={unit}
+                  valueRender={(node) => <strong>{node}</strong>}
+                />
               </div>
             ))}
-          </dl>,
+          </div>,
           summaryHost,
         )}
       <LiveDiscoveries
@@ -177,13 +187,13 @@ function Insights({ batch }: { batch: ApiBatch }) {
               <AiInvestigationPanel batch={batch} />
             ) : (
               <Panel title="AI 分析" className="ai-investigation-panel">
-                <p className="muted">AI 分析暂不可用，可继续查看评分统计。</p>
+                <Alert type="info" showIcon title="AI 分析暂不可用，可继续查看评分统计。" />
               </Panel>
             )}
             <div className="insights-grid">
               <Panel
                 title="评分画像"
-                subtitle="全部参评者 · 有效评分均值"
+                subtitle={conditions.length > 0 ? '全部参评者' : undefined}
                 action={
                   <Segmented
                     options={[
@@ -219,70 +229,85 @@ function Insights({ batch }: { batch: ApiBatch }) {
                     className="insights-statistics-panel"
                     action={analysisSwitch}
                   >
-                    <div className="discovery-focus-toolbar">
-                      <p className="muted small">{conditionText(conditions)}</p>
-                      <Button size="small" onClick={insights.retry}>
-                        刷新统计
-                      </Button>
-                    </div>
-                    <div className="live-insight-controls">
-                      <Select
-                        id="insight-aspect"
-                        aria-label="查看洞察方面"
-                        value={card ? (card.dimension_code ?? 'group') : undefined}
-                        placeholder="暂无可查看的方面"
-                        disabled={!cards.length || insights.loading}
-                        options={cards.map((candidate) => ({
-                          value: candidate.dimension_code ?? 'group',
-                          label: candidate.dimension_code
-                            ? dimensionName(candidate.dimension_code)
-                            : '当前筛选群体',
-                        }))}
-                        onChange={(value) => {
-                          setAspect(value);
-                          setSelection(null);
-                        }}
-                      />
-                      <Checkbox
-                        checked={includeDimensions}
-                        onChange={(e) => {
-                          setIncludeDimensions(e.target.checked);
-                          setOffset(0);
-                        }}
+                    <Flex vertical gap={tokens.sizeSM}>
+                      <Flex
+                        justify={conditions.length > 0 ? 'space-between' : 'end'}
+                        align="center"
+                        wrap
+                        gap={tokens.sizeXS}
                       >
-                        包含各维度洞察
-                      </Checkbox>
-                    </div>
-                    {insights.loading && <LoadingPanel />}
-                    {insights.error && (
-                      <RequestError error={insights.error} retry={insights.retry} />
-                    )}
-                    {insights.data && (
-                      <>
-                        {card ? (
-                          <CandidateView
-                            key={card.candidate_id}
-                            card={card}
-                            onMetric={(key) => openMetric(card, key)}
-                          />
-                        ) : (
-                          <Empty description="当前查询没有可展示的评分洞察候选。" />
+                        {conditions.length > 0 && (
+                          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                            {conditionText(conditions)}
+                          </Typography.Text>
                         )}
-                        <Pagination
-                          current={Math.floor(offset / 10) + 1}
-                          total={insights.data.total_count}
-                          pageSize={10}
-                          hideOnSinglePage
-                          showSizeChanger={false}
-                          onChange={(page) => setOffset((page - 1) * 10)}
-                          showTotal={(total) => `共 ${total} 张候选卡`}
+                        <Button size="small" onClick={insights.retry}>
+                          刷新统计
+                        </Button>
+                      </Flex>
+                      <Flex vertical gap={tokens.sizeSM}>
+                        <Select
+                          id="insight-aspect"
+                          aria-label="查看洞察方面"
+                          value={card ? (card.dimension_code ?? 'group') : undefined}
+                          placeholder="暂无可查看的方面"
+                          disabled={!cards.length || insights.loading}
+                          options={cards.map((candidate) => ({
+                            value: candidate.dimension_code ?? 'group',
+                            label: candidate.dimension_code
+                              ? dimensionName(candidate.dimension_code)
+                              : '当前筛选群体',
+                          }))}
+                          onChange={(value) => {
+                            setAspect(value);
+                            setSelection(null);
+                          }}
                         />
-                      </>
-                    )}
-                    <details className="muted small insight-comment-note">
-                      <summary>评语分析说明</summary>
-                      <p>评语分析暂不可用。待审核的非空评语不等于空评语。</p>
-                    </details>
+                        <Checkbox
+                          checked={includeDimensions}
+                          onChange={(e) => {
+                            setIncludeDimensions(e.target.checked);
+                            setOffset(0);
+                          }}
+                        >
+                          包含各维度洞察
+                        </Checkbox>
+                      </Flex>
+                      {insights.loading && <LoadingPanel />}
+                      {insights.error && (
+                        <RequestError error={insights.error} retry={insights.retry} />
+                      )}
+                      {insights.data && (
+                        <>
+                          {card ? (
+                            <CandidateView
+                              key={card.candidate_id}
+                              card={card}
+                              onMetric={(key) => openMetric(card, key)}
+                            />
+                          ) : (
+                            <Empty description="当前查询没有可展示的评分洞察候选。" />
+                          )}
+                          <Pagination
+                            current={Math.floor(offset / 10) + 1}
+                            total={insights.data.total_count}
+                            pageSize={10}
+                            hideOnSinglePage
+                            showSizeChanger={false}
+                            onChange={(page) => setOffset((page - 1) * 10)}
+                            showTotal={(total) => `共 ${total} 张候选卡`}
+                          />
+                        </>
+                      )}
+                      <Disclosure
+                        className="muted small insight-comment-note"
+                        label={<>评语分析说明</>}
+                      >
+                        <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                          评语分析暂不可用。待审核的非空评语不等于空评语。
+                        </Typography.Text>
+                      </Disclosure>
+                    </Flex>
                   </Panel>
                 </div>
               </div>
@@ -334,95 +359,118 @@ function CandidateView({ card, onMetric }: { card: InsightCard; onMetric: (key: 
   const secondary = summary.filter((metric) => !primaryKeys.has(metric.key));
   return (
     <section className="live-candidate">
-      <div className="finding-top">
-        {card.status !== 'observed' && <Tag color="gold">数据不足</Tag>}
-        <small>统计范围 {card.denominator} 人</small>
-      </div>
-      <h2>
-        {card.dimension_code ? `${dimensionName(card.dimension_code)}评分分布` : '当前筛选群体概况'}
-      </h2>
-      {frequencies.length > 0 && (
-        <Segmented
-          aria-label="洞察内容"
-          options={[
-            { label: '统计概况', value: 'summary' },
-            { label: '评分分布', value: 'frequency' },
-          ]}
-          value={content}
-          onChange={setContent}
-        />
-      )}
-      {content === 'frequency' && frequency ? (
-        <>
-          <div className="insight-score-picker">
-            <label htmlFor="insight-score">选择评分</label>
-            <Select
-              id="insight-score"
-              aria-label="查看评分人数"
-              showSearch={{
-                filterOption: (input, option) => {
-                  const score = parseThreshold(input.trim().replace(/\s*分$/, ''));
-                  return Boolean(
-                    option?.label.includes(input) ||
-                    (score !== null && option?.label === `${scoreDisplay(score)} 分`),
-                  );
-                },
-              }}
-              value={frequency.key}
-              options={frequencies.map((metric) => ({
-                value: metric.key,
-                label: `${scoreDisplay(metric.at_score?.value ?? null)} 分`,
-              }))}
-              onChange={setScoreKey}
-            />
-          </div>
-          <div className="live-metrics live-frequency">
-            <MetricTile card={card} metric={frequency} onMetric={onMetric} />
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="live-metrics">
-            {primary.map((metric) => (
-              <MetricTile key={metric.key} card={card} metric={metric} onMetric={onMetric} />
-            ))}
-          </div>
-          {quality.length > 0 && (
-            <div className="live-quality">
-              {quality.map((metric) => (
-                <Button
-                  key={metric.key}
-                  size="small"
-                  aria-label={`${card.title} ${metricLabel(metric)} 查看评分依据`}
-                  onClick={() => onMetric(metric.key)}
-                >
-                  {metricLabels[metric.key]} {metricDisplay(metric)}
-                </Button>
+      <Divider style={{ marginBlock: '4px 12px' }} />
+      <Flex vertical gap={tokens.sizeSM}>
+        <Flex align="center" justify="space-between" wrap gap={tokens.sizeXS}>
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {card.dimension_code
+              ? `${dimensionName(card.dimension_code)}评分分布`
+              : '当前筛选群体概况'}
+          </Typography.Title>
+          <Space size="small">
+            {card.status !== 'observed' && <Tag color="gold">数据不足</Tag>}
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              统计范围 {card.denominator} 人
+            </Typography.Text>
+          </Space>
+        </Flex>
+        {frequencies.length > 0 && (
+          <Segmented
+            aria-label="洞察内容"
+            options={[
+              { label: '统计概况', value: 'summary' },
+              { label: '评分分布', value: 'frequency' },
+            ]}
+            value={content}
+            onChange={setContent}
+          />
+        )}
+        {content === 'frequency' && frequency ? (
+          <Flex vertical gap={tokens.sizeSM}>
+            <Flex align="center" gap={tokens.sizeSM}>
+              <label htmlFor="insight-score">选择评分</label>
+              <Select
+                id="insight-score"
+                style={{ flex: 1, minWidth: 0 }}
+                aria-label="查看评分人数"
+                showSearch={{
+                  filterOption: (input, option) => {
+                    const score = parseThreshold(input.trim().replace(/\s*分$/, ''));
+                    return Boolean(
+                      option?.label.includes(input) ||
+                      (score !== null && option?.label === `${scoreDisplay(score)} 分`),
+                    );
+                  },
+                }}
+                value={frequency.key}
+                options={frequencies.map((metric) => ({
+                  value: metric.key,
+                  label: `${scoreDisplay(metric.at_score?.value ?? null)} 分`,
+                }))}
+                onChange={setScoreKey}
+              />
+            </Flex>
+            <Row gutter={[tokens.sizeXS, tokens.sizeXS]}>
+              <Col span={24}>
+                <MetricTile card={card} metric={frequency} onMetric={onMetric} />
+              </Col>
+            </Row>
+          </Flex>
+        ) : (
+          <Flex vertical gap={tokens.sizeSM}>
+            <Row gutter={[tokens.sizeXS, tokens.sizeXS]}>
+              {primary.map((metric) => (
+                <Col xs={24} sm={12} key={metric.key}>
+                  <MetricTile card={card} metric={metric} onMetric={onMetric} />
+                </Col>
               ))}
-            </div>
-          )}
-          {secondary.length > 0 && (
-            <details className="secondary-metrics">
-              <summary>更多统计指标 · {secondary.length} 项</summary>
-              <div className="live-metrics">
-                {secondary.map((metric) => (
-                  <MetricTile key={metric.key} card={card} metric={metric} onMetric={onMetric} />
+            </Row>
+            {quality.length > 0 && (
+              <Space wrap size="small">
+                {quality.map((metric) => (
+                  <Button
+                    key={metric.key}
+                    size="small"
+                    aria-label={`${card.title} ${metricLabel(metric)} 查看评分依据`}
+                    onClick={() => onMetric(metric.key)}
+                  >
+                    {metricLabels[metric.key]} {metricDisplay(metric)}
+                  </Button>
                 ))}
-              </div>
-            </details>
-          )}
-        </>
-      )}
-      <details>
-        <summary>计算说明与使用限制</summary>
-        <p className="small">{discoverySummaryText(card.summary)}</p>
-        <p className="small">{card.suggested_next_action}</p>
-        {card.limitations.map((item) => (
-          <p key={item} className="small">
-            {item}
-          </p>
-        ))}
-      </details>
+              </Space>
+            )}
+            {secondary.length > 0 && (
+              <Disclosure
+                className="secondary-metrics"
+                label={<>更多统计指标 · {secondary.length} 项</>}
+              >
+                <Row gutter={[tokens.sizeXS, tokens.sizeXS]}>
+                  {secondary.map((metric) => (
+                    <Col xs={24} sm={12} key={metric.key}>
+                      <MetricTile card={card} metric={metric} onMetric={onMetric} />
+                    </Col>
+                  ))}
+                </Row>
+              </Disclosure>
+            )}
+          </Flex>
+        )}
+        <Disclosure label={<>计算说明与使用限制</>}>
+          <Flex vertical gap={tokens.sizeXS}>
+            <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+              {discoverySummaryText(card.summary)}
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+              {card.suggested_next_action}
+            </Typography.Text>
+            {card.limitations.map((item) => (
+              <Typography.Text key={item} type="secondary" style={{ fontSize: 13 }}>
+                {item}
+              </Typography.Text>
+            ))}
+          </Flex>
+        </Disclosure>
+      </Flex>
     </section>
   );
 }
@@ -437,12 +485,20 @@ function MetricTile({
 }) {
   return (
     <Button
+      block
+      className="insight-metric-btn"
       onClick={() => onMetric(metric.key)}
       aria-label={`${card.title} ${metricLabel(metric)} 查看评分依据`}
     >
-      <span>{metricLabel(metric)}</span>
-      <b>{metricDisplay(metric)}</b>
-      <small>查看评分依据 →</small>
+      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+        {metricLabel(metric)}
+      </Typography.Text>
+      <Typography.Text strong style={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }}>
+        {metricDisplay(metric)}
+      </Typography.Text>
+      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+        查看评分依据 →
+      </Typography.Text>
     </Button>
   );
 }

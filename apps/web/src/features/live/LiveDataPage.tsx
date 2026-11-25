@@ -1,8 +1,32 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Drawer, Modal, Segmented, Select, Table, Tag, Upload, Spin } from 'antd';
-import { FileExcelTwoTone, UploadOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  Alert,
+  Button,
+  Card,
+  Drawer,
+  Dropdown,
+  Grid,
+  Flex,
+  Modal,
+  Segmented,
+  Select,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Typography,
+  Upload,
+} from 'antd';
+import {
+  EllipsisOutlined,
+  FileExcelTwoTone,
+  UploadOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { AssessmentContext, Panel } from '../../components/ui';
 import { ApiError } from '../../services/edu-api/client';
@@ -32,6 +56,7 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
     setUploadDraft,
   } = useDataMode();
   const router = useRouter();
+  const screens = Grid.useBreakpoint();
   const importScopes = scopes.filter((s) => s.can_import);
   const draft = uploadDraft ?? {
     course: '',
@@ -56,7 +81,16 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
   const [localError, setLocalError] = useState<string | null>(null);
   const [qualityBatch, setQualityBatch] = useState<ApiBatch | null>(null);
   const uploadController = useRef<AbortController | null>(null);
-  useEffect(() => () => uploadController.current?.abort(), []);
+  useEffect(
+    () => () => {
+      if (uploadController.current) {
+        uploadController.current.abort();
+        uploadController.current = null;
+        setBusy(false);
+      }
+    },
+    [],
+  );
   const loadBatches = useCallback(
     (signal: AbortSignal) => client.batches(offset, 10, signal, archived),
     [client, offset, archived],
@@ -192,29 +226,41 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
           </div>
           {selectedFile && (
             <>
-              <div className="selected-assessment-file">
-                <FileExcelTwoTone twoToneColor="#12805b" aria-hidden="true" />
-                <div>
-                  <h3>{selectedFile.name}</h3>
-                  <p>
-                    {selectedFile.size < 1024 * 1024
-                      ? `${Math.max(1, Math.round(selectedFile.size / 1024))} KiB`
-                      : `${(selectedFile.size / 1024 / 1024).toFixed(1)} MiB`}
-                  </p>
-                </div>
-                <Button disabled={busy || !allowed} onClick={() => setUploadDraft(null)}>
-                  更换文件
-                </Button>
-              </div>
+              <Card size="small" type="inner" className="selected-assessment-file">
+                <Flex align="center" gap={tokens.sizeSM}>
+                  <FileExcelTwoTone
+                    twoToneColor={tokens.colorSuccess}
+                    style={{ fontSize: 28, flex: 'none' }}
+                    aria-hidden="true"
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Typography.Title level={5} style={{ margin: 0, overflowWrap: 'anywhere' }}>
+                      {selectedFile.name}
+                    </Typography.Title>
+                    <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                      {selectedFile.size < 1024 * 1024
+                        ? `${Math.max(1, Math.round(selectedFile.size / 1024))} KiB`
+                        : `${(selectedFile.size / 1024 / 1024).toFixed(1)} MiB`}
+                    </Typography.Text>
+                  </div>
+                  <Button disabled={busy || !allowed} onClick={() => setUploadDraft(null)}>
+                    更换文件
+                  </Button>
+                </Flex>
+              </Card>
               {busy ? (
                 <div className="workflow-checking" role="status">
                   <Spin />
-                  <h2>正在检查文件</h2>
+                  <Typography.Title level={4} style={{ margin: 0 }}>
+                    正在检查文件
+                  </Typography.Title>
                 </div>
               ) : (
-                <Button onClick={() => void checkFile(selectedFile, draft)} disabled={!allowed}>
-                  重新检查
-                </Button>
+                <div>
+                  <Button onClick={() => void checkFile(selectedFile, draft)} disabled={!allowed}>
+                    重新检查
+                  </Button>
+                </div>
               )}
             </>
           )}
@@ -225,110 +271,147 @@ export default function LiveDataPage({ view = 'upload' }: { view?: 'upload' | 'h
         </UploadWorkflow>
       )}
       {view === 'history' && (
-        <Panel
-          title="历史测评"
-          action={
-            <Button icon={<ReloadOutlined />} onClick={batches.retry}>
-              刷新列表
-            </Button>
-          }
-          className="batches-panel"
-        >
-          <div className="history-status-filter">
-            <Segmented
-              aria-label="历史测评状态"
-              value={archived ? 'archived' : 'active'}
-              options={[
-                { value: 'active', label: '使用中' },
-                { value: 'archived', label: '已归档' },
-              ]}
-              onChange={(value) => {
-                setOffset(0);
-                setArchived(value === 'archived');
-              }}
-            />
-          </div>
-          {batches.loading && <LoadingPanel />}
-          {batches.error && <RequestError error={batches.error} retry={batches.retry} />}
-          {batches.data && (
-            <Table<ApiBatch>
-              className="history-assessment-table"
-              rowKey="batch_id"
-              rowClassName="history-assessment-row"
-              dataSource={batches.data.items}
-              size="small"
-              pagination={{
-                current: Math.floor(offset / 10) + 1,
-                total: batches.data.total_count,
-                pageSize: 10,
-                responsive: true,
-                showSizeChanger: false,
-                onChange: (page) => setOffset((page - 1) * 10),
-                showTotal: (total) => `共 ${total} 份测评`,
-              }}
-              columns={[
-                {
-                  title: '测评名称',
-                  render: (_, target) => (
-                    <div className="batch-title">
-                      <strong>{assessmentTitle(target)}</strong>
-                      {target.batch_id === batch?.batch_id && <Tag color="cyan">当前测评</Tag>}
-                    </div>
-                  ),
-                },
-                {
-                  title: '参评人数',
-                  width: '15%',
-                  render: (_, target) => (
-                    <>
-                      <span className="history-stat-label" aria-hidden="true">
-                        参评人数
-                      </span>
-                      {target.student_count}
-                    </>
-                  ),
-                },
-                {
-                  title: '评分记录',
-                  width: '15%',
-                  render: (_, target) => (
-                    <>
-                      <span className="history-stat-label" aria-hidden="true">
-                        评分记录
-                      </span>
-                      {target.evaluation_count}
-                    </>
-                  ),
-                },
-                {
-                  title: '操作',
-                  align: 'right',
-                  className: 'history-actions-cell',
-                  render: (_, target) => (
-                    <div className="batch-actions">
-                      {!archived && (
-                        <>
-                          <Button onClick={() => setQualityBatch(target)}>评分概况</Button>
-                          <Button type="primary" onClick={() => enter(target)}>
+        <Panel className="batches-panel">
+          <Flex vertical gap={tokens.margin}>
+            <Flex
+              className="history-status-filter"
+              align="center"
+              justify="space-between"
+              gap={tokens.marginXS}
+              wrap
+            >
+              <Segmented
+                aria-label="历史测评状态"
+                value={archived ? 'archived' : 'active'}
+                options={[
+                  { value: 'active', label: '使用中' },
+                  { value: 'archived', label: '已归档' },
+                ]}
+                onChange={(value) => {
+                  setOffset(0);
+                  setArchived(value === 'archived');
+                }}
+              />
+              <Button icon={<ReloadOutlined />} onClick={batches.retry}>
+                刷新列表
+              </Button>
+            </Flex>
+            {batches.loading && <LoadingPanel />}
+            {batches.error && <RequestError error={batches.error} retry={batches.retry} />}
+            {batches.data && (
+              <Table<ApiBatch>
+                className="history-assessment-table"
+                rowKey="batch_id"
+                rowClassName="history-assessment-row"
+                dataSource={batches.data.items}
+                pagination={{
+                  current: Math.floor(offset / 10) + 1,
+                  total: batches.data.total_count,
+                  pageSize: 10,
+                  responsive: true,
+                  showSizeChanger: false,
+                  onChange: (page) => setOffset((page - 1) * 10),
+                  showTotal: (total) => `共 ${total} 份测评`,
+                }}
+                columns={[
+                  {
+                    title: '测评名称',
+                    render: (_, target) => (
+                      <Flex vertical gap={tokens.marginXXS}>
+                        <Space wrap size="small">
+                          <Typography.Text strong style={{ overflowWrap: 'anywhere' }}>
+                            {assessmentTitle(target)}
+                          </Typography.Text>
+                          {target.batch_id === batch?.batch_id && <Tag color="cyan">当前测评</Tag>}
+                        </Space>
+                        {!screens.lg && (
+                          <Typography.Text type="secondary">
+                            {target.student_count} 人
+                            {target.evaluation_count != null &&
+                              ` · ${target.evaluation_count} 条评分`}
+                          </Typography.Text>
+                        )}
+                      </Flex>
+                    ),
+                  },
+                  {
+                    title: '参评人数',
+                    responsive: ['lg'],
+                    dataIndex: 'student_count',
+                  },
+                  {
+                    title: '评分记录',
+                    responsive: ['lg'],
+                    dataIndex: 'evaluation_count',
+                  },
+                  {
+                    title: '操作',
+                    className: 'history-actions-cell',
+                    render: (_, target) => {
+                      const editArchive = () => {
+                        setArchiveError(null);
+                        setArchiveTarget(target);
+                      };
+                      if (archived) {
+                        return (
+                          <Button type="link" size="small" onClick={editArchive}>
+                            恢复
+                          </Button>
+                        );
+                      }
+                      return (
+                        <Space size="small" className="batch-actions">
+                          <Button type="link" size="small" onClick={() => enter(target)}>
                             查看学情
                           </Button>
-                        </>
-                      )}
-                      <Button
-                        danger={!archived}
-                        onClick={() => {
-                          setArchiveError(null);
-                          setArchiveTarget(target);
-                        }}
-                      >
-                        {archived ? '恢复' : '删除'}
-                      </Button>
-                    </div>
-                  ),
-                },
-              ]}
-            />
-          )}
+                          {screens.lg ? (
+                            <>
+                              <Button
+                                type="link"
+                                size="small"
+                                onClick={() => setQualityBatch(target)}
+                              >
+                                评分概况
+                              </Button>
+                              <Button type="link" size="small" danger onClick={editArchive}>
+                                删除
+                              </Button>
+                            </>
+                          ) : (
+                            <Dropdown
+                              trigger={['click']}
+                              menu={{
+                                items: [
+                                  {
+                                    key: 'overview',
+                                    label: '评分概况',
+                                    onClick: () => setQualityBatch(target),
+                                  },
+                                  {
+                                    key: 'archive',
+                                    label: '删除',
+                                    danger: true,
+                                    onClick: editArchive,
+                                  },
+                                ],
+                              }}
+                            >
+                              <Button
+                                type="text"
+                                size="small"
+                                aria-label="更多操作"
+                                icon={<EllipsisOutlined />}
+                              />
+                            </Dropdown>
+                          )}
+                        </Space>
+                      );
+                    },
+                  },
+                ]}
+              />
+            )}
+          </Flex>
         </Panel>
       )}
       {archiveTarget && (
@@ -373,18 +456,33 @@ function BatchOverview({ batch, onClose }: { batch: ApiBatch; onClose: () => voi
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {resource.data && (
         <Panel title="评分完整性">
-          {resource.data.dimensions.map((d) => (
-            <div className="server-mean-row" key={d.dimension_code}>
-              <span>{dimensionName(d.dimension_code)}</span>
-              <span>
-                有效 {d.valid_count} · 缺失 {d.missing_count} · 无效 {d.invalid_count}
-              </span>
-            </div>
-          ))}
-          <details>
-            <summary>评分标准版本</summary>
-            <p className="muted small">{batch.rubric_version}</p>
-          </details>
+          <Flex vertical gap={tokens.sizeSM}>
+            <Table
+              rowKey="dimension_code"
+              showHeader={false}
+              pagination={false}
+              dataSource={resource.data.dimensions}
+              columns={[
+                {
+                  title: '维度',
+                  render: (_, d) => dimensionName(d.dimension_code),
+                },
+                {
+                  title: '统计',
+                  render: (_, d) => (
+                    <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                      有效 {d.valid_count} · 缺失 {d.missing_count} · 无效 {d.invalid_count}
+                    </Typography.Text>
+                  ),
+                },
+              ]}
+            />
+            <Disclosure label={<>评分标准版本</>}>
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                {batch.rubric_version}
+              </Typography.Text>
+            </Disclosure>
+          </Flex>
         </Panel>
       )}
     </Drawer>

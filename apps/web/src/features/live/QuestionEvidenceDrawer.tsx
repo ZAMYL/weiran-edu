@@ -1,6 +1,8 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useState } from 'react';
-import { Drawer, Select } from 'antd';
+import { Descriptions, Drawer, Select, Typography } from 'antd';
 import { useDataMode } from '../../app/data-mode';
 import type { ApiBatch } from '../../services/edu-api/types';
 import { exactToNumber } from '../../services/edu-api/exact';
@@ -43,31 +45,45 @@ export default function QuestionEvidenceDrawer({
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {evidence && (
-        <dl className="source-details">
-          <dt>题目</dt>
-          <dd>{batch.recognized_items?.find((item) => item.item_id === itemId)?.display_name}</dd>
-          <dt>参评记录</dt>
-          <dd>{evidence.participant_id}</dd>
-          <dt>评分状态</dt>
-          <dd>{qualityLabels[evidence.quality_state]}</dd>
-          <dt>得分</dt>
-          <dd>{evidence.exact ? scoreDisplay(exactToNumber(evidence.exact)) : '—'}</dd>
-          <dt>原文件位置</dt>
-          <dd>
-            {evidence.source.sheet}!{evidence.source.cell}
-          </dd>
-        </dl>
+        <Descriptions
+          className="source-details"
+          size="small"
+          column={1}
+          bordered
+          style={{ marginTop: tokens.size }}
+          items={[
+            {
+              key: 'item',
+              label: '题目',
+              children: batch.recognized_items?.find((item) => item.item_id === itemId)
+                ?.display_name,
+            },
+            { key: 'participant', label: '参评记录', children: evidence.participant_id },
+            { key: 'quality', label: '评分状态', children: qualityLabels[evidence.quality_state] },
+            {
+              key: 'score',
+              label: '得分',
+              children: evidence.exact ? scoreDisplay(exactToNumber(evidence.exact)) : '—',
+            },
+            {
+              key: 'source',
+              label: '原文件位置',
+              children: `${evidence.source.sheet}!${evidence.source.cell}`,
+            },
+          ]}
+        />
       )}
       {evidence && (
-        <details className="technical-details">
-          <summary>来源校验信息</summary>
+        <Disclosure className="technical-details" label={<>来源校验信息</>}>
           {evidence.exact && (
-            <p>
+            <Typography.Text style={{ display: 'block', marginBottom: tokens.sizeXXS }}>
               精确值 {evidence.exact.numerator}/{evidence.exact.denominator}
-            </p>
+            </Typography.Text>
           )}
-          <p style={{ overflowWrap: 'anywhere' }}>{evidence.source.file_sha256}</p>
-        </details>
+          <Typography.Text type="secondary" style={{ overflowWrap: 'anywhere', fontSize: 12 }}>
+            {evidence.source.file_sha256}
+          </Typography.Text>
+        </Disclosure>
       )}
     </Drawer>
   );
