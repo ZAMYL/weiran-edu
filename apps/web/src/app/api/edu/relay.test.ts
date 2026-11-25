@@ -590,3 +590,68 @@ it('relays formal programming AI task routes and rejects unallowed subpaths', as
   ).toBe(404);
   expect(fetcher).toHaveBeenCalledTimes(callsBeforeReject);
 });
+
+it('relays per-problem student drill-down routes with Unicode labels and rejects traversal', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    Response.json({
+      assessment_id: 'assess_1',
+      problem_label: '7-1 区间求和',
+      total_count: 1,
+      offset: 0,
+      limit: 100,
+      items: [],
+    }),
+  );
+  vi.stubGlobal('fetch', fetcher);
+
+  const okRes = await GET(
+    new Request(
+      'http://127.0.0.1:3000/api/edu/assessments/assess_1/problems/7-1%20%E5%8C%BA%E9%97%B4%E6%B1%82%E5%92%8C/students?status=%E7%AD%94%E6%A1%88%E9%94%99%E8%AF%AF&test_index=7&offset=0&limit=100',
+      { headers: { authorization: bearer } },
+    ),
+    {
+      params: Promise.resolve({
+        path: ['assessments', 'assess_1', 'problems', '7-1 区间求和', 'students'],
+      }),
+    },
+  );
+  expect(okRes.status).toBe(200);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  const calledUrl = String(fetcher.mock.calls[0]?.[0]);
+  expect(calledUrl).toContain(
+    '/api/v1/edu/assessments/assess_1/problems/7-1%20%E5%8C%BA%E9%97%B4%E6%B1%82%E5%92%8C/students',
+  );
+  expect(calledUrl).toContain('test_index=7');
+
+  expect(
+    (
+      await GET(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/assess_1/problems/../students', {
+          headers: { authorization: bearer },
+        }),
+        {
+          params: Promise.resolve({
+            path: ['assessments', 'assess_1', 'problems', '..', 'students'],
+          }),
+        },
+      )
+    ).status,
+  ).toBe(404);
+
+  expect(
+    (
+      await GET(
+        new Request(
+          'http://127.0.0.1:3000/api/edu/assessments/assess_1/problems/7-1/students?unexpected=1',
+          { headers: { authorization: bearer } },
+        ),
+        {
+          params: Promise.resolve({
+            path: ['assessments', 'assess_1', 'problems', '7-1', 'students'],
+          }),
+        },
+      )
+    ).status,
+  ).toBe(403);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});

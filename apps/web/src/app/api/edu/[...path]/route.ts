@@ -11,6 +11,7 @@ const routes: Record<string, RegExp[]> = {
   GET: [
     /^(me|scopes|batches|test-session|ai-capability)$/,
     /^assessments(?:\/[^/]+(?:\/patterns|\/students(?:\/[^/]+)?)?)?$/,
+    /^assessments\/[^/]+\/problems\/[^/]+\/students$/,
     /^assessments\/[^/]+\/ai-tasks\/[^/]+$/,
     /^batches\/[^/]+$/,
     /^batches\/[^/]+\/(statistics|students|rubric)$/,
@@ -79,7 +80,28 @@ async function relay(
   context: { params: Promise<{ path: string[] }> },
 ): Promise<Response> {
   const { path } = await context.params;
-  if (path.some((p) => !/^[a-zA-Z0-9_-]{1,128}$/.test(p))) return fail(404, 'NOT_FOUND');
+  const isProblemStudents =
+    request.method === 'GET' &&
+    path.length === 5 &&
+    path[0] === 'assessments' &&
+    path[2] === 'problems' &&
+    path[4] === 'students';
+  const safeProblemLabel = (value: string) =>
+    value.length >= 1 &&
+    value.length <= 128 &&
+    value !== '.' &&
+    value !== '..' &&
+    !/[/\\?#%]/.test(value) &&
+    !Array.from(value).some((ch) => {
+      const code = ch.charCodeAt(0);
+      return code < 0x20 || code === 0x7f;
+    });
+  if (
+    path.some((p, index) =>
+      isProblemStudents && index === 3 ? !safeProblemLabel(p) : !/^[a-zA-Z0-9_-]{1,128}$/.test(p),
+    )
+  )
+    return fail(404, 'NOT_FOUND');
   const route = path.join('/');
   if (!routes[request.method]?.some((pattern) => pattern.test(route)))
     return fail(404, 'NOT_FOUND');
@@ -113,7 +135,8 @@ async function relay(
       (key) =>
         !queryNames.has(key) &&
         !(taskEvents && key === 'after') &&
-        !(assessmentEvidence && key === 'source_snapshot_id'),
+        !(assessmentEvidence && key === 'source_snapshot_id') &&
+        !(isProblemStudents && (key === 'status' || key === 'test_index')),
     ) ||
     request.headers.get('sec-fetch-site') === 'cross-site' ||
     (request.headers.has('origin') && request.headers.get('origin') !== expectedOrigin)
@@ -214,7 +237,11 @@ async function relay(
         init.body = await new Response(stream).arrayBuffer();
       }
     }
-    const response = await fetch(new URL(`/api/v1/edu/${route}${source.search}`, origin), init);
+    const encodedRoute = path.map(encodeURIComponent).join('/');
+    const response = await fetch(
+      new URL(`/api/v1/edu/${encodedRoute}${source.search}`, origin),
+      init,
+    );
     upstreamRequestId = response.headers.get('x-request-id');
     if (report && response.ok && (format === 'xlsx' || format === 'md')) {
       const file = await readReportFile(response, { resultId: path[3]!, version, format });

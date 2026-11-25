@@ -6,6 +6,7 @@ import {
   answerSheetImportDto,
   answerSheetListDto,
   answerSheetPatternsDto,
+  answerSheetProblemStudentsDto,
   answerSheetStudentsDto,
 } from './answer-sheets';
 import {
@@ -803,6 +804,26 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
       request('/assessments', answerSheetImportDto, { method: 'POST', body: form }, signal),
     answerSheets: (offset: number, signal?: AbortSignal) =>
       get(`/assessments?offset=${offset}&limit=20`, answerSheetListDto, signal),
+    answerSheetOverview: (assessmentId: string, signal?: AbortSignal) =>
+      get(`/assessments/${id(assessmentId)}`, answerSheetDto, signal),
+    answerSheetProblemStudents: (
+      assessmentId: string,
+      problemLabel: string,
+      options: { status?: string; testIndex?: number; offset?: number; limit?: number } = {},
+      signal?: AbortSignal,
+    ) => {
+      const query = new URLSearchParams();
+      if (options.status !== undefined) query.set('status', options.status);
+      if (options.testIndex !== undefined) query.set('test_index', String(options.testIndex));
+      if (options.offset !== undefined) query.set('offset', String(options.offset));
+      if (options.limit !== undefined) query.set('limit', String(options.limit));
+      const qs = query.toString();
+      return get(
+        `/assessments/${id(assessmentId)}/problems/${encodeURIComponent(problemLabel)}/students${qs ? `?${qs}` : ''}`,
+        answerSheetProblemStudentsDto,
+        signal,
+      );
+    },
     answerSheet: async (assessmentId: string, signal?: AbortSignal) => {
       const path = `/assessments/${id(assessmentId)}`;
       const [overview, patterns, students] = await Promise.all([

@@ -22,7 +22,6 @@ import {
   Layout,
   Menu,
   Modal,
-  Segmented,
   Space,
   Tabs,
   Tooltip,
@@ -47,11 +46,10 @@ import {
 } from '@ant-design/icons';
 import { ModePage, useDataMode } from './data-mode';
 import {
+  answerAnalysis,
   answerHistory,
-  answerUpload,
   dashboard,
   scoreHistory,
-  scoreUpload,
   upload,
   workspacePage,
   workspaceTabKey,
@@ -61,13 +59,14 @@ import { setDarkMode, useDarkMode } from './theme-preference';
 import WorkspaceDashboard from './WorkspaceDashboard';
 import LiveAssessmentPicker from '../features/live/LiveAssessmentPicker';
 import LiveDataPage from '../features/live/LiveDataPage';
+import UnifiedUploadPage from '../features/live/UnifiedUploadPage';
 import LiveInsightsPage from '../features/live/LiveInsightsPage';
 import LiveExplorerPage from '../features/live/LiveExplorerPage';
 import LiveReportsPage from '../features/live/LiveReportsPage';
 import {
+  AnswerSheetAnalysisEntry,
   AnswerSheetDetails,
   AnswerSheetLibrary,
-  AnswerSheetUpload,
 } from '../features/live/AnswerSheets';
 
 const menu: MenuProps['items'] = [
@@ -93,6 +92,7 @@ const menu: MenuProps['items'] = [
     children: [
       { key: '/insights', label: '学情分析' },
       { key: '/explorer', label: '画像探索' },
+      { key: answerAnalysis, label: '答题卡分析' },
     ],
   },
   { key: '/reports', label: '分析报告', icon: <FileTextOutlined aria-hidden="true" /> },
@@ -467,37 +467,13 @@ function WorkspacePane({
   }, []);
   if (!page) return null;
   let content: ReactNode;
-  let uploadTypeControl: ReactNode = null;
   switch (workspaceTabKey(path)) {
     case dashboard:
       content = <WorkspaceDashboard />;
       break;
-    case upload: {
-      const isAnswerUpload = path === answerUpload;
-      uploadTypeControl = (
-        <Segmented
-          aria-label="上传类型"
-          style={{ fontWeight: 'normal' }}
-          value={isAnswerUpload ? answerUpload : scoreUpload}
-          options={[
-            { value: scoreUpload, label: '评分与评价' },
-            { value: answerUpload, label: '编程答题卡' },
-          ]}
-          onChange={navigate}
-        />
-      );
-      content = (
-        <>
-          <Activity mode={isAnswerUpload ? 'hidden' : 'visible'}>
-            <LiveDataPage view="upload" />
-          </Activity>
-          <Activity mode={isAnswerUpload ? 'visible' : 'hidden'}>
-            <AnswerSheetUpload />
-          </Activity>
-        </>
-      );
+    case upload:
+      content = <UnifiedUploadPage />;
       break;
-    }
     case scoreHistory:
       content = <LiveDataPage view="history" />;
       break;
@@ -509,6 +485,9 @@ function WorkspacePane({
       break;
     case '/explorer':
       content = <LiveExplorerPage />;
+      break;
+    case answerAnalysis:
+      content = <AnswerSheetAnalysisEntry />;
       break;
     case '/reports':
       content = <LiveReportsPage />;
@@ -563,7 +542,7 @@ function WorkspacePane({
             <div className="workspace-summary" ref={setSummaryHost} />
           </div>
         )}
-        <WorkspaceLayoutContext.Provider value={{ fullscreen, summaryHost, uploadTypeControl }}>
+        <WorkspaceLayoutContext.Provider value={{ fullscreen, summaryHost }}>
           <ModePage live={content} />
         </WorkspaceLayoutContext.Provider>
       </div>

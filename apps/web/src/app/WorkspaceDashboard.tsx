@@ -19,7 +19,13 @@ import { BarChartOutlined, FileZipOutlined, UploadOutlined } from '@ant-design/i
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDataMode } from './data-mode';
-import { answerHistory, answerUpload, scoreHistory, scoreUpload } from './workspace-routes';
+import {
+  answerAnalysisPath,
+  answerHistory,
+  answerUpload,
+  scoreHistory,
+  scoreUpload,
+} from './workspace-routes';
 import { useRemote } from '../features/live/useRemote';
 import { RequestError } from '../features/live/LiveStatus';
 import type { ApiBatch } from '../services/edu-api/types';
@@ -140,10 +146,7 @@ export default function WorkspaceDashboard() {
               ) : pending.length ? (
                 <Flex vertical gap="small">
                   {pending.slice(0, 5).map((item) => (
-                    <Link
-                      key={item.assessment_id}
-                      href={`${answerHistory}/${encodeURIComponent(item.assessment_id)}`}
-                    >
+                    <Link key={item.assessment_id} href={answerAnalysisPath(item.assessment_id)}>
                       {item.title}
                     </Link>
                   ))}

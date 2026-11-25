@@ -19,7 +19,7 @@ export default function UploadWorkflow({
   const { uploadTypeControl } = useWorkspaceLayout();
   return (
     <Card
-      title={uploadTypeControl}
+      title={uploadTypeControl || undefined}
       classNames={{ body: 'upload-workflow-layout' }}
       className={`panel upload-workflow upload-step-${step}`}
       aria-label="上传测评流程"
