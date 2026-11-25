@@ -2,7 +2,8 @@
 
 The DS-04/S1 material stack already turns bytes into a locally validated plan.
 This module only adds HTTP framing: bounded multipart reading, a server
-generated source ID, and a DTO that cannot claim a confirmation.
+generated source ID, and a DTO that cannot claim a confirmation. Persisted
+records keep the structure snapshot and teacher confirmations, never raw bytes.
 """
 
 import hashlib
@@ -22,12 +23,15 @@ from app.edu.material_models import (
     MaterialArchive,
     MaterialCapability,
     MaterialColumn,
+    MaterialConfirmRequest,
     MaterialField,
     MaterialFile,
     MaterialRecognition,
+    MaterialRecordView,
     MaterialRole,
     MaterialTable,
 )
+from app.edu.materials import MaterialIntake
 from app.importing.edu.detect import ZIP_HTML, ZIP_OTHER, detect_asset
 from app.importing.edu.types import ImportFileError, ParseLimits
 
@@ -57,7 +61,13 @@ def _principal(
     return actor
 
 
+def intake_of(request: Request) -> MaterialIntake:
+    service = request.app.state.edu_service
+    return MaterialIntake(service.database, clock=service.clock)
+
+
 type Actor = Annotated[Principal, Depends(_principal)]
+type Intake = Annotated[MaterialIntake, Depends(intake_of)]
 
 
 async def _upload_files(request: Request) -> list[tuple[bytes, str | None, str | None]]:
@@ -220,15 +230,17 @@ def _file_view(
 
 
 @router.post("/materials", response_model=MaterialRecognition)
-async def recognize_materials(request: Request, actor: Actor) -> MaterialRecognition:
+async def recognize_materials(
+    request: Request, actor: Actor, intake: Intake
+) -> MaterialRecognition:
     """Upload one or more supported files; return what the backend actually recognized.
 
-    Nothing is persisted and no role or field is confirmed here: the server computes
-    the source ID, and unresolved positions come back as pending confirmations.
+    Nothing is confirmed here: the server computes the source ID, stores only the
+    structure snapshot, and unresolved positions come back as pending confirmations.
     """
     parts = await _upload_files(request)
     archives: list[MaterialArchive] = []
-    materials: list[tuple[MaterialInput, str, int]] = []
+    materials: list[tuple[MaterialInput, str, int, str]] = []
     unsupported: list[MaterialFile] = []
     seen_sources: dict[str, int] = {}
     for data, name, content_type in parts:
@@ -267,11 +279,11 @@ async def recognize_materials(request: Request, actor: Actor) -> MaterialRecogni
                 )
             )
             continue
-        materials.append((material, name or "unnamed", len(data)))
+        materials.append((material, name or "unnamed", len(data), digest))
     recognition_id = (
         "sha256:"
         + hashlib.sha256(
-            "".join(material.source_id for material, _, _ in materials).encode() or b"archives"
+            "".join(material.source_id for material, _, _, _ in materials).encode() or b"archives"
         ).hexdigest()
     )
     if not materials:
@@ -279,7 +291,7 @@ async def recognize_materials(request: Request, actor: Actor) -> MaterialRecogni
             recognition_id=recognition_id, materials=unsupported, archives=archives
         )
     try:
-        plan = await understand_materials(tuple(material for material, _, _ in materials))
+        plan = await understand_materials(tuple(material for material, _, _, _ in materials))
     except ValueError as exc:
         raise APIError(422, "MATERIAL_PLAN_UNSUPPORTED", "资料超出可识别范围") from exc
     views = [
@@ -290,11 +302,30 @@ async def recognize_materials(request: Request, actor: Actor) -> MaterialRecogni
             file_name=name,
             byte_size=size,
         )
-        for index, (material, name, size) in enumerate(materials, 1)
+        for index, (material, name, size, _) in enumerate(materials, 1)
     ]
+    await run_in_threadpool(
+        intake.record,
+        actor,
+        [(digest, view) for (_, _, _, digest), view in zip(materials, views, strict=True)],
+    )
     return MaterialRecognition(
         recognition_id=recognition_id,
         materials=views + unsupported,
         archives=archives,
         pending=sorted({ref for view in views for ref in view.pending}),
     )
+
+
+@router.post("/materials/confirm", response_model=MaterialRecordView)
+async def confirm_materials(
+    body: MaterialConfirmRequest, actor: Actor, intake: Intake
+) -> MaterialRecordView:
+    """Record a teacher's explicit confirmation; the only source of `confirmed`."""
+    return await run_in_threadpool(intake.confirm, actor, body)
+
+
+@router.get("/materials/{source_id}", response_model=MaterialRecordView)
+async def read_material(source_id: str, actor: Actor, intake: Intake) -> MaterialRecordView:
+    """Read the stored snapshot plus confirmations; never re-parses or re-uploads."""
+    return await run_in_threadpool(intake.read, actor, source_id)
