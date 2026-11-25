@@ -19,7 +19,7 @@ from app.ai.edu.discovery.models import (
     Strict,
 )
 from app.ai.edu.discovery.session import _run_session
-from pydantic import Field, ValidationError
+from pydantic import Field, ValidationError, ValidationInfo, field_validator
 
 from prototypes.adaptive_assessment.analysis import MetricSource
 from prototypes.adaptive_assessment.live.budget import CampaignBudget, OfflineProgrammingPermit
@@ -56,8 +56,11 @@ class OverviewArgs(Strict):
 
 
 class InspectArgs(Strict):
-    overview_id: FactId
-    direction: str = Field(pattern=r"^D[1-9][0-9]{0,2}$")
+    overview_id: FactId = Field(description="Copy fact_id from this run's programming overview.")
+    direction: str = Field(
+        pattern=r"^D[1-9][0-9]{0,2}$",
+        description="Copy an uninspected direction from that overview.",
+    )
 
 
 SCHEMAS = {OVERVIEW: OverviewArgs, INSPECT: InspectArgs, "finish": FinishArgs}
@@ -67,6 +70,17 @@ class ProgrammingDecision(Strict):
     name: Literal["get_programming_overview", "inspect_failure_evidence", "finish"]
     arguments: dict[str, object]
     basis_fact_ids: list[FactId] = Field(default_factory=list, max_length=8)
+
+    @field_validator("basis_fact_ids", mode="before")
+    @classmethod
+    def bind_inspect_basis(cls, value: object, info: ValidationInfo) -> object:
+        # The required overview_id already cites the basis. Keep explicit legacy
+        # citations for the planner's equality check.
+        if info.data.get("name") == INSPECT and value == []:
+            overview_id = info.data.get("arguments", {}).get("overview_id")
+            if isinstance(overview_id, str):
+                return [overview_id]
+        return value
 
 
 def scope_for_question(question: str, source: ProgrammingSource) -> tuple[str, ...]:
@@ -483,11 +497,16 @@ class ProgrammingPlanner(QwenAdaptivePlanner):
         super().__init__(executor, budget, **kwargs)
         self.history[0]["content"] = (
             "Investigate programming failure patterns within the server-selected problem scope. "
-            "First call get_programming_overview with no arguments. From the returned directions "
-            "choose inspect_failure_evidence with its direction, overview_id and basis_fact_ids "
-            "containing that overview ID. Coverage is the verified denominator. "
-            "Investigate different phenomena separately. Finish using only inspected fact IDs, "
-            "or with no findings when no direction is available. Never invent causes or use "
+            "First call get_programming_overview with no arguments. Choose an uninspected "
+            "direction by problem, test and phenomenon, preferring observed test points when "
+            "available. Call inspect_failure_evidence with the direction and the overview's "
+            "fact_id as overview_id. Keep different tests or phenomena separate. Coverage is "
+            "the verified denominator. For each code feature, present counts the affected "
+            "submissions with that feature among those checked. These counts do not show a cause. "
+            "Use finish with reason completed and relevant IDs from the tool's "
+            "selected_fact_ids choices. These are verified inspection facts. "
+            "When no direction is available, finish with reason "
+            "insufficient_data and an empty selected_fact_ids list. Never invent causes or use "
             "raw code, names, paths or external references."
         )
 
@@ -499,6 +518,17 @@ class ProgrammingPlanner(QwenAdaptivePlanner):
             raise AgentError("overview_basis_required")
 
     async def _post(self, payload):
+        # The shared dialogue rebuilds the schema each round. Only IDs from
+        # verified inspections may back a finding, as also enforced by finish.
+        finish = next(
+            tool["function"] for tool in payload["tools"] if tool["function"]["name"] == "finish"
+        )
+        selection = finish["parameters"]["properties"]["selected_fact_ids"]
+        eligible = [fact.fact_id for fact in self._executor.facts.values() if fact.tool == INSPECT]
+        if eligible:
+            selection["items"]["enum"] = eligible
+        else:
+            selection["maxItems"] = 0
         if len(json.dumps(payload, ensure_ascii=False, allow_nan=False).encode()) > (
             self._executor.limits.prompt_bytes
         ):

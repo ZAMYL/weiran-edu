@@ -128,8 +128,9 @@ def source_for(*, variant=False, tiny=False):
     return ProgrammingSource(EvidenceScope("teacher", "task", "assessment", snapshot), provider)
 
 
-def exercise(source, tmp_path, *, limits=None, selector=None, scope=None):
-    requests = []
+def exercise(source, tmp_path, *, limits=None, selector=None, scope=None, requests=None):
+    if requests is None:
+        requests = []
 
     def respond(request):
         payload = json.loads(request.content)
@@ -172,7 +173,11 @@ def exercise(source, tmp_path, *, limits=None, selector=None, scope=None):
                     "reason": "completed" if ids else "insufficient_data",
                 },
             }
-        return httpx.Response(200, json=native_response(decision, len(requests)))
+        response = native_response(decision, len(requests))
+        if "basis_fact_ids" not in decision:
+            call = response["choices"][0]["message"]["tool_calls"][0]
+            call["function"]["arguments"] = json.dumps(decision["arguments"])
+        return httpx.Response(200, json=response)
 
     permit = OfflineProgrammingPermit(source, "test-programming", PRICE.fingerprint)
     budget = CampaignBudget(permit, tmp_path, origin="http_mock", today=MOCK_DATE)
@@ -313,6 +318,78 @@ def test_model_cannot_skip_inspection(tmp_path):
 
     run, _ = exercise(source, tmp_path, selector=early_stop)
     assert (run.status, run.reason, run.cards) == ("failed", "failure_investigation_required", ())
+
+
+@pytest.mark.parametrize("valid_overview", [True, False])
+def test_inspect_cites_overview_in_required_argument(tmp_path, valid_overview):
+    def select(facts):
+        if not facts:
+            return {"name": OVERVIEW, "arguments": {}}
+        if len(facts) == 1:
+            return {
+                "name": INSPECT,
+                "arguments": {
+                    "overview_id": facts[0]["fact_id"] if valid_overview else "unknown-fact",
+                    "direction": facts[0]["directions"][0]["direction"],
+                },
+            }
+        return {
+            "name": "finish",
+            "arguments": {"reason": "completed", "selected_fact_ids": [facts[-1]["fact_id"]]},
+        }
+
+    run, executor = exercise(source_for(), tmp_path, selector=select)
+    if not valid_overview:
+        assert (run.status, run.reason, run.tool_attempts, run.cards) == (
+            "failed",
+            "unknown_fact_id",
+            1,
+            (),
+        )
+        return
+
+    assert (run.status, run.model_requests, run.tool_attempts) == ("completed", 3, 2)
+    (card,) = run.cards
+    overview, detail = run.facts
+    assert card["basis_fact_id"] == overview.fact_id
+    assert run.selected_ids == (detail.fact_id,)
+    assert len(executor.resolve(detail.fact_id, "D1.affected")) == 10
+    assert len(executor.resolve(detail.fact_id, "indexing.present")) == 5
+
+
+def test_finish_schema_lists_only_verified_details_and_rejects_overview(tmp_path):
+    requests = []
+
+    def select(facts):
+        if not facts:
+            return {"name": OVERVIEW, "arguments": {}}
+        overview = facts[0]
+        if len(facts) == 1:
+            return {
+                "name": INSPECT,
+                "arguments": {"overview_id": overview["fact_id"], "direction": "D1"},
+                "basis_fact_ids": [overview["fact_id"]],
+            }
+        return {
+            "name": "finish",
+            "arguments": {"reason": "completed", "selected_fact_ids": [overview["fact_id"]]},
+        }
+
+    run, _ = exercise(source_for(), tmp_path, selector=select, requests=requests)
+    assert (run.status, run.reason, run.tool_attempts, run.cards) == (
+        "failed",
+        "unverified_failure_finding",
+        2,
+        (),
+    )
+    selections = [
+        tool["function"]["parameters"]["properties"]["selected_fact_ids"]
+        for request in requests
+        for tool in request["tools"]
+        if tool["function"]["name"] == "finish"
+    ]
+    assert [selection["maxItems"] for selection in selections] == [0, 0, 3]
+    assert selections[-1]["items"]["enum"] == [run.facts[-1].fact_id]
 
 
 def test_programming_live_is_closed_even_with_offline_permit(tmp_path, monkeypatch):
