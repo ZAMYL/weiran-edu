@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "case_id": "same_verdict_different_features",
+  "distribution": "balanced_10x1_50pct_failure",
+  "batch_id": "ds06a-same_verdict_different_features",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10"
+  ],
+  "problems": [
+    "ordinary-sum"
+  ],
+  "submissions": [
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-01",
+      "participant": "anon-01",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-01",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/01.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-02",
+      "participant": "anon-02",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-02",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/02.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-03",
+      "participant": "anon-03",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-03",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/03.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-04",
+      "participant": "anon-04",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-04",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/04.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-05",
+      "participant": "anon-05",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-05",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/05.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-06",
+      "participant": "anon-06",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-06",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/06.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-07",
+      "participant": "anon-07",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-07",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/07.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-08",
+      "participant": "anon-08",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-08",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/08.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-09",
+      "participant": "anon-09",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-09",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/09.html"
+    },
+    {
+      "submission_id": "same_verdict_different_features-ordinary-sum-10",
+      "participant": "anon-10",
+      "problem": "ordinary-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "ordinary",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_verdict_different_features-10",
+      "location": "synthetic/same_verdict_different_features/ordinary-sum/10.html"
+    }
+  ]
+}

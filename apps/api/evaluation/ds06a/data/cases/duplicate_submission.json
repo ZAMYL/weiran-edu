@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "case_id": "duplicate_submission",
+  "distribution": "structural_rejection",
+  "batch_id": "ds06a-duplicate_submission",
+  "participants": [
+    "anon-01"
+  ],
+  "problems": [
+    "duplicate"
+  ],
+  "submissions": [
+    {
+      "submission_id": "duplicate_submission-duplicate-01",
+      "participant": "anon-01",
+      "problem": "duplicate",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-duplicate_submission-01",
+      "location": "synthetic/duplicate_submission/duplicate/01.html"
+    },
+    {
+      "submission_id": "duplicate_submission-duplicate-01",
+      "participant": "anon-01",
+      "problem": "duplicate",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "one",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-duplicate_submission-01",
+      "location": "synthetic/duplicate_submission/duplicate/01.html"
+    }
+  ]
+}

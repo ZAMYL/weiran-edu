@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "case_id": "varied_distribution",
+  "distribution": "two_problems_10_and_15_rows",
+  "batch_id": "ds06a-varied_distribution",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10",
+    "anon-11",
+    "anon-12",
+    "anon-13",
+    "anon-14",
+    "anon-15"
+  ],
+  "problems": [
+    "alpha",
+    "beta"
+  ],
+  "submissions": [
+    {
+      "submission_id": "varied_distribution-alpha-01",
+      "participant": "anon-01",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-01",
+      "location": "synthetic/varied_distribution/alpha/01.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-02",
+      "participant": "anon-02",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-02",
+      "location": "synthetic/varied_distribution/alpha/02.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-03",
+      "participant": "anon-03",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-03",
+      "location": "synthetic/varied_distribution/alpha/03.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-04",
+      "participant": "anon-04",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-04",
+      "location": "synthetic/varied_distribution/alpha/04.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-05",
+      "participant": "anon-05",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-05",
+      "location": "synthetic/varied_distribution/alpha/05.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-06",
+      "participant": "anon-06",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-06",
+      "location": "synthetic/varied_distribution/alpha/06.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-07",
+      "participant": "anon-07",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-07",
+      "location": "synthetic/varied_distribution/alpha/07.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-08",
+      "participant": "anon-08",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-08",
+      "location": "synthetic/varied_distribution/alpha/08.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-09",
+      "participant": "anon-09",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-09",
+      "location": "synthetic/varied_distribution/alpha/09.html"
+    },
+    {
+      "submission_id": "varied_distribution-alpha-10",
+      "participant": "anon-10",
+      "problem": "alpha",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "tail",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-10",
+      "location": "synthetic/varied_distribution/alpha/10.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-01",
+      "participant": "anon-01",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "timeout",
+      "tests": [
+        {
+          "point": "large",
+          "status": "timeout"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-01",
+      "location": "synthetic/varied_distribution/beta/01.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-02",
+      "participant": "anon-02",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "timeout",
+      "tests": [
+        {
+          "point": "large",
+          "status": "timeout"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-02",
+      "location": "synthetic/varied_distribution/beta/02.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-03",
+      "participant": "anon-03",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "timeout",
+      "tests": [
+        {
+          "point": "large",
+          "status": "timeout"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-03",
+      "location": "synthetic/varied_distribution/beta/03.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-04",
+      "participant": "anon-04",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "timeout",
+      "tests": [
+        {
+          "point": "large",
+          "status": "timeout"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-04",
+      "location": "synthetic/varied_distribution/beta/04.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-05",
+      "participant": "anon-05",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "timeout",
+      "tests": [
+        {
+          "point": "large",
+          "status": "timeout"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-05",
+      "location": "synthetic/varied_distribution/beta/05.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-06",
+      "participant": "anon-06",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-06",
+      "location": "synthetic/varied_distribution/beta/06.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-07",
+      "participant": "anon-07",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-07",
+      "location": "synthetic/varied_distribution/beta/07.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-08",
+      "participant": "anon-08",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-08",
+      "location": "synthetic/varied_distribution/beta/08.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-09",
+      "participant": "anon-09",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-09",
+      "location": "synthetic/varied_distribution/beta/09.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-10",
+      "participant": "anon-10",
+      "problem": "beta",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-varied_distribution-10",
+      "location": "synthetic/varied_distribution/beta/10.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-11",
+      "participant": "anon-11",
+      "problem": "beta",
+      "language": "python",
+      "code": null,
+      "code_state": "unanswered",
+      "code_truncated": false,
+      "verdict": "not_attempted",
+      "tests": [],
+      "source_id": "synthetic-varied_distribution-11",
+      "location": "synthetic/varied_distribution/beta/11.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-12",
+      "participant": "anon-12",
+      "problem": "beta",
+      "language": "python",
+      "code": null,
+      "code_state": "unanswered",
+      "code_truncated": false,
+      "verdict": "not_attempted",
+      "tests": [],
+      "source_id": "synthetic-varied_distribution-12",
+      "location": "synthetic/varied_distribution/beta/12.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-13",
+      "participant": "anon-13",
+      "problem": "beta",
+      "language": "python",
+      "code": null,
+      "code_state": "unanswered",
+      "code_truncated": false,
+      "verdict": "not_attempted",
+      "tests": [],
+      "source_id": "synthetic-varied_distribution-13",
+      "location": "synthetic/varied_distribution/beta/13.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-14",
+      "participant": "anon-14",
+      "problem": "beta",
+      "language": "python",
+      "code": null,
+      "code_state": "unanswered",
+      "code_truncated": false,
+      "verdict": "not_attempted",
+      "tests": [],
+      "source_id": "synthetic-varied_distribution-14",
+      "location": "synthetic/varied_distribution/beta/14.html"
+    },
+    {
+      "submission_id": "varied_distribution-beta-15",
+      "participant": "anon-15",
+      "problem": "beta",
+      "language": "python",
+      "code": null,
+      "code_state": "unanswered",
+      "code_truncated": false,
+      "verdict": "not_attempted",
+      "tests": [],
+      "source_id": "synthetic-varied_distribution-15",
+      "location": "synthetic/varied_distribution/beta/15.html"
+    }
+  ]
+}

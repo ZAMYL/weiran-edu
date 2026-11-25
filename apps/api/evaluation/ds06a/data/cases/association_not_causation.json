@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "case_id": "association_not_causation",
+  "distribution": "confounded_10x1_50pct_failure",
+  "batch_id": "ds06a-association_not_causation",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10"
+  ],
+  "problems": [
+    "long-sequence"
+  ],
+  "submissions": [
+    {
+      "submission_id": "association_not_causation-long-sequence-01",
+      "participant": "anon-01",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-01",
+      "location": "synthetic/association_not_causation/long-sequence/01.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-02",
+      "participant": "anon-02",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-02",
+      "location": "synthetic/association_not_causation/long-sequence/02.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-03",
+      "participant": "anon-03",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-03",
+      "location": "synthetic/association_not_causation/long-sequence/03.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-04",
+      "participant": "anon-04",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-04",
+      "location": "synthetic/association_not_causation/long-sequence/04.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-05",
+      "participant": "anon-05",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-05",
+      "location": "synthetic/association_not_causation/long-sequence/05.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-06",
+      "participant": "anon-06",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-06",
+      "location": "synthetic/association_not_causation/long-sequence/06.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-07",
+      "participant": "anon-07",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-07",
+      "location": "synthetic/association_not_causation/long-sequence/07.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-08",
+      "participant": "anon-08",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-08",
+      "location": "synthetic/association_not_causation/long-sequence/08.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-09",
+      "participant": "anon-09",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-09",
+      "location": "synthetic/association_not_causation/long-sequence/09.html"
+    },
+    {
+      "submission_id": "association_not_causation-long-sequence-10",
+      "participant": "anon-10",
+      "problem": "long-sequence",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\nprint(sum(values))\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "accepted",
+      "tests": [
+        {
+          "point": "large-case",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-association_not_causation-10",
+      "location": "synthetic/association_not_causation/long-sequence/10.html"
+    }
+  ]
+}

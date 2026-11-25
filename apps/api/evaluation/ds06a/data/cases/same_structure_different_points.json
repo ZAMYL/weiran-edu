@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "case_id": "same_structure_different_points",
+  "distribution": "two_failure_clusters_10x1",
+  "batch_id": "ds06a-same_structure_different_points",
+  "participants": [
+    "anon-01",
+    "anon-02",
+    "anon-03",
+    "anon-04",
+    "anon-05",
+    "anon-06",
+    "anon-07",
+    "anon-08",
+    "anon-09",
+    "anon-10"
+  ],
+  "problems": [
+    "indexed-sum"
+  ],
+  "submissions": [
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-01",
+      "participant": "anon-01",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "wrong_answer"
+        },
+        {
+          "point": "last-element",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-01",
+      "location": "synthetic/same_structure_different_points/indexed-sum/01.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-02",
+      "participant": "anon-02",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "wrong_answer"
+        },
+        {
+          "point": "last-element",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-02",
+      "location": "synthetic/same_structure_different_points/indexed-sum/02.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-03",
+      "participant": "anon-03",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "wrong_answer"
+        },
+        {
+          "point": "last-element",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-03",
+      "location": "synthetic/same_structure_different_points/indexed-sum/03.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-04",
+      "participant": "anon-04",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "wrong_answer"
+        },
+        {
+          "point": "last-element",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-04",
+      "location": "synthetic/same_structure_different_points/indexed-sum/04.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-05",
+      "participant": "anon-05",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "wrong_answer"
+        },
+        {
+          "point": "last-element",
+          "status": "accepted"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-05",
+      "location": "synthetic/same_structure_different_points/indexed-sum/05.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-06",
+      "participant": "anon-06",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "accepted"
+        },
+        {
+          "point": "last-element",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-06",
+      "location": "synthetic/same_structure_different_points/indexed-sum/06.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-07",
+      "participant": "anon-07",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "accepted"
+        },
+        {
+          "point": "last-element",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-07",
+      "location": "synthetic/same_structure_different_points/indexed-sum/07.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-08",
+      "participant": "anon-08",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "accepted"
+        },
+        {
+          "point": "last-element",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-08",
+      "location": "synthetic/same_structure_different_points/indexed-sum/08.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-09",
+      "participant": "anon-09",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "accepted"
+        },
+        {
+          "point": "last-element",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-09",
+      "location": "synthetic/same_structure_different_points/indexed-sum/09.html"
+    },
+    {
+      "submission_id": "same_structure_different_points-indexed-sum-10",
+      "participant": "anon-10",
+      "problem": "indexed-sum",
+      "language": "python",
+      "code": "values = [int(x) for x in input().split()]\ntotal = values[0]\nfor i in range(1, len(values)):\n    total += values[i]\nprint(total)\n",
+      "code_state": "present",
+      "code_truncated": false,
+      "verdict": "wrong_answer",
+      "tests": [
+        {
+          "point": "empty-input",
+          "status": "accepted"
+        },
+        {
+          "point": "last-element",
+          "status": "wrong_answer"
+        }
+      ],
+      "source_id": "synthetic-same_structure_different_points-10",
+      "location": "synthetic/same_structure_different_points/indexed-sum/10.html"
+    }
+  ]
+}

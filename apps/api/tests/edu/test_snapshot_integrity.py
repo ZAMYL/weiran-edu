@@ -164,10 +164,25 @@ def test_existing_two_migration_database_upgrades_without_changing_facts(runtime
     with runtime.db.transaction(write=True) as connection:
         connection.execute("DROP TRIGGER immutable_students_update")
         connection.execute("DROP TRIGGER immutable_students_delete")
+        connection.execute("DROP TABLE assessment_diagnostics")
+        connection.execute("DROP TABLE assessment_materials")
+        connection.execute("DROP TABLE assessment_assets")
+        connection.execute("DROP TABLE material_confirmations")
+        connection.execute("DROP TABLE material_records")
         connection.execute("DROP TABLE analysis_result_versions")
         connection.execute("DROP TABLE analysis_results")
         connection.execute("DROP TABLE text_reviews")
         connection.execute("DROP TABLE teacher_batch_archive")
+        connection.execute("DROP TABLE source_assets")
+        connection.execute("DROP TABLE problem_dimensions")
+        connection.execute("DROP TABLE test_observations")
+        connection.execute("DROP TABLE submissions")
+        connection.execute("DROP TABLE problems")
+        connection.execute("DROP TABLE assessment_participants")
+        connection.execute("DROP TABLE ai_programming_events")
+        connection.execute("DROP TABLE ai_programming_tasks")
+        connection.execute("DROP TABLE ai_programming_grants")
+        connection.execute("DROP TABLE assessments")
         connection.execute("DROP INDEX batches_snapshot_reference")
         connection.execute(
             "DELETE FROM schema_migrations WHERE version NOT IN "
@@ -190,7 +205,7 @@ def test_existing_two_migration_database_upgrades_without_changing_facts(runtime
             )
         ]
     assert current[:2] == prior
-    assert len(current) == 5
+    assert len(current) == 14
     assert runtime.reader.students(runtime.p, created.batch_id) == before
     with pytest.raises(APIError):
         with runtime.db.transaction(write=True) as connection:

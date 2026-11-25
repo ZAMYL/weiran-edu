@@ -43,6 +43,7 @@ def approval(**overrides):
     return ReviewedApproval.model_validate(value)
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_reviewed_multiround_preserves_actual_facts_witnesses_and_privacy(tmp_path):
     captured = []
 
@@ -95,6 +96,7 @@ def test_legacy_live_stays_disabled_and_review_code_is_bound(tmp_path):
         approval(reviewed_code_sha256="0" * 64).check(date(2026, 11, 12))
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_revocation_after_response_rejects_publication_and_holds_reservation(tmp_path):
     revoked = False
 
@@ -127,6 +129,7 @@ def test_revocation_after_response_rejects_publication_and_holds_reservation(tmp
         budget.close()
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_shared_budget_does_not_reset_and_source_cannot_change(tmp_path):
     budget = ReviewedBudget(
         approval(max_requests=1),
@@ -157,6 +160,7 @@ def test_shared_budget_does_not_reset_and_source_cannot_change(tmp_path):
         )
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_teacher_objects_and_insufficient_cost_are_rejected_before_request(tmp_path):
     budget = ReviewedBudget(
         approval(cost_cap_cny=Decimal("0.01")),

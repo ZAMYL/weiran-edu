@@ -1,5 +1,6 @@
 """Issue #82: one server-owned live ledger, deduplicated by the human approval."""
 
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -32,6 +33,7 @@ def approval(campaign_id="live-ledger-campaign", **overrides):
     return ReviewedApproval.model_validate(value)
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_live_journal_follows_the_server_root_whatever_the_working_directory(tmp_path, monkeypatch):
     first = ReviewedBudget(approval(), authorize=lambda: None)
     try:
@@ -46,6 +48,7 @@ def test_live_journal_follows_the_server_root_whatever_the_working_directory(tmp
         first.close()
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_live_budget_rejects_a_caller_supplied_directory(tmp_path):
     operator_picked = tmp_path / "operator-picked-ledger"
     with pytest.raises(AgentError, match="live_ledger_root_is_server_owned"):
@@ -53,6 +56,7 @@ def test_live_budget_rejects_a_caller_supplied_directory(tmp_path):
     assert not operator_picked.exists()
 
 
+@pytest.mark.usefixtures("reviewed_budget_clock")
 def test_one_human_approval_cannot_fund_a_second_campaign():
     first = ReviewedBudget(approval("approval-bound-campaign"), authorize=lambda: None)
     try:
@@ -60,6 +64,13 @@ def test_one_human_approval_cannot_fund_a_second_campaign():
             ReviewedBudget(approval("approval-bound-campaign-two"), authorize=lambda: None)
     finally:
         first.close()
+
+
+@pytest.mark.parametrize("reviewed_budget_clock", [date(2026, 11, 20)], indirect=True)
+def test_reviewed_budget_rejects_expired_approval(reviewed_budget_clock):
+    with pytest.raises(AgentError, match="stale_authorization_or_price"):
+        ReviewedBudget(approval(), authorize=lambda: None)
+    assert not list(ledger_root().glob("*.jsonl"))
 
 
 def test_relative_ledger_root_fails_closed(monkeypatch):

@@ -1,0 +1,84 @@
+{
+  "after": {
+    "fields": {
+      "fn": 4,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.8918918918918919,
+      "tp": 33
+    },
+    "links": {
+      "fn": 1,
+      "fp": 1,
+      "precision": 0.5,
+      "recall": 0.5,
+      "tp": 1
+    },
+    "role_exact_accuracy": 0.8888888888888888,
+    "unknown_abstained": 11,
+    "unknown_total": 11,
+    "unsubstantiated": 1
+  },
+  "before": {
+    "fields": {
+      "fn": 9,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.7567567567567568,
+      "tp": 28
+    },
+    "links": {
+      "fn": 1,
+      "fp": 1,
+      "precision": 0.5,
+      "recall": 0.5,
+      "tp": 1
+    },
+    "role_exact_accuracy": 0.7777777777777778,
+    "unknown_abstained": 11,
+    "unknown_total": 11,
+    "unsubstantiated": 1
+  },
+  "holdout_after": {
+    "fields": {
+      "fn": 4,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.7647058823529411,
+      "tp": 13
+    },
+    "links": {
+      "fn": 1,
+      "fp": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tp": 0
+    },
+    "role_exact_accuracy": 0.8,
+    "unknown_abstained": 9,
+    "unknown_total": 9,
+    "unsubstantiated": 1
+  },
+  "holdout_before": {
+    "fields": {
+      "fn": 4,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.7647058823529411,
+      "tp": 13
+    },
+    "links": {
+      "fn": 1,
+      "fp": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tp": 0
+    },
+    "role_exact_accuracy": 0.8,
+    "unknown_abstained": 9,
+    "unknown_total": 9,
+    "unsubstantiated": 1
+  },
+  "masked_after": 4,
+  "masked_before": 9
+}

@@ -122,8 +122,17 @@ class TaskStore:
         )
 
     def grant(
-        self, actor: Principal, batch_id: str, snapshot_id: str, *, lifetime: int = 3600
+        self,
+        actor: Principal,
+        batch_id: str,
+        snapshot_id: str,
+        *,
+        lifetime: int = 3600,
+        purpose: str = "synthetic_mock",
     ) -> str:
+        """Operator-owned task purpose. Browser requests cannot choose this value."""
+        if purpose not in {"synthetic_mock", "database_live"}:
+            raise ValueError("invalid_ai_grant_purpose")
         if not 1 <= lifetime <= 3600:
             raise ValueError("invalid_synthetic_grant_lifetime")
         _, manifest = self.provider.capture(actor, batch_id, snapshot_id)
@@ -141,20 +150,29 @@ class TaskStore:
             if row:
                 if row["source_sha"] != fingerprint:
                     blocked("AI_SOURCE_CONFLICT")
+                if row["purpose"] != purpose:
+                    blocked("AI_GRANT_PURPOSE_CONFLICT")
                 return row["grant_id"]  # Never renew or reset a consumed/revoked grant.
             gid = str(uuid4())
             c.execute(
-                "INSERT INTO ai_synthetic_grants VALUES (?,?,?,?,?,'synthetic_mock',?,0)",
+                "INSERT INTO ai_synthetic_grants VALUES (?,?,?,?,?,?,?,0)",
                 (
                     gid,
                     actor.teacher_id,
                     batch_id,
                     snapshot_id,
                     fingerprint,
+                    purpose,
                     self.clock() + lifetime,
                 ),
             )
             return gid
+
+    def grant_database_live(
+        self, actor: Principal, batch_id: str, snapshot_id: str, *, lifetime: int = 3600
+    ) -> str:
+        """Explicit operator action; never mounted on the teacher HTTP surface."""
+        return self.grant(actor, batch_id, snapshot_id, lifetime=lifetime, purpose="database_live")
 
     def revoke(self, grant_id: str) -> None:
         with self.database.transaction(write=True) as c:
@@ -335,6 +353,18 @@ class TaskStore:
                 row = self._row(c, task_id)
             return row
 
+    def queued(self, *, limit: int = 1) -> list[str]:
+        """Task ids a worker may claim now; expired rows are left for status reads."""
+        if not 1 <= limit <= 100:
+            raise ValueError("invalid_worker_limit")
+        with self.database.transaction() as c:
+            rows = c.execute(
+                "SELECT task_id FROM ai_synthetic_tasks "
+                "WHERE state='queued' AND deadline>? ORDER BY created, task_id LIMIT ?",
+                (self.clock(), limit),
+            ).fetchall()
+        return [row["task_id"] for row in rows]
+
     def start(self, task_id: str) -> dict:
         with self.database.transaction(write=True) as c:
             row = self._row(c, task_id)
@@ -416,7 +446,8 @@ class TaskStore:
                 snapshot["campaign_id"] != row["campaign_id"]
                 or snapshot["source_fingerprints"]
                 != {"authorized-db-" + row["batch_id"]: row["source_sha"]}
-                or snapshot["origin"] != "http_mock"
+                or snapshot["origin"] not in {"http_mock", "qwen_live"}
+                or (snapshot["origin"] == "qwen_live" and row["purpose"] != "database_live")
             ):
                 blocked("AI_BUDGET_SCOPE_CONFLICT")
             old = json.loads(row["budget_json"])
@@ -432,8 +463,19 @@ class TaskStore:
             )
 
     def finish(
-        self, task_id: str, actor: Principal, result: InvestigationResult, proof: dict
+        self,
+        task_id: str,
+        actor: Principal,
+        result: InvestigationResult,
+        proof: dict,
+        *,
+        provenance: dict | None = None,
     ) -> None:
+        """Commit result, proof and provenance in one transaction.
+
+        A Live completion must never be visible without its server-owned
+        provenance; an interruption rolls the whole update back.
+        """
         raw = result.model_dump(mode="json")
         with self.database.transaction(write=True) as c:
             row = self._row(c, task_id)
@@ -441,12 +483,33 @@ class TaskStore:
             profile_expected = self.profile_result_expected(row, proof)
             if isinstance(result, ProfileInvestigationResult) is not profile_expected:
                 blocked("AI_PROFILE_PROOF_CONFLICT", 503)
-            c.execute(
-                "UPDATE ai_synthetic_tasks SET "
-                "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=? "
-                "WHERE task_id=?",
-                (encode(raw), digest(raw), encode(proof), encode(proof["released"]), task_id),
-            )
+            if provenance is None:
+                c.execute(
+                    "UPDATE ai_synthetic_tasks SET "
+                    "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=? "
+                    "WHERE task_id=?",
+                    (
+                        encode(raw),
+                        digest(raw),
+                        encode(proof),
+                        encode(proof["released"]),
+                        task_id,
+                    ),
+                )
+            else:
+                c.execute(
+                    "UPDATE ai_synthetic_tasks SET "
+                    "state='completed',result_json=?,result_sha=?,proof_json=?,disclosure_json=?,"
+                    "provenance_json=? WHERE task_id=?",
+                    (
+                        encode(raw),
+                        digest(raw),
+                        encode(proof),
+                        encode(proof["released"]),
+                        encode(provenance),
+                        task_id,
+                    ),
+                )
             self.event(c, task_id, "result_committed", {"result_sha": digest(raw)})
 
     @staticmethod

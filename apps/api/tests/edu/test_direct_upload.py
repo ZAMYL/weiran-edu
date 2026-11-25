@@ -1,6 +1,8 @@
 """Real HTTP acceptance for existing files; no new layouts or model inference."""
 
 from hashlib import sha256
+from io import BytesIO
+from zipfile import ZipFile, ZipInfo
 
 import pytest
 
@@ -275,11 +277,60 @@ def test_unknown_flat_layout_is_explicitly_unsupported(client, runtime, book, pa
     no_writes(runtime)
 
 
-@pytest.mark.parametrize("filename", ["synthetic.zip", "synthetic.html", "synthetic.xls"])
-def test_other_containers_not_claimed_supported(client, runtime, book, pack, filename):
+def zip_with_html() -> bytes:
+    """造一个只含 HTML 的 ZIP：内容确实是 zip_html，不是 xlsx。"""
+    stream = BytesIO()
+    with ZipFile(stream, "w") as archive:
+        archive.writestr(
+            ZipInfo("index.html", date_time=(1980, 1, 1, 0, 0, 0)),
+            "<html><body>合成答题卡</body></html>",
+        )
+    return stream.getvalue()
+
+
+HTML_DOC = b"<!doctype html><html><body>synthetic</body></html>"
+PDF_DOC = b"%PDF-1.7\n% synthetic\n"
+
+
+@pytest.mark.parametrize(
+    ("filename", "payload", "kind"),
+    [
+        pytest.param("合成资料.zip", zip_with_html(), "zip_html", id="zip_html"),
+        pytest.param("合成资料.html", HTML_DOC, "html", id="html"),
+        pytest.param("合成资料.pdf", PDF_DOC, "pdf", id="pdf"),
+    ],
+)
+def test_recognised_containers_without_adapter_are_rejected(
+    client, runtime, filename, payload, kind
+):
+    # 认得出类型，但没有对应解析器：必须明确报错，且绝不进入解析。
     runtime.service.parser = forbidden_parser
-    response = upload(client, book, pack, filename=filename)
-    assert response.status_code == 415
+    response = client.post(
+        "/api/v1/edu/imports/preview",
+        files={"file": (filename, payload, "application/octet-stream")},
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "NO_ADAPTER_FOR_ASSET"
+    assert kind in response.json()["error"]["message"]
+    no_writes(runtime)
+
+
+def test_extension_cannot_disguise_a_zip_as_xlsx(client, runtime):
+    # 文件名和 Content-Type 都伪装成 xlsx，内容却是 HTML 压缩包：按内容判定。
+    runtime.service.parser = forbidden_parser
+    response = client.post(
+        "/api/v1/edu/imports/preview",
+        files={
+            "file": (
+                "伪装成表格.xlsx",
+                zip_with_html(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "NO_ADAPTER_FOR_ASSET"
+    assert "zip_html" in response.json()["error"]["message"]
     no_writes(runtime)
 
 

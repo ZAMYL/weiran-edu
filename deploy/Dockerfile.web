@@ -1,0 +1,13 @@
+FROM node:24-slim
+
+ENV NEXT_TELEMETRY_DISABLED=1
+WORKDIR /app
+RUN corepack enable
+
+COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/next.config.ts ./
+COPY apps/web ./
+RUN corepack pnpm install --frozen-lockfile && corepack pnpm build
+
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["corepack", "pnpm", "exec", "next", "start", "--hostname", "0.0.0.0", "--port", "3000"]

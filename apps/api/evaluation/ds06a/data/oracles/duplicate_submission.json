@@ -1,0 +1,12 @@
+{
+  "case_id": "duplicate_submission",
+  "human_review": {
+    "reviewer": "DS-06A independent synthetic review",
+    "rationale": [
+      "同一参与者在同一题出现完全相同的提交键，无法判断应保留哪一行。",
+      "正确行为是拒绝结构歧义，不得静默去重、翻倍计数或自行选择最新提交。"
+    ],
+    "verification": "在运行前人工核对 submission_id 与 participant/problem 组合均重复。"
+  },
+  "rejections": {"A": "duplicate_submission", "B": "duplicate_submission", "C": "duplicate_submission"}
+}

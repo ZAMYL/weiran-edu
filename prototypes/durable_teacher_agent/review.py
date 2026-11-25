@@ -10,6 +10,12 @@ from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from fractions import Fraction
 
+from fastapi import Request
+from prototypes.adaptive_assessment.agent import AdaptiveFact
+from prototypes.adaptive_assessment.analysis import VERSION as AGENT_VERSION
+from prototypes.teacher_agent_bridge.provider import ALIASES
+from starlette.concurrency import run_in_threadpool
+
 from app.analysis.edu.discovery.models import VERSION as FORMAL_VERSION
 from app.analysis.edu.discovery.models import Discovery, DiscoveryResult
 from app.analysis.edu.models import Dimension, RecordRef
@@ -21,12 +27,6 @@ from app.edu.discovery_disconnect import CancelCheck, cancellation, check_cancel
 from app.edu.discovery_models import DiscoverySpec
 from app.edu.discovery_results import DiscoveryResultService
 from app.edu.review_models import AnalysisCreate, AnalysisSnapshot, DiscoverySelection
-from fastapi import Request
-from starlette.concurrency import run_in_threadpool
-
-from prototypes.adaptive_assessment.agent import AdaptiveFact
-from prototypes.adaptive_assessment.analysis import VERSION as AGENT_VERSION
-from prototypes.teacher_agent_bridge.provider import ALIASES
 
 from .models import ReviewReceipt, ReviewSubmission
 from .service import TaskService

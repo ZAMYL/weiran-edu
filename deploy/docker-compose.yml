@@ -1,0 +1,80 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    env_file: .env
+    environment:
+      WEIRAN_EDU_DATABASE: /data/edu.sqlite3
+      WEIRAN_EDU_AI_STATE_DIR: /data/ai-state
+      WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT: /ledger
+      WEIRAN_EDU_REAL_DATA_APPROVAL: /run/secrets/real-data-approval.json
+      WEIRAN_EDU_QWEN_LIVE_APPROVAL: /run/secrets/qwen-live-approval.json
+    volumes:
+      - ./data:/data
+      - ./ledger:/ledger
+      - ./secrets/real-data-approval.json:/run/secrets/real-data-approval.json:ro
+      - ./secrets/qwen-live-approval.json:/run/secrets/qwen-live-approval.json:ro
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    command: ["uv", "run", "--project", "apps/api", "--locked", "python", "-m", "app.worker_main"]
+    env_file: .env
+    environment:
+      WEIRAN_EDU_DATABASE: /data/edu.sqlite3
+      WEIRAN_EDU_AI_STATE_DIR: /data/ai-state
+      WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT: /ledger
+      WEIRAN_EDU_REAL_DATA_APPROVAL: /run/secrets/real-data-approval.json
+      WEIRAN_EDU_QWEN_LIVE_APPROVAL: /run/secrets/qwen-live-approval.json
+    volumes:
+      - ./data:/data
+      - ./ledger:/ledger
+      - ./secrets/real-data-approval.json:/run/secrets/real-data-approval.json:ro
+      - ./secrets/qwen-live-approval.json:/run/secrets/qwen-live-approval.json:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    environment:
+      EDU_API_ORIGIN: http://api:8000
+      EDU_AI_LIVE_MODE: "1"
+      EDU_TEST_MODE: ""
+      EDU_AI_SYNTHETIC_MODE: ""
+    expose:
+      - "3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:

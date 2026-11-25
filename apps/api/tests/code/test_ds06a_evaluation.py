@@ -1,0 +1,226 @@
+"""Regression tests for the independent DS-06A evaluation harness."""
+
+from __future__ import annotations
+
+from copy import deepcopy
+from pathlib import Path
+
+import pytest
+
+from app.analysis.code import TestPointOutcome, Verdict
+from evaluation.ds06a.baseline import run_baseline
+from evaluation.ds06a.c01 import run_c01
+from evaluation.ds06a.metrics import score_result
+from evaluation.ds06a.model import Case, load_cases, load_oracle
+from evaluation.ds06a.pipelines import _record, run_ds03
+from evaluation.ds06a.run_eval import run_benchmark, run_once, write_outputs
+
+DATA_DIR = Path(__file__).resolve().parents[2] / "evaluation" / "ds06a" / "data"
+
+
+def case_by_id(case_id: str) -> Case:
+    return load_cases(DATA_DIR, case_id)[0]
+
+
+def test_synthetic_cases_and_human_oracles_are_separate_and_complete() -> None:
+    cases = load_cases(DATA_DIR)
+    assert len(cases) == 11
+    assert all(load_oracle(DATA_DIR, case)["human_review"]["rationale"] for case in cases)
+    for path in (DATA_DIR / "cases").glob("*.json"):
+        text = path.read_text(encoding="utf-8").lower()
+        assert '"expected' not in text
+        assert '"oracle' not in text
+        assert '"root_cause' not in text
+
+
+def test_all_three_real_pipelines_meet_the_independent_standard() -> None:
+    rows = run_once(DATA_DIR)
+    assert len(rows) == 33
+    for row in rows:
+        metrics = row["metrics"]
+        assert metrics["rejection_correct"]
+        assert metrics["statistics_correct"] is not False
+        assert metrics["phenomenon_accuracy"] in {None, 1.0}
+        assert metrics["unsupported_root_assertions"] == 0
+        for name in ("evidence", "feature", "association", "abstention", "source"):
+            assert (metrics[name + "_success"] or 0) == metrics[name + "_total"], (
+                row["case_id"],
+                row["system"],
+                name,
+                metrics,
+            )
+    summary = run_benchmark(DATA_DIR)["summary"]
+    assert summary["A"]["feature_extraction_accuracy"] is None
+    assert summary["A"]["association_accuracy"] is None
+    assert summary["B"]["feature_extraction_accuracy"] == 1.0
+    assert summary["C"]["association_accuracy"] == 1.0
+
+
+def test_repeated_runs_are_semantically_deterministic(tmp_path: Path) -> None:
+    report = run_benchmark(DATA_DIR, repeat=2)
+    assert report["semantic_repeat_deterministic"] is True
+    assert report["real_qwen_called"] is False
+    assert report["real_token_usage"] is None
+    assert report["real_model_cost"] is None
+    write_outputs(report, tmp_path)
+    assert {path.name for path in tmp_path.iterdir()} == {
+        "metrics.json",
+        "summary.csv",
+        "case_results.csv",
+        "report.md",
+    }
+
+
+def test_ds03_adapter_calls_the_real_analyze_interface(monkeypatch: pytest.MonkeyPatch) -> None:
+    import evaluation.ds06a.pipelines as pipelines
+
+    real_analyze = pipelines.ds03_analyze
+    calls = []
+
+    def recording_analyze(*args, **kwargs):
+        calls.append((args, kwargs))
+        return real_analyze(*args, **kwargs)
+
+    monkeypatch.setattr(pipelines, "ds03_analyze", recording_analyze)
+    result = run_ds03(case_by_id("varied_distribution"))
+    assert result["status"] == "ok"
+    assert len(calls) == 2
+    assert calls[0][0][2][0].__class__.__name__ == "SubmissionRecord"
+    assert result["candidates"]
+
+
+@pytest.mark.parametrize(
+    ("status", "outcome", "failure_verdict"),
+    [
+        ("wrong_answer", TestPointOutcome.FAILED, Verdict.WRONG_ANSWER),
+        ("timeout", TestPointOutcome.FAILED, Verdict.TIME_LIMIT_EXCEEDED),
+        ("memory_limit", TestPointOutcome.FAILED, Verdict.MEMORY_LIMIT_EXCEEDED),
+        ("runtime_error", TestPointOutcome.FAILED, Verdict.RUNTIME_ERROR),
+        ("format_error", TestPointOutcome.FAILED, Verdict.FORMAT_ERROR),
+        ("other_failure", TestPointOutcome.FAILED, None),
+        ("accepted", TestPointOutcome.PASSED, None),
+        ("unknown", TestPointOutcome.UNKNOWN, None),
+        ("compile_error", TestPointOutcome.UNKNOWN, None),
+    ],
+)
+def test_ds03_record_preserves_point_status_independently_of_submission(
+    status: str, outcome: TestPointOutcome, failure_verdict: Verdict | None
+) -> None:
+    case = case_by_id("same_verdict_different_features")
+    row = {**case.submissions[0], "verdict": "partial", "tests": [{"point": "p", "status": status}]}
+    record = _record(case, row)
+    (point,) = record.test_points
+    assert record.verdict is Verdict.PARTIAL
+    assert (point.testpoint_id, point.outcome, point.failure_verdict) == (
+        "p",
+        outcome,
+        failure_verdict,
+    )
+
+
+def _mixed_no_testpoint_case() -> Case:
+    return Case(
+        {
+            "schema_version": 1,
+            "case_id": "mixed_no_testpoint_fallback",
+            "distribution": "mixed_no_testpoint_fallback",
+            "batch_id": "ds06a-mixed-no-testpoint-fallback",
+            "participants": ["anon-a", "anon-b"],
+            "problems": ["p1"],
+            "submissions": [
+                {
+                    "submission_id": "p1-a",
+                    "participant": "anon-a",
+                    "problem": "p1",
+                    "language": "python",
+                    "code": "for i in range(3):\n    print(i)\n",
+                    "code_state": "present",
+                    "code_truncated": False,
+                    "verdict": "wrong_answer",
+                    "tests": [],
+                    "source_id": "src-a",
+                    "location": "p1/a.html",
+                },
+                {
+                    "submission_id": "p1-b",
+                    "participant": "anon-b",
+                    "problem": "p1",
+                    "language": "python",
+                    "code": "for i in range(3):\n    print(i)\n",
+                    "code_state": "present",
+                    "code_truncated": False,
+                    "verdict": "wrong_answer",
+                    "tests": [{"point": "900", "status": "wrong_answer"}],
+                    "source_id": "src-b",
+                    "location": "p1/b.html",
+                },
+            ],
+        }
+    )
+
+
+def test_no_testpoint_fallback_excludes_testpoint_submissions() -> None:
+    """The DS-06A no-test-point phenomenon must not absorb a test-point wrong answer."""
+    result = run_ds03(_mixed_no_testpoint_case())
+    assert result["status"] == "ok"
+    fallback = [
+        cohort
+        for cohort in result["feature_cohorts"]
+        if cohort["point"] is None and cohort["status"] == "wrong_answer"
+    ]
+    point900 = [
+        cohort
+        for cohort in result["feature_cohorts"]
+        if cohort["point"] == "900" and cohort["status"] == "wrong_answer"
+    ]
+    assert fallback and point900
+    assert {p for cohort in fallback for p in cohort["checked"]} == {"anon-a"}
+    assert {p for cohort in point900 for p in cohort["checked"]} == {"anon-b"}
+
+
+def test_c01_adapter_calls_the_real_investigation(monkeypatch: pytest.MonkeyPatch) -> None:
+    import evaluation.ds06a.c01 as c01
+
+    real_investigate = c01.investigate_programming
+    calls = []
+
+    async def recording_investigate(*args, **kwargs):
+        calls.append((args, kwargs))
+        return await real_investigate(*args, **kwargs)
+
+    monkeypatch.setattr(c01, "investigate_programming", recording_investigate)
+    result = run_c01(case_by_id("association_not_causation"))
+    assert result["status"] == "ok"
+    assert len(calls) == 1
+    assert calls[0][1]["transport"] is not None
+    assert result["cards"][0]["limitations"][-1] == "cause_unconfirmed"
+    assert result["source_verified"] is True
+
+
+def test_negative_control_catches_extra_phenomenon_and_bad_source() -> None:
+    case = case_by_id("same_verdict_different_features")
+    oracle = load_oracle(DATA_DIR, case)
+    result = deepcopy(run_baseline(case))
+    result["phenomena"][0]["affected"][0]["locator"] = "tampered/location"
+    extra = deepcopy(result["phenomena"][0])
+    extra["status"] = "runtime_error"
+    result["phenomena"].append(extra)
+    metrics = score_result(case, oracle, result)
+    assert metrics["phenomenon_accuracy"] < 1.0
+    assert metrics["evidence_success"] < metrics["evidence_total"]
+    assert metrics["source_success"] < metrics["source_total"]
+
+
+def test_structural_and_source_integrity_rejections_are_not_hidden() -> None:
+    duplicate = case_by_id("duplicate_submission")
+    assert run_baseline(duplicate)["error"] == "duplicate_submission"
+    assert run_ds03(duplicate)["error"] == "duplicate_submission"
+    assert run_c01(duplicate)["error"] == "duplicate_submission"
+    missing = case_by_id("missing_witness")
+    assert run_baseline(missing)["status"] == "ok"
+    assert run_ds03(missing)["status"] == "ok"
+    assert run_c01(missing)["error"] == "source_scope_mismatch"
+    mismatch = case_by_id("witness_mismatch")
+    assert run_baseline(mismatch)["status"] == "ok"
+    assert run_ds03(mismatch)["status"] == "ok"
+    assert run_c01(mismatch)["error"] == "source_scope_mismatch"
