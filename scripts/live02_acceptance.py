@@ -23,15 +23,20 @@ import urllib.error
 import urllib.request
 import uuid
 import zipfile
+from datetime import date
 from pathlib import Path
+
+from prototypes.adaptive_assessment.live.pricing import current_price
 
 REPO = Path(os.environ.get("LIVE02_REPO", Path.cwd())).resolve()
 API = REPO / "apps" / "api"
 
 EXPECTED_ENDPOINT = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 ENDPOINT_SHA256 = hashlib.sha256(EXPECTED_ENDPOINT.encode()).hexdigest()
-PRICE_FINGERPRINT = "998d6bd3c3311f29f09b2a1328739e9f05b2847bb74da6a331e3e3ef01739bce"
-PRICE_VALID_UNTIL = "2026-11-26"
+# Single source of truth: the newest reviewed snapshot, so a re-reviewed price cannot drift here.
+PRICE = current_price(date.today())
+PRICE_FINGERPRINT = PRICE.fingerprint
+PRICE_VALID_UNTIL = PRICE.valid_until
 
 
 def fail(message: str, code: int = 1) -> None:

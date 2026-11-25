@@ -74,14 +74,34 @@ REVIEWED_PRICE_20261119 = Price(
     valid_until="2026-11-26",
 )
 
+# Official Beijing list price rechecked 2026-11-25: input 0.8 / output 2.7 / cache hit 0.1 CNY
+# per million tokens (help.aliyun.com/zh/model-studio/qwen3-8-flash). New identity keeps older
+# approvals expired instead of silently extending them.
+REVIEWED_PRICE_20261125 = Price(
+    price_id="qwen3.8-flash-beijing-2026-11-25-v1",
+    checked_on="2026-11-25",
+    valid_until="2026-12-02",
+)
+
+
+# Every reviewed snapshot stays registered: older approvals still resolve, with their old expiry.
+_REGISTRY = (
+    PRICE,
+    RESEARCH_PRICE_20261104,
+    REVIEWED_PRICE_20261112,
+    REVIEWED_PRICE_20261119,
+    REVIEWED_PRICE_20261125,
+)
+
 
 def reviewed_price(fingerprint: str) -> Price:
-    for price in (
-        PRICE,
-        RESEARCH_PRICE_20261104,
-        REVIEWED_PRICE_20261112,
-        REVIEWED_PRICE_20261119,
-    ):
+    for price in _REGISTRY:
         if price.fingerprint == fingerprint:
             return price
     raise AgentError("stale_authorization_or_price")
+
+
+def current_price(today: date) -> Price:
+    """Newest snapshot whose review date is already reached; no hand-edited pointer to bump."""
+    eligible = [price for price in _REGISTRY if date.fromisoformat(price.checked_on) <= today]
+    return max(eligible, key=lambda price: price.checked_on) if eligible else PRICE
