@@ -653,6 +653,7 @@ def test_three_migration_database_upgrade_keeps_existing_facts(runtime, stage):
         ):
             connection.execute("DROP TABLE " + table)
         connection.execute("DROP TABLE IF EXISTS material_confirmations")
+        connection.execute("DROP TABLE IF EXISTS material_facts")
         connection.execute("DROP TABLE IF EXISTS material_records")
         connection.execute("DROP INDEX batches_snapshot_reference")
         connection.execute(
@@ -661,7 +662,8 @@ def test_three_migration_database_upgrade_keeps_existing_facts(runtime, stage):
             "'006_source_assets.sql','007_evidence_model.sql','008_problem_dimensions.sql',"
             "'009_evidence_provenance.sql','012_original_artifacts.sql',"
             "'013_material_package_scope.sql','014_programming_tasks.sql',"
-            "'015_material_intake.sql','016_material_confirmation_epoch.sql')"
+            "'015_material_intake.sql','016_material_confirmation_epoch.sql',"
+            "'017_material_facts.sql')"
         )
         previous = [
             tuple(row)

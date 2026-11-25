@@ -19,6 +19,12 @@ from app.ai.edu.material_semantics import extract_material_input, understand_mat
 from app.core.errors import APIError
 from app.core.exact_json import ExactJSONResponse
 from app.edu.auth import Principal, authenticate, deny
+from app.edu.material_fact_models import (
+    MaterialFactList,
+    MaterialFactsIngest,
+    MaterialFactStatistics,
+)
+from app.edu.material_facts import MaterialFactStore
 from app.edu.material_models import (
     MaterialArchive,
     MaterialCapability,
@@ -67,8 +73,14 @@ def intake_of(request: Request) -> MaterialIntake:
     return MaterialIntake(service.database, clock=service.clock)
 
 
+def facts_of(request: Request) -> MaterialFactStore:
+    service = request.app.state.edu_service
+    return MaterialFactStore(service.database, clock=service.clock)
+
+
 type Actor = Annotated[Principal, Depends(_principal)]
 type Intake = Annotated[MaterialIntake, Depends(intake_of)]
+type Facts = Annotated[MaterialFactStore, Depends(facts_of)]
 
 
 async def _upload_files(request: Request) -> list[tuple[bytes, str | None, str | None]]:
@@ -353,3 +365,53 @@ async def list_materials(
 async def read_material(source_id: str, actor: Actor, intake: Intake) -> MaterialRecordView:
     """Read the stored snapshot plus confirmations; never re-parses or re-uploads."""
     return await run_in_threadpool(intake.read, actor, source_id)
+
+
+@router.post("/materials/{source_id}/facts", response_model=MaterialFactsIngest)
+async def ingest_material_facts(
+    source_id: str, request: Request, actor: Actor, store: Facts
+) -> MaterialFactsIngest:
+    """Re-upload the exact same bytes to turn confirmed positions into facts.
+
+    The stored record only keeps a structure snapshot, so the cells have to come from
+    the file itself. A different byte sequence can never inherit a confirmation.
+    """
+    parts = await _upload_files(request)
+    if len(parts) != 1:
+        raise APIError(422, "VALIDATION_ERROR", "写入业务事实需要且只允许一份文件")
+    data, name, content_type = parts[0]
+    digest = hashlib.sha256(data).hexdigest()
+    await run_in_threadpool(store.check_bytes, actor, source_id, digest)
+    detected = detect_asset(data, content_type=content_type)
+    if detected.kind in ARCHIVE_ROUTES:
+        raise APIError(
+            422,
+            "MATERIAL_FACTS_ARCHIVE_UNSUPPORTED",
+            "压缩包按既有答题卡导入路径处理，不在业务事实写入范围",
+        )
+    try:
+        document = await run_in_threadpool(
+            extract_material_input, data, source_id=source_id, content_type=content_type
+        )
+    except ImportFileError as exc:
+        raise APIError(422, "MATERIAL_FACTS_UNSUPPORTED", "该文件无法按已登记结构解析") from exc
+    plan = await understand_materials((document,))
+    return await run_in_threadpool(store.ingest, actor, source_id, digest, document, plan)
+
+
+@router.get("/materials/{source_id}/facts", response_model=MaterialFactList)
+async def list_material_facts(
+    source_id: str,
+    actor: Actor,
+    store: Facts,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 20,
+) -> MaterialFactList:
+    return await run_in_threadpool(store.list, actor, source_id, offset=offset, limit=limit)
+
+
+@router.get("/materials/{source_id}/facts/statistics", response_model=MaterialFactStatistics)
+async def material_fact_statistics(
+    source_id: str, actor: Actor, store: Facts
+) -> MaterialFactStatistics:
+    return await run_in_threadpool(store.statistics, actor, source_id)

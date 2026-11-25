@@ -359,6 +359,7 @@ def test_upgrade_keeps_material_rows_and_relaxes_scope(tmp_path, last_migration)
         "014_programming_tasks.sql",
         "015_material_intake.sql",
         "016_material_confirmation_epoch.sql",
+        "017_material_facts.sql",
     }
     assert {
         row[0]
