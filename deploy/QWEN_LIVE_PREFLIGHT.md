@@ -22,11 +22,11 @@ uv run --project apps/api --locked python -m scripts.edu_qwen_live_preflight
 
 ## 价格与审批
 
-[百炼 qwen3.8-flash 模型页](https://help.aliyun.com/zh/model-studio/qwen3-8-flash) 和 [百炼价目表](https://help.aliyun.com/zh/model-studio/model-pricing) 于 2026-11-19 核对。华北2（北京）每百万 Token 输入 ¥0.8，输出 ¥2.7，缓存命中输入 ¥0.1。代码按非思考、实时文本和无缓存上界预留。按最大输入 991,808 和最多 800 输出，单次预留 992,608 Token、¥0.7956064。六次和 5 次工具是任务硬上限，六次保守上界为 ¥4.7736384。实际可请求次数还受到单次审批的累计额度与已结算使用约束。
+[百炼 qwen3.8-flash 模型页](https://help.aliyun.com/zh/model-studio/qwen3-8-flash) 和 [百炼价目表](https://help.aliyun.com/zh/model-studio/model-pricing) 于 2026-11-19 核对、2026-11-25 复核，两次数值一致。华北2（北京）每百万 Token 输入 ¥0.8，输出 ¥2.7，缓存命中输入 ¥0.1。代码按非思考、实时文本和无缓存上界预留。按最大输入 991,808 和最多 800 输出，单次预留 992,608 Token、¥0.7956064。六次和 5 次工具是任务硬上限，六次保守上界为 ¥4.7736384。实际可请求次数还受到单次审批的累计额度与已结算使用约束。
 
-新快照 `qwen3.8-flash-beijing-2026-11-19-v1` 有效至 2026-11-26（含）。旧 11 月 12 日快照有效至 11 月 19 日（含），代码指纹变化已使分别绑定旧代码的审批无法用于这个补丁。每次审批绑定在实际运行环境自检输出的代码与价格指纹，历史快照和审批不会自动续期。Key 只放 API/Worker 的服务端环境。本次移除了 Web 的整份 `.env` 注入，并从镜像构建上下文排除真实环境文件及部署私有目录。
+最新快照 `qwen3.8-flash-beijing-2026-11-25-v1` 有效至 2026-12-02（含），上一版 11 月 19 日快照有效至 11 月 26 日（含），再往前 11 月 12 日快照有效至 11 月 19 日（含）。快照之间用不同身份，历史审批不会被更长的有效期暗中续期。注册表里的快照由 `current_price(today)` 统一按复核日挑选，preflight、`prototypes/qwen_execution/cli.py`、`scripts/live02_acceptance.py` 都调用它，复核后只需新增一个快照常量，不再手改多处指针。每次审批仍绑定实际运行环境自检输出的代码与价格指纹。Key 只放 API/Worker 的服务端环境，并建议放在受审批约束的 environment secret 里。本次移除了 Web 的整份 `.env` 注入，并从镜像构建上下文排除真实环境文件及部署私有目录。
 
-此次本地自检的代码指纹为 `4ef48914fa8420366e567db71b8e1e915e50e1e200a35441d7f55cf07d0cc411`，价格指纹为 `998d6bd3c3311f29f09b2a1328739e9f05b2847bb74da6a331e3e3ef01739bce`。正式部署以部署树重新计算的指纹为准。
+此次本地自检的代码指纹为 `e30d1ccde26c14b5658d6ae723c073cd873cf7d4016682811c1f23edb1ae6104`，价格指纹为 `8370fae126ae6e5d6c8429349ea47de7a161cc9707377ca0b28ee987eb99113d`（2026-11-25 快照）。代码指纹只覆盖 `prototypes/`、`apps/api/app/` 和 `docs/canonical_assessment/` 下的 `.py`，正式部署以部署树重新计算的指纹为准。
 
 正式任务需要两份仓库外审批、持久账本和数据库用途 grant。`RealDataAdmission.sources` 绑定原文件 SHA-256。`DatabaseLiveApproval.source_fingerprints` 的键绑定实际授权快照的 `source_sha`，不能用原文件哈希或注册合成 recipe 指纹替代。单次审批的 `campaign_id` 必须与任务一致。真实学生资料禁止用于本轮验收。
 
