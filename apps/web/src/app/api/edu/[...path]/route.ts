@@ -26,6 +26,7 @@ const routes: Record<string, RegExp[]> = {
   ],
   POST: [
     /^assessments$/,
+    /^materials\/inspect$/,
     /^assessments\/[^/]+\/ai-tasks$/,
     /^assessments\/[^/]+\/ai-tasks\/[^/]+\/cancel$/,
     /^batches\/[^/]+\/discoveries\/query$/,
@@ -182,7 +183,8 @@ async function relay(
   if (!authorization || !/^Bearer [a-zA-Z0-9_-]{20,200}$/.test(authorization))
     return fail(401, 'UNAUTHORIZED');
   const fileUpload =
-    request.method === 'POST' && (route === 'imports/preview' || route === 'assessments');
+    request.method === 'POST' &&
+    (route === 'imports/preview' || route === 'assessments' || route === 'materials/inspect');
   const limit = fileUpload ? 10 * 1024 * 1024 + 64 * 1024 : 64 * 1024;
   const declaredSize = request.headers.get('content-length');
   if (declaredSize && Number(declaredSize) > limit) return fail(413, 'REQUEST_TOO_LARGE');

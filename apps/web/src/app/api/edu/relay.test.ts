@@ -655,3 +655,52 @@ it('relays per-problem student drill-down routes with Unicode labels and rejects
   ).toBe(403);
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
+
+it('relays POST /api/edu/materials/inspect multipart payloads and rejects sibling paths', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    Response.json(
+      {
+        source_id: 'a'.repeat(64),
+        file_name: 'sample.bin',
+        kind: 'csv',
+        supported: true,
+        role: 'programming',
+        role_state: 'candidate',
+        route: 'material_understanding',
+        tables: [],
+        fields: [],
+        pending: [],
+        analyses: ['code_evidence'],
+      },
+      { headers: { 'x-request-id': 'req_inspect' } },
+    ),
+  );
+  vi.stubGlobal('fetch', fetcher);
+
+  const form = new FormData();
+  form.append('file', new Blob(['学号,题号,源代码\nS001,7-1,int main(){}\n']), 'sample.bin');
+  const res = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/materials/inspect', {
+      method: 'POST',
+      headers: { authorization: bearer },
+      body: form,
+    }),
+    context('materials/inspect'),
+  );
+  expect(res.status).toBe(200);
+  expect(res.headers.get('x-request-id')).toBe('req_inspect');
+  expect(String(fetcher.mock.calls[0]?.[0])).toBe(
+    'http://127.0.0.1:8000/api/v1/edu/materials/inspect',
+  );
+
+  const bad = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/materials/unknown', {
+      method: 'POST',
+      headers: { authorization: bearer },
+      body: '{}',
+    }),
+    context('materials/unknown'),
+  );
+  expect(bad.status).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});

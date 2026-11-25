@@ -35,6 +35,7 @@ import {
   type ProgrammingTask,
 } from '../../services/edu-api/programming-ai-types';
 import type {
+  answerSheetEvidenceDto,
   answerSheetPatternsDto,
   answerSheetProblemStudentsDto,
 } from '../../services/edu-api/answer-sheets';
@@ -370,236 +371,265 @@ export function ProblemAnalysisView({
             {overall.totalNotAttempted > 0 && <Tag>未作答 {overall.totalNotAttempted}</Tag>}
             {overall.totalUnknown > 0 && <Tag>未知 {overall.totalUnknown}</Tag>}
           </Flex>
-
-          {problems.length > 1 && (
-            <Table<AnswerSheetPattern>
-              rowKey="problem_label"
-              size="small"
-              pagination={false}
-              scroll={{ x: 'max-content' }}
-              dataSource={problems}
-              columns={[
-                { title: '题目', dataIndex: 'problem_label' },
-                { title: '提交数', dataIndex: 'submission_count' },
-                { title: '测试点数', dataIndex: 'test_point_count' },
-                {
-                  title: '测试点失败率',
-                  render: (_, item) =>
-                    item.failure_rate !== null ? (
-                      <Tag color={item.failure_rate > 0 ? 'volcano' : 'success'}>
-                        {formatPercent(item.failure_rate)}
-                      </Tag>
-                    ) : (
-                      '—'
-                    ),
-                },
-                {
-                  title: '满分 / 零分',
-                  render: (_, item) => `${item.full_pass_count} / ${item.zero_score_count}`,
-                },
-                {
-                  title: '均分',
-                  render: (_, item) =>
-                    item.score_rate_available && item.average_score !== null
-                      ? String(item.average_score)
-                      : '—',
-                },
-                {
-                  title: '主要失败点',
-                  render: (_, item) =>
-                    item.worst_test_points.length
-                      ? item.worst_test_points
-                          .map((point) => `第${point.test_index}点(${point.failure_count})`)
-                          .join(' · ')
-                      : '—',
-                },
-                {
-                  title: '操作',
-                  render: (_, item) => (
-                    <Button
-                      type="link"
-                      size="small"
-                      onClick={() => setSelectedLabel(item.problem_label)}
-                    >
-                      查看详情
-                    </Button>
-                  ),
-                },
-              ]}
-            />
-          )}
         </Flex>
       </Card>
 
       <Flex vertical gap={tokens.sizeSM}>
-        <Flex align="center" justify="space-between" wrap gap={tokens.sizeSM}>
-          <Typography.Text strong>每道题详细情况</Typography.Text>
-          {problems.length > 1 && (
-            <Segmented<string>
-              aria-label="选择题目"
-              style={{ fontWeight: 'normal' }}
-              value={current.problem_label}
-              onChange={setSelectedLabel}
-              options={problems.map((item) => ({
-                value: item.problem_label,
-                label: item.problem_label,
-              }))}
-            />
-          )}
-        </Flex>
+        <Typography.Text strong>每道题详细情况</Typography.Text>
 
-        <Card
-          size="small"
-          type="inner"
-          title={current.problem_label}
-          extra={
-            <Space wrap size="small">
-              <Tag>{current.submission_count} 份提交</Tag>
-              <Tag>{current.test_point_count} 个测试点</Tag>
-              {current.failure_rate !== null && (
-                <Tag color={current.failure_rate > 0 ? 'volcano' : 'success'}>
-                  失败率 {formatPercent(current.failure_rate)}
-                </Tag>
-              )}
-            </Space>
-          }
-        >
-          <Flex vertical gap={tokens.sizeSM}>
-            <Descriptions
+        <Row gutter={[tokens.size, tokens.size]}>
+          <Col xs={24} lg={7}>
+            <Card
               size="small"
-              bordered
-              column={{ xs: 1, sm: 2, md: 4 }}
-              items={[
-                { key: 'submission_count', label: '提交份数', children: current.submission_count },
-                { key: 'full_pass_count', label: '满分提交', children: current.full_pass_count },
-                { key: 'zero_score_count', label: '零分提交', children: current.zero_score_count },
-                { key: 'average_score', label: '平均分', children: averageScoreText(current) },
-                {
-                  key: 'observation_count',
-                  label: '测试点观测总数',
-                  children: current.observation_count,
-                },
-                { key: 'effective_count', label: '有效观测数', children: current.effective_count },
-                {
-                  key: 'coverage',
-                  label: '有效覆盖率',
-                  children: formatPercent(current.coverage),
-                },
-                {
-                  key: 'unknown_rate',
-                  label: '未知状态占比',
-                  children: formatPercent(current.unknown_rate),
-                },
-              ]}
-            />
-
-            {current.verdict_counts.length > 0 && (
-              <Flex align="center" wrap gap={tokens.sizeXS}>
-                <Typography.Text type="secondary">判题结果分布：</Typography.Text>
-                {current.verdict_counts.map((entry) => {
-                  const pct =
-                    current.submission_count > 0
-                      ? Math.round((entry.count / current.submission_count) * 100)
-                      : 0;
-                  const tagText = `${entry.status || '未知'} ${entry.count} (${pct}%)`;
-                  if (!onDrillToStudents || !entry.status || entry.status === '未标注') {
-                    return (
-                      <Tag key={entry.status || 'unknown'} color={verdictTagColor(entry.status)}>
-                        {tagText}
-                      </Tag>
-                    );
-                  }
+              type="inner"
+              title="题目列表"
+              extra={<Typography.Text type="secondary">{problems.length} 题</Typography.Text>}
+            >
+              <Flex
+                vertical
+                gap={tokens.sizeXXS}
+                style={{ maxHeight: 620, overflowY: 'auto', paddingRight: 2 }}
+              >
+                {problems.map((item) => {
+                  const active = item.problem_label === current.problem_label;
+                  const rateLabel =
+                    item.failure_rate !== null ? `失败 ${formatPercent(item.failure_rate)}` : null;
                   return (
-                    <Tag
-                      key={entry.status}
-                      color={verdictTagColor(entry.status)}
-                      role="button"
-                      tabIndex={0}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() =>
-                        onDrillToStudents({
-                          problemLabel: current.problem_label,
-                          status: entry.status,
-                        })
-                      }
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          onDrillToStudents({
-                            problemLabel: current.problem_label,
-                            status: entry.status,
-                          });
-                        }
+                    <Button
+                      key={item.problem_label}
+                      block
+                      color={active ? 'primary' : 'default'}
+                      variant={active ? 'filled' : 'text'}
+                      style={{
+                        height: 'auto',
+                        paddingBlock: tokens.sizeXS,
+                        paddingInline: tokens.sizeSM,
+                        textAlign: 'left',
+                        justifyContent: 'space-between',
                       }}
+                      aria-pressed={active}
+                      onClick={() => setSelectedLabel(item.problem_label)}
                     >
-                      {tagText}
-                    </Tag>
+                      <Flex vertical align="flex-start" gap={2} style={{ minWidth: 0, flex: 1 }}>
+                        <Flex
+                          align="center"
+                          justify="space-between"
+                          gap={tokens.sizeXS}
+                          style={{ width: '100%' }}
+                        >
+                          <Typography.Text
+                            strong={active}
+                            style={{
+                              color: active ? 'var(--primary-text)' : undefined,
+                              overflowWrap: 'anywhere',
+                              whiteSpace: 'normal',
+                              textAlign: 'left',
+                            }}
+                          >
+                            {item.problem_label}
+                          </Typography.Text>
+                          {rateLabel && (
+                            <Tag
+                              color={item.failure_rate! > 0 ? 'volcano' : 'success'}
+                              style={{ marginInlineEnd: 0, flexShrink: 0 }}
+                            >
+                              {rateLabel}
+                            </Tag>
+                          )}
+                        </Flex>
+                        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                          {[
+                            `${item.submission_count} 份提交`,
+                            `${item.test_point_count} 个测试点`,
+                            item.score_rate_available && item.average_score !== null
+                              ? `均分 ${item.average_score}`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </Typography.Text>
+                      </Flex>
+                    </Button>
                   );
                 })}
-                {onDrillToStudents && (
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    点击结论标签可筛选对应学生
-                  </Typography.Text>
-                )}
               </Flex>
-            )}
+            </Card>
+          </Col>
 
-            <Flex align="center" wrap gap={tokens.sizeXS}>
-              <Typography.Text type="secondary">测试点状态明细：</Typography.Text>
-              <Tag color="success">通过 {current.pass_count}</Tag>
-              <Tag color="error">失败 {current.fail_count}</Tag>
-              <Tag color="warning">部分正确 {current.partial_count}</Tag>
-              <Tag>未作答 {current.not_attempted_count}</Tag>
-              <Tag>未知 {current.unknown_count}</Tag>
-            </Flex>
+          <Col xs={24} lg={17}>
+            <Card
+              size="small"
+              type="inner"
+              title={`${current.problem_label} · 题目详情`}
+              extra={
+                <Space wrap size="small">
+                  <Tag>{current.submission_count} 份提交</Tag>
+                  <Tag>{current.test_point_count} 个测试点</Tag>
+                  {current.failure_rate !== null && (
+                    <Tag color={current.failure_rate > 0 ? 'volcano' : 'success'}>
+                      失败率 {formatPercent(current.failure_rate)}
+                    </Tag>
+                  )}
+                </Space>
+              }
+            >
+              <Flex vertical gap={tokens.sizeSM}>
+                <Descriptions
+                  size="small"
+                  bordered
+                  column={{ xs: 1, sm: 2, xl: 4 }}
+                  items={[
+                    {
+                      key: 'submission_count',
+                      label: '提交份数',
+                      children: current.submission_count,
+                    },
+                    {
+                      key: 'full_pass_count',
+                      label: '满分提交',
+                      children: current.full_pass_count,
+                    },
+                    {
+                      key: 'zero_score_count',
+                      label: '零分提交',
+                      children: current.zero_score_count,
+                    },
+                    { key: 'average_score', label: '平均分', children: averageScoreText(current) },
+                    {
+                      key: 'observation_count',
+                      label: '测试点观测总数',
+                      children: current.observation_count,
+                    },
+                    {
+                      key: 'effective_count',
+                      label: '有效观测数',
+                      children: current.effective_count,
+                    },
+                    {
+                      key: 'coverage',
+                      label: '有效覆盖率',
+                      children: formatPercent(current.coverage),
+                    },
+                    {
+                      key: 'unknown_rate',
+                      label: '未知状态占比',
+                      children: formatPercent(current.unknown_rate),
+                    },
+                  ]}
+                />
 
-            <Flex vertical gap={tokens.sizeXS}>
-              <Typography.Text type="secondary">高频失败测试点：</Typography.Text>
-              {current.worst_test_points.length ? (
-                <Flex vertical gap={tokens.sizeXXS}>
-                  {current.worst_test_points.map((point) => {
-                    const pct =
-                      current.failure_count > 0
-                        ? Math.round((point.failure_count / current.failure_count) * 100)
-                        : 0;
-                    return (
-                      <Flex key={point.test_index} align="center" gap={tokens.sizeSM} wrap>
-                        <Tag color="warning" style={{ marginInlineEnd: 0 }}>
-                          第 {point.test_index} 点
-                        </Tag>
-                        <Typography.Text style={{ minWidth: 72 }}>
-                          {point.failure_count} 次失败
-                        </Typography.Text>
-                        <Progress
-                          percent={pct}
-                          status="exception"
-                          size="small"
-                          style={{ flex: 1, minWidth: 140, maxWidth: 260, marginBottom: 0 }}
-                        />
-                        {onDrillToStudents && (
-                          <Button
-                            type="link"
-                            size="small"
-                            onClick={() =>
+                {current.verdict_counts.length > 0 && (
+                  <Flex align="center" wrap gap={tokens.sizeXS}>
+                    <Typography.Text type="secondary">判题结果分布：</Typography.Text>
+                    {current.verdict_counts.map((entry) => {
+                      const pct =
+                        current.submission_count > 0
+                          ? Math.round((entry.count / current.submission_count) * 100)
+                          : 0;
+                      const tagText = `${entry.status || '未知'} ${entry.count} (${pct}%)`;
+                      if (!onDrillToStudents || !entry.status || entry.status === '未标注') {
+                        return (
+                          <Tag
+                            key={entry.status || 'unknown'}
+                            color={verdictTagColor(entry.status)}
+                          >
+                            {tagText}
+                          </Tag>
+                        );
+                      }
+                      return (
+                        <Tag
+                          key={entry.status}
+                          color={verdictTagColor(entry.status)}
+                          role="button"
+                          tabIndex={0}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() =>
+                            onDrillToStudents({
+                              problemLabel: current.problem_label,
+                              status: entry.status,
+                            })
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
                               onDrillToStudents({
                                 problemLabel: current.problem_label,
-                                testIndex: point.test_index,
-                              })
+                                status: entry.status,
+                              });
                             }
-                          >
-                            查看学生
-                          </Button>
-                        )}
-                      </Flex>
-                    );
-                  })}
+                          }}
+                        >
+                          {tagText}
+                        </Tag>
+                      );
+                    })}
+                    {onDrillToStudents && (
+                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                        点击结论标签可筛选对应学生
+                      </Typography.Text>
+                    )}
+                  </Flex>
+                )}
+
+                <Flex align="center" wrap gap={tokens.sizeXS}>
+                  <Typography.Text type="secondary">测试点状态明细：</Typography.Text>
+                  <Tag color="success">通过 {current.pass_count}</Tag>
+                  <Tag color="error">失败 {current.fail_count}</Tag>
+                  <Tag color="warning">部分正确 {current.partial_count}</Tag>
+                  <Tag>未作答 {current.not_attempted_count}</Tag>
+                  <Tag>未知 {current.unknown_count}</Tag>
                 </Flex>
-              ) : (
-                <Typography.Text type="secondary">暂无明确失败的测试点</Typography.Text>
-              )}
-            </Flex>
-          </Flex>
-        </Card>
+
+                <Flex vertical gap={tokens.sizeXS}>
+                  <Typography.Text type="secondary">高频失败测试点：</Typography.Text>
+                  {current.worst_test_points.length ? (
+                    <Flex vertical gap={tokens.sizeXXS}>
+                      {current.worst_test_points.map((point) => {
+                        const pct =
+                          current.failure_count > 0
+                            ? Math.round((point.failure_count / current.failure_count) * 100)
+                            : 0;
+                        return (
+                          <Flex key={point.test_index} align="center" gap={tokens.sizeSM} wrap>
+                            <Tag color="warning" style={{ marginInlineEnd: 0 }}>
+                              第 {point.test_index} 点
+                            </Tag>
+                            <Typography.Text style={{ minWidth: 72 }}>
+                              {point.failure_count} 次失败
+                            </Typography.Text>
+                            <Progress
+                              percent={pct}
+                              status="exception"
+                              size="small"
+                              style={{ flex: 1, minWidth: 140, maxWidth: 260, marginBottom: 0 }}
+                            />
+                            {onDrillToStudents && (
+                              <Button
+                                type="link"
+                                size="small"
+                                onClick={() =>
+                                  onDrillToStudents({
+                                    problemLabel: current.problem_label,
+                                    testIndex: point.test_index,
+                                  })
+                                }
+                              >
+                                查看学生
+                              </Button>
+                            )}
+                          </Flex>
+                        );
+                      })}
+                    </Flex>
+                  ) : (
+                    <Typography.Text type="secondary">暂无明确失败的测试点</Typography.Text>
+                  )}
+                </Flex>
+              </Flex>
+            </Card>
+          </Col>
+        </Row>
       </Flex>
     </Flex>
   );
@@ -832,7 +862,6 @@ export function StudentAnalysisView({
   ai,
   drillFilter,
   onClearDrillFilter,
-  onInspectStudent,
   onRefreshAssessment,
 }: {
   assessmentId: string;
@@ -842,7 +871,6 @@ export function StudentAnalysisView({
   ai: AiHookState;
   drillFilter: StudentDrillFilter | null;
   onClearDrillFilter: () => void;
-  onInspectStudent: (studentPk: string, focusProblem?: string) => void;
   onRefreshAssessment: () => void;
 }) {
   const { client } = useDataMode();
@@ -858,6 +886,7 @@ export function StudentAnalysisView({
   const [scopeOverride, setScopeOverride] = useState<'all' | 'focus' | null>(null);
   const [search, setSearch] = useState('');
   const [selectedPk, setSelectedPk] = useState<string | null>(null);
+  const [selectedSubmissionLabel, setSelectedSubmissionLabel] = useState<string | null>(null);
   const [prevDrill, setPrevDrill] = useState(drillFilter);
   if (prevDrill !== drillFilter) {
     setPrevDrill(drillFilter);
@@ -867,6 +896,7 @@ export function StudentAnalysisView({
       setTestIndexFilter(drillFilter.testIndex ?? null);
       setScopeOverride('all');
       setSelectedPk(null);
+      setSelectedSubmissionLabel(null);
     }
   }
 
@@ -1017,18 +1047,29 @@ export function StudentAnalysisView({
     setSearch('');
     setScopeOverride('all');
     setSelectedPk(null);
+    setSelectedSubmissionLabel(null);
     onClearDrillFilter();
   }
 
-  const orderedSubmissions = useMemo(() => {
-    const subs = evidence.data?.submissions ?? [];
-    if (!activeProblem) return subs;
-    return [...subs].sort((a, b) => {
-      if (a.problem_label === activeProblem && b.problem_label !== activeProblem) return -1;
-      if (b.problem_label === activeProblem && a.problem_label !== activeProblem) return 1;
-      return a.ordinal - b.ordinal;
-    });
-  }, [evidence.data, activeProblem]);
+  const orderedSubmissions = useMemo(
+    () => [...(evidence.data?.submissions ?? [])].sort((a, b) => a.ordinal - b.ordinal),
+    [evidence.data],
+  );
+
+  const currentSubmission = useMemo(() => {
+    if (!orderedSubmissions.length) return null;
+    if (selectedSubmissionLabel) {
+      const explicit = orderedSubmissions.find(
+        (sub) => sub.problem_label === selectedSubmissionLabel,
+      );
+      if (explicit) return explicit;
+    }
+    if (activeProblem) {
+      const focused = orderedSubmissions.find((sub) => sub.problem_label === activeProblem);
+      if (focused) return focused;
+    }
+    return orderedSubmissions[0]!;
+  }, [orderedSubmissions, selectedSubmissionLabel, activeProblem]);
 
   const evidenceSummary = useMemo(() => {
     const subs = evidence.data?.submissions ?? [];
@@ -1057,6 +1098,7 @@ export function StudentAnalysisView({
                   setStatusFilter(null);
                   setTestIndexFilter(null);
                   setSelectedPk(null);
+                  setSelectedSubmissionLabel(null);
                 }}
                 style={{ minWidth: 160 }}
                 options={patterns.map((item) => ({
@@ -1223,19 +1265,6 @@ export function StudentAnalysisView({
                 ? `${activeStudent.display_name || activeStudent.external_key} · 答题情况`
                 : '学生答题情况'
             }
-            extra={
-              activeStudent && (
-                <Button
-                  type="link"
-                  size="small"
-                  onClick={() =>
-                    onInspectStudent(activeStudent.student_pk, activeProblem ?? undefined)
-                  }
-                >
-                  抽屉查看代码
-                </Button>
-              )
-            }
           >
             {!activeStudent ? (
               <Empty
@@ -1325,98 +1354,57 @@ export function StudentAnalysisView({
                       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无提交记录" />
                     )}
 
-                    {orderedSubmissions.map((submission) => {
-                      const passObs = submission.observations.filter((obs) =>
-                        /通过|正确|accepted|pass|\bok\b/i.test(obs.status),
-                      ).length;
-                      return (
-                        <Card
-                          key={`${submission.ordinal}:${submission.problem_label}`}
-                          size="small"
-                          title={submission.problem_label}
-                          extra={
-                            <Space wrap size="small">
-                              {submission.verdict && (
-                                <Tag color={verdictTagColor(submission.verdict)}>
-                                  {submission.verdict}
-                                </Tag>
-                              )}
-                              {submission.observations.length > 0 && (
-                                <Tag>
-                                  通过 {passObs} / {submission.observations.length} 点
-                                </Tag>
-                              )}
-                            </Space>
-                          }
-                        >
-                          <Flex vertical gap={tokens.sizeSM}>
-                            {submission.source?.entry && (
-                              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                                {[
-                                  submission.source.entry,
-                                  submission.source.source_index != null
-                                    ? `题块 ${submission.source.source_index}`
-                                    : null,
-                                ]
-                                  .filter(Boolean)
-                                  .join(' · ')}
-                              </Typography.Text>
-                            )}
-
-                            {submission.observations.length > 0 && (
-                              <Flex wrap gap={tokens.sizeXXS}>
-                                {submission.observations.map((point, index) => (
-                                  <Tag
-                                    key={`${point.test_index}:${point.source_row ?? index}`}
-                                    color={observationTagColor(point.status)}
-                                  >
-                                    {[
-                                      point.test_index != null ? `第 ${point.test_index} 点` : null,
-                                      point.status,
-                                      point.duration_text,
-                                    ]
-                                      .filter(Boolean)
-                                      .join(' · ')}
-                                  </Tag>
-                                ))}
-                              </Flex>
-                            )}
-
-                            {submission.code_state === 'PRESENT' && submission.code ? (
-                              <Disclosure
-                                defaultExpanded
-                                label={
-                                  <>
-                                    代码{submission.language && ` · ${submission.language}`}
-                                    {submission.code_truncated && '（部分）'}
-                                  </>
-                                }
+                    {orderedSubmissions.length > 0 && currentSubmission && (
+                      <Flex vertical gap={tokens.sizeSM}>
+                        <Flex align="center" wrap gap={tokens.sizeXS}>
+                          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                            作答题目：
+                          </Typography.Text>
+                          {orderedSubmissions.map((submission) => {
+                            const selected =
+                              submission.problem_label === currentSubmission.problem_label;
+                            const statusType = verdictTagColor(submission.verdict || '');
+                            const dotColor =
+                              statusType === 'success'
+                                ? tokens.colorSuccess
+                                : statusType === 'error'
+                                  ? tokens.colorError
+                                  : statusType === 'warning'
+                                    ? tokens.colorWarning
+                                    : tokens.colorTextQuaternary;
+                            return (
+                              <Button
+                                key={`${submission.ordinal}:${submission.problem_label}`}
+                                size="small"
+                                color={selected ? 'primary' : 'default'}
+                                variant={selected ? 'filled' : 'outlined'}
+                                aria-pressed={selected}
+                                onClick={() => setSelectedSubmissionLabel(submission.problem_label)}
                               >
-                                <pre className="answer-sheet-code">
-                                  <code>{submission.code}</code>
-                                </pre>
-                              </Disclosure>
-                            ) : (
-                              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                                当前快照未保留代码原文
-                              </Typography.Text>
-                            )}
+                                <Flex align="center" gap={6}>
+                                  <span
+                                    aria-hidden="true"
+                                    style={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: '50%',
+                                      backgroundColor: dotColor,
+                                      display: 'inline-block',
+                                    }}
+                                  />
+                                  <span>{submission.problem_label}</span>
+                                </Flex>
+                              </Button>
+                            );
+                          })}
+                        </Flex>
 
-                            {submission.compiler_output && (
-                              <Disclosure
-                                label={
-                                  <>编译输出{submission.compiler_output_truncated && '（部分）'}</>
-                                }
-                              >
-                                <pre className="answer-sheet-code">
-                                  {submission.compiler_output}
-                                </pre>
-                              </Disclosure>
-                            )}
-                          </Flex>
-                        </Card>
-                      );
-                    })}
+                        <StudentSubmissionCard
+                          key={`${currentSubmission.ordinal}:${currentSubmission.problem_label}`}
+                          submission={currentSubmission}
+                        />
+                      </Flex>
+                    )}
                   </Flex>
                 )}
               </Flex>
@@ -1425,5 +1413,95 @@ export function StudentAnalysisView({
         </Col>
       </Row>
     </Flex>
+  );
+}
+
+type AnswerSheetSubmission = Decoded<typeof answerSheetEvidenceDto>['submissions'][number];
+
+function StudentSubmissionCard({ submission }: { submission: AnswerSheetSubmission }) {
+  const passObs = submission.observations.filter((obs) =>
+    /通过|正确|accepted|pass|\bok\b/i.test(obs.status),
+  ).length;
+  const metaLine = [
+    submission.source?.entry,
+    submission.source?.source_index != null ? `题块 ${submission.source.source_index}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  return (
+    <Card
+      size="small"
+      title={submission.problem_label}
+      extra={
+        <Space wrap size="small">
+          {submission.verdict && (
+            <Tag color={verdictTagColor(submission.verdict)}>{submission.verdict}</Tag>
+          )}
+          {submission.observations.length > 0 && (
+            <Tag>
+              通过 {passObs} / {submission.observations.length} 点
+            </Tag>
+          )}
+        </Space>
+      }
+    >
+      <Flex vertical gap={tokens.sizeSM}>
+        {metaLine && (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            {metaLine}
+          </Typography.Text>
+        )}
+
+        {submission.observations.length > 0 ? (
+          <Flex wrap gap={tokens.sizeXXS}>
+            {submission.observations.map((point, index) => (
+              <Tag
+                key={`${point.test_index}:${point.source_row ?? index}`}
+                color={observationTagColor(point.status)}
+              >
+                {[
+                  point.test_index != null ? `第 ${point.test_index} 点` : null,
+                  point.status,
+                  point.duration_text,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Tag>
+            ))}
+          </Flex>
+        ) : (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            暂无测试点记录
+          </Typography.Text>
+        )}
+
+        {submission.code_state === 'PRESENT' && submission.code ? (
+          <Disclosure
+            defaultExpanded
+            label={
+              <>
+                源代码{submission.language && ` · ${submission.language}`}
+                {submission.code_truncated && '（部分）'}
+              </>
+            }
+          >
+            <pre className="answer-sheet-code">
+              <code>{submission.code}</code>
+            </pre>
+          </Disclosure>
+        ) : (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            当前快照未保留代码原文
+          </Typography.Text>
+        )}
+
+        {submission.compiler_output && (
+          <Disclosure label={<>编译输出{submission.compiler_output_truncated && '（部分）'}</>}>
+            <pre className="answer-sheet-code">{submission.compiler_output}</pre>
+          </Disclosure>
+        )}
+      </Flex>
+    </Card>
   );
 }

@@ -480,7 +480,6 @@ function AnswerSheetWorkspace({
             ai={ai}
             drillFilter={drillFilter}
             onClearDrillFilter={() => setDrillFilter(null)}
-            onInspectStudent={openStudentEvidence}
             onRefreshAssessment={onRefresh}
           />
         ) : (

@@ -408,4 +408,33 @@ describe('programming assessment AI task client', () => {
       message: '原始测评文件当前不可用，拒绝使用缓存结果。',
     });
   });
+
+  it('inspects uploaded materials via backend recognition endpoint', async () => {
+    const transport = vi.fn<typeof fetch>().mockResolvedValue(
+      response(200, {
+        source_id: 'c'.repeat(64),
+        file_name: 'unknown-ext.bin',
+        kind: 'zip_html',
+        supported: true,
+        role: 'programming',
+        role_state: 'candidate',
+        route: 'assessment_import',
+        tables: [{ ref: 'answersheet', rows: 10, columns: 2, complete: true, blocked: false }],
+        fields: [],
+        pending: [],
+        analyses: ['code_evidence'],
+      }),
+    );
+    const client = createEduClient(vi.fn(), transport);
+    client.useTestSession();
+    const form = new FormData();
+    form.append('file', new Blob(['binary']), 'unknown-ext.bin');
+    const result = await client.inspectMaterial(form);
+    expect(result.route).toBe('assessment_import');
+    expect(result.kind).toBe('zip_html');
+    expect(transport).toHaveBeenCalledWith(
+      '/api/edu/materials/inspect',
+      expect.objectContaining({ method: 'POST', body: form }),
+    );
+  });
 });

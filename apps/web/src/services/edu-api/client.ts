@@ -9,6 +9,7 @@ import {
   answerSheetProblemStudentsDto,
   answerSheetStudentsDto,
 } from './answer-sheets';
+import { materialRecognitionDto } from './material-inspect-types';
 import {
   discoveriesDto,
   discoveryDetailDto,
@@ -800,6 +801,8 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
           ),
         signal,
       ),
+    inspectMaterial: (form: FormData, signal?: AbortSignal) =>
+      request('/materials/inspect', materialRecognitionDto, { method: 'POST', body: form }, signal),
     uploadAnswerSheets: (form: FormData, signal?: AbortSignal) =>
       request('/assessments', answerSheetImportDto, { method: 'POST', body: form }, signal),
     answerSheets: (offset: number, signal?: AbortSignal) =>
