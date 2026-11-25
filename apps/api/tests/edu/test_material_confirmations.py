@@ -84,11 +84,27 @@ def test_read_returns_confirmed_state_after_a_restart(client, runtime, client_fa
     assert reread.json()["confirmed"] == confirmed["confirmed"]
 
 
-def test_another_teacher_cannot_read_or_confirm_the_same_file(client, runtime, client_factory):
+def test_same_scope_teacher_reads_but_only_the_owner_confirms(client, runtime, client_factory):
+    """同空间其他教师只读可见；确认仍然只有上传者能做。"""
     material = _upload(client)
+    assert _confirm(client, material["source_id"], runtime.scope).status_code == 200
     with client_factory(runtime.other_token) as other:
-        assert other.get(f"/api/v1/edu/materials/{material['source_id']}").status_code == 404
-        assert _confirm(other, material["source_id"], runtime.scope).status_code == 404
+        readback = other.get(f"/api/v1/edu/materials/{material['source_id']}")
+        assert readback.status_code == 200
+        assert readback.json()["confirmed"]
+        denied = _confirm(other, material["source_id"], runtime.scope)
+        assert denied.status_code == 403
+        assert denied.json()["error"]["code"] == "MATERIAL_OWNER_REQUIRED"
+
+
+def test_teacher_outside_the_scope_cannot_read_it(client, runtime, client_factory):
+    material = _upload(client)
+    assert _confirm(client, material["source_id"], runtime.scope).status_code == 200
+    outsider = runtime.admin.create_teacher("synthetic-outsider")
+    outsider_token = runtime.admin.issue_token(outsider, hours=168)
+    with client_factory(outsider_token) as stranger:
+        assert stranger.get(f"/api/v1/edu/materials/{material['source_id']}").status_code == 404
+        assert stranger.get("/api/v1/edu/materials").json()["total_count"] == 0
 
 
 def test_confirmation_requires_scope_membership(client, runtime):

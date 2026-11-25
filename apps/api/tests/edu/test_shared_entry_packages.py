@@ -358,6 +358,7 @@ def test_upgrade_keeps_material_rows_and_relaxes_scope(tmp_path, last_migration)
         "013_material_package_scope.sql",
         "014_programming_tasks.sql",
         "015_material_intake.sql",
+        "016_material_confirmation_epoch.sql",
     }
     assert {
         row[0]
@@ -365,6 +366,14 @@ def test_upgrade_keeps_material_rows_and_relaxes_scope(tmp_path, last_migration)
             "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'ai_programming_%'"
         )
     } == {"ai_programming_grants", "ai_programming_tasks", "ai_programming_events"}
+    columns = {
+        row[1] for row in connection.execute("PRAGMA table_info(material_records)").fetchall()
+    }
+    assert "plan_sha256" in columns
+    confirm_columns = {
+        row[1] for row in connection.execute("PRAGMA table_info(material_confirmations)").fetchall()
+    }
+    assert "stale" in confirm_columns
     rows = connection.execute(
         "SELECT material_id,entry,asset_id FROM assessment_materials ORDER BY material_id"
     ).fetchall()

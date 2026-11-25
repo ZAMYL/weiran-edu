@@ -142,4 +142,4 @@ def test_migration_is_idempotent(tmp_path):
     database.migrate()
     with database.transaction() as connection:
         count = connection.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0]
-    assert count == 13
+    assert count == 14
