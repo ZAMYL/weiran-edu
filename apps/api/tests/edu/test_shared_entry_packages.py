@@ -357,6 +357,7 @@ def test_upgrade_keeps_material_rows_and_relaxes_scope(tmp_path, last_migration)
         "012_original_artifacts.sql",
         "013_material_package_scope.sql",
         "014_programming_tasks.sql",
+        "015_material_intake.sql",
     }
     assert {
         row[0]
