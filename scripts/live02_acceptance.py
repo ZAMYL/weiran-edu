@@ -1,0 +1,559 @@
+"""LIVE-02 验收驱动：在 Linux runner 上完成一次合成答题卡的真实 Qwen 调查。
+
+两种模式：
+    check  仅校验代码指纹与依赖（不需要凭证/审批）
+    live   完整执行：初始化外置库 → 合成上传 → 生成审批 → API+Worker → 创建任务 → 轮询 → 回查
+
+live 模式缺少任一必需环境变量时按失败关闭退出（退出码 2），不伪造审批、不假装成功。
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import io
+import json
+import os
+import shutil
+import sqlite3
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+import uuid
+import zipfile
+from pathlib import Path
+
+REPO = Path(os.environ.get("LIVE02_REPO", Path.cwd())).resolve()
+API = REPO / "apps" / "api"
+
+EXPECTED_ENDPOINT = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+ENDPOINT_SHA256 = hashlib.sha256(EXPECTED_ENDPOINT.encode()).hexdigest()
+PRICE_FINGERPRINT = "998d6bd3c3311f29f09b2a1328739e9f05b2847bb74da6a331e3e3ef01739bce"
+PRICE_VALID_UNTIL = "2026-11-26"
+
+
+def fail(message: str, code: int = 1) -> None:
+    print(json.dumps({"status": "failed", "reason": message}, ensure_ascii=False))
+    raise SystemExit(code)
+
+
+def code_fingerprint() -> str:
+    sys.path.insert(0, str(REPO))
+    from prototypes.qwen_execution.runtime import code_fingerprint as compute
+
+    return compute()
+
+
+def run(cmd: list[str], *, env: dict[str, str] | None = None, cwd: Path | None = None) -> str:
+    result = subprocess.run(
+        cmd,
+        cwd=str(cwd or API),
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        fail(f"command failed: {' '.join(cmd[:3])} ... rc={result.returncode} err={result.stderr[-400:]}")
+    return result.stdout
+
+
+def cli(db: Path, *args: str) -> dict:
+    output = run([sys.executable, "-m", "app.edu", "--database", str(db), *args])
+    try:
+        payload = json.loads(output.strip().splitlines()[-1])
+    except (IndexError, json.JSONDecodeError):
+        fail(f"unexpected cli output for {args[0]}")
+    if not payload.get("ok"):
+        fail(f"cli {args[0]} rejected")
+    return payload
+
+
+def synthetic_zip() -> bytes:
+    header = (
+        "<div class='box'>"
+        "<div><span>开始时间</span><span>11/02/2025 4:26:45 PM</span></div>"
+        "<div><span>结束时间</span><span>11/02/2025 5:30:00 PM</span></div>"
+        "<div><span>答题时长</span><span>63分钟</span></div>"
+        "<div><span>考生</span><span>{key} {name}</span></div>"
+        "<div><span>试卷总分</span><span>100</span></div>"
+        "<div><span>考生得分</span><span>80</span></div>"
+        "</div>"
+    )
+    block = (
+        "<div class='flex space-x-2'>"
+        "<div class='flex-none font-medium'>{label}</div>"
+        "<div class='flex-1 space-y-4'>"
+        "<div><span>编译器: GXX</span></div>"
+        "<pre class='box'>{code}</pre>"
+        "<div style='display:flex'><div>编译器输出</div><div><pre class='box'>无</pre></div></div>"
+        "<table class='result'><thead><tr><th>测试点</th><th>结果</th><th>测试点得分</th>"
+        "<th>耗时</th><th>内存</th></tr></thead><tbody>"
+        "<tr><td>1</td><td>答案正确</td><td>5</td><td>2.00 ms</td><td>304 KB</td></tr>"
+        "</tbody></table></div>"
+        "<div class='flex-none min-w-[5rem]'><div>答案正确</div><span>5 / 5</span></div>"
+        "</div>"
+    )
+    code = "int main(){ int a=0; return a; }"
+    pages = {}
+    for key, name in (("S001", "同学甲"), ("S002", "同学乙")):
+        blocks = "".join(block.format(label=f"7-{index}", code=code) for index in (1, 2))
+        pages[f"合成包/正式答卷/{key}-{name}.html"] = (
+            "<html><body>"
+            + header.format(key=key, name=name)
+            + f"<div class='space-y-8'>{blocks}</div></body></html>"
+        )
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, "w") as archive:
+        for name, text in pages.items():
+            archive.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), text)
+    return stream.getvalue()
+
+
+def multipart(field: str, filename: str, payload: bytes) -> tuple[bytes, str]:
+    marker = f"----live02{uuid.uuid4().hex}"
+    body = b"".join(
+        [
+            f"--{marker}\r\n".encode(),
+            f'Content-Disposition: form-data; name="{field}"; filename="{filename}"\r\n'.encode(),
+            b"Content-Type: application/zip\r\n\r\n",
+            payload,
+            f"\r\n--{marker}--\r\n".encode(),
+        ]
+    )
+    return body, f"multipart/form-data; boundary={marker}"
+
+
+def request(
+    url: str,
+    *,
+    token: str | None = None,
+    method: str = "GET",
+    body: bytes | None = None,
+    content_type: str | None = None,
+    timeout: int = 60,
+) -> tuple[int, dict]:
+    headers = {"Accept": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    if content_type:
+        headers["Content-Type"] = content_type
+    req = urllib.request.Request(url, data=body, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            payload = response.read()
+            return response.status, json.loads(payload) if payload else {}
+    except urllib.error.HTTPError as error:
+        payload = error.read()
+        try:
+            return error.code, json.loads(payload)
+        except json.JSONDecodeError:
+            return error.code, {"raw": payload.decode("utf-8", "replace")[:400]}
+
+
+def wait_health(base: str, attempts: int = 60) -> None:
+    for _ in range(attempts):
+        try:
+            status, _payload = request(f"{base}/api/v1/health", timeout=3)
+            if status == 200:
+                return
+        except (urllib.error.URLError, OSError):
+            pass
+        time.sleep(1)
+    fail("api_health_timeout")
+
+
+def start_process(cmd: list[str], env: dict[str, str], log: Path) -> subprocess.Popen:
+    handle = log.open("wb")
+    return subprocess.Popen(cmd, cwd=str(API), env=env, stdout=handle, stderr=subprocess.STDOUT)
+
+
+def stop(process: subprocess.Popen | None) -> None:
+    if process is None or process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=15)
+    except subprocess.TimeoutExpired:
+        process.kill()
+
+
+def db_query(db: Path, sql: str, params: tuple = ()) -> list[dict]:
+    connection = sqlite3.connect(str(db))
+    connection.row_factory = sqlite3.Row
+    try:
+        return [dict(row) for row in connection.execute(sql, params).fetchall()]
+    finally:
+        connection.close()
+
+
+def mode_check(expected: str) -> None:
+    actual = code_fingerprint()
+    print(json.dumps({"status": "check", "code_fingerprint": actual}, ensure_ascii=False))
+    if actual != expected:
+        fail("code_changed_requires_new_approval")
+
+
+def mode_smoke(expected_fingerprint: str) -> None:
+    """只验证 API 启动、健康检查、合成上传与快照获取；不生成审批、不调用模型。"""
+    actual = code_fingerprint()
+    if actual != expected_fingerprint:
+        fail("code_changed_requires_new_approval", code=2)
+    temp = Path(os.environ["RUNNER_TEMP"])
+    workspace = temp / "live02-smoke"
+    if workspace.exists():
+        shutil.rmtree(workspace)
+    workspace.mkdir(parents=True)
+    db = workspace / "smoke.sqlite3"
+    originals = workspace / "originals"
+    ledger = workspace / "ledger"
+    originals.mkdir()
+    ledger.mkdir()
+    env = {
+        **os.environ,
+        "WEIRAN_EDU_ENV": "production",
+        "WEIRAN_EDU_DATABASE": str(db),
+        "WEIRAN_EDU_ORIGINALS": str(originals),
+        "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT": str(ledger),
+        "PYTHONPATH": f"{REPO}:{API}",
+    }
+    cli(db, "init")
+    teacher = cli(db, "teacher-create", "--subject", "live02-smoke-teacher")
+    scope = cli(db, "scope-create", "--label", "live02-smoke-scope")
+    cli(
+        db,
+        "member-set",
+        "--teacher-id",
+        teacher["teacher_id"],
+        "--scope-id",
+        scope["data_scope_id"],
+        "--can-import",
+    )
+    token = cli(db, "token-issue", "--teacher-id", teacher["teacher_id"], "--hours", "2")[
+        "access_token"
+    ]
+    port = "8098"
+    base = f"http://127.0.0.1:{port}"
+    api = start_process(
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "app.main:create_app",
+            "--factory",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            port,
+            "--log-level",
+            "warning",
+        ],
+        env,
+        workspace / "api-smoke.log",
+    )
+    try:
+        wait_health(base)
+        body, content_type = multipart("file", "live02-synthetic.zip", synthetic_zip())
+        status, payload = request(
+            f"{base}/api/v1/edu/assessments",
+            token=token,
+            method="POST",
+            body=body,
+            content_type=content_type,
+            timeout=180,
+        )
+        if status not in (200, 201):
+            fail(f"upload_failed:{status}")
+        assessment_id = payload.get("assessment_id") or ""
+    finally:
+        stop(api)
+    rows = db_query(
+        db, "SELECT source_snapshot_id FROM assessments WHERE assessment_id=?", (assessment_id,)
+    )
+    snapshot_id = (rows[0]["source_snapshot_id"] if rows else "") or ""
+    print(
+        json.dumps(
+            {
+                "status": "smoke_ok",
+                "upload_status": status,
+                "assessment_id": assessment_id,
+                "source_snapshot_id": snapshot_id,
+            },
+            ensure_ascii=False,
+        )
+    )
+    if not snapshot_id:
+        fail("snapshot_id_missing")
+
+
+def mode_live(expected_fingerprint: str) -> None:
+    required = {
+        "DASHSCOPE_API_KEY": os.environ.get("DASHSCOPE_API_KEY", ""),
+        "DASHSCOPE_BASE_URL": os.environ.get("DASHSCOPE_BASE_URL", ""),
+        "WEIRAN_QWEN_MODEL": os.environ.get("WEIRAN_QWEN_MODEL", ""),
+        "LIVE02_HUMAN_APPROVAL_REFERENCE": os.environ.get("LIVE02_HUMAN_APPROVAL_REFERENCE", ""),
+        "LIVE02_INDEPENDENT_REVIEW_REFERENCE": os.environ.get(
+            "LIVE02_INDEPENDENT_REVIEW_REFERENCE", ""
+        ),
+    }
+    missing = [name for name, value in required.items() if not value]
+    if missing:
+        fail(json.dumps({"missing": missing}, ensure_ascii=False), code=2)
+    placeholder_markers = (
+        "pending",
+        "placeholder",
+        "changeme",
+        "todo",
+        "human_approval_reference",
+        "independent_review_reference",
+    )
+    for name in ("LIVE02_HUMAN_APPROVAL_REFERENCE", "LIVE02_INDEPENDENT_REVIEW_REFERENCE"):
+        value = required[name].lower()
+        if any(marker in value for marker in placeholder_markers):
+            fail(json.dumps({"placeholder_reference": name}, ensure_ascii=False), code=2)
+    if (
+        required["LIVE02_HUMAN_APPROVAL_REFERENCE"]
+        == required["LIVE02_INDEPENDENT_REVIEW_REFERENCE"]
+    ):
+        fail("approval_and_review_references_must_differ", code=2)
+    if required["DASHSCOPE_BASE_URL"].rstrip("/") != EXPECTED_ENDPOINT.rstrip("/"):
+        fail("unapproved_endpoint")
+    if required["WEIRAN_QWEN_MODEL"] != "qwen3.8-flash":
+        fail("unapproved_model")
+    actual = code_fingerprint()
+    if actual != expected_fingerprint:
+        fail("code_changed_requires_new_approval")
+
+    temp = Path(os.environ["RUNNER_TEMP"])
+    workspace = temp / "live02"
+    if workspace.exists():
+        shutil.rmtree(workspace)
+    workspace.mkdir(parents=True)
+    db = workspace / "live02.sqlite3"
+    originals = workspace / "originals"
+    ledger = workspace / "ledger"
+    approval_path = workspace / "approval.json"
+    originals.mkdir()
+    ledger.mkdir()
+
+    base_env = {
+        **os.environ,
+        "WEIRAN_EDU_ENV": "production",
+        "WEIRAN_EDU_DATABASE": str(db),
+        "WEIRAN_EDU_ORIGINALS": str(originals),
+        "WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT": str(ledger),
+        "DASHSCOPE_BASE_URL": required["DASHSCOPE_BASE_URL"],
+        "DASHSCOPE_API_KEY": required["DASHSCOPE_API_KEY"],
+        "WEIRAN_QWEN_MODEL": required["WEIRAN_QWEN_MODEL"],
+        "PYTHONPATH": f"{REPO}:{API}",
+    }
+    evidence: dict = {"steps": []}
+
+    cli(db, "init")
+    teacher = cli(db, "teacher-create", "--subject", "live02-acceptance-teacher")
+    scope = cli(db, "scope-create", "--label", "live02-acceptance-scope")
+    cli(
+        db,
+        "member-set",
+        "--teacher-id",
+        teacher["teacher_id"],
+        "--scope-id",
+        scope["data_scope_id"],
+        "--can-import",
+    )
+    token_payload = cli(db, "token-issue", "--teacher-id", teacher["teacher_id"], "--hours", "12")
+    token = token_payload["access_token"]
+
+    port = "8099"
+    base = f"http://127.0.0.1:{port}"
+    api_cmd = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "app.main:create_app",
+        "--factory",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        port,
+        "--log-level",
+        "warning",
+    ]
+
+    phase1_env = dict(base_env)
+    phase1_env.pop("WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL", None)
+    api = start_process(api_cmd, phase1_env, workspace / "api-phase1.log")
+    try:
+        wait_health(base)
+        body, content_type = multipart("file", "live02-synthetic.zip", synthetic_zip())
+        status, payload = request(
+            f"{base}/api/v1/edu/assessments",
+            token=token,
+            method="POST",
+            body=body,
+            content_type=content_type,
+            timeout=180,
+        )
+        evidence["upload"] = {"status": status, "response": payload}
+        if status not in (200, 201):
+            fail(f"upload_failed:{status}")
+        assessment_id = payload.get("assessment_id") or ""
+        if not assessment_id:
+            fail("assessment_id_missing")
+    finally:
+        stop(api)
+
+    rows = db_query(db, "SELECT source_snapshot_id FROM assessments WHERE assessment_id=?", (assessment_id,))
+    snapshot_id = (rows[0]["source_snapshot_id"] if rows else "") or ""
+    if not snapshot_id:
+        fail("snapshot_id_missing")
+    evidence["binding"] = {"assessment_id": assessment_id, "snapshot_id": snapshot_id}
+
+    approval = {
+        "campaign_id": f"live02-{uuid.uuid4().hex[:12]}",
+        "human_approval_reference": required["LIVE02_HUMAN_APPROVAL_REFERENCE"],
+        "purpose": "programming_live",
+        "model": "qwen3.8-flash",
+        "endpoint_sha256": ENDPOINT_SHA256,
+        "source_fingerprints": {assessment_id: snapshot_id},
+        "price_fingerprint": PRICE_FINGERPRINT,
+        "valid_until": PRICE_VALID_UNTIL,
+        "max_requests": 3,
+        "max_output_tokens": 800,
+        "total_token_limit": 120000,
+        "cost_cap_cny": 0.8,
+        "independent_review_reference": required["LIVE02_INDEPENDENT_REVIEW_REFERENCE"],
+        "reviewed_code_sha256": actual,
+    }
+    approval_path.write_text(json.dumps(approval, ensure_ascii=False, indent=2), encoding="utf-8")
+    if approval_path.stat().st_size > 8192:
+        fail("approval_too_large")
+    evidence["approval"] = {
+        key: value for key, value in approval.items() if key != "source_fingerprints"
+    } | {"source_fingerprints": "bound_to_assessment_snapshot"}
+
+    phase2_env = dict(base_env) | {"WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL": str(approval_path)}
+    load = run(
+        [
+            sys.executable,
+            "-c",
+            "from app.edu.programming_live import ProgrammingLiveAdmission;"
+            "a=ProgrammingLiveAdmission.load();print('approval ok')",
+        ],
+        env=phase2_env,
+    ).strip()
+    evidence["admission"] = load
+    if "approval ok" not in load:
+        fail("admission_rejected")
+
+    api = start_process(api_cmd, phase2_env, workspace / "api-phase2.log")
+    worker = start_process(
+        [sys.executable, "-m", "app.programming_worker_main"],
+        phase2_env,
+        workspace / "worker.log",
+    )
+    try:
+        wait_health(base)
+        status, payload = request(
+            f"{base}/api/v1/edu/assessments/{assessment_id}/ai-tasks",
+            token=token,
+            method="POST",
+            body=json.dumps(
+                {
+                    "purpose": "programming_error_investigation",
+                    "idempotency_key": f"live02-{uuid.uuid4().hex[:16]}",
+                    "timeout_seconds": 300,
+                }
+            ).encode(),
+            content_type="application/json",
+            timeout=120,
+        )
+        evidence["create_task"] = {"status": status, "response": payload}
+        if status not in (200, 202):
+            fail(f"task_create_failed:{status}")
+        task_id = payload.get("task_id") or ""
+        if not task_id:
+            fail("task_id_missing")
+
+        terminal = {"completed", "failed", "cancelled", "timed_out", "revoked"}
+        deadline = time.time() + 900
+        view: dict = {}
+        while time.time() < deadline:
+            code, view = request(
+                f"{base}/api/v1/edu/assessments/{assessment_id}/ai-tasks/{task_id}",
+                token=token,
+                timeout=60,
+            )
+            if code == 200 and view.get("state") in terminal:
+                break
+            time.sleep(5)
+        evidence["final_view"] = {"state": view.get("state"), "error_code": view.get("error_code")}
+    finally:
+        stop(worker)
+        stop(api)
+
+    task_rows = db_query(db, "SELECT * FROM ai_programming_tasks WHERE task_id=?", (task_id,))
+    if not task_rows:
+        fail("task_row_missing")
+    row = task_rows[0]
+    provenance = json.loads(row.get("provenance_json") or "{}")
+    budget = json.loads(row.get("budget_json") or "{}")
+    events = db_query(
+        db, "SELECT event_type,payload_json FROM ai_programming_events WHERE task_id=? ORDER BY seq", (task_id,)
+    )
+    grants = db_query(db, "SELECT * FROM ai_programming_grants")
+    journal_files = sorted(str(path.relative_to(ledger)) for path in ledger.rglob("*") if path.is_file())
+
+    checks = {
+        "state_completed": row.get("state") == "completed",
+        "origin_live": provenance.get("execution_origin") == "qwen_live",
+        "mode_live_network": provenance.get("execution_mode") == "live_network",
+        "production_enabled": provenance.get("production_enabled") is True,
+        "real_qwen_completed": provenance.get("real_qwen") == "completed",
+        "model_requests_positive": int(provenance.get("model_requests") or 0) > 0,
+        "result_sha_present": bool(row.get("result_sha")),
+        "tool_attempts_recorded": provenance.get("tool_attempts") is not None,
+        "tool_audit_event": any("tool" in str(item["event_type"]) for item in events),
+    }
+    evidence["database"] = {
+        "task": {
+            key: row.get(key)
+            for key in ("task_id", "assessment_id", "state", "error_code", "result_sha", "source_snapshot_id")
+        },
+        "provenance": provenance,
+        "budget": budget,
+        "events": [
+            {"type": item["event_type"], "payload": item["payload_json"]} for item in events
+        ],
+        "grants": grants,
+        "ledger_files": journal_files,
+    }
+    evidence["checks"] = checks
+    evidence["result_sha"] = row.get("result_sha")
+
+    out = Path(os.environ.get("LIVE02_EVIDENCE", str(workspace / "live02-evidence.json")))
+    out.write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(json.dumps({"status": "live_finished", "checks": checks, "artifact": str(out)}, ensure_ascii=False))
+    if not all(checks.values()):
+        fail("acceptance_checks_failed")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode", choices=["check", "smoke", "live"])
+    parser.add_argument("--expected-fingerprint", required=True)
+    args = parser.parse_args()
+    if args.mode == "smoke":
+        mode_smoke(args.expected_fingerprint)
+        return 0
+    if args.mode == "check":
+        mode_check(args.expected_fingerprint)
+        return 0
+    mode_live(args.expected_fingerprint)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
