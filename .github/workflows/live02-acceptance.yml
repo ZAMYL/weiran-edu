@@ -27,6 +27,8 @@ jobs:
   acceptance:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    environment:
+      name: live02-production
     env:
       PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api
       LIVE02_REPO: ${{ github.workspace }}
