@@ -108,6 +108,8 @@ class MaterialConfirmRequest(BaseModel):
     source_id: str = Field(min_length=8, max_length=96)
     data_scope_id: str = Field(min_length=1, max_length=128)
     decisions: list[MaterialDecision] = Field(min_length=1, max_length=240)
+    # 前端把读到的快照指纹随确认带回；识别结构在此期间变过就拒绝，而不是静默套用。
+    plan_sha256: str | None = Field(default=None, min_length=64, max_length=64)
 
 
 class MaterialConfirmation(BaseModel):
@@ -131,6 +133,7 @@ class MaterialRecordView(BaseModel):
     status: Literal["active", "revoked"]
     data_scope_id: str | None
     created_at: str
+    plan_sha256: str | None = None
     file: MaterialFile
     confirmed: list[MaterialDecision] = Field(default_factory=list)
     confirmations: list[MaterialConfirmation] = Field(default_factory=list)
