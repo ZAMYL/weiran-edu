@@ -18,6 +18,7 @@ from app.core.errors import APIError
 from app.edu.auth import Principal, require_scope, require_teacher
 from app.edu.material_models import (
     MaterialCapability,
+    MaterialConfirmation,
     MaterialConfirmRequest,
     MaterialDecision,
     MaterialField,
@@ -55,22 +56,28 @@ class MaterialIntake:
 
     def record(
         self, principal: Principal, entries: Sequence[tuple[str, MaterialFile]]
-    ) -> list[str]:
-        """One row per (sha256, owner); a repeat upload refreshes the snapshot only."""
+    ) -> list[tuple[str, str]]:
+        """One row per (sha256, owner); a repeat upload refreshes the snapshot only.
+
+        Returns ``(material_id, canonical_source_id)`` pairs. The same bytes twice in
+        one request collapse onto the first row, so later occurrences must report the
+        stored source ID; otherwise their ``#n`` alias is unreadable.
+        """
         with self.database.transaction(write=True) as connection:
             require_teacher(connection, principal, self._now())
-            material_ids = []
+            rows: list[tuple[str, str]] = []
             for digest, file in entries:
                 plan = json.dumps(file.model_dump(mode="json"), ensure_ascii=False, sort_keys=True)
                 if len(plan.encode()) > PLAN_LIMIT:
                     _fail(413, "MATERIAL_PLAN_TOO_LARGE", "识别结构超过安全上限")
                 existing = connection.execute(
-                    "SELECT material_id FROM material_records "
+                    "SELECT material_id, source_id FROM material_records "
                     "WHERE sha256=? AND owner_teacher_id=?",
                     (digest, principal.teacher_id),
                 ).fetchone()
                 if existing is None:
                     material_id = str(uuid4())
+                    canonical = file.source_id
                     connection.execute(
                         "INSERT INTO material_records (material_id,sha256,source_id,"
                         "owner_teacher_id,data_scope_id,file_name,kind,byte_size,plan_json,"
@@ -78,7 +85,7 @@ class MaterialIntake:
                         (
                             material_id,
                             digest,
-                            file.source_id,
+                            canonical,
                             principal.teacher_id,
                             None,
                             file.file_name,
@@ -92,6 +99,7 @@ class MaterialIntake:
                     )
                 else:
                     material_id = existing["material_id"]
+                    canonical = existing["source_id"]
                     # 来源标识保持首次上传的规范值，重复上传只刷新结构快照。
                     connection.execute(
                         "UPDATE material_records SET file_name=?,kind=?,"
@@ -105,8 +113,8 @@ class MaterialIntake:
                             material_id,
                         ),
                     )
-                material_ids.append(material_id)
-            return material_ids
+                rows.append((material_id, canonical))
+            return rows
 
     def confirm(self, principal: Principal, request: MaterialConfirmRequest) -> MaterialRecordView:
         with self.database.transaction(write=True) as connection:
@@ -152,6 +160,32 @@ class MaterialIntake:
             require_teacher(connection, principal, self._now())
             return self._view(connection, self._owned(connection, principal, source_id))
 
+    def list(
+        self,
+        principal: Principal,
+        *,
+        offset: int = 0,
+        limit: int = 20,
+        status: str | None = None,
+    ) -> tuple[list[MaterialRecordView], int]:
+        """Owner-only listing, newest first; `status` narrows to active or revoked."""
+        with self.database.transaction() as connection:
+            require_teacher(connection, principal, self._now())
+            where = "owner_teacher_id=?"
+            params: list[object] = [principal.teacher_id]
+            if status is not None:
+                where += " AND status=?"
+                params.append(status)
+            total = connection.execute(
+                f"SELECT COUNT(*) FROM material_records WHERE {where}", params
+            ).fetchone()[0]
+            rows = connection.execute(
+                f"SELECT * FROM material_records WHERE {where} "
+                "ORDER BY created_at DESC, material_id DESC LIMIT ? OFFSET ?",
+                (*params, limit, offset),
+            ).fetchall()
+            return [self._view(connection, row) for row in rows], total
+
     @staticmethod
     def _owned(connection: sqlite3.Connection, principal: Principal, source_id: str) -> sqlite3.Row:
         row = connection.execute(
@@ -196,18 +230,36 @@ class MaterialIntake:
     def _view(self, connection: sqlite3.Connection, row: sqlite3.Row) -> MaterialRecordView:
         file = MaterialFile.model_validate_json(row["plan_json"])
         rows = connection.execute(
-            "SELECT kind,table_ref,column_ref,value FROM material_confirmations "
+            "SELECT confirmation_id,kind,table_ref,column_ref,value,confirmed_by,"
+            "confirmed_at,basis FROM material_confirmations "
             "WHERE material_id=? ORDER BY confirmed_at,confirmation_id",
             (row["material_id"],),
         ).fetchall()
         # 后写覆盖先写：同一位置的新确认生效，旧记录仍留在表里可审计。
-        latest = {
-            (item["kind"], item["table_ref"], item["column_ref"] or ""): item["value"]
-            for item in rows
+        latest: dict[tuple[str, str, str], sqlite3.Row] = {
+            (item["kind"], item["table_ref"], item["column_ref"] or ""): item for item in rows
         }
+        confirmations = [
+            MaterialConfirmation(
+                confirmation_id=item["confirmation_id"],
+                kind=item["kind"],
+                table=item["table_ref"],
+                column=item["column_ref"] or None,
+                value=item["value"],
+                confirmed_by=item["confirmed_by"],
+                confirmed_at=item["confirmed_at"],
+                basis=item["basis"],
+            )
+            for _, item in sorted(latest.items())
+        ]
         confirmed = [
-            MaterialDecision(kind=kind, table=table, column=column or None, value=value)
-            for (kind, table, column), value in sorted(latest.items())
+            MaterialDecision(
+                kind=item["kind"],
+                table=item["table_ref"],
+                column=item["column_ref"] or None,
+                value=item["value"],
+            )
+            for _, item in sorted(latest.items())
         ]
         headers = {column.ref: column.header for table in file.tables for column in table.columns}
         table_of_column = {
@@ -278,6 +330,7 @@ class MaterialIntake:
                 }
             ),
             confirmed=confirmed,
+            confirmations=confirmations,
         )
 
     @staticmethod
