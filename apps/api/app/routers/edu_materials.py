@@ -7,9 +7,9 @@ records keep the structure snapshot and teacher confirmations, never raw bytes.
 """
 
 import hashlib
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
@@ -27,6 +27,7 @@ from app.edu.material_models import (
     MaterialField,
     MaterialFile,
     MaterialRecognition,
+    MaterialRecordList,
     MaterialRecordView,
     MaterialRole,
     MaterialTable,
@@ -294,21 +295,29 @@ async def recognize_materials(
         plan = await understand_materials(tuple(material for material, _, _, _ in materials))
     except ValueError as exc:
         raise APIError(422, "MATERIAL_PLAN_UNSUPPORTED", "资料超出可识别范围") from exc
-    views = [
-        _file_view(
-            plan,
-            material,
-            file_ref=f"F{index}",
-            file_name=name,
-            byte_size=size,
-        )
-        for index, (material, name, size, _) in enumerate(materials, 1)
-    ]
-    await run_in_threadpool(
+    views: list[MaterialFile] = []
+    first_by_digest: dict[str, MaterialFile] = {}
+    for index, (material, name, size, digest) in enumerate(materials, 1):
+        view = _file_view(plan, material, file_ref=f"F{index}", file_name=name, byte_size=size)
+        first = first_by_digest.get(digest)
+        if first is None:
+            first_by_digest[digest] = view
+        else:
+            # 同一份字节只对应库里的首发记录；副本沿用首发的 ref 与 source_id，
+            # 否则它的 F2.* 定位在已存快照里根本不存在。
+            view = first.model_copy(update={"file_name": view.file_name})
+        views.append(view)
+    stored = await run_in_threadpool(
         intake.record,
         actor,
         [(digest, view) for (_, _, _, digest), view in zip(materials, views, strict=True)],
     )
+    # 同一份字节在同一请求里出现多次时，库里只登记首发那条记录；
+    # 让后续副本也报告首发 source_id，否则它的 `#n` 别名无法确认或回读。
+    views = [
+        view.model_copy(update={"source_id": canonical})
+        for view, (_, canonical) in zip(views, stored, strict=True)
+    ]
     return MaterialRecognition(
         recognition_id=recognition_id,
         materials=views + unsupported,
@@ -323,6 +332,21 @@ async def confirm_materials(
 ) -> MaterialRecordView:
     """Record a teacher's explicit confirmation; the only source of `confirmed`."""
     return await run_in_threadpool(intake.confirm, actor, body)
+
+
+@router.get("/materials", response_model=MaterialRecordList)
+async def list_materials(
+    actor: Actor,
+    intake: Intake,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    status: Annotated[Literal["active", "revoked"] | None, Query()] = None,
+) -> MaterialRecordList:
+    """List the caller's stored records, newest first; never another teacher's."""
+    items, total = await run_in_threadpool(
+        intake.list, actor, offset=offset, limit=limit, status=status
+    )
+    return MaterialRecordList(items=items, total_count=total)
 
 
 @router.get("/materials/{source_id}", response_model=MaterialRecordView)
