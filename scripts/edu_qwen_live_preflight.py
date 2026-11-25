@@ -13,10 +13,7 @@ from app.ai.edu.qwen_config import QwenSettings
 from app.core.errors import APIError
 from pydantic import SecretStr, ValidationError
 
-from prototypes.adaptive_assessment.live.pricing import (
-    REVIEWED_PRICE_20261119,
-    reviewed_price,
-)
+from prototypes.adaptive_assessment.live.pricing import current_price, reviewed_price
 from prototypes.durable_teacher_agent.live_admission import LiveAdmission
 from prototypes.qwen_execution.runtime import ROOT, code_fingerprint
 from prototypes.teacher_agent_bridge.provider import RealDataAdmission
@@ -45,7 +42,7 @@ def inspect_environment(env: Mapping[str, str], *, today: date) -> dict:
         checks[name] = {"category": category, "status": status, **details}
 
     fingerprint = code_fingerprint()
-    price = REVIEWED_PRICE_20261119
+    price = current_price(today)
     check(
         "api_key",
         "configuration",
