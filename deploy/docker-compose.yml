@@ -10,11 +10,13 @@ services:
       WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT: /ledger
       WEIRAN_EDU_REAL_DATA_APPROVAL: /run/secrets/real-data-approval.json
       WEIRAN_EDU_QWEN_LIVE_APPROVAL: /run/secrets/qwen-live-approval.json
+      WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL: /run/secrets/programming-live-approval.json
     volumes:
       - ./data:/data
       - ./ledger:/ledger
       - ./secrets/real-data-approval.json:/run/secrets/real-data-approval.json:ro
       - ./secrets/qwen-live-approval.json:/run/secrets/qwen-live-approval.json:ro
+      - ./secrets/programming-live-approval.json:/run/secrets/programming-live-approval.json:ro
     expose:
       - "8000"
     healthcheck:
@@ -41,6 +43,28 @@ services:
       - ./ledger:/ledger
       - ./secrets/real-data-approval.json:/run/secrets/real-data-approval.json:ro
       - ./secrets/qwen-live-approval.json:/run/secrets/qwen-live-approval.json:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  programming_worker:
+    # LIVE-02: separate process, because the five-dimension worker above never
+    # claims programming rows. Both processes read the same SQLite file; keep it
+    # single-instance as deploy/README.md requires.
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    command: ["uv", "run", "--project", "apps/api", "--locked", "python", "-m", "app.programming_worker_main"]
+    env_file: .env
+    environment:
+      WEIRAN_EDU_DATABASE: /data/edu.sqlite3
+      WEIRAN_EDU_AI_STATE_DIR: /data/ai-state
+      WEIRAN_EDU_CAMPAIGN_LEDGER_ROOT: /ledger
+      WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL: /run/secrets/programming-live-approval.json
+    volumes:
+      - ./data:/data
+      - ./ledger:/ledger
+      - ./secrets/programming-live-approval.json:/run/secrets/programming-live-approval.json:ro
     depends_on:
       - api
     restart: unless-stopped
