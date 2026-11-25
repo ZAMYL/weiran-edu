@@ -6,6 +6,7 @@ a role or field meaning to that content hash. Re-uploading the same bytes is the
 only way to prove the claim later; different bytes never inherit a confirmation.
 """
 
+import hashlib
 import json
 import sqlite3
 from collections.abc import Callable, Sequence
@@ -44,6 +45,11 @@ def _fail(status: int, code: str, message: str) -> None:
     raise APIError(status, code, message)
 
 
+def _plan_digest(plan: str) -> str:
+    """指纹只覆盖结构快照，用来判断两次写入是不是同一版识别结果。"""
+    return hashlib.sha256(plan.encode()).hexdigest()
+
+
 class MaterialIntake:
     """Persist recognized structure and teacher confirmations, never raw content."""
 
@@ -70,8 +76,9 @@ class MaterialIntake:
                 plan = json.dumps(file.model_dump(mode="json"), ensure_ascii=False, sort_keys=True)
                 if len(plan.encode()) > PLAN_LIMIT:
                     _fail(413, "MATERIAL_PLAN_TOO_LARGE", "识别结构超过安全上限")
+                plan_sha256 = _plan_digest(plan)
                 existing = connection.execute(
-                    "SELECT material_id, source_id FROM material_records "
+                    "SELECT material_id, source_id, plan_sha256 FROM material_records "
                     "WHERE sha256=? AND owner_teacher_id=?",
                     (digest, principal.teacher_id),
                 ).fetchone()
@@ -81,7 +88,8 @@ class MaterialIntake:
                     connection.execute(
                         "INSERT INTO material_records (material_id,sha256,source_id,"
                         "owner_teacher_id,data_scope_id,file_name,kind,byte_size,plan_json,"
-                        "plan_version,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "plan_version,plan_sha256,status,created_at) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                         (
                             material_id,
                             digest,
@@ -93,6 +101,7 @@ class MaterialIntake:
                             file.byte_size,
                             plan,
                             PLAN_VERSION,
+                            plan_sha256,
                             "active",
                             self._now(),
                         ),
@@ -100,16 +109,25 @@ class MaterialIntake:
                 else:
                     material_id = existing["material_id"]
                     canonical = existing["source_id"]
-                    # 来源标识保持首次上传的规范值，重复上传只刷新结构快照。
+                    if existing["plan_sha256"] != plan_sha256:
+                        # 识别结构变了：旧确认描述的是上一版定位，整体标失效，但一行不删。
+                        connection.execute(
+                            "UPDATE material_confirmations SET stale=1 "
+                            "WHERE material_id=? AND stale=0",
+                            (material_id,),
+                        )
+                    # 重新上传是对同一份字节的再次声明，撤回状态随之解除。
                     connection.execute(
-                        "UPDATE material_records SET file_name=?,kind=?,"
-                        "byte_size=?,plan_json=?,plan_version=? WHERE material_id=?",
+                        "UPDATE material_records SET file_name=?,kind=?,byte_size=?,"
+                        "plan_json=?,plan_version=?,plan_sha256=?,status='active' "
+                        "WHERE material_id=?",
                         (
                             file.file_name,
                             file.kind,
                             file.byte_size,
                             plan,
                             PLAN_VERSION,
+                            plan_sha256,
                             material_id,
                         ),
                     )
@@ -122,6 +140,12 @@ class MaterialIntake:
             row = self._owned(connection, principal, request.source_id)
             if row["status"] != "active":
                 _fail(409, "MATERIAL_REVOKED", "该资料已撤回，确认不再生效")
+            if (
+                request.plan_sha256 is not None
+                and row["plan_sha256"] is not None
+                and request.plan_sha256 != row["plan_sha256"]
+            ):
+                _fail(409, "MATERIAL_PLAN_STALE", "识别结果已更新，请刷新后重新确认")
             require_scope(connection, principal, request.data_scope_id, importing=True)
             if row["data_scope_id"] not in (None, request.data_scope_id):
                 _fail(409, "MATERIAL_SCOPE_CONFLICT", "该资料已归属其他教学空间")
@@ -158,7 +182,7 @@ class MaterialIntake:
     def read(self, principal: Principal, source_id: str) -> MaterialRecordView:
         with self.database.transaction() as connection:
             require_teacher(connection, principal, self._now())
-            return self._view(connection, self._owned(connection, principal, source_id))
+            return self._view(connection, self._visible(connection, principal, source_id))
 
     def list(
         self,
@@ -168,33 +192,69 @@ class MaterialIntake:
         limit: int = 20,
         status: str | None = None,
     ) -> tuple[list[MaterialRecordView], int]:
-        """Owner-only listing, newest first; `status` narrows to active or revoked."""
+        """本人资料加同空间共享的资料，newest first；`status` 收窄到 active 或 revoked。"""
         with self.database.transaction() as connection:
             require_teacher(connection, principal, self._now())
-            where = "owner_teacher_id=?"
-            params: list[object] = [principal.teacher_id]
+            where = (
+                "(m.owner_teacher_id=? OR (m.data_scope_id IS NOT NULL AND EXISTS ("
+                "SELECT 1 FROM scope_members s WHERE s.data_scope_id=m.data_scope_id "
+                "AND s.teacher_id=?)))"
+            )
+            params: list[object] = [principal.teacher_id, principal.teacher_id]
             if status is not None:
-                where += " AND status=?"
+                where += " AND m.status=?"
                 params.append(status)
             total = connection.execute(
-                f"SELECT COUNT(*) FROM material_records WHERE {where}", params
+                f"SELECT COUNT(*) FROM material_records m WHERE {where}", params
             ).fetchone()[0]
             rows = connection.execute(
-                f"SELECT * FROM material_records WHERE {where} "
-                "ORDER BY created_at DESC, material_id DESC LIMIT ? OFFSET ?",
+                f"SELECT m.* FROM material_records m WHERE {where} "
+                "ORDER BY m.created_at DESC, m.material_id DESC LIMIT ? OFFSET ?",
                 (*params, limit, offset),
             ).fetchall()
             return [self._view(connection, row) for row in rows], total
 
     @staticmethod
-    def _owned(connection: sqlite3.Connection, principal: Principal, source_id: str) -> sqlite3.Row:
-        row = connection.execute(
-            "SELECT * FROM material_records WHERE source_id=? AND owner_teacher_id=?",
-            (source_id, principal.teacher_id),
+    def _find(connection: sqlite3.Connection, source_id: str) -> sqlite3.Row | None:
+        return connection.execute(
+            "SELECT * FROM material_records WHERE source_id=?", (source_id,)
         ).fetchone()
+
+    @staticmethod
+    def _shared(connection: sqlite3.Connection, row: sqlite3.Row, principal: Principal) -> bool:
+        """已绑定教学空间的资料，对该空间其他教师只读可见。"""
+        scope_id = row["data_scope_id"]
+        if scope_id is None:
+            return False
+        member = connection.execute(
+            "SELECT 1 FROM scope_members WHERE data_scope_id=? AND teacher_id=?",
+            (scope_id, principal.teacher_id),
+        ).fetchone()
+        return member is not None
+
+    def _owned(
+        self, connection: sqlite3.Connection, principal: Principal, source_id: str
+    ) -> sqlite3.Row:
+        row = self._find(connection, source_id)
         if row is None:
             raise APIError(404, "MATERIAL_NOT_FOUND", "资料不存在")
+        if row["owner_teacher_id"] != principal.teacher_id:
+            if not self._shared(connection, row, principal):
+                raise APIError(404, "MATERIAL_NOT_FOUND", "资料不存在")
+            raise APIError(403, "MATERIAL_OWNER_REQUIRED", "只有上传者可以确认该资料")
         return row
+
+    def _visible(
+        self, connection: sqlite3.Connection, principal: Principal, source_id: str
+    ) -> sqlite3.Row:
+        row = self._find(connection, source_id)
+        if row is None:
+            raise APIError(404, "MATERIAL_NOT_FOUND", "资料不存在")
+        if row["owner_teacher_id"] == principal.teacher_id or self._shared(
+            connection, row, principal
+        ):
+            return row
+        raise APIError(404, "MATERIAL_NOT_FOUND", "资料不存在")
 
     @staticmethod
     def _confirmation(
@@ -203,12 +263,12 @@ class MaterialIntake:
         if decision.kind == "role":
             return connection.execute(
                 "SELECT value FROM material_confirmations WHERE material_id=? "
-                "AND kind='role' AND table_ref=?",
+                "AND kind='role' AND table_ref=? AND stale=0",
                 (material_id, decision.table),
             ).fetchone()
         return connection.execute(
             "SELECT value FROM material_confirmations WHERE material_id=? "
-            "AND kind='field' AND table_ref=? AND column_ref=?",
+            "AND kind='field' AND table_ref=? AND column_ref=? AND stale=0",
             (material_id, decision.table, decision.column),
         ).fetchone()
 
@@ -232,7 +292,7 @@ class MaterialIntake:
         rows = connection.execute(
             "SELECT confirmation_id,kind,table_ref,column_ref,value,confirmed_by,"
             "confirmed_at,basis FROM material_confirmations "
-            "WHERE material_id=? ORDER BY confirmed_at,confirmation_id",
+            "WHERE material_id=? AND stale=0 ORDER BY confirmed_at,confirmation_id",
             (row["material_id"],),
         ).fetchall()
         # 后写覆盖先写：同一位置的新确认生效，旧记录仍留在表里可审计。
@@ -265,6 +325,7 @@ class MaterialIntake:
         table_of_column = {
             column.ref: table.ref for table in file.tables for column in table.columns
         }
+        table_refs = {table.ref for table in file.tables}
         roles_confirmed: dict[str, set[str]] = {}
         fields_confirmed: dict[str, set[str]] = {}
         for decision in confirmed:
@@ -281,6 +342,9 @@ class MaterialIntake:
                 role.state = "confirmed"
                 role.reasons = []
         for table_ref, values in roles_confirmed.items():
+            if table_ref not in table_refs:
+                # 旧确认指向的快照位置已不存在，不能凭空造出一条已确认的 role。
+                continue
             for value in sorted(values):
                 if (table_ref, value) not in present_roles:
                     roles.append(
@@ -320,6 +384,7 @@ class MaterialIntake:
             source_id=row["source_id"],
             status=row["status"],
             data_scope_id=row["data_scope_id"],
+            plan_sha256=row["plan_sha256"],
             created_at=row["created_at"],
             file=file.model_copy(
                 update={
