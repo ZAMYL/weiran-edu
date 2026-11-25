@@ -21,7 +21,15 @@
 | --- | --- | --- |
 | POST | `/api/v1/edu/materials` | 有界多文件上传，返回识别结果并写入结构快照 |
 | POST | `/api/v1/edu/materials/confirm` | 教师确认角色/字段含义，唯一的“已确认”来源 |
+| GET | `/api/v1/edu/materials` | 本人资料列表，`offset`/`limit`（上限 50）/`status`（`active`\|`revoked`） |
 | GET | `/api/v1/edu/materials/{source_id}` | 只回读库里已有的快照与确认，不重新解析 |
+
+`MaterialRecordView.confirmations` 逐条给出审计信息（`confirmation_id`、`confirmed_by`、
+`confirmed_at`、`basis`），`confirmed` 仍是同一批决策的精简视图，两者顺序一致。
+
+同一份字节在同一请求里出现多次时，库中只登记首发那条记录，响应里所有副本都报告首发
+`source_id` 与首发的表/列 ref，因此任一副本都能确认与回读；文件名不同但字节相同的两份
+文件会被视为同一份资料。
 
 回读视图把确认叠加到识别结果上：对应角色/字段状态变为 `confirmed`，
 `confirmed_role:` / `confirmed_field:` 类缺口从 `missing` 中移除后重算 `available`，
