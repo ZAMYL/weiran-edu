@@ -7,8 +7,8 @@
   "source_fingerprints": {
     "<assessment_id>": "<source_snapshot_id>"
   },
-  "price_fingerprint": "998d6bd3c3311f29f09b2a1328739e9f05b2847bb74da6a331e3e3ef01739bce",
-  "valid_until": "2026-11-26",
+  "price_fingerprint": "8370fae126ae6e5d6c8429349ea47de7a161cc9707377ca0b28ee987eb99113d",
+  "valid_until": "2026-12-02",
   "max_requests": 3,
   "max_output_tokens": 800,
   "total_token_limit": 2977824,

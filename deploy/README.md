@@ -84,7 +84,7 @@ chmod 600 .env
 
 - `source_fingerprints` 必须写 `{assessment_id: source_snapshot_id}`，只允许精确匹配；不在表里的测评返回 `AI_LIVE_SOURCE_NOT_APPROVED`。
 - **一条 `human_approval_reference` 只能资助一个 campaign**，换测评或在同一测评重跑都要新文件；复用会报 `AI_CAMPAIGN_ALREADY_USED`。
-- `price_fingerprint` 与 `valid_until` 取当前审核价快照；`REVIEWED_PRICE_20261119` 有效至 `2026-11-26`，过期必须重新做价格审查并生成新指纹。
+- `price_fingerprint` 与 `valid_until` 取当前审核价快照；`REVIEWED_PRICE_20261125` 有效至 `2026-12-02`，过期必须重新做价格审查并生成新指纹。
 - `reviewed_code_sha256` 与 `prototypes.qwen_execution.code_fingerprint()` 一致；只改 `.md`、`deploy/`、`.github/`、`apps/api/tests/` 不影响它，改 `apps/api/app/**` 或 `prototypes/**` 的 `.py` 会失效。
 - 该文件同时挂给 `api` 与 `programming_worker` 两个容器；`web` 容器不挂。
 

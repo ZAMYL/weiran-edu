@@ -7,7 +7,7 @@ from hashlib import sha256
 from types import SimpleNamespace
 
 import pytest
-from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261119 as PRICE
+from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261125 as PRICE
 from prototypes.durable_teacher_agent import live_admission as admission_module
 from prototypes.durable_teacher_agent.live_admission import (
     APPROVAL_ENV,

@@ -56,8 +56,8 @@ uv run --locked python -m app.programming_worker_main
 - `model`：固定 `qwen3.8-flash`。
 - `endpoint_sha256`：`sha256(base_url.rstrip('/'))`。
 - `source_fingerprints`：`{assessment_id: source_snapshot_id}`，只允许精确匹配。
-- `price_fingerprint`、`valid_until`：当前审核价快照；当前 `REVIEWED_PRICE_20261119`
-  有效至 `2026-11-26`。
+- `price_fingerprint`、`valid_until`：当前审核价快照；当前 `REVIEWED_PRICE_20261125`
+  有效至 `2026-12-02`。
 - `max_requests`：3–6；`max_output_tokens`：1–800；`total_token_limit` 与
   `cost_cap_cny` 为服务端费用上限。
 - `independent_review_reference`、`reviewed_code_sha256`：独立审查引用与代码指纹。
@@ -136,7 +136,7 @@ cd apps/api && uv run ruff check . && uv run ruff format --check .
 - 上述运行使用的 `human_approval_reference` 与 `independent_review_reference` 都是
   占位字符串，只证明代码与链路可用，**不构成独立审批放行**。
 - 正式验收仍需两条真实、来源不同的审批引用，并在冻结后的代码指纹上再跑一次。
-- 价格快照 `REVIEWED_PRICE_20261119` 有效至 `2026-11-26`；过期必须重新做价格审查、
+- 价格快照 `REVIEWED_PRICE_20261125` 有效至 `2026-12-02`；过期必须重新做价格审查、
   生成新 `price_fingerprint`，不能只改日期。
 
 ## 7. 变更记录

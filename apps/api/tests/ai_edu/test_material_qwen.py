@@ -70,7 +70,7 @@ def approval(tmp_path, monkeypatch, files):
 
     now = datetime.now(UTC).date()
     price = replace(
-        pricing.REVIEWED_PRICE_20261119,
+        pricing.REVIEWED_PRICE_20261125,
         checked_on=(now - timedelta(days=1)).isoformat(),
         valid_until=(now + timedelta(days=1)).isoformat(),
     )

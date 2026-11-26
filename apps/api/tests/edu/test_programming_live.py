@@ -9,7 +9,7 @@ from hashlib import sha256
 
 import pytest
 from fastapi.testclient import TestClient
-from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261119
+from prototypes.adaptive_assessment.live.pricing import REVIEWED_PRICE_20261125
 from prototypes.qwen_execution.runtime import code_fingerprint
 from prototypes.research_agent_v2.programming import INSPECT, OVERVIEW
 from prototypes.research_agent_v2.programming_task_adapter import install_offline_runner
@@ -36,8 +36,8 @@ def _approval(assessment: str, snapshot: str, *, campaign: str) -> dict:
         "model": "qwen3.8-flash",
         "endpoint_sha256": sha256(BASE_URL.encode()).hexdigest(),
         "source_fingerprints": {assessment: snapshot},
-        "price_fingerprint": REVIEWED_PRICE_20261119.fingerprint,
-        "valid_until": REVIEWED_PRICE_20261119.valid_until,
+        "price_fingerprint": REVIEWED_PRICE_20261125.fingerprint,
+        "valid_until": REVIEWED_PRICE_20261125.valid_until,
         "max_requests": 6,
         "max_output_tokens": 800,
         "total_token_limit": 2_000_000,
