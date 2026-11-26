@@ -587,7 +587,7 @@ function SingleInspectionResult({ recognition }: { recognition: MaterialRecognit
                 label: '内容摘要 (SHA-256)',
                 children: (
                   <Typography.Text code style={{ fontSize: 12 }}>
-                    {recognition.source_id.slice(0, 12)}…
+                    {recognition.source_id.replace(/^sha256:/, '').slice(0, 12)}…
                   </Typography.Text>
                 ),
               },
@@ -647,8 +647,8 @@ function SingleInspectionResult({ recognition }: { recognition: MaterialRecognit
         <Alert
           type="info"
           showIcon
-          title="已完成结构识别（B-02-S1）"
-          description="当前后端已完成该文件的格式探测、角色判断与候选字段识别；CSV / HTML 的确认落库将由后续 B-02-S2 接入。"
+          title="已完成服务端结构识别"
+          description="后端已完成该文件的格式探测、角色判断与候选字段识别（/api/v1/edu/materials）；通用资料的教师逐项确认与业务事实落库界面待后续前端接入。"
         />
       )}
     </Flex>

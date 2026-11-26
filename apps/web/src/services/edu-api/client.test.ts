@@ -409,20 +409,22 @@ describe('programming assessment AI task client', () => {
     });
   });
 
-  it('inspects uploaded materials via backend recognition endpoint', async () => {
+  it('inspects uploaded materials via formal backend /materials endpoint', async () => {
     const transport = vi.fn<typeof fetch>().mockResolvedValue(
       response(200, {
-        source_id: 'c'.repeat(64),
-        file_name: 'unknown-ext.bin',
-        kind: 'zip_html',
-        supported: true,
-        role: 'programming',
-        role_state: 'candidate',
-        route: 'assessment_import',
-        tables: [{ ref: 'answersheet', rows: 10, columns: 2, complete: true, blocked: false }],
-        fields: [],
+        recognition_id: `sha256:${'c'.repeat(64)}`,
+        coverage: 'unknown',
+        authority: 'none',
+        materials: [],
+        archives: [
+          {
+            file_name: 'unknown-ext.bin',
+            kind: 'zip_html',
+            route: '/api/v1/edu/assessments',
+            note: '含网页答卷的压缩包，交由既有答题卡导入路径处理；通用入口不重复解析',
+          },
+        ],
         pending: [],
-        analyses: ['code_evidence'],
       }),
     );
     const client = createEduClient(vi.fn(), transport);
@@ -433,7 +435,7 @@ describe('programming assessment AI task client', () => {
     expect(result.route).toBe('assessment_import');
     expect(result.kind).toBe('zip_html');
     expect(transport).toHaveBeenCalledWith(
-      '/api/edu/materials/inspect',
+      '/api/edu/materials',
       expect.objectContaining({ method: 'POST', body: form }),
     );
   });

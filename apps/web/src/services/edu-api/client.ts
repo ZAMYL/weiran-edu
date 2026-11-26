@@ -802,7 +802,7 @@ export function createEduClient(onUnauthorized: () => void, transport: typeof fe
         signal,
       ),
     inspectMaterial: (form: FormData, signal?: AbortSignal) =>
-      request('/materials/inspect', materialRecognitionDto, { method: 'POST', body: form }, signal),
+      request('/materials', materialRecognitionDto, { method: 'POST', body: form }, signal),
     uploadAnswerSheets: (form: FormData, signal?: AbortSignal) =>
       request('/assessments', answerSheetImportDto, { method: 'POST', body: form }, signal),
     answerSheets: (offset: number, signal?: AbortSignal) =>
