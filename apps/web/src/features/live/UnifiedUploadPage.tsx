@@ -2,24 +2,103 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Card, Flex, Select, Spin, Tag, Typography, Upload } from 'antd';
-import { FileExcelTwoTone, FileZipTwoTone, UploadOutlined } from '@ant-design/icons';
+import {
+  Alert,
+  Button,
+  Card,
+  Descriptions,
+  Flex,
+  Input,
+  Select,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Typography,
+  Upload,
+} from 'antd';
+import {
+  FileExcelTwoTone,
+  FileTextOutlined,
+  FileUnknownOutlined,
+  FileZipTwoTone,
+  UploadOutlined,
+} from '@ant-design/icons';
 import { tokens } from '../../app/theme';
 import { useDataMode } from '../../app/data-mode';
 import { answerAnalysisPath } from '../../app/workspace-routes';
 import { assessmentNameFromFilename } from '../../services/assessment-name';
 import { ApiError } from '../../services/edu-api/client';
+import {
+  materialAnalysisLabel,
+  materialFieldMeaningLabel,
+  materialKindLabel,
+  materialRoleLabel,
+  materialRoleStateLabel,
+  type MaterialRecognition,
+} from '../../services/edu-api/material-inspect-types';
 import { isQuestionPreview } from '../../services/edu-api/question-types';
 import LiveImportPreview from './LiveImportPreview';
 import QuestionImportPreview from './QuestionImportPreview';
 import { RequestError } from './LiveStatus';
 import UploadWorkflow from './UploadWorkflow';
-import { classifyUploadFiles } from './upload-classification';
+
+const MAX_UPLOAD_FILES = 20;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 function formatByteSize(bytes: number) {
   return bytes < 1024 * 1024
     ? `${Math.max(1, Math.round(bytes / 1024))} KiB`
     : `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+}
+
+function roleStateColor(state: MaterialRecognition['role_state']) {
+  if (state === 'candidate') return 'success';
+  if (state === 'needs_confirmation') return 'warning';
+  return 'error';
+}
+
+function renderKindIcon(rec: MaterialRecognition | undefined) {
+  if (!rec) {
+    return (
+      <FileTextOutlined
+        style={{ fontSize: 28, color: tokens.colorPrimary, flex: 'none' }}
+        aria-hidden="true"
+      />
+    );
+  }
+  if (!rec.supported || rec.route === 'unsupported') {
+    return (
+      <FileUnknownOutlined
+        style={{ fontSize: 28, color: tokens.colorError, flex: 'none' }}
+        aria-hidden="true"
+      />
+    );
+  }
+  if (rec.route === 'assessment_import') {
+    return (
+      <FileZipTwoTone
+        twoToneColor={tokens.colorPrimary}
+        style={{ fontSize: 28, flex: 'none' }}
+        aria-hidden="true"
+      />
+    );
+  }
+  if (rec.kind === 'xlsx') {
+    return (
+      <FileExcelTwoTone
+        twoToneColor={tokens.colorSuccess}
+        style={{ fontSize: 28, flex: 'none' }}
+        aria-hidden="true"
+      />
+    );
+  }
+  return (
+    <FileTextOutlined
+      style={{ fontSize: 28, color: tokens.colorPrimary, flex: 'none' }}
+      aria-hidden="true"
+    />
+  );
 }
 
 export default function UnifiedUploadPage() {
@@ -37,12 +116,15 @@ export default function UnifiedUploadPage() {
     title: '',
     committed: null,
   };
-  const { scope, preview, file: selectedExcel } = draft;
+  const { scope, preview } = draft;
   const setScope = (nextScope: string) => setUploadDraft({ ...draft, scope: nextScope });
   const allowed = scopes.some((s) => s.data_scope_id === scope && s.can_import);
 
-  const [zipFiles, setZipFiles] = useState<File[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [inspections, setInspections] = useState<MaterialRecognition[]>([]);
+  const [customTitle, setCustomTitle] = useState('');
   const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
@@ -58,13 +140,65 @@ export default function UnifiedUploadPage() {
     [],
   );
 
-  async function checkExcel(file: File, nextDraft: typeof draft) {
+  function resetSelection() {
+    if (busy || controllerRef.current) return;
+    setSelectedFiles([]);
+    setInspections([]);
+    setCustomTitle('');
+    setError(null);
+    setLocalError(null);
+    if (uploadDraft) setUploadDraft(null);
+  }
+
+  async function inspectFiles(files: File[]) {
+    if (controllerRef.current) return;
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setBusy(true);
+    setBusyLabel('正在识别资料内容');
+    setError(null);
+    setLocalError(null);
+    try {
+      const results = await Promise.all(
+        files.map((file) => {
+          const form = new FormData();
+          form.append('file', file);
+          return client.inspectMaterial(form, controller.signal);
+        }),
+      );
+      if (!controller.signal.aborted) {
+        setInspections(results);
+      }
+    } catch (cause) {
+      if (!controller.signal.aborted) {
+        setError(cause instanceof ApiError ? cause : new ApiError(502, 'INVALID_API_RESPONSE'));
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        controllerRef.current = null;
+        setBusy(false);
+        setBusyLabel('');
+      }
+    }
+  }
+
+  async function checkExcelPreview(file: File) {
     if (controllerRef.current || !allowed) return;
     const controller = new AbortController();
     controllerRef.current = controller;
     setBusy(true);
+    setBusyLabel('正在检查测评表数据');
     setError(null);
     setLocalError(null);
+    const resolvedTitle = customTitle.trim() || assessmentNameFromFilename(file.name);
+    const nextDraft = {
+      ...draft,
+      file,
+      title: resolvedTitle,
+      preview: null,
+      committed: null,
+    };
+    setUploadDraft(nextDraft);
     const form = new FormData();
     form.append('file', file);
     form.append('data_scope_id', nextDraft.scope);
@@ -77,29 +211,35 @@ export default function UnifiedUploadPage() {
         setUploadDraft({ ...nextDraft, preview: result, committed: null });
       }
     } catch (cause) {
-      if (!controller.signal.aborted && cause instanceof ApiError) setError(cause);
+      if (!controller.signal.aborted) {
+        setError(cause instanceof ApiError ? cause : new ApiError(502, 'INVALID_API_RESPONSE'));
+      }
     } finally {
       if (!controller.signal.aborted) {
         controllerRef.current = null;
         setBusy(false);
+        setBusyLabel('');
       }
     }
   }
 
   async function submitAnswerSheets() {
-    if (controllerRef.current || !zipFiles.length || !allowed) return;
+    if (controllerRef.current || !selectedFiles.length || !allowed) return;
     const controller = new AbortController();
     controllerRef.current = controller;
     setBusy(true);
+    setBusyLabel('正在导入答题卡');
     setError(null);
     setLocalError(null);
     const form = new FormData();
-    for (const file of zipFiles) form.append('file', file);
+    for (const file of selectedFiles) form.append('file', file);
     form.append('data_scope_id', scope);
+    if (customTitle.trim()) form.append('title', customTitle.trim());
     try {
       const result = await client.uploadAnswerSheets(form, controller.signal);
       if (!controller.signal.aborted) {
-        setZipFiles([]);
+        setSelectedFiles([]);
+        setInspections([]);
         router.push(answerAnalysisPath(result.assessment_id));
       }
     } catch (cause) {
@@ -110,46 +250,33 @@ export default function UnifiedUploadPage() {
       if (!controller.signal.aborted) {
         controllerRef.current = null;
         setBusy(false);
+        setBusyLabel('');
       }
     }
-  }
-
-  function resetSelection() {
-    if (busy || controllerRef.current) return;
-    setZipFiles([]);
-    setError(null);
-    setLocalError(null);
-    if (selectedExcel || preview) setUploadDraft(null);
   }
 
   function handleSelection(selection: File[]) {
     if (busy || controllerRef.current) return;
     setError(null);
     setLocalError(null);
-    if (!allowed) {
-      setLocalError('请选择当前有导入权的数据来源。');
+    if (!selection.length) {
+      setLocalError('请选择要上传的文件。');
       return;
     }
-    const classified = classifyUploadFiles(selection);
-    if (classified.kind === 'invalid') {
-      setLocalError(classified.message);
+    if (selection.length > MAX_UPLOAD_FILES) {
+      setLocalError(`单次最多选择 ${MAX_UPLOAD_FILES} 个文件。`);
       return;
     }
-    if (classified.kind === 'answer_sheets') {
-      setUploadDraft(null);
-      setZipFiles(classified.files);
+    const totalBytes = selection.reduce((sum, file) => sum + file.size, 0);
+    if (totalBytes > MAX_UPLOAD_BYTES) {
+      setLocalError('文件总大小超过 10 MB，请缩小后重新选择。');
       return;
     }
-    setZipFiles([]);
-    const nextDraft = {
-      ...draft,
-      file: classified.file,
-      title: assessmentNameFromFilename(classified.file.name),
-      preview: null,
-      committed: null,
-    };
-    setUploadDraft(nextDraft);
-    void checkExcel(classified.file, nextDraft);
+    setUploadDraft(null);
+    setSelectedFiles(selection);
+    setCustomTitle(assessmentNameFromFilename(selection[0]!.name));
+    setInspections([]);
+    void inspectFiles(selection);
   }
 
   if (preview) {
@@ -160,40 +287,72 @@ export default function UnifiedUploadPage() {
     );
   }
 
-  const isAnswerSheetMode = zipFiles.length > 0;
-  const hasSelection = isAnswerSheetMode || Boolean(selectedExcel);
+  const hasSelection = selectedFiles.length > 0;
+  const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
   const firstUpload = !batch && !notice && !hasSelection;
-  const zipTotalBytes = zipFiles.reduce((sum, file) => sum + file.size, 0);
+  const primaryInspection = inspections[0];
+  const allAnswerSheets =
+    inspections.length > 0 &&
+    inspections.every((item) => item.supported && item.route === 'assessment_import');
+  const isSingle = selectedFiles.length === 1;
+  const canPreviewXlsx =
+    isSingle &&
+    primaryInspection?.supported &&
+    primaryInspection.route === 'material_understanding' &&
+    primaryInspection.kind === 'xlsx';
+
+  let actions = undefined;
+  if (hasSelection && !busy) {
+    if (allAnswerSheets) {
+      actions = (
+        <>
+          <Button onClick={resetSelection}>重新选择</Button>
+          <div className="workflow-next-action">
+            <Button type="primary" disabled={!allowed} onClick={() => void submitAnswerSheets()}>
+              导入答题卡并查看分析
+            </Button>
+          </div>
+        </>
+      );
+    } else if (canPreviewXlsx && selectedFiles[0]) {
+      const targetFile = selectedFiles[0];
+      actions = (
+        <>
+          <Button onClick={resetSelection}>重新选择</Button>
+          <div className="workflow-next-action">
+            <Button
+              type="primary"
+              disabled={!allowed}
+              onClick={() => void checkExcelPreview(targetFile)}
+            >
+              继续检查并导入测评表
+            </Button>
+          </div>
+        </>
+      );
+    } else if (!inspections.length && error) {
+      actions = (
+        <>
+          <Button onClick={resetSelection}>重新选择</Button>
+          <div className="workflow-next-action">
+            <Button type="primary" onClick={() => void inspectFiles(selectedFiles)}>
+              重试服务端识别
+            </Button>
+          </div>
+        </>
+      );
+    }
+  }
 
   return (
     <div
       className={`page-stack data-page live-data${firstUpload ? ' first-assessment-upload' : ''}`}
     >
       <UploadWorkflow
-        step={busy ? 1 : 0}
+        step={busy || inspections.length > 0 ? 1 : 0}
         busy={busy}
-        steps={
-          isAnswerSheetMode ? ['选择文件', '解析并查看'] : ['选择文件', '检查结果', '确认导入']
-        }
-        actions={
-          isAnswerSheetMode ? (
-            <>
-              <Button disabled={busy} onClick={resetSelection}>
-                重新选择
-              </Button>
-              <div className="workflow-next-action">
-                <Button
-                  type="primary"
-                  loading={busy}
-                  disabled={!allowed}
-                  onClick={() => void submitAnswerSheets()}
-                >
-                  {busy ? '正在导入' : '上传并查看结果'}
-                </Button>
-              </div>
-            </>
-          ) : undefined
-        }
+        steps={['选择文件', '服务端识别', '确认与导入']}
+        actions={actions}
       >
         {importScopes.length > 1 && (
           <div className="live-upload-fields">
@@ -210,14 +369,18 @@ export default function UnifiedUploadPage() {
           </div>
         )}
         {!importScopes.length && (
-          <Alert type="warning" showIcon title="当前账户没有上传权限，可查看已授权测评。" />
+          <Alert
+            type="warning"
+            showIcon
+            title="当前账户没有导入权，可查看已授权测评或仅做资料识别。"
+          />
         )}
+
         <div className="workflow-upload-target" hidden={hasSelection || busy}>
           <Upload.Dragger
-            accept=".xlsx,.zip"
             multiple
             showUploadList={false}
-            disabled={busy || !allowed}
+            disabled={busy}
             className="excel-dropzone workflow-dropzone"
             beforeUpload={(file, selection) => {
               if (file.uid === selection[0]?.uid) {
@@ -228,37 +391,42 @@ export default function UnifiedUploadPage() {
           >
             <div className="assessment-file-prompt">
               <UploadOutlined className="assessment-file-symbol" aria-hidden="true" />
-              <Button type="primary" tabIndex={-1} disabled={!allowed}>
+              <Button type="primary" tabIndex={-1} disabled={busy}>
                 选择文件
               </Button>
-              <p>
-                支持拖入 .xlsx 测评表（单文件）或 .zip 编程答题卡（最多 20 个），总大小不超过 10
-                MB，系统自动识别类型。
-              </p>
+              <p>直接拖入资料文件（如 XLSX、CSV、HTML 或编程答题卡压缩包，单批最大 10 MB）</p>
             </div>
           </Upload.Dragger>
         </div>
 
-        {isAnswerSheetMode && (
-          <>
+        {hasSelection && (
+          <Flex vertical gap={tokens.sizeSM}>
             <Card size="small" type="inner" className="selected-assessment-file">
               <Flex align="center" gap={tokens.sizeSM}>
-                <FileZipTwoTone
-                  twoToneColor={tokens.colorPrimary}
-                  style={{ fontSize: 28, flex: 'none' }}
-                  aria-hidden="true"
-                />
+                {renderKindIcon(isSingle ? primaryInspection : undefined)}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <Flex align="center" gap={tokens.sizeXS} wrap>
                     <Typography.Title level={5} style={{ margin: 0, overflowWrap: 'anywhere' }}>
-                      {zipFiles.length === 1 ? zipFiles[0]!.name : `已选 ${zipFiles.length} 个文件`}
+                      {isSingle ? selectedFiles[0]!.name : `已选 ${selectedFiles.length} 个文件`}
                     </Typography.Title>
-                    <Tag color="blue">已识别：编程答题卡</Tag>
+                    {isSingle && primaryInspection && (
+                      <>
+                        <Tag color={roleStateColor(primaryInspection.role_state)}>
+                          {materialKindLabel(primaryInspection.kind)}
+                        </Tag>
+                        <Tag color={roleStateColor(primaryInspection.role_state)}>
+                          {materialRoleLabel(primaryInspection.role, primaryInspection.role_state)}
+                          {' · '}
+                          {materialRoleStateLabel(primaryInspection.role_state)}
+                        </Tag>
+                      </>
+                    )}
+                    {!isSingle && allAnswerSheets && <Tag color="blue">内容已识别：编程答题卡</Tag>}
                   </Flex>
                   <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                    {zipFiles.length === 1
-                      ? formatByteSize(zipTotalBytes)
-                      : `${zipFiles.length} 个 ZIP · 共 ${formatByteSize(zipTotalBytes)}`}
+                    {isSingle
+                      ? formatByteSize(totalBytes)
+                      : `${selectedFiles.length} 个文件 · 共 ${formatByteSize(totalBytes)}`}
                   </Typography.Text>
                 </div>
                 <Button disabled={busy} onClick={resetSelection}>
@@ -266,62 +434,223 @@ export default function UnifiedUploadPage() {
                 </Button>
               </Flex>
             </Card>
+
             {busy && (
               <div className="workflow-checking" role="status">
                 <Spin />
                 <Typography.Title level={4} style={{ margin: 0 }}>
-                  正在导入答题卡
+                  {busyLabel || '正在处理文件'}
                 </Typography.Title>
               </div>
             )}
-          </>
-        )}
 
-        {selectedExcel && !isAnswerSheetMode && (
-          <>
-            <Card size="small" type="inner" className="selected-assessment-file">
-              <Flex align="center" gap={tokens.sizeSM}>
-                <FileExcelTwoTone
-                  twoToneColor={tokens.colorSuccess}
-                  style={{ fontSize: 28, flex: 'none' }}
-                  aria-hidden="true"
+            {!busy && (allAnswerSheets || canPreviewXlsx) && (
+              <div className="live-upload-fields">
+                <label htmlFor="unified-upload-title">测评名称</label>
+                <Input
+                  id="unified-upload-title"
+                  aria-label="测评名称"
+                  value={customTitle}
+                  maxLength={100}
+                  placeholder="输入测评名称（留空则使用默认文件名）"
+                  onChange={(event) => setCustomTitle(event.target.value)}
                 />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <Flex align="center" gap={tokens.sizeXS} wrap>
-                    <Typography.Title level={5} style={{ margin: 0, overflowWrap: 'anywhere' }}>
-                      {selectedExcel.name}
-                    </Typography.Title>
-                    <Tag color="green">已识别：测评数据</Tag>
-                  </Flex>
-                  <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-                    {formatByteSize(selectedExcel.size)}
-                  </Typography.Text>
-                </div>
-                <Button disabled={busy || !allowed} onClick={resetSelection}>
-                  更换文件
-                </Button>
-              </Flex>
-            </Card>
-            {busy ? (
-              <div className="workflow-checking" role="status">
-                <Spin />
-                <Typography.Title level={4} style={{ margin: 0 }}>
-                  正在检查文件
-                </Typography.Title>
-              </div>
-            ) : (
-              <div>
-                <Button onClick={() => void checkExcel(selectedExcel, draft)} disabled={!allowed}>
-                  重试检查
-                </Button>
               </div>
             )}
-          </>
+
+            {!busy && isSingle && primaryInspection && (
+              <SingleInspectionResult recognition={primaryInspection} />
+            )}
+
+            {!busy && !isSingle && inspections.length > 0 && (
+              <Card size="small" type="inner" title="多文件内容识别结果">
+                <Flex vertical gap={tokens.sizeSM}>
+                  {!allAnswerSheets && (
+                    <Alert
+                      type="warning"
+                      showIcon
+                      title="多文件批传当前仅支持全部识别为编程答题卡的压缩包"
+                      description="列表中存在非答题卡资料或无法确认的结构化文件，请改为单文件上传识别。"
+                    />
+                  )}
+                  <Table
+                    rowKey="rowKey"
+                    size="small"
+                    pagination={false}
+                    scroll={{ x: 'max-content' }}
+                    dataSource={inspections.map((item, idx) => ({
+                      ...item,
+                      rowKey: `${item.source_id}:${idx}`,
+                      displayName: selectedFiles[idx]?.name ?? item.file_name ?? `文件 ${idx + 1}`,
+                    }))}
+                    columns={[
+                      { title: '文件名', dataIndex: 'displayName' },
+                      {
+                        title: '识别格式',
+                        render: (_, row) => materialKindLabel(row.kind),
+                      },
+                      {
+                        title: '识别角色',
+                        render: (_, row) => (
+                          <Tag color={roleStateColor(row.role_state)}>
+                            {materialRoleLabel(row.role, row.role_state)}
+                          </Tag>
+                        ),
+                      },
+                      {
+                        title: '待确认说明',
+                        render: (_, row) =>
+                          row.pending.length ? row.pending.map((p) => p.detail).join('；') : '无',
+                      },
+                    ]}
+                  />
+                </Flex>
+              </Card>
+            )}
+          </Flex>
         )}
 
         {localError && <Alert type="error" showIcon title={localError} />}
         {error && <RequestError error={error} />}
       </UploadWorkflow>
     </div>
+  );
+}
+
+function SingleInspectionResult({ recognition }: { recognition: MaterialRecognition }) {
+  if (!recognition.supported || recognition.route === 'unsupported') {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        title={`服务端不支持处理此文件（${materialKindLabel(recognition.kind)}）`}
+        description={
+          recognition.pending.length
+            ? recognition.pending.map((item) => item.detail).join('；')
+            : '当前仅支持 XLSX、CSV、HTML 表格与编程答题卡 ZIP。'
+        }
+      />
+    );
+  }
+
+  return (
+    <Flex vertical gap={tokens.sizeSM}>
+      {recognition.pending.length > 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          title={`识别完成，但有 ${recognition.pending.length} 项需要确认`}
+          description={
+            <Flex vertical gap={4}>
+              {recognition.pending.map((item, idx) => (
+                <Typography.Text key={`${item.code}:${idx}`} style={{ fontSize: 13 }}>
+                  • {item.detail}
+                </Typography.Text>
+              ))}
+            </Flex>
+          }
+        />
+      )}
+
+      <Card size="small" type="inner" title="服务端识别摘要">
+        <Flex vertical gap={tokens.sizeSM}>
+          <Descriptions
+            size="small"
+            bordered
+            column={{ xs: 1, sm: 2 }}
+            items={[
+              {
+                key: 'kind',
+                label: '文件格式',
+                children: materialKindLabel(recognition.kind),
+              },
+              {
+                key: 'role',
+                label: '资料角色',
+                children: (
+                  <Space size="small" wrap>
+                    <span>{materialRoleLabel(recognition.role, recognition.role_state)}</span>
+                    <Tag color={roleStateColor(recognition.role_state)}>
+                      {materialRoleStateLabel(recognition.role_state)}
+                    </Tag>
+                  </Space>
+                ),
+              },
+              {
+                key: 'route',
+                label: '建议处理路径',
+                children:
+                  recognition.route === 'assessment_import' ? '编程答题卡导入' : '通用资料结构理解',
+              },
+              {
+                key: 'source',
+                label: '内容摘要 (SHA-256)',
+                children: (
+                  <Typography.Text code style={{ fontSize: 12 }}>
+                    {recognition.source_id.slice(0, 12)}…
+                  </Typography.Text>
+                ),
+              },
+            ]}
+          />
+
+          {recognition.tables.length > 0 && (
+            <Flex align="center" wrap gap={tokens.sizeXS}>
+              <Typography.Text type="secondary">识别数据表：</Typography.Text>
+              {recognition.tables.map((table) => (
+                <Tag
+                  key={table.ref}
+                  color={table.blocked ? 'error' : table.complete ? 'success' : 'processing'}
+                >
+                  {table.ref}（{table.rows} 行 · {table.columns} 列 ·{' '}
+                  {table.blocked ? '已阻塞' : table.complete ? '完整覆盖' : '部分行观测'}）
+                </Tag>
+              ))}
+            </Flex>
+          )}
+
+          {recognition.analyses.length > 0 && (
+            <Flex align="center" wrap gap={tokens.sizeXS}>
+              <Typography.Text type="secondary">可用分析能力：</Typography.Text>
+              {recognition.analyses.map((code) => (
+                <Tag key={code} color="blue">
+                  {materialAnalysisLabel(code)}
+                </Tag>
+              ))}
+            </Flex>
+          )}
+
+          {recognition.fields.length > 0 && (
+            <Table
+              rowKey="column"
+              size="small"
+              pagination={false}
+              scroll={{ x: 'max-content' }}
+              dataSource={recognition.fields}
+              columns={[
+                { title: '列 / 位置', dataIndex: 'column' },
+                {
+                  title: '识别字段含义',
+                  render: (_, field) => <Tag>{materialFieldMeaningLabel(field.meaning)}</Tag>,
+                },
+                {
+                  title: '识别依据',
+                  render: (_, field) => field.evidence.join('、') || '—',
+                },
+              ]}
+            />
+          )}
+        </Flex>
+      </Card>
+
+      {recognition.route === 'material_understanding' && recognition.kind !== 'xlsx' && (
+        <Alert
+          type="info"
+          showIcon
+          title="已完成结构识别（B-02-S1）"
+          description="当前后端已完成该文件的格式探测、角色判断与候选字段识别；CSV / HTML 的确认落库将由后续 B-02-S2 接入。"
+        />
+      )}
+    </Flex>
   );
 }

@@ -19,6 +19,7 @@ import {
   Card,
   Dropdown,
   Empty,
+  FloatButton,
   Layout,
   Menu,
   Modal,
@@ -357,6 +358,7 @@ function WorkspaceShell({
                 <Activity mode={path === pathname ? 'visible' : 'hidden'}>
                   <WorkspacePane
                     path={path}
+                    active={path === pathname}
                     fullscreen={fullscreen}
                     navigate={navigate}
                     updateTitle={updateTitle}
@@ -447,11 +449,13 @@ function AnswerSheetBackButton({ onBack }: { onBack: () => void }) {
 
 function WorkspacePane({
   path,
+  active,
   fullscreen,
   navigate,
   updateTitle,
 }: {
   path: string;
+  active: boolean;
   fullscreen: boolean;
   navigate: (path: string) => void;
   updateTitle: (path: string, title: string) => void;
@@ -546,6 +550,13 @@ function WorkspacePane({
           <ModePage live={content} />
         </WorkspaceLayoutContext.Provider>
       </div>
+      {active && (
+        <FloatButton.BackTop
+          target={() => scroll.current ?? window}
+          visibilityHeight={240}
+          aria-label="回到顶部"
+        />
+      )}
     </div>
   );
 }
