@@ -327,3 +327,116 @@ describe('server totals and decimal presentation', () => {
     expect(commentStatusText('empty')).toContain('为空');
   });
 });
+
+describe('programming assessment AI task client', () => {
+  const snapshot = 'a'.repeat(64);
+  const sampleTask = {
+    task_id: 'prog_t1',
+    assessment_id: 'assess_1',
+    source_snapshot_id: snapshot,
+    purpose: 'programming_error_investigation',
+    state: 'completed',
+    error_code: null,
+    created_at: '2026-11-24T12:00:00Z',
+    deadline_at: '2026-11-24T12:02:00Z',
+    expires_at: '2026-11-24T13:00:00Z',
+    execution_origin: 'http_mock',
+    real_qwen: 'not_run',
+    production_enabled: false,
+    tool_attempts: 2,
+    model_requests: 3,
+    result: {
+      assessment_id: 'assess_1',
+      source_snapshot_id: snapshot,
+      asset_sha256: [snapshot],
+      statement: '编程调查已完成。',
+      findings: [],
+    },
+  };
+
+  it('starts, polls, and cancels programming AI tasks with assessment/task verification', async () => {
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(response(202, { ...sampleTask, state: 'queued', result: null }))
+      .mockResolvedValueOnce(response(200, sampleTask))
+      .mockResolvedValueOnce(
+        response(200, {
+          ...sampleTask,
+          state: 'cancelled',
+          error_code: 'AI_TASK_CANCELLED',
+          result: null,
+        }),
+      );
+    const client = createEduClient(vi.fn(), transport);
+    client.useTestSession();
+
+    const started = await client.startProgrammingAiTask('assess_1', 'idem_1');
+    expect(started.state).toBe('queued');
+    expect(JSON.parse(String(transport.mock.calls[0]?.[1]?.body))).toEqual({
+      purpose: 'programming_error_investigation',
+      idempotency_key: 'idem_1',
+      timeout_seconds: 120,
+    });
+
+    const polled = await client.programmingAiTask('assess_1', 'prog_t1');
+    expect(polled.state).toBe('completed');
+
+    const cancelled = await client.cancelProgrammingAiTask('assess_1', 'prog_t1');
+    expect(cancelled.state).toBe('cancelled');
+  });
+
+  it('rejects mismatched assessment_id or task_id and surfaces server error codes', async () => {
+    const transport = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(response(200, { ...sampleTask, assessment_id: 'other_assess' }))
+      .mockResolvedValueOnce(response(200, { ...sampleTask, task_id: 'other_task' }))
+      .mockResolvedValueOnce(response(409, { error: { code: 'ORIGINAL_UNAVAILABLE' } }));
+    const client = createEduClient(vi.fn(), transport);
+    client.useTestSession();
+
+    await expect(client.startProgrammingAiTask('assess_1', 'idem_2')).rejects.toMatchObject({
+      status: 502,
+      code: 'INVALID_API_RESPONSE',
+    });
+    await expect(client.programmingAiTask('assess_1', 'prog_t1')).rejects.toMatchObject({
+      status: 502,
+      code: 'INVALID_API_RESPONSE',
+    });
+    await expect(client.cancelProgrammingAiTask('assess_1', 'prog_t1')).rejects.toMatchObject({
+      status: 409,
+      code: 'ORIGINAL_UNAVAILABLE',
+      message: '原始测评文件当前不可用，拒绝使用缓存结果。',
+    });
+  });
+
+  it('inspects uploaded materials via formal backend /materials endpoint', async () => {
+    const transport = vi.fn<typeof fetch>().mockResolvedValue(
+      response(200, {
+        recognition_id: `sha256:${'c'.repeat(64)}`,
+        coverage: 'unknown',
+        authority: 'none',
+        materials: [],
+        archives: [
+          {
+            file_name: 'unknown-ext.bin',
+            kind: 'zip_html',
+            route: '/api/v1/edu/assessments',
+            note: '含网页答卷的压缩包，交由既有答题卡导入路径处理；通用入口不重复解析',
+          },
+        ],
+        pending: [],
+      }),
+    );
+    const client = createEduClient(vi.fn(), transport);
+    client.useTestSession();
+    const form = new FormData();
+    form.append('file', new Blob(['binary']), 'unknown-ext.bin');
+    const result = await client.inspectMaterial(form);
+    expect(result.route).toBe('assessment_import');
+    expect(result.kind).toBe('zip_html');
+    expect(transport).toHaveBeenCalledWith(
+      '/api/edu/materials',
+      expect.objectContaining({ method: 'POST', body: form }),
+    );
+  });
+});

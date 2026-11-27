@@ -1,3 +1,4 @@
+import { tokens } from '../app/theme';
 import { useEffect, useRef } from 'react';
 import { init, use as registerCharts, type EChartsCoreOption } from 'echarts/core';
 import { RadarChart, BarChart } from 'echarts/charts';
@@ -40,26 +41,31 @@ export function AbilityChart({ batch, mode }: { batch: Batch; mode: 'radar' | 'd
                 max: d.max,
               })),
               axisName: {
-                color: '#253454',
+                color: tokens.colorText,
                 fontWeight: 600,
                 fontSize: 13,
                 lineHeight: 23,
                 rich: {
-                  score: { fontSize: 18, color: '#2463f5', fontWeight: 700, lineHeight: 25 },
+                  score: {
+                    fontSize: 18,
+                    color: tokens.colorPrimary,
+                    fontWeight: 700,
+                    lineHeight: 25,
+                  },
                 },
               },
-              axisLine: { lineStyle: { color: '#dce4f1' } },
-              splitLine: { lineStyle: { color: '#dce4f1' } },
-              splitArea: { areaStyle: { color: ['#ffffff', '#fbfcff'] } },
+              axisLine: { lineStyle: { color: tokens.colorBorderSecondary } },
+              splitLine: { lineStyle: { color: tokens.colorBorderSecondary } },
+              splitArea: { areaStyle: { color: [tokens.colorBgContainer, tokens.colorFillAlter] } },
             },
             series: [
               {
                 type: 'radar',
                 name: '测评平均分',
                 symbolSize: 8,
-                lineStyle: { width: 2.5, color: '#2463f5' },
-                itemStyle: { color: '#2463f5' },
-                areaStyle: { color: 'rgba(36,99,245,.23)' },
+                lineStyle: { width: 2.5, color: tokens.colorPrimary },
+                itemStyle: { color: tokens.colorPrimary },
+                areaStyle: { color: tokens.colorPrimaryBgHover },
                 data: [
                   {
                     value: radarDimensions.map((d) => mean(batch.students, d.id)),
@@ -78,7 +84,7 @@ export function AbilityChart({ batch, mode }: { batch: Batch; mode: 'radar' | 'd
               minInterval: 1,
               name: '人数',
               axisLine: { show: false },
-              splitLine: { lineStyle: { color: '#edf1f8' } },
+              splitLine: { lineStyle: { color: tokens.colorBorderSecondary } },
             },
             yAxis: {
               type: 'category',
@@ -93,7 +99,15 @@ export function AbilityChart({ batch, mode }: { batch: Batch; mode: 'radar' | 'd
                 type: 'bar',
                 stack: 'total',
                 barWidth: 24,
-                itemStyle: { color: ['#e6efff', '#bcd5ff', '#87b3ff', '#4e8cff', '#2463f5'][i] },
+                itemStyle: {
+                  color: [
+                    tokens.colorPrimaryBg,
+                    tokens.colorPrimaryBorder,
+                    tokens.colorPrimaryBorderHover,
+                    tokens.colorPrimaryHover,
+                    tokens.colorPrimary,
+                  ][i],
+                },
                 data: dimensions.map((d) => distribution(batch.students, d.id, [value])[0]),
               }),
             ),

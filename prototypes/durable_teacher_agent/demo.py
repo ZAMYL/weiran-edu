@@ -28,10 +28,64 @@ from .first_use import FirstUseImportService
 QUESTION = "比较 算法与数据结构、代码实现能力 的组合与 问题建模能力 的群体差异"
 
 
-def serve(database_path, directory, books, connection, stop, first_use=None):
+def serve(
+    database_path,
+    directory,
+    books,
+    connection,
+    stop,
+    first_use=None,
+    programming_offline: bool = False,
+):
     app = create_app(Settings(environment="test", database_path=Path(database_path)))
     provider = DatabaseProvider(app.state.edu_service, tuple(books.values()))
     service = install(app, provider, Path(directory))
+    if programming_offline:
+        from prototypes.adaptive_assessment.live.demo import native_response
+        from prototypes.research_agent_v2.programming import INSPECT, OVERVIEW
+        from prototypes.research_agent_v2.programming_task_adapter import install_offline_runner
+
+        counter = {"n": 0}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            counter["n"] += 1
+            wire = json.loads(request.content.decode("utf-8"))
+            facts = json.loads(wire["messages"][-1]["content"])["facts"]
+            if not facts:
+                decision = {"name": OVERVIEW, "arguments": {}}
+            else:
+                overview = facts[0]
+                inspected = {
+                    fact["direction"]["direction"]
+                    for fact in facts[1:]
+                    if isinstance(fact.get("direction"), dict) and "direction" in fact["direction"]
+                }
+                directions = [
+                    item
+                    for item in overview.get("directions", [])
+                    if item.get("direction") not in inspected
+                ]
+                if directions and len(facts) < 4:
+                    overview_id = overview["fact_id"]
+                    decision = {
+                        "name": INSPECT,
+                        "arguments": {
+                            "overview_id": overview_id,
+                            "direction": directions[0]["direction"],
+                        },
+                        "basis_fact_ids": [overview_id],
+                    }
+                else:
+                    decision = {
+                        "name": "finish",
+                        "arguments": {
+                            "selected_fact_ids": [fact["fact_id"] for fact in facts[1:]],
+                            "reason": "completed" if len(facts) > 1 else "insufficient_data",
+                        },
+                    }
+            return httpx.Response(200, json=native_response(decision, counter["n"]))
+
+        install_offline_runner(app.state.programming_tasks, httpx.MockTransport(handler))
     if first_use is not None:
         app.state.edu_service = FirstUseImportService(
             app.state.edu_service, service.store, *first_use
@@ -54,7 +108,13 @@ def serve(database_path, directory, books, connection, stop, first_use=None):
 
 
 @contextmanager
-def server(fixture, directory, *, first_use: tuple[str, bytes] | None = None):
+def server(
+    fixture,
+    directory,
+    *,
+    first_use: tuple[str, bytes] | None = None,
+    programming_offline: bool = False,
+):
     ctx = multiprocessing.get_context("spawn")
     receive, send = ctx.Pipe(duplex=False)
     stop = ctx.Event()
@@ -67,6 +127,7 @@ def server(fixture, directory, *, first_use: tuple[str, bytes] | None = None):
             send,
             stop,
             first_use,
+            programming_offline,
         ),
     )
     process.start()

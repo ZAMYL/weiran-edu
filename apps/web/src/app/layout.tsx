@@ -7,7 +7,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: '未然 EDU｜AI 时代的编程能力与学习成效诊断平台',
   description: '未然 EDU｜AI 时代的编程能力与学习成效诊断平台',
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: { url: '/weiran-logo.png', type: 'image/png', sizes: '192x192' } },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

@@ -1,7 +1,23 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, App, Button, Checkbox, Input, Pagination, Table } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  Flex,
+  Input,
+  Pagination,
+  Row,
+  Statistic,
+  Table,
+  Typography,
+} from 'antd';
 import { FileExcelTwoTone } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import { Panel } from '../../components/ui';
@@ -33,15 +49,24 @@ export default function LiveImportPreview({
   const committed = uploadDraft?.committed;
   const [confirmation, setConfirmation] = useState(false);
   const confirmStep = confirmation || Boolean(committed);
+  const [busy, setBusy] = useState(false);
   const pending = useRef<AbortController | null>(null);
-  useEffect(() => () => pending.current?.abort(), []);
+  useEffect(
+    () => () => {
+      if (pending.current) {
+        pending.current.abort();
+        pending.current = null;
+        setBusy(false);
+      }
+    },
+    [],
+  );
   const { message } = App.useApp();
   const [rowOffset, setRowOffset] = useState(0),
     [issueOffset, setIssueOffset] = useState(0);
   const [located, setLocated] = useState<string | null>(null);
   const [title, setTitle] = useState(initial.import.title);
   const [ack, setAck] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<ApiError | null>(null);
   const importId = initial.import.import_id;
   const load = useCallback(
@@ -243,17 +268,28 @@ export default function LiveImportPreview({
         <section className="workflow-confirmation" aria-label="确认测评信息">
           <h2>{info.title}</h2>
           {uploadDraft?.file && (
-            <div className="selected-assessment-file">
-              <FileExcelTwoTone twoToneColor="#12805b" aria-hidden="true" />
-              <span>{uploadDraft.file.name}</span>
-            </div>
+            <Card size="small" type="inner" className="selected-assessment-file">
+              <Flex align="center" gap={tokens.sizeSM}>
+                <FileExcelTwoTone
+                  twoToneColor={tokens.colorSuccess}
+                  style={{ fontSize: 24, flex: 'none' }}
+                  aria-hidden="true"
+                />
+                <Typography.Text strong>{uploadDraft.file.name}</Typography.Text>
+              </Flex>
+            </Card>
           )}
           <ImportSummary view={view} quality={quality} />
           {quality.requires_warning_acknowledgement && (
-            <details className="workflow-confirm-warnings">
-              <summary>
-                已确认 {quality.issue_groups.filter((g) => g.severity === 'warning').length} 类提醒
-              </summary>
+            <Disclosure
+              className="workflow-confirm-warnings"
+              label={
+                <>
+                  已确认 {quality.issue_groups.filter((g) => g.severity === 'warning').length}{' '}
+                  类提醒
+                </>
+              }
+            >
               {quality.issue_groups
                 .filter((g) => g.severity === 'warning')
                 .map((group) => (
@@ -262,23 +298,31 @@ export default function LiveImportPreview({
                     {group.occurrence_count} 项
                   </p>
                 ))}
-            </details>
+            </Disclosure>
           )}
-          <p className="muted">导入成功后，自动进入本次测评诊断。</p>
+          <Typography.Text type="secondary">导入成功后，自动进入本次测评诊断。</Typography.Text>
         </section>
       )}
       <div className="workflow-review" hidden={confirmStep}>
         {view && info && quality && (
-          <>
-            <div className="selected-assessment-file">
-              <FileExcelTwoTone twoToneColor="#12805b" aria-hidden="true" />
-              <div>
-                <h3>{uploadDraft?.file?.name ?? '测评文件'}</h3>
-              </div>
-              <Button type="link" onClick={onCancel} disabled={busy}>
-                更换文件
-              </Button>
-            </div>
+          <Flex vertical gap={tokens.size}>
+            <Card size="small" type="inner" className="selected-assessment-file">
+              <Flex align="center" gap={tokens.sizeSM}>
+                <FileExcelTwoTone
+                  twoToneColor={tokens.colorSuccess}
+                  style={{ fontSize: 28, flex: 'none' }}
+                  aria-hidden="true"
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Typography.Title level={5} style={{ margin: 0, overflowWrap: 'anywhere' }}>
+                    {uploadDraft?.file?.name ?? '测评文件'}
+                  </Typography.Title>
+                </div>
+                <Button type="link" onClick={onCancel} disabled={busy}>
+                  更换文件
+                </Button>
+              </Flex>
+            </Card>
             <div className="batch-name-field">
               <label htmlFor="live-preview-title">测评名称</label>
               <Input
@@ -304,8 +348,10 @@ export default function LiveImportPreview({
             <ImportSummary view={view} quality={quality} />
             <div className="import-preview-grid compact-import">
               {!!view.recognized_items?.length && (
-                <details className="panel original-records-section workflow-recognized-items">
-                  <summary>评分项目与量表</summary>
+                <Disclosure
+                  className="panel original-records-section workflow-recognized-items"
+                  label={<>评分项目与量表</>}
+                >
                   <ul>
                     {view.recognized_items.map((item) => (
                       <li key={item.item_id}>
@@ -313,20 +359,19 @@ export default function LiveImportPreview({
                       </li>
                     ))}
                   </ul>
-                </details>
+                </Disclosure>
               )}
-              <details
+              <Disclosure
                 className="panel original-records-section"
-                open={recordsOpen}
-                onToggle={(event) => setRecordsOpen(event.currentTarget.open)}
+                expanded={recordsOpen}
+                onExpandedChange={setRecordsOpen}
+                label={<>评分预览</>}
               >
-                <summary>评分预览</summary>
                 <p className="muted small">评语仅在审核后展示，未审核原文不会在此显示。</p>
                 <Table
                   rowKey="row_key"
-                  size="small"
                   dataSource={view.rows ?? []}
-                  scroll={{ x: 740 }}
+                  scroll={{ x: 'max-content' }}
                   rowClassName={(row) =>
                     `${row.issue_codes.length ? 'error-row' : ''} ${located === row.row_key ? 'located-row' : ''}`
                   }
@@ -363,8 +408,7 @@ export default function LiveImportPreview({
                   onChange={(page) => setRowOffset((page - 1) * 10)}
                   showTotal={(total) => `共 ${total} 条评分行`}
                 />
-                <details className="technical-details">
-                  <summary>错误详情</summary>
+                <Disclosure className="technical-details" label={<>错误详情</>}>
                   <dl className="source-details">
                     <dt>预览版本</dt>
                     <dd>{info.preview_version}</dd>
@@ -375,112 +419,132 @@ export default function LiveImportPreview({
                     <dt>到期时间</dt>
                     <dd>{new Date(info.expires_at).toLocaleString('zh-CN')}</dd>
                   </dl>
-                </details>
-              </details>
-              <Panel className="quality-report" title="文件检查结果">
-                {quality.status === 'passed' && (
-                  <Alert type="success" showIcon title="文件检查通过" />
-                )}
-                <div className="issue-groups">
-                  {quality.issue_groups.map((group) => (
-                    <section
-                      className={`issue-group${group.severity === 'error' ? ' is-error' : ''}`}
-                      key={group.code}
-                    >
-                      <div className="workflow-issue-heading">
-                        <h3>
-                          {group.code === 'COMMENT_REPEATED' ? '部分评语重复' : group.message}
-                        </h3>
-                        <span>
-                          影响 {group.affected_student_count} 人 · {group.occurrence_count} 项
-                          {group.severity === 'error' ? '错误' : '提醒'}
-                        </span>
-                      </div>
-                      <p className="muted">
-                        {group.code === 'COMMENT_REPEATED'
-                          ? '建议核对评语是否逐人填写；评分可正常导入，原文仍按审核权限展示。'
-                          : group.severity === 'error'
-                            ? '请修正涉及记录后重新上传。'
-                            : '请核查涉及记录，确认后可继续导入。'}
-                      </p>
-                      <details>
-                        <summary>查看涉及的记录</summary>
-                        {group.examples.map((issue) => (
-                          <div className="issue-example" key={issue.issue_id}>
+                </Disclosure>
+              </Disclosure>
+              <Panel className="quality-report" title="文件检查结果" variant="borderless">
+                <Flex vertical gap={tokens.sizeSM}>
+                  {quality.status === 'passed' && (
+                    <Alert type="success" showIcon title="文件检查通过" />
+                  )}
+                  <Flex vertical gap={tokens.sizeSM} className="issue-groups">
+                    {quality.issue_groups.map((group) => (
+                      <Alert
+                        key={group.code}
+                        className={`issue-group${group.severity === 'error' ? ' is-error' : ''}`}
+                        type={group.severity === 'error' ? 'error' : 'warning'}
+                        showIcon
+                        title={
+                          <Flex justify="space-between" align="baseline" wrap gap={tokens.sizeSM}>
                             <span>
-                              {issue.sheet_name} · 第 {issue.row_number} 行 · {issue.cell}
+                              {group.code === 'COMMENT_REPEATED' ? '部分评语重复' : group.message}
                             </span>
-                            {issue.row_offset !== null && (
-                              <Button size="small" type="link" onClick={() => locate(issue)}>
-                                定位记录
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                        <p className="muted small">
-                          以上为检查结果提供的位置示例；完整问题可在下方分页查看。
-                        </p>
-                      </details>
-                    </section>
-                  ))}
-                </div>
-                {view.summary.error_count + view.summary.warning_count > 0 && (
-                  <details
-                    className="all-issues"
-                    open={issuesOpen}
-                    onToggle={(event) => setIssuesOpen(event.currentTarget.open)}
-                  >
-                    <summary>查看完整问题列表</summary>
-                    <Table
-                      rowKey="issue_id"
-                      size="small"
-                      pagination={false}
-                      dataSource={view.issues ?? []}
-                      scroll={{ x: 520 }}
-                      columns={[
-                        {
-                          title: '类型',
-                          render: (_, issue) => (issue.severity === 'error' ? '错误' : '提醒'),
-                        },
-                        { title: '问题', dataIndex: 'message' },
-                        {
-                          title: '位置',
-                          render: (_, issue) =>
-                            `${issue.sheet_name} · 第 ${issue.row_number} 行 · ${issue.cell}`,
-                        },
-                        {
-                          title: '操作',
-                          render: (_, issue) =>
-                            issue.row_offset !== null ? (
-                              <Button type="link" size="small" onClick={() => locate(issue)}>
-                                定位记录
-                              </Button>
-                            ) : null,
-                        },
-                      ]}
+                            <Typography.Text
+                              type="secondary"
+                              style={{ fontSize: 12, fontWeight: 400 }}
+                            >
+                              影响 {group.affected_student_count} 人 · {group.occurrence_count} 项
+                              {group.severity === 'error' ? '错误' : '提醒'}
+                            </Typography.Text>
+                          </Flex>
+                        }
+                        description={
+                          <Flex vertical gap={tokens.sizeXS}>
+                            <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+                              {group.code === 'COMMENT_REPEATED'
+                                ? '建议核对评语是否逐人填写；评分可正常导入，原文仍按审核权限展示。'
+                                : group.severity === 'error'
+                                  ? '请修正涉及记录后重新上传。'
+                                  : '请核查涉及记录，确认后可继续导入。'}
+                            </Typography.Text>
+                            <Disclosure label={<>查看涉及的记录</>}>
+                              {group.examples.map((issue) => (
+                                <Flex
+                                  justify="space-between"
+                                  align="center"
+                                  wrap
+                                  gap={tokens.sizeXS}
+                                  className="issue-example"
+                                  key={issue.issue_id}
+                                >
+                                  <span>
+                                    {issue.sheet_name} · 第 {issue.row_number} 行 · {issue.cell}
+                                  </span>
+                                  {issue.row_offset !== null && (
+                                    <Button size="small" type="link" onClick={() => locate(issue)}>
+                                      定位记录
+                                    </Button>
+                                  )}
+                                </Flex>
+                              ))}
+                              <Typography.Text
+                                type="secondary"
+                                style={{ fontSize: 12, display: 'block', marginTop: tokens.sizeXS }}
+                              >
+                                以上为检查结果提供的位置示例；完整问题可在下方分页查看。
+                              </Typography.Text>
+                            </Disclosure>
+                          </Flex>
+                        }
+                      />
+                    ))}
+                  </Flex>
+                  {view.summary.error_count + view.summary.warning_count > 0 && (
+                    <Disclosure
+                      className="all-issues"
+                      expanded={issuesOpen}
+                      onExpandedChange={setIssuesOpen}
+                      label={<>查看完整问题列表</>}
+                    >
+                      <Table
+                        rowKey="issue_id"
+                        pagination={false}
+                        dataSource={view.issues ?? []}
+                        scroll={{ x: 'max-content' }}
+                        columns={[
+                          {
+                            title: '类型',
+                            render: (_, issue) => (issue.severity === 'error' ? '错误' : '提醒'),
+                          },
+                          { title: '问题', dataIndex: 'message' },
+                          {
+                            title: '位置',
+                            render: (_, issue) =>
+                              `${issue.sheet_name} · 第 ${issue.row_number} 行 · ${issue.cell}`,
+                          },
+                          {
+                            title: '操作',
+                            render: (_, issue) =>
+                              issue.row_offset !== null ? (
+                                <Button type="link" size="small" onClick={() => locate(issue)}>
+                                  定位记录
+                                </Button>
+                              ) : null,
+                          },
+                        ]}
+                      />
+                      <Pagination
+                        size="small"
+                        current={Math.floor(issueOffset / 10) + 1}
+                        total={view.summary.error_count + view.summary.warning_count}
+                        pageSize={10}
+                        hideOnSinglePage
+                        showSizeChanger={false}
+                        onChange={(page) => setIssueOffset((page - 1) * 10)}
+                      />
+                    </Disclosure>
+                  )}
+                  {!!view.summary.error_count && (
+                    <Alert
+                      type="error"
+                      showIcon
+                      title="存在阻断错误，无法确认入库"
+                      description="请修正原始文件后重新上传，系统不会自动改分。"
                     />
-                    <Pagination
-                      size="small"
-                      current={Math.floor(issueOffset / 10) + 1}
-                      total={view.summary.error_count + view.summary.warning_count}
-                      pageSize={10}
-                      hideOnSinglePage
-                      showSizeChanger={false}
-                      onChange={(page) => setIssueOffset((page - 1) * 10)}
-                    />
-                  </details>
-                )}
-                {!!view.summary.error_count && (
-                  <Alert
-                    type="error"
-                    showIcon
-                    title="存在阻断错误，无法确认入库"
-                    description="请修正原始文件后重新上传，系统不会自动改分。"
-                  />
-                )}
+                  )}
+                </Flex>
               </Panel>
             </div>
-          </>
+          </Flex>
         )}
       </div>
     </UploadWorkflow>
@@ -489,33 +553,54 @@ export default function LiveImportPreview({
 
 function ImportSummary({ view, quality }: { view: ApiImport; quality: ApiQuality }) {
   return (
-    <>
-      <dl className="workflow-summary" aria-label="文件识别数量">
-        <div>
-          <dt>参评记录</dt>
-          <dd>
-            <strong>{view.summary.detected_student_count}</strong> 条
-          </dd>
-        </div>
-        <div>
-          <dt>有效评分</dt>
-          <dd>
-            <strong>{quality.summary.valid_score_count}</strong> 条
-          </dd>
-        </div>
-        <div>
-          <dt>评分项目</dt>
-          <dd>
-            <strong>{view.recognized_items?.length ?? quality.dimensions.length}</strong> 项
-          </dd>
-        </div>
-      </dl>
+    <Flex vertical gap={tokens.sizeXS}>
+      <Row
+        gutter={[tokens.size, tokens.size]}
+        className="workflow-summary"
+        role="group"
+        aria-label="文件识别数量"
+      >
+        <Col span={8}>
+          <Card size="small">
+            <Statistic
+              title="参评记录"
+              value={view.summary.detected_student_count}
+              suffix="条"
+              valueRender={(node) => <strong>{node}</strong>}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card size="small">
+            <Statistic
+              title="有效评分"
+              value={quality.summary.valid_score_count}
+              suffix="条"
+              valueRender={(node) => <strong>{node}</strong>}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card size="small">
+            <Statistic
+              title="评分项目"
+              value={view.recognized_items?.length ?? quality.dimensions.length}
+              suffix="项"
+              valueRender={(node) => <strong>{node}</strong>}
+            />
+          </Card>
+        </Col>
+      </Row>
       {(quality.summary.missing_score_count > 0 || quality.summary.invalid_score_count > 0) && (
-        <p className="workflow-quality-counts">
+        <Typography.Text
+          type="secondary"
+          className="workflow-quality-counts"
+          style={{ fontSize: 13 }}
+        >
           评分记录共 {view.summary.parsed_evaluation_count} 条 · 缺失{' '}
           {quality.summary.missing_score_count} 条 · 无效 {quality.summary.invalid_score_count} 条
-        </p>
+        </Typography.Text>
       )}
-    </>
+    </Flex>
   );
 }

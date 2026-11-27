@@ -1,21 +1,21 @@
 ﻿# 未然 EDU 本机完整演示启动器（UTF-8 with BOM，兼容 Windows PowerShell 5.1）
 # 用法：
-#   powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity first
-#   powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity sample
+#   powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1
+#   powershell -ExecutionPolicy Bypass -File scripts\local\start-demo.ps1 -Identity first -Port 3418
 # 前置（首次使用）：
 #   cd apps\web
 #   corepack pnpm install --frozen-lockfile
 #   corepack pnpm build
 #   cd ..\..\apps\api
 #   uv sync --locked --group dev
+# Identity=sample ：合成样例教师（6 个五维样例批次 + 编程答题卡上传与离线 AI 核查），默认。
 # Identity=first  ：空数据教师（0 个批次），用于验证真实首次上传流程。
-# Identity=sample ：合成样例教师（6 个样例批次），用于体验 AI 群体画像与报告。
 # 全程真实 HTTP + SQLite 合成数据，不调用真实 Qwen；仅绑定本机回环；Ctrl+C 停止。
 param(
   [ValidateSet('first', 'sample')]
-  [string]$Identity = 'first',
-  [int]$Port = 3000,
-  [int]$HostSeconds = 3600,
+  [string]$Identity = 'sample',
+  [int]$Port = 3418,
+  [int]$HostSeconds = 0,
   [switch]$NoBrowser
 )
 $ErrorActionPreference = 'Stop'
@@ -86,11 +86,12 @@ try {
   if (-not $connectionPath) { throw '合成后端宿主启动超时，请查看日志：' + $hostOut }
   $connection  = Get-Content -Raw -Encoding UTF8 -LiteralPath $connectionPath | ConvertFrom-Json
   $sessionFile = Join-Path (Split-Path $connectionPath) 'web-session.private.json'
+  $samplePath = $connection.first_use_sample_path
+  $answersheetSamplePath = $connection.answersheet_sample_path
   if ($Identity -eq 'sample') {
     $token = $connection.bearer_token
   } else {
     $token = $connection.first_use_token
-    $samplePath = $connection.first_use_sample_path
     if (-not $samplePath -or -not (Test-Path -LiteralPath $samplePath -PathType Leaf)) {
       throw '后端宿主未提供本次登记的首次上传样例。'
     }
@@ -162,19 +163,26 @@ try {
 
   # ---------- 4. 打开浏览器并保持运行 ----------
   $demo = "http://127.0.0.1:$Port/insights"
+  $upload = "http://127.0.0.1:$Port/upload"
   Write-Host ''
-  Write-Host '未然 EDU 本机演示已启动' -ForegroundColor Green
+  Write-Host '未然 EDU V1.4 本机演示已启动' -ForegroundColor Green
   Write-Host '  学情诊断: ' -NoNewline; Write-Host $demo -ForegroundColor Yellow
-  Write-Host '  画像探索 / 测评数据 / 报告 : /explorer  /data  /reports' -ForegroundColor DarkGray
-  if ($Identity -eq 'first') {
-    Write-Host '  首次上传请在文件选择框中打开本次登记的样例：' -ForegroundColor DarkGray
-    Write-Host "  $samplePath" -ForegroundColor Yellow
-  } else {
-    Write-Host '  样例身份：批次选择器已包含 6 个合成样例，可直接体验 AI 分析。' -ForegroundColor DarkGray
+  Write-Host '  统一上传: ' -NoNewline; Write-Host $upload -ForegroundColor Yellow
+  Write-Host '  其他页面 : /explorer  /data  /reports' -ForegroundColor DarkGray
+  if ($samplePath) {
+    Write-Host '  合成五维样例 : ' -NoNewline; Write-Host $samplePath -ForegroundColor Yellow
   }
-  Write-Host "  合成宿主 $HostSeconds 秒后自动撤销凭证并清理；Ctrl+C 可提前停止。" -ForegroundColor DarkGray
+  if ($answersheetSamplePath) {
+    Write-Host '  合成编程答题卡: ' -NoNewline; Write-Host $answersheetSamplePath -ForegroundColor Yellow
+  }
+  if ($Identity -eq 'sample') {
+    Write-Host '  样例身份：已预置 6 个五维合成样例批次，并已启用离线编程 AI 核查（http_mock）。' -ForegroundColor DarkGray
+  } else {
+    Write-Host '  空数据身份：0 个预置批次，可在上传页体验首次上传全流程。' -ForegroundColor DarkGray
+  }
+  Write-Host "  停止方式：按 Ctrl+C，或执行 powershell -ExecutionPolicy Bypass -File scripts\local\stop-demo.ps1 -SessionDirectory `"$Private`"" -ForegroundColor DarkGray
   try {
-    if (-not $NoBrowser) { Start-Process "http://127.0.0.1:$Port/insights" }
+    if (-not $NoBrowser) { Start-Process $demo }
   } catch {
     Write-Host '未能自动打开浏览器，请手动访问上面的地址。'
   }

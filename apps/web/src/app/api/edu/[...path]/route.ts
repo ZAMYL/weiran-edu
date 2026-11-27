@@ -10,6 +10,9 @@ export const dynamic = 'force-dynamic';
 const routes: Record<string, RegExp[]> = {
   GET: [
     /^(me|scopes|batches|test-session|ai-capability)$/,
+    /^assessments(?:\/[^/]+(?:\/patterns|\/students(?:\/[^/]+)?)?)?$/,
+    /^assessments\/[^/]+\/problems\/[^/]+\/students$/,
+    /^assessments\/[^/]+\/ai-tasks\/[^/]+$/,
     /^batches\/[^/]+$/,
     /^batches\/[^/]+\/(statistics|students|rubric)$/,
     /^batches\/[^/]+\/(capabilities|analysis-results)$/,
@@ -22,6 +25,10 @@ const routes: Record<string, RegExp[]> = {
     /^batches\/[^/]+\/ai-investigation-tasks\/[^/]+\/events$/,
   ],
   POST: [
+    /^assessments$/,
+    /^materials$/,
+    /^assessments\/[^/]+\/ai-tasks$/,
+    /^assessments\/[^/]+\/ai-tasks\/[^/]+\/cancel$/,
     /^batches\/[^/]+\/discoveries\/query$/,
     /^batches\/[^/]+\/discoveries\/[^/]+\/query$/,
     /^batches\/[^/]+\/discoveries\/[^/]+\/(chart|records)\/query$/,
@@ -74,12 +81,38 @@ async function relay(
   context: { params: Promise<{ path: string[] }> },
 ): Promise<Response> {
   const { path } = await context.params;
-  if (path.some((p) => !/^[a-zA-Z0-9_-]{1,128}$/.test(p))) return fail(404, 'NOT_FOUND');
+  const isProblemStudents =
+    request.method === 'GET' &&
+    path.length === 5 &&
+    path[0] === 'assessments' &&
+    path[2] === 'problems' &&
+    path[4] === 'students';
+  const safeProblemLabel = (value: string) =>
+    value.length >= 1 &&
+    value.length <= 128 &&
+    value !== '.' &&
+    value !== '..' &&
+    !/[/\\?#%]/.test(value) &&
+    !Array.from(value).some((ch) => {
+      const code = ch.charCodeAt(0);
+      return code < 0x20 || code === 0x7f;
+    });
+  if (
+    path.some((p, index) =>
+      isProblemStudents && index === 3 ? !safeProblemLabel(p) : !/^[a-zA-Z0-9_-]{1,128}$/.test(p),
+    )
+  )
+    return fail(404, 'NOT_FOUND');
   const route = path.join('/');
   if (!routes[request.method]?.some((pattern) => pattern.test(route)))
     return fail(404, 'NOT_FOUND');
   const source = new URL(request.url);
   const taskEvents = path[2] === 'ai-investigation-tasks' && path[4] === 'events';
+  const assessmentEvidence =
+    request.method === 'GET' &&
+    path[0] === 'assessments' &&
+    path[2] === 'students' &&
+    path.length === 4;
   const report = request.method === 'GET' && path[2] === 'analysis-results' && path[4] === 'export';
   const format = source.searchParams.get('format');
   const version = Number(source.searchParams.get('expected_version'));
@@ -100,7 +133,11 @@ async function relay(
       : source.origin;
   if (
     Array.from(source.searchParams.keys()).some(
-      (key) => !queryNames.has(key) && !(taskEvents && key === 'after'),
+      (key) =>
+        !queryNames.has(key) &&
+        !(taskEvents && key === 'after') &&
+        !(assessmentEvidence && key === 'source_snapshot_id') &&
+        !(isProblemStudents && (key === 'status' || key === 'test_index')),
     ) ||
     request.headers.get('sec-fetch-site') === 'cross-site' ||
     (request.headers.has('origin') && request.headers.get('origin') !== expectedOrigin)
@@ -145,7 +182,10 @@ async function relay(
   }
   if (!authorization || !/^Bearer [a-zA-Z0-9_-]{20,200}$/.test(authorization))
     return fail(401, 'UNAUTHORIZED');
-  const limit = route === 'imports/preview' ? 10 * 1024 * 1024 + 64 * 1024 : 64 * 1024;
+  const fileUpload =
+    request.method === 'POST' &&
+    (route === 'imports/preview' || route === 'assessments' || route === 'materials');
+  const limit = fileUpload ? 10 * 1024 * 1024 + 64 * 1024 : 64 * 1024;
   const declaredSize = request.headers.get('content-length');
   if (declaredSize && Number(declaredSize) > limit) return fail(413, 'REQUEST_TOO_LARGE');
   let size = 0;
@@ -192,14 +232,18 @@ async function relay(
     if (stream) {
       // Bound and finish small JSON uploads before forwarding. A fast 401 from
       // FastAPI must not race an unfinished Node duplex upload and become 503.
-      if (route === 'imports/preview') {
+      if (fileUpload) {
         init.body = stream;
         init.duplex = 'half';
       } else {
         init.body = await new Response(stream).arrayBuffer();
       }
     }
-    const response = await fetch(new URL(`/api/v1/edu/${route}${source.search}`, origin), init);
+    const encodedRoute = path.map(encodeURIComponent).join('/');
+    const response = await fetch(
+      new URL(`/api/v1/edu/${encodedRoute}${source.search}`, origin),
+      init,
+    );
     upstreamRequestId = response.headers.get('x-request-id');
     if (report && response.ok && (format === 'xlsx' || format === 'md')) {
       const file = await readReportFile(response, { resultId: path[3]!, version, format });

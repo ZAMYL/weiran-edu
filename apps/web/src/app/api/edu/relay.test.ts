@@ -4,6 +4,40 @@ import { GET, POST, PATCH } from './[...path]/route';
 const bearer = 'Bearer synthetic-test-credential-not-real';
 const context = (path: string) => ({ params: Promise.resolve({ path: path.split('/') }) });
 
+it('scopes answer-sheet upload limits, evidence queries, and routes', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => Response.json({}));
+  vi.stubGlobal('fetch', fetcher);
+  const url = 'http://localhost/api/edu/';
+  const headers = { authorization: bearer };
+  const student = 'assessments/a/students/s';
+  const snapshot = '?source_snapshot_id=' + 'a'.repeat(64);
+  expect(
+    (await GET(new Request(url + student + snapshot, { headers }), context(student))).status,
+  ).toBe(200);
+  expect(String(fetcher.mock.calls[0]?.[0])).toContain(snapshot);
+  const overview = 'assessments/a';
+  expect(
+    (await GET(new Request(url + overview + snapshot, { headers }), context(overview))).status,
+  ).toBe(403);
+  const report = 'assessments/a/report';
+  expect((await GET(new Request(url + report, { headers }), context(report))).status).toBe(404);
+  const large = { ...headers, 'content-length': '100000' };
+  expect(
+    (
+      await POST(
+        new Request(url + 'assessments', { method: 'POST', headers: large }),
+        context('assessments'),
+      )
+    ).status,
+  ).toBe(200);
+  const commit = 'imports/i/commit';
+  expect(
+    (await POST(new Request(url + commit, { method: 'POST', headers: large }), context(commit)))
+      .status,
+  ).toBe(413);
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+
 it('relays live AI only with an explicit server switch and a teacher credential', async () => {
   vi.stubEnv('EDU_AI_LIVE_MODE', '1');
   const fetcher = vi
@@ -464,4 +498,227 @@ it('finishes bounded JSON before an immediate upstream auth rejection, retaining
   expect(response.status).toBe(401);
   expect(response.headers.get('x-request-id')).toBe('req_auth');
   expect(response.headers.get('cache-control')).toBe('no-store');
+});
+
+it('relays formal programming AI task routes and rejects unallowed subpaths', async () => {
+  vi.stubEnv('EDU_API_ORIGIN', 'http://127.0.0.1:8136');
+  const fetcher = vi.fn<typeof fetch>().mockImplementation(async (url, init) => {
+    const method = init?.method ?? 'GET';
+    if (method === 'POST' && String(url).endsWith('/assessments/a1/ai-tasks')) {
+      return Response.json(
+        { task_id: 't1', state: 'queued' },
+        { status: 202, headers: { 'x-request-id': 'req_prog-start' } },
+      );
+    }
+    if (method === 'GET' && String(url).endsWith('/assessments/a1/ai-tasks/t1')) {
+      return Response.json(
+        { task_id: 't1', state: 'completed' },
+        { status: 200, headers: { 'x-request-id': 'req_prog-get' } },
+      );
+    }
+    return Response.json(
+      { error: { code: 'AI_TASK_CANCELLED', request_id: 'req_prog-cancel' } },
+      { status: 409, headers: { 'x-request-id': 'req_prog-cancel' } },
+    );
+  });
+  vi.stubGlobal('fetch', fetcher);
+
+  const startRes = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks', {
+      method: 'POST',
+      headers: { authorization: bearer, 'content-type': 'application/json' },
+      body: JSON.stringify({ purpose: 'programming_error_investigation', idempotency_key: 'k1' }),
+    }),
+    context('assessments/a1/ai-tasks'),
+  );
+  expect(startRes.status).toBe(202);
+  expect(startRes.headers.get('x-request-id')).toBe('req_prog-start');
+
+  const getRes = await GET(
+    new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks/t1', {
+      headers: { authorization: bearer },
+    }),
+    context('assessments/a1/ai-tasks/t1'),
+  );
+  expect(getRes.status).toBe(200);
+  expect(getRes.headers.get('x-request-id')).toBe('req_prog-get');
+
+  const cancelRes = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks/t1/cancel', {
+      method: 'POST',
+      headers: { authorization: bearer, 'content-type': 'application/json' },
+      body: '{}',
+    }),
+    context('assessments/a1/ai-tasks/t1/cancel'),
+  );
+  expect(cancelRes.status).toBe(409);
+  expect(cancelRes.headers.get('x-request-id')).toBe('req_prog-cancel');
+
+  const callsBeforeReject = fetcher.mock.calls.length;
+  expect(
+    (
+      await POST(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks', {
+          method: 'POST',
+          body: '{}',
+        }),
+        context('assessments/a1/ai-tasks'),
+      )
+    ).status,
+  ).toBe(401);
+  expect(
+    (
+      await GET(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks', {
+          headers: { authorization: bearer },
+        }),
+        context('assessments/a1/ai-tasks'),
+      )
+    ).status,
+  ).toBe(404);
+  expect(
+    (
+      await POST(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/a1/ai-tasks/t1/unknown', {
+          method: 'POST',
+          headers: { authorization: bearer },
+          body: '{}',
+        }),
+        context('assessments/a1/ai-tasks/t1/unknown'),
+      )
+    ).status,
+  ).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(callsBeforeReject);
+});
+
+it('relays per-problem student drill-down routes with Unicode labels and rejects traversal', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    Response.json({
+      assessment_id: 'assess_1',
+      problem_label: '7-1 区间求和',
+      total_count: 1,
+      offset: 0,
+      limit: 100,
+      items: [],
+    }),
+  );
+  vi.stubGlobal('fetch', fetcher);
+
+  const okRes = await GET(
+    new Request(
+      'http://127.0.0.1:3000/api/edu/assessments/assess_1/problems/7-1%20%E5%8C%BA%E9%97%B4%E6%B1%82%E5%92%8C/students?status=%E7%AD%94%E6%A1%88%E9%94%99%E8%AF%AF&test_index=7&offset=0&limit=100',
+      { headers: { authorization: bearer } },
+    ),
+    {
+      params: Promise.resolve({
+        path: ['assessments', 'assess_1', 'problems', '7-1 区间求和', 'students'],
+      }),
+    },
+  );
+  expect(okRes.status).toBe(200);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  const calledUrl = String(fetcher.mock.calls[0]?.[0]);
+  expect(calledUrl).toContain(
+    '/api/v1/edu/assessments/assess_1/problems/7-1%20%E5%8C%BA%E9%97%B4%E6%B1%82%E5%92%8C/students',
+  );
+  expect(calledUrl).toContain('test_index=7');
+
+  expect(
+    (
+      await GET(
+        new Request('http://127.0.0.1:3000/api/edu/assessments/assess_1/problems/../students', {
+          headers: { authorization: bearer },
+        }),
+        {
+          params: Promise.resolve({
+            path: ['assessments', 'assess_1', 'problems', '..', 'students'],
+          }),
+        },
+      )
+    ).status,
+  ).toBe(404);
+
+  expect(
+    (
+      await GET(
+        new Request(
+          'http://127.0.0.1:3000/api/edu/assessments/assess_1/problems/7-1/students?unexpected=1',
+          { headers: { authorization: bearer } },
+        ),
+        {
+          params: Promise.resolve({
+            path: ['assessments', 'assess_1', 'problems', '7-1', 'students'],
+          }),
+        },
+      )
+    ).status,
+  ).toBe(403);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+
+it('relays POST /api/edu/materials multipart payloads and rejects sibling paths', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    Response.json(
+      {
+        recognition_id: `sha256:${'a'.repeat(64)}`,
+        coverage: 'unknown',
+        authority: 'none',
+        materials: [
+          {
+            file_name: 'sample.bin',
+            kind: 'csv',
+            byte_size: 32,
+            source_id: `sha256:${'a'.repeat(64)}`,
+            status: 'recognized',
+            tables: [],
+            roles: [],
+            fields: [],
+            pending: [],
+            analyses: [],
+            warnings: [],
+            error: null,
+          },
+        ],
+        archives: [],
+        pending: [],
+      },
+      { headers: { 'x-request-id': 'req_materials' } },
+    ),
+  );
+  vi.stubGlobal('fetch', fetcher);
+
+  const form = new FormData();
+  form.append('file', new Blob(['学号,题号,源代码\nS001,7-1,int main(){}\n']), 'sample.bin');
+  const res = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/materials', {
+      method: 'POST',
+      headers: { authorization: bearer },
+      body: form,
+    }),
+    context('materials'),
+  );
+  expect(res.status).toBe(200);
+  expect(res.headers.get('x-request-id')).toBe('req_materials');
+  expect(String(fetcher.mock.calls[0]?.[0])).toBe('http://127.0.0.1:8000/api/v1/edu/materials');
+
+  const legacy = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/materials/inspect', {
+      method: 'POST',
+      headers: { authorization: bearer },
+      body: '{}',
+    }),
+    context('materials/inspect'),
+  );
+  expect(legacy.status).toBe(404);
+
+  const bad = await POST(
+    new Request('http://127.0.0.1:3000/api/edu/materials/unknown', {
+      method: 'POST',
+      headers: { authorization: bearer },
+      body: '{}',
+    }),
+    context('materials/unknown'),
+  );
+  expect(bad.status).toBe(404);
+  expect(fetcher).toHaveBeenCalledTimes(1);
 });

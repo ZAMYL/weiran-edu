@@ -5,12 +5,14 @@ from hashlib import sha256
 import httpx
 from prototypes.adaptive_assessment.live.pricing import (
     REVIEWED_PRICE_20261112,
-    REVIEWED_PRICE_20261119,
+)
+from prototypes.adaptive_assessment.live.pricing import (
+    REVIEWED_PRICE_20261125 as PRICE,
 )
 from prototypes.qwen_execution import code_fingerprint
 from scripts.edu_qwen_live_preflight import inspect_environment
 
-TODAY = date(2026, 11, 20)
+TODAY = date(2026, 11, 26)
 ENDPOINT = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
 
@@ -24,11 +26,11 @@ def configured(tmp_path):
         "human_approval_reference": "fixture-owner-123",
         "independent_review_reference": "fixture-review-123",
         "reviewed_code_sha256": code,
-        "valid_until": "2026-11-26",
+        "valid_until": "2026-12-02",
         "model": "qwen3.8-flash",
         "endpoint_sha256": endpoint_sha,
         "source_fingerprints": {source: source},
-        "price_fingerprint": REVIEWED_PRICE_20261119.fingerprint,
+        "price_fingerprint": PRICE.fingerprint,
         "max_requests": 1,
         "max_output_tokens": 800,
         "total_token_limit": 992608,
@@ -39,11 +41,11 @@ def configured(tmp_path):
         "human_approval_reference": "fixture-owner-456",
         "independent_review_reference": "fixture-review-456",
         "reviewed_code_sha256": code,
-        "valid_until": "2026-11-26",
+        "valid_until": "2026-12-02",
         "sources": [
             {
                 "source_sha256": source,
-                "valid_until": "2026-11-26",
+                "valid_until": "2026-12-02",
                 "human_approval_reference": "fixture-owner-456",
             }
         ],
@@ -82,7 +84,7 @@ def test_static_checks_create_no_client_files_or_secrets_in_output(tmp_path, mon
 
 def test_old_price_is_stale_and_approval_fingerprint_cannot_extend_it(tmp_path):
     env, live = configured(tmp_path)
-    assert REVIEWED_PRICE_20261112.fingerprint != REVIEWED_PRICE_20261119.fingerprint
+    assert REVIEWED_PRICE_20261112.fingerprint != PRICE.fingerprint
     assert REVIEWED_PRICE_20261112.valid_until == "2026-11-19"
     live["price_fingerprint"] = REVIEWED_PRICE_20261112.fingerprint
     (tmp_path / "campaign.json").write_text(json.dumps(live), encoding="utf-8")

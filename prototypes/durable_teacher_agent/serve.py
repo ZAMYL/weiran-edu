@@ -19,6 +19,20 @@ from app.importing.edu import parse_excel
 from .api import install
 from .demo import QUESTION, server
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _resolve_answersheet_sample(directory: Path) -> Path:
+    """Reuse existing synthetic programming answersheet ZIP; never create a new sample."""
+    existing = _REPO_ROOT / ".local" / "samples" / "synthetic-programming-answersheet.zip"
+    if existing.is_file():
+        return existing
+    from scripts.live02_acceptance import synthetic_zip
+
+    fallback = directory / "synthetic-programming-answersheet.zip"
+    fallback.write_bytes(synthetic_zip())
+    return fallback
+
 
 def bootstrap(client, host, service):
     actor = authenticate(service.store.database, host.token)
@@ -97,9 +111,13 @@ def main():
             first_use_workbook = host.books["normal"]
             first_use_sample = directory / "first-use-synthetic.xlsx"
             first_use_sample.write_bytes(first_use_workbook)
+            answersheet_sample = _resolve_answersheet_sample(directory)
             with (
                 server(
-                    host, directory, first_use=(first_use_teacher, first_use_workbook)
+                    host,
+                    directory,
+                    first_use=(first_use_teacher, first_use_workbook),
+                    programming_offline=True,
                 ) as origin,
                 httpx.Client(
                     base_url=origin,
@@ -124,6 +142,7 @@ def main():
                             "first_use_teacher_id": first_use_teacher,
                             "first_use_scope_id": first_use_scope,
                             "first_use_sample_path": str(first_use_sample),
+                            "answersheet_sample_path": str(answersheet_sample),
                             "batches": batches,
                         },
                         target,
@@ -137,14 +156,15 @@ def main():
                             "ready": True,
                             "private_connection_file": str(config),
                             "first_use_sample_path": str(first_use_sample),
+                            "answersheet_sample_path": str(answersheet_sample),
                             "synthetic_batches": len(batches),
                             "real_qwen": "not_run",
                         }
                     ),
                     flush=True,
                 )
-                deadline = time.monotonic() + (args.seconds or 3600)
-                while time.monotonic() < deadline:
+                deadline = time.monotonic() + args.seconds if args.seconds > 0 else None
+                while deadline is None or time.monotonic() < deadline:
                     time.sleep(0.25)
         except KeyboardInterrupt:
             pass

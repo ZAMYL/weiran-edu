@@ -339,7 +339,7 @@ export async function teacherAnalysisFlow({
     await page.getByRole('combobox', { name: '筛选条件1比较' }).click();
     await page.locator('.ant-select-dropdown').getByText('=', { exact: true }).click();
     await page.getByRole('button', { name: '添加条件', exact: true }).click();
-    await page.getByRole('textbox', { name: '筛选条件2评分' }).fill('3.25');
+    await page.getByRole('spinbutton', { name: '筛选条件2评分' }).fill('3.25');
     await page.getByRole('button', { name: '应用筛选', exact: true }).click();
     await page.locator('.match-summary').filter({ hasText: '12 / 23' }).waitFor();
     await navigation('学情诊断');

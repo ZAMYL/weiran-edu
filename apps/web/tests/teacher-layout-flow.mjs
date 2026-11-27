@@ -308,7 +308,7 @@ export async function teacherLayoutFlow({
     )
     .then((response) => response.json());
   await compare.uncheck();
-  await page.getByRole('list', { name: '选择学生画像' }).getByRole('button').nth(1).click();
+  await page.getByRole('menu', { name: '选择学生画像' }).getByRole('menuitem').nth(1).click();
   const secondStudent = await secondReply;
   await page.waitForFunction(
     (id) =>
@@ -344,7 +344,7 @@ export async function teacherLayoutFlow({
     const data = await response.json();
     await route.fulfill({ response, json: { ...data, items: data.items.slice(1) } });
   });
-  await page.getByRole('list', { name: '选择学生画像' }).getByRole('button').first().click();
+  await page.getByRole('menu', { name: '选择学生画像' }).getByRole('menuitem').first().click();
   await portrait()
     .getByRole('img', { name: '不完整学生评分图；未提供评分的维度不补零', exact: true })
     .waitFor();
@@ -360,7 +360,7 @@ export async function teacherLayoutFlow({
     path: path.join(artifacts, 'student-portrait-incomplete.png'),
     fullPage: true,
   });
-  await page.getByRole('list', { name: '选择学生画像' }).getByRole('button').nth(1).click();
+  await page.getByRole('menu', { name: '选择学生画像' }).getByRole('menuitem').nth(1).click();
   await portrait()
     .getByRole('img', { name: /^学生能力雷达图/ })
     .waitFor();

@@ -17,6 +17,7 @@ Caddy (TLS)
 - Docker Engine + Compose v2
 - 已获批准的测评数据来源、`RealDataAdmission` 文件
 - 已获批准的单次 `DatabaseLiveApproval` 文件（每个 campaign 一份）
+- 已获批准的单次 `ProgrammingLiveApproval` 文件（每个正式编程调查一份）
 - 服务端 DashScope Key
 
 ## 目录
@@ -44,7 +45,7 @@ chmod 600 .env
 
 `.env` 不能提交；Key 只放服务端。
 
-## 2. 准备两个仓库外审批文件
+## 2. 准备三个仓库外审批文件
 
 ### 真实数据准入（长期）
 
@@ -75,6 +76,18 @@ chmod 600 .env
 
 `secrets/qwen-live-approval.json` 使用 `DatabaseLiveApproval` 结构（`purpose=database_live`、`source_fingerprints` 绑定 exact source SHA、`campaign_id`、模型/端点/价格/费用上限/有效期）。**一个 campaign 只能使用一次**；换任务要换文件。
 
+### 正式编程调查（每个测评一份）
+
+`secrets/programming-live-approval.json` 使用 `ProgrammingLiveApproval` 结构，字段与样例见
+[`programming-live-approval.example.json`](programming-live-approval.example.json)，详细语义见
+[`docs/LIVE02_PROGRAMMING.md`](../docs/LIVE02_PROGRAMMING.md)。
+
+- `source_fingerprints` 必须写 `{assessment_id: source_snapshot_id}`，只允许精确匹配；不在表里的测评返回 `AI_LIVE_SOURCE_NOT_APPROVED`。
+- **一条 `human_approval_reference` 只能资助一个 campaign**，换测评或在同一测评重跑都要新文件；复用会报 `AI_CAMPAIGN_ALREADY_USED`。
+- `price_fingerprint` 与 `valid_until` 取当前审核价快照；`REVIEWED_PRICE_20261125` 有效至 `2026-12-02`，过期必须重新做价格审查并生成新指纹。
+- `reviewed_code_sha256` 与 `prototypes.qwen_execution.code_fingerprint()` 一致；只改 `.md`、`deploy/`、`.github/`、`apps/api/tests/` 不影响它，改 `apps/api/app/**` 或 `prototypes/**` 的 `.py` 会失效。
+- 该文件同时挂给 `api` 与 `programming_worker` 两个容器；`web` 容器不挂。
+
 ## 3. 启动
 
 首次部署先初始化 SQLite，再在 Worker 的配置环境中运行只读自检。启动顺序和获批后的一次合成验收见 [DS-LIVE 联网前验收](QWEN_LIVE_PREFLIGHT.md)。
@@ -84,7 +97,7 @@ docker compose build api
 docker compose run --rm --no-deps api uv run --project apps/api --locked python -m app.edu init
 docker compose up -d --build
 docker compose ps
-docker compose logs -f api worker
+docker compose logs -f api worker programming_worker
 ```
 
 Caddy 自动申请 HTTPS。只暴露 80/443；FastAPI 不映射公网端口。
@@ -110,16 +123,27 @@ Token 通过容器环境传入。禁止将值写入命令历史或仓库。
 - 结果/评分依据/报告走现有 HTTP API；
 - 同一 `campaign_id` 不能重跑，失败不自动退款。
 
+### 正式编程调查（LIVE-02）
+
+- 入口是 `POST /api/v1/edu/assessments/{assessment_id}/ai-tasks`；`api` 只入队，不执行模型。
+- `programming_worker` 独立进程用条件 `UPDATE` 认领 `queued` 行，一个任务只会被一个进程认领。
+- 结果、请求数、工具轨迹、来源摘要写入同一 SQLite；重启后用 `GET .../ai-tasks/{task_id}` 仍可查。
+- 失败、取消、撤权、超时一律清空结果，并把 `real_qwen` 标为 `failed` 或 `not_run`，不会出现“没跑完但显示成功”。
+
 ## 6. 必须遵守的边界
 
-- **单实例、单 worker**：SQLite 和本地账本不是多实例并发方案。
+- **单实例、单 worker**：SQLite 和本地账本不是多实例并发方案。LIVE-02 的
+  `programming_worker` 是同类任务的第二个进程，两者各只允许一个实例，不能再横向扩。
 - **真实数据只外发聚合视图**：不发送姓名、逐人评分、原始答卷、评语、Rubric 正文。
 - **审批文件在仓库外**；`data/`、`ledger/`、`secrets/` 不提交。
+- **审批坏了只关编程调查**：`WEIRAN_EDU_PROGRAMMING_LIVE_APPROVAL` 存在但过期、指纹不符或缺 Key 时，`api` 照常启动（状态记在 `app.state.programming_live`），只有编程任务返回 `AI_LIVE_ADMISSION_REQUIRED`；上传、查询不受影响。
+- **编程 worker 也必须是单实例**：两个进程同时写同一 SQLite 文件会争锁（`busy_timeout=3s`）。
 - **没有 Key 时** API/worker 启动不读 Key；任务失败关闭，不回退 Mock。
 - **没有服务器时** 本目录只是待部署包，不能宣称已上线。
 
 ## 当前未验证
 
 - Docker 构建/Compose 在本机未实际运行（本机无 Docker）。
+- `programming_worker` 服务只在 GitHub Actions 的临时 runner 上跑通过，没有在 Docker Compose 中实跑。
 - 真实数据运行仍需服务器、真实审批、一次获批的付费执行。
 - 多实例、队列高可用、数据库迁移到 Postgres、SSO、备份/监控仍需后续工作。

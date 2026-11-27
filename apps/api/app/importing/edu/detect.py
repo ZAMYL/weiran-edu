@@ -96,13 +96,23 @@ def _looks_like_html(data: bytes) -> bool:
 
 
 def _looks_like_csv(data: bytes) -> bool:
-    """保守判断：前几行都是可见文本且含逗号，才算 CSV。"""
+    """保守判断：存在两行相邻、逗号数一致的可见文本行才算 CSV。
+
+    允许首行是没有逗号的标题/说明（由抽取层另行诊断），但要求表头与相邻
+    数据行结构一致，避免把普通散文误判为表格。
+    """
     try:
         head = data[:2048].decode("utf-8")
     except UnicodeDecodeError:
         return False
-    lines = [line for line in head.splitlines() if line.strip()][:3]
-    return bool(lines) and all("," in line for line in lines)
+    lines = [line for line in head.splitlines() if line.strip()][:8]
+    previous_commas = -1
+    for line in lines:
+        commas = line.count(",")
+        if commas >= 1 and commas == previous_commas:
+            return True
+        previous_commas = commas
+    return False
 
 
 def _looks_like_text(data: bytes) -> bool:

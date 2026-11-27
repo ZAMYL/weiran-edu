@@ -1,6 +1,19 @@
 'use client';
+import { tokens } from '../../app/theme';
+import { Disclosure } from '../../components/Disclosure';
 import { useCallback, useState } from 'react';
-import { Button, Drawer, Empty, Pagination, Table } from 'antd';
+import {
+  Alert,
+  Button,
+  Descriptions,
+  Drawer,
+  Empty,
+  Flex,
+  Pagination,
+  Space,
+  Table,
+  Typography,
+} from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useDataMode } from '../../app/data-mode';
 import {
@@ -43,8 +56,7 @@ export function LiveStudentTable({
     <Table<ApiStudent>
       rowKey="student_id"
       dataSource={items}
-      scroll={{ x: 750 }}
-      size="small"
+      scroll={{ x: 'max-content' }}
       locale={{ emptyText: '没有匹配记录，请调整筛选条件。' }}
       pagination={{
         current: Math.floor(offset / 10) + 1,
@@ -84,10 +96,11 @@ export function LiveStudentTable({
           title: '操作',
           key: 'detail',
           render: (_, student) => (
-            <div className="student-row-actions">
+            <Space size={tokens.sizeXXS} wrap className="student-row-actions">
               {onProfile && (
                 <Button
                   type="link"
+                  size="small"
                   aria-label={`查看 ${student.display_label} 能力画像`}
                   onClick={() => onProfile(student)}
                 >
@@ -96,12 +109,13 @@ export function LiveStudentTable({
               )}
               <Button
                 type="link"
+                size="small"
                 onClick={() => onStudent(student)}
                 aria-label={`查看 ${student.display_label} 的测评详情`}
               >
                 详情 →
               </Button>
-            </div>
+            </Space>
           ),
         },
       ]}
@@ -111,31 +125,43 @@ export function LiveStudentTable({
 function EvidenceContent({ evidence }: { evidence: ApiEvidence }) {
   return (
     <Panel title={`${dimensionName(evidence.dimension_code)} · ${scoreDisplay(evidence.score)} 分`}>
-      <p>原始数值：{evidence.score_raw}</p>
-      <div className="withheld-note">{commentStatusText(evidence.comment_status)}</div>
-      {evidence.comment_status === 'published' && (
-        <>
-          <p className="reviewed-text">{evidence.comment}</p>
-          <p className="muted small">
-            审核展示版本 {evidence.comment_review_version} · 未授予公开发布许可
-          </p>
-        </>
-      )}
-      <dl className="source-details">
-        <dt>评分来源</dt>
-        <dd>
-          {evidence.source.sheet_name} · 第 {evidence.source.row_number} 行 ·{' '}
-          {evidence.source.score_cell}
-        </dd>
-        <dt>维度 / 评语单元格</dt>
-        <dd>
-          {evidence.source.dimension_cell} / {evidence.source.comment_cell}
-        </dd>
-      </dl>
-      <details className="technical-details">
-        <summary>文件校验信息</summary>
-        <p className="small">{evidence.source.file_sha256}</p>
-      </details>
+      <Flex vertical gap={tokens.sizeSM}>
+        <Typography.Text>原始数值：{evidence.score_raw}</Typography.Text>
+        <Alert type="info" showIcon title={commentStatusText(evidence.comment_status)} />
+        {evidence.comment_status === 'published' && (
+          <Flex vertical gap={tokens.sizeXXS}>
+            <Typography.Paragraph className="reviewed-text" style={{ margin: 0 }}>
+              {evidence.comment}
+            </Typography.Paragraph>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              审核展示版本 {evidence.comment_review_version} · 未授予公开发布许可
+            </Typography.Text>
+          </Flex>
+        )}
+        <Descriptions
+          className="source-details"
+          size="small"
+          column={1}
+          bordered
+          items={[
+            {
+              key: 'source',
+              label: '评分来源',
+              children: `${evidence.source.sheet_name} · 第 ${evidence.source.row_number} 行 · ${evidence.source.score_cell}`,
+            },
+            {
+              key: 'cells',
+              label: '维度 / 评语单元格',
+              children: `${evidence.source.dimension_cell} / ${evidence.source.comment_cell}`,
+            },
+          ]}
+        />
+        <Disclosure className="technical-details" label={<>文件校验信息</>}>
+          <Typography.Text type="secondary" style={{ fontSize: 12, overflowWrap: 'anywhere' }}>
+            {evidence.source.file_sha256}
+          </Typography.Text>
+        </Disclosure>
+      </Flex>
     </Panel>
   );
 }
@@ -172,32 +198,37 @@ export function LiveScoreDrawer({
       {resource.loading && <LoadingPanel />}
       {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
       {resource.data && (
-        <>
+        <Flex vertical gap={tokens.size}>
           <EvidenceContent evidence={resource.data.evidence} />
           <Panel title="评分依据">
-            <p>{criterion?.display_name ?? '未找到对应依据'}</p>
-            {criterion?.criteria_status === 'published' ? (
-              <>
-                <div className="withheld-note">已审核评分依据 · 仅限授权教师</div>
-                <p className="reviewed-text">{criterion.criteria_text}</p>
-                <p className="muted small">
-                  审核展示版本 {criterion.criteria_review_version} · 未授予公开发布许可
-                </p>
-              </>
-            ) : (
-              <div className="withheld-note">评分依据正文暂未开放（待审核）</div>
-            )}
-            {criterion && (
-              <p className="source-line">
-                {criterion.source.sheet_name} · {criterion.source.range}
-              </p>
-            )}
-            <details className="technical-details">
-              <summary>标准版本</summary>
-              <p className="muted small">{resource.data.rubric.rubric_version}</p>
-            </details>
+            <Flex vertical gap={tokens.sizeSM}>
+              <Typography.Text>{criterion?.display_name ?? '未找到对应依据'}</Typography.Text>
+              {criterion?.criteria_status === 'published' ? (
+                <>
+                  <Alert type="info" showIcon title="已审核评分依据 · 仅限授权教师" />
+                  <Typography.Paragraph className="reviewed-text" style={{ margin: 0 }}>
+                    {criterion.criteria_text}
+                  </Typography.Paragraph>
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    审核展示版本 {criterion.criteria_review_version} · 未授予公开发布许可
+                  </Typography.Text>
+                </>
+              ) : (
+                <Alert type="warning" showIcon title="评分依据正文暂未开放（待审核）" />
+              )}
+              {criterion && (
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {criterion.source.sheet_name} · {criterion.source.range}
+                </Typography.Text>
+              )}
+              <Disclosure className="technical-details" label={<>标准版本</>}>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {resource.data.rubric.rubric_version}
+                </Typography.Text>
+              </Disclosure>
+            </Flex>
           </Panel>
-        </>
+        </Flex>
       )}
     </Drawer>
   );
@@ -310,21 +341,40 @@ export function MetricEvidenceDrawer({
         {resource.loading && <LoadingPanel />}
         {resource.error && <RequestError error={resource.error} retry={resource.retry} />}
         {result && (
-          <>
+          <Flex vertical gap={tokens.size}>
             <Panel title="统计说明">
-              <p>
-                当前指标：<b>{metricDisplay(result.metric)}</b>
-              </p>
-              <p>
-                指标来源记录数：{result.metric.source_record_count} · 参与记录总数：
-                {result.total_count}
-              </p>
-              <p>
-                统计分母：{result.metric.denominator ?? '不适用'} · 卡片范围人数：
-                {result.scope_record_count}
-              </p>
-              <p className="muted small">人数按完整结果统计，翻页时保持一致。</p>
-              <div className="condition-box">{conditionText(selection!.spec.conditions)}</div>
+              <Flex vertical gap={tokens.sizeSM}>
+                <Descriptions
+                  size="small"
+                  column={1}
+                  items={[
+                    {
+                      key: 'metric',
+                      label: '当前指标',
+                      children: <strong>{metricDisplay(result.metric)}</strong>,
+                    },
+                    {
+                      key: 'records',
+                      label: '指标来源记录 / 参与总数',
+                      children: `${result.metric.source_record_count} / ${result.total_count}`,
+                    },
+                    {
+                      key: 'scope',
+                      label: '统计分母 / 卡片范围',
+                      children: `${result.metric.denominator ?? '不适用'} / ${result.scope_record_count} 人`,
+                    },
+                  ]}
+                />
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  人数按完整结果统计，翻页时保持一致。
+                </Typography.Text>
+                <Alert
+                  type="info"
+                  showIcon
+                  className="condition-box"
+                  title={conditionText(selection!.spec.conditions)}
+                />
+              </Flex>
             </Panel>
             {result.total_count ? (
               <LiveStudentTable
@@ -339,7 +389,7 @@ export function MetricEvidenceDrawer({
               <Empty description="当前范围没有纳入该指标的评分记录。" />
             )}
             {!result.total_count && result.page.has_more && <Pagination current={1} total={0} />}
-          </>
+          </Flex>
         )}
       </Drawer>
       <LiveStudentDrawer batch={batch} student={student} onClose={() => setStudent(null)} />
